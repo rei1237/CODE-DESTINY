@@ -326,10 +326,57 @@ input:checked + .slider .paw-pad {
   border-radius:14px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .25s;font-family:inherit}
 .btn-sub:hover{background:#FFF5F8}
 
-/* 유명인 선택 버튼 */
-.celeb-btn{width:auto;padding:6px 10px;background:#fff;color:var(--pink);border:1px solid var(--pink-l);
-  border-radius:12px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .25s;font-family:inherit}
-.celeb-btn:hover{background:var(--pink-l);color:#fff}
+/* 유명인 카테고리 탭 */
+.celeb-tab-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.celeb-tab-btn{
+  padding:5px 11px;border-radius:20px;
+  border:1.5px solid #f0c4a0;
+  background:#fff8f4;color:#c0632a;
+  font-size:11.5px;font-weight:600;cursor:pointer;
+  font-family:inherit;white-space:nowrap;
+  transition:background .18s,color .18s,border-color .18s,box-shadow .18s,transform .12s;
+  box-shadow:0 1px 4px rgba(232,168,124,.10);
+}
+.celeb-tab-btn:hover{
+  background:#fde8d8;border-color:#e8a87c;
+  transform:translateY(-1px);box-shadow:0 3px 8px rgba(232,168,124,.22);
+}
+.celeb-tab-btn.active{
+  background:linear-gradient(135deg,#e8a87c,#f0b896);
+  color:#fff;border-color:#e8a87c;
+  box-shadow:0 3px 10px rgba(232,168,124,.40);
+  transform:translateY(-1px);
+}
+/* 유명인 이름 버튼 */
+.celeb-name-area{
+  display:flex;flex-wrap:wrap;gap:5px;
+  max-height:200px;overflow-y:auto;
+  padding:4px 2px;
+  transition:opacity 0.15s ease;
+  scrollbar-width:thin;scrollbar-color:#f0c4a0 transparent;
+}
+.celeb-name-area::-webkit-scrollbar{width:4px}
+.celeb-name-area::-webkit-scrollbar-track{background:transparent}
+.celeb-name-area::-webkit-scrollbar-thumb{background:#f0c4a0;border-radius:4px}
+.celeb-btn{
+  padding:5px 10px;
+  background:#fff8f2;color:#c0632a;
+  border:1.5px solid #f5d5b8;
+  border-radius:14px;font-size:12px;font-weight:600;
+  cursor:pointer;white-space:nowrap;
+  font-family:inherit;
+  transition:background .18s,color .18s,border-color .18s,box-shadow .18s,transform .12s;
+}
+.celeb-btn:hover{
+  background:#fde8d8;border-color:#e8a87c;
+  transform:translateY(-1px);box-shadow:0 2px 7px rgba(232,168,124,.25);
+}
+.celeb-btn.active{
+  background:linear-gradient(135deg,var(--pink),var(--pink-l));
+  color:#fff!important;border-color:var(--pink)!important;
+  box-shadow:0 3px 10px rgba(255,139,167,.35);
+  transform:translateY(-1px);
+}
 .top-hero{background:linear-gradient(135deg,var(--pink-l),var(--peach));
   border-radius:20px;padding:24px;color:#fff;text-align:center;margin-bottom:16px;
   box-shadow:0 5px 20px rgba(255,183,178,.35)}
@@ -1319,7 +1366,14 @@ body.neo-mode .travel-box,.neo-mode .travel-chip{background:rgba(255,255,255,.04
 body.neo-mode .travel-chip-title{color:#FFD700!important}
 body.neo-mode .travel-badge{background:rgba(255,215,0,.1)!important;color:#FFD700!important;border:1px solid rgba(255,215,0,.2)!important}
 body.neo-mode .travel-chip li{color:#888!important}
+body.neo-mode .celeb-tab-btn{background:rgba(255,215,0,.06)!important;color:#FFD700!important;border-color:rgba(255,215,0,.22)!important}
+body.neo-mode .celeb-tab-btn:hover{background:rgba(255,215,0,.14)!important;border-color:rgba(255,215,0,.5)!important}
+body.neo-mode .celeb-tab-btn.active{background:linear-gradient(135deg,rgba(255,215,0,.45),rgba(255,215,0,.3))!important;color:#1A1A1B!important;border-color:rgba(255,215,0,.85)!important;box-shadow:0 3px 10px rgba(255,215,0,.25)!important}
+body.neo-mode .celeb-name-area{scrollbar-color:rgba(255,215,0,.3) transparent}
+body.neo-mode .celeb-name-area::-webkit-scrollbar-thumb{background:rgba(255,215,0,.3)}
 body.neo-mode .celeb-btn{background:rgba(255,215,0,.06)!important;color:#FFD700!important;border-color:rgba(255,215,0,.2)!important}
+body.neo-mode .celeb-btn:hover{background:rgba(255,215,0,.14)!important;border-color:rgba(255,215,0,.5)!important}
+body.neo-mode .celeb-btn.active{background:linear-gradient(135deg,rgba(255,215,0,.45),rgba(255,215,0,.3))!important;color:#1A1A1B!important;border-color:rgba(255,215,0,.85)!important;box-shadow:0 3px 10px rgba(255,215,0,.25)!important}
 body.neo-mode .dw-item{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.07)!important}
 body.neo-mode .dw-item.good{border-color:rgba(34,197,94,.3)!important}
 body.neo-mode .dw-item.bad{border-color:rgba(239,68,68,.3)!important}
@@ -2912,11 +2966,10 @@ body.neo-mode .monthly-label { color: #64748b; }
           </select>
         </div>
         <div id="compatTypeDesc" style="font-size:.85rem;color:#666;margin-top:4px">유형을 선택하면 해당 유형에 맞는 분석 문구와 권장 포인트가 표시됩니다.</div>
-        </div>
         <!-- 유명인 목록 클릭으로 빠르게 입력 -->
         <div class="form-group">
           <label class="form-label" style="margin-bottom:6px">유명인 선택</label>
-          <div id="celebsList" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          <div id="celebsList"></div>
         </div>
         <div class="form-group" style="margin-bottom:10px">
           <label class="form-label" style="margin-bottom:6px">상대 생년월일 · 시간</label>
@@ -2933,9 +2986,9 @@ body.neo-mode .monthly-label { color: #64748b; }
           </div>
         </div>
         <button id="compatRunBtn" class="btn-sub" style="margin-top:4px" onclick="runCompat()">💗 궁합 분석하기</button>
+        <div id="compatResult" style="margin-top:14px"></div>
+        <div id="compatTestResults" style="margin-top:12px;font-size:.9rem;color:#333"></div>
       </div>
-      <div id="compatResult" style="margin-top:14px"></div>
-      <div id="compatTestResults" style="margin-top:12px;font-size:.9rem;color:#333"></div>
     </div>
 
     <!-- 2-2. 나와 비슷한 연예인 -->
@@ -6993,57 +7046,86 @@ const CELEBS=[
   {cat:'국내정치인',name:'이준석',birth:'1985-03-30',hour:12,minute:0}
 ];
 
+var CELEB_CAT_ICONS={
+  '전체':'✨','걸그룹':'💃','보이그룹':'🕺','가수·솔로':'🎤',
+  '배우':'🎬','글로벌기업인':'🌐','국내기업인':'💼',
+  '글로벌정치인':'🌍','국내정치인':'🏛️'
+};
+
 function populateCelebList(){
   var container=document.getElementById('celebsList');
   if(!container) return;
   container.innerHTML='';
 
+  // 카테고리 탭 바
   var tabBar=document.createElement('div');
-  tabBar.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;';
+  tabBar.className='celeb-tab-wrap';
+  tabBar.id='celebTabBar';
 
-  var allBtn=document.createElement('button');
-  allBtn.type='button';
-  allBtn.textContent='전체';
-  allBtn.style.cssText='padding:4px 10px;border-radius:12px;border:1px solid #e8a87c;background:#e8a87c;color:#fff;font-size:12px;cursor:pointer;';
-  allBtn.dataset.active='true';
-  tabBar.appendChild(allBtn);
-
-  CELEB_CATS.forEach(function(cat){
+  var cats=['전체'].concat(CELEB_CATS);
+  cats.forEach(function(cat,i){
     var btn=document.createElement('button');
     btn.type='button';
-    btn.textContent=cat;
-    btn.style.cssText='padding:4px 10px;border-radius:12px;border:1px solid #e8a87c;background:#fff;color:#c0632a;font-size:12px;cursor:pointer;';
+    btn.className='celeb-tab-btn'+(i===0?' active':'');
+    btn.dataset.cat=(cat==='전체')?'':cat;
+    btn.innerHTML=(CELEB_CAT_ICONS[cat]||'')+'&nbsp;'+cat;
     tabBar.appendChild(btn);
   });
   container.appendChild(tabBar);
 
+  // 유명인 이름 버튼 영역
   var btnArea=document.createElement('div');
   btnArea.id='celebBtnArea';
-  btnArea.style.cssText='display:flex;flex-wrap:wrap;gap:4px;max-height:220px;overflow-y:auto;';
+  btnArea.className='celeb-name-area';
   container.appendChild(btnArea);
 
-  function renderCelebs(filterCat){
-    btnArea.innerHTML='';
-    var list=filterCat?CELEBS.filter(function(c){return c.cat===filterCat;}):CELEBS;
-    list.forEach(function(c){
-      var btn=document.createElement('button');
-      btn.type='button';
-      btn.className='celeb-btn';
-      btn.textContent=c.name;
-      btn.style.cssText='padding:4px 8px;border-radius:10px;border:1px solid #ddd;background:#fff8f2;font-size:12px;cursor:pointer;white-space:nowrap;';
-      btn.onclick=function(){ setCeleb(c); };
-      btnArea.appendChild(btn);
-    });
-  }
-  renderCelebs(null);
+  // 탭 클릭 → 이벤트 위임
+  tabBar.addEventListener('click', function(e){
+    var tabBtn=e.target.closest('.celeb-tab-btn');
+    if(!tabBtn) return;
+    tabBar.querySelectorAll('.celeb-tab-btn').forEach(function(b){b.classList.remove('active');});
+    tabBtn.classList.add('active');
+    renderCelebs(tabBtn.dataset.cat||null);
+  });
 
-  Array.from(tabBar.querySelectorAll('button')).forEach(function(tabBtn){
-    tabBtn.addEventListener('click', function() {
-      tabBtn.style.background='#e8a87c'; tabBtn.style.color='#fff';
-      var cat=tabBtn.textContent==='전체'?null:tabBtn.textContent;
-      renderCelebs(cat);
+  // 유명인 버튼 클릭 → 이벤트 위임
+  btnArea.addEventListener('click', function(e){
+    var nameBtn=e.target.closest('.celeb-btn');
+    if(!nameBtn) return;
+    btnArea.querySelectorAll('.celeb-btn').forEach(function(b){b.classList.remove('active');});
+    nameBtn.classList.add('active');
+    setCeleb({
+      name: nameBtn.dataset.name,
+      birth: nameBtn.dataset.birth,
+      hour: parseInt(nameBtn.dataset.hour)||12,
+      minute: parseInt(nameBtn.dataset.minute)||0
     });
   });
+
+  function renderCelebs(filterCat){
+    btnArea.style.opacity='0';
+    btnArea.style.transition='opacity 0.15s';
+    setTimeout(function(){
+      btnArea.innerHTML='';
+      var list=filterCat
+        ?CELEBS.filter(function(c){return c.cat===filterCat;})
+        :CELEBS;
+      list.forEach(function(c){
+        var btn=document.createElement('button');
+        btn.type='button';
+        btn.className='celeb-btn';
+        btn.textContent=c.name;
+        btn.dataset.name=c.name;
+        btn.dataset.birth=c.birth;
+        btn.dataset.hour=c.hour!==undefined?c.hour:12;
+        btn.dataset.minute=c.minute!==undefined?c.minute:0;
+        btn.dataset.cat=c.cat;
+        btnArea.appendChild(btn);
+      });
+      btnArea.style.opacity='1';
+    }, 100);
+  }
+  renderCelebs(null);
 }
 
 function setCeleb(c){
@@ -7112,6 +7194,7 @@ function runCompat(){
     if(resultArea) resultArea.innerHTML=compat.html;
     var pastHtml=analyzePastLifeCompat(G_PILLARS,p2,name);
     if(resultArea) resultArea.insertAdjacentHTML('beforeend',pastHtml);
+    if(resultArea) setTimeout(function(){ resultArea.scrollIntoView({behavior:'smooth', block:'start'}); }, 50);
   }catch(e){
     console.error('compat error',e);
     alert('궁합 계산 중 오류가 발생했어요: '+e.message);
@@ -9960,7 +10043,9 @@ if(document.readyState==='loading'){
   loadNext();
 });
 }else{
-  initSelectors();loadNext();
+  initSelectors();
+  populateCelebList();
+  loadNext();
 }
 </script>
 <script>
