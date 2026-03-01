@@ -2008,6 +2008,87 @@ body.neo-mode .monthly-label { color: #64748b; }
   body.neo-mode .pig-only { display: none !important; }
   body.neo-mode .neo-only { display: block !important; }
   body.neo-mode span.neo-only { display: inline !important; }
+
+  /* ══════════════════════════════════════════
+     fate-scroll-section │ 스크롤 등장 시스템
+     네임스페이스 충돌 방지 · 글로벌 태그 직접 스타일링 금지
+  ══════════════════════════════════════════ */
+  .fate-scroll-section-hidden {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  .fate-scroll-section-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+  /* 다음 섹션 인디케이터 컨테이너 */
+  .fate-scroll-next-indicator {
+    position: fixed;
+    bottom: 86px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 490;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .fate-scroll-next-indicator.fate-scroll-next-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* 화살표 버튼 */
+  .fate-scroll-next-arrow {
+    width: 38px;
+    height: 38px;
+    background: var(--point-color, #FF8BA7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.1rem;
+    line-height: 1;
+    box-shadow: 0 4px 16px rgba(255, 139, 167, 0.45);
+    cursor: pointer;
+    pointer-events: auto;
+    border: none;
+    outline: none;
+    animation: fate-scroll-bounce 1.5s ease-in-out infinite;
+  }
+  /* 라벨 */
+  .fate-scroll-next-label {
+    font-size: 0.68rem;
+    color: var(--point-color, #FF8BA7);
+    font-weight: 700;
+    background: var(--card-bg, rgba(255, 255, 255, 0.92));
+    padding: 3px 10px;
+    border-radius: 99px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    max-width: 165px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  /* 바운스 키프레임 */
+  @keyframes fate-scroll-bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(7px); }
+  }
+  /* 네오 모드 색상 오버라이드 */
+  body.neo-mode .fate-scroll-next-arrow {
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.35);
+  }
+  body.neo-mode .fate-scroll-next-label {
+    color: var(--point-color, #FFD700);
+  }
   </style>
 </head>
 <body>
@@ -4704,7 +4785,20 @@ async function calculate(){
       document.getElementById('letterBox').style.display='block';
       document.getElementById('emailSubBox').style.display='block';
       document.getElementById('btnNewSaju').style.display='block';
-    window.scrollTo(0,0);
+    // 모바일 호환 최상단 스크롤 (rAF → 16ms timeout 이중 보정)
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    requestAnimationFrame(function () {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      setTimeout(function () {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }, 16);
+    });
 
     // 히어로
     var animal=(JI[yz]||{}).a||'';
@@ -10501,7 +10595,14 @@ function resetApp(){
   var dmCard=document.getElementById('dailyMonthlyCard');
   if(dmCard)dmCard.style.display='none';
   G_POWER=null;G_JONG=null;G_JOHU=null;
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  requestAnimationFrame(function () {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
 }
 
 /* ═══════════════════════════════════════
@@ -10591,7 +10692,7 @@ window.addEventListener('beforeinstallprompt', function(e) {
   var btn = document.getElementById('btnPwaInstall');
   if (btn) {
     btn.classList.remove('installed');
-    document.getElementById('pwaInstallLabel').textContent = '홈 화면에 부적 설치';
+    document.getElementById('pwaInstallLabel').textContent = '홈 화면에 행운의 만세력 설치';
   }
 });
 
@@ -11097,6 +11198,190 @@ window.addEventListener('load', function() {
       if(andGuide) andGuide.style.display = 'block';
     }
   }
+})();
+</script>
+
+<!-- ════════════════════════════════════════════
+     fate-scroll-section │ 스크롤 등장 + 다음 섹션 인디케이터
+     Intersection Observer API 기반 · IIFE 캡슐화
+     외부 라이브러리 없음 · 전역 변수 오염 없음
+════════════════════════════════════════════ -->
+<script>
+;(function () {
+  'use strict';
+
+  var HIDDEN_CLS   = 'fate-scroll-section-hidden';
+  var VISIBLE_CLS  = 'fate-scroll-section-visible';
+  var INDICATOR_ID = 'fateScrollNextIndicator';
+  /* resultPage 내 대상 선택자 (글로벌 태그 직접 스타일 금지) */
+  var INNER_SEL = '.card, .destiny-section, .letter-box, .share-section';
+
+  /* ── 유틸 ── */
+  function getSections() {
+    var rp = document.getElementById('resultPage');
+    return rp ? Array.from(rp.querySelectorAll(INNER_SEL)) : [];
+  }
+
+  function isDisplayed(el) {
+    return !!(el && el.offsetParent !== null &&
+      getComputedStyle(el).display !== 'none');
+  }
+
+  /* ── 1. Reveal Observer (Intersection Observer) ── */
+  var revealObserver = null;
+
+  function initReveal() {
+    if (!('IntersectionObserver' in window)) return;
+    revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target?.classList.remove(HIDDEN_CLS);
+          entry.target?.classList.add(VISIBLE_CLS);
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '0px 0px -50px 0px',
+      threshold: 0.07
+    });
+
+    getSections().forEach(function (el) {
+      if (!el.classList.contains(VISIBLE_CLS)) {
+        el.classList.add(HIDDEN_CLS);
+        revealObserver.observe(el);
+      }
+    });
+  }
+
+  /* ── 2. 다음 섹션 인디케이터 ── */
+  var indicatorEl    = null;
+  var indicatorLabel = null;
+  var currentSection = null;
+  var sectionObserver = null;
+
+  function createIndicator() {
+    if (document.getElementById(INDICATOR_ID)) {
+      indicatorEl    = document.getElementById(INDICATOR_ID);
+      indicatorLabel = document.getElementById('fateNextLabel');
+      return;
+    }
+    indicatorEl = document.createElement('div');
+    indicatorEl.className = 'fate-scroll-next-indicator';
+    indicatorEl.id = INDICATOR_ID;
+    indicatorEl.innerHTML =
+      '<button class="fate-scroll-next-arrow" id="fateNextArrow" aria-label="다음 섹션으로 이동">&#8595;</button>' +
+      '<span class="fate-scroll-next-label" id="fateNextLabel">다음 서비스 보기</span>';
+    document.body?.appendChild(indicatorEl);
+    indicatorLabel = document.getElementById('fateNextLabel');
+
+    var arrowBtn = document.getElementById('fateNextArrow');
+    arrowBtn?.addEventListener('click', function () {
+      if (!currentSection) return;
+      var all = getSections().filter(isDisplayed);
+      var idx = all.indexOf(currentSection);
+      var next = all[idx + 1] ?? null;
+      next?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function initSectionTracker() {
+    if (!('IntersectionObserver' in window)) return;
+    sectionObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        currentSection = entry.target;
+        var all = getSections().filter(isDisplayed);
+        var idx = all.indexOf(currentSection);
+        var hasNext = idx !== -1 && idx < all.length - 1;
+        if (!indicatorEl) return;
+        if (hasNext) {
+          var nextEl   = all[idx + 1];
+          var titleEl  = nextEl?.querySelector('.sec-title, .destiny-title, h3, .fortune-sec-title');
+          var titleTxt = (titleEl?.textContent ?? '').trim();
+          if (!titleTxt) titleTxt = '다음 서비스 보기';
+          if (indicatorLabel) {
+            indicatorLabel.textContent = titleTxt.length > 16
+              ? titleTxt.slice(0, 15) + '\u2026'
+              : titleTxt;
+          }
+          indicatorEl.classList.add('fate-scroll-next-visible');
+        } else {
+          indicatorEl.classList.remove('fate-scroll-next-visible');
+        }
+      });
+    }, {
+      rootMargin: '-22% 0px -22% 0px',
+      threshold: 0
+    });
+
+    getSections().filter(isDisplayed).forEach(function (el) {
+      sectionObserver.observe(el);
+    });
+  }
+
+  /* ── 3. 나중에 display:none → 표시되는 섹션 관찰 ── */
+  function watchLateReveal() {
+    var rp = document.getElementById('resultPage');
+    if (!rp) return;
+    var mo = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mut) {
+        var el = mut.target;
+        if (!isDisplayed(el)) return;
+        /* display:none → block 전환된 섹션이면 reveal + tracker 추가 */
+        if (el.matches && el.matches(INNER_SEL)) {
+          if (!el.classList.contains(VISIBLE_CLS) && !el.classList.contains(HIDDEN_CLS)) {
+            el.classList.add(HIDDEN_CLS);
+          }
+          revealObserver?.observe(el);
+          sectionObserver?.observe(el);
+        }
+      });
+    });
+    getSections().forEach(function (el) {
+      mo.observe(el, { attributes: true, attributeFilter: ['style', 'class'] });
+    });
+  }
+
+  /* ── 4. 결과 페이지 활성화 감지 후 전체 초기화 ── */
+  function onResultVisible() {
+    createIndicator();
+    /* DOM 렌더링 완전 반영 후 초기화 (requestAnimationFrame 2프레임) */
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        initReveal();
+        initSectionTracker();
+        watchLateReveal();
+      });
+    });
+  }
+
+  function init() {
+    var rp = document.getElementById('resultPage');
+    if (!rp) return;
+    /* 이미 표시 중인 경우 */
+    if (rp.style.display !== 'none' && isDisplayed(rp)) {
+      onResultVisible();
+      return;
+    }
+    /* resultPage style 속성 변화 감지 */
+    var rpMo = new MutationObserver(function () {
+      var page = document.getElementById('resultPage');
+      if (page && page.style.display !== 'none') {
+        rpMo.disconnect();
+        setTimeout(onResultVisible, 80);
+      }
+    });
+    rpMo.observe(rp, { attributes: true, attributeFilter: ['style'] });
+  }
+
+  /* DOMContentLoaded or immediate */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
 })();
 </script>
 
