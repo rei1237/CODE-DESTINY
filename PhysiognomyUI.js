@@ -416,8 +416,16 @@ window.resetPhysiognomyApp = function() {
   document.getElementById('scanOverlay').style.display = "none";
   document.getElementById('captureBtn').style.display = "none";
   document.getElementById('expertReportContainer').innerHTML = "";
+    
+    // 이전에 업로드된 이미지 소스도 지워줍니다
+    const imgEl = document.getElementById('phyImage');
+    if(imgEl) {
+        imgEl.src = "";
+        imgEl.onload = null;
+    }
+
   if(canvasCtx) canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
-  if(currentMode === 'camera') { document.getElementById('phyStatus').innerText = "카메라 정면에서 화면 중앙에 얼굴을 맞춰주세요."; } 
+  if(currentMode === 'camera') { document.getElementById('phyStatus').innerText = "카메라 정면에서 화면 중앙에 얼굴을 맞춰주세요."; }
   else { document.getElementById('phyStatus').innerText = "관상을 분석할 사진을 선택해주세요."; }
 }
 
@@ -427,14 +435,14 @@ window.switchMode = async function(mode) {
   document.getElementById('btnModeFile').classList.remove('active');
   if (mode === 'camera') {
     document.getElementById('btnModeCamera').classList.add('active');
-    document.getElementById('fileUploadContainer').style.display = 'none';
+    document.getElementById('fileUploadContainer').style.display = 'none';      
     document.getElementById('phyVideo').style.display = 'block';
     document.getElementById('phyImage').style.display = 'none';
     resetPhysiognomyApp();
     if(camera) camera.start();
   } else {
     document.getElementById('btnModeFile').classList.add('active');
-    document.getElementById('fileUploadContainer').style.display = 'block';
+    document.getElementById('fileUploadContainer').style.display = 'block';     
     document.getElementById('phyVideo').style.display = 'none';
     document.getElementById('phyImage').style.display = 'block';
     resetPhysiognomyApp();
@@ -445,22 +453,26 @@ window.switchMode = async function(mode) {
 window.handleFileUpload = async function(event) {
   const file = event.target.files[0];
   if(!file) return;
-  resetPhysiognomyApp();
-  document.getElementById('phyStatus').innerText = "이미지 딥러닝 스캔 중... (기기 내 보안 처리)";
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const imgEl = document.getElementById('phyImage');
-    imgEl.onload = async () => {
-      if(canvasCtx) {
-         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-         canvasCtx.drawImage(imgEl, 0, 0, canvasElement.width, canvasElement.height);
-      }
-      document.getElementById('phyStatus').innerText = "귀와 이목구비의 468개 랜드마크를 추출 중입니다...";
-      if(faceMesh) await faceMesh.send({image: imgEl});
+    
+    const fileInput = document.getElementById('phyFileInput');
+    if (fileInput) fileInput.value = ''; // 값을 초기화하여 같은 파일도 다시 선택 가능하게 함
+
+    resetPhysiognomyApp();
+    document.getElementById('phyStatus').innerText = "이미지 딥러닝 스캔 중... (기기 내 보안 처리)";
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imgEl = document.getElementById('phyImage');
+      imgEl.onload = async () => {
+        if(canvasCtx) {
+           canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+           canvasCtx.drawImage(imgEl, 0, 0, canvasElement.width, canvasElement.height);
+        }
+        document.getElementById('phyStatus').innerText = "귀와 이목구비의 468개 랜드마크를 추출 중입니다...";
+        if(faceMesh) await faceMesh.send({image: imgEl});
+      };
+      imgEl.src = e.target.result;
     };
-    imgEl.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
 }
 
 window.startCapture = async function() {
