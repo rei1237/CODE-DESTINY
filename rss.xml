@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
      xmlns:atom="http://www.w3.org/2005/Atom"
      xmlns:content="http://purl.org/rss/1.0/modules/content/"
@@ -6,7 +6,7 @@
 
   <channel>
     <title>🐷 연이의 꿀꿀 만세력</title>
-    <link>https://rei1237.github.io/CODE-DESTINY/</link>
+    <link>https://code-destiny.com/</link>
     <description>뛰어난 통찰로 풀어내는 현대인의 영적 나침반. 사주, 자미두수, 점성술, 주역, 관상, 만세력, 운세의 모든 비술을 전합니다.</description>
     <language>ko</language>
     <lastBuildDate>Sat, 01 Mar 2026 00:00:00 +0900</lastBuildDate>
@@ -18,24 +18,24 @@
 
     <!-- 채널 대표 이미지 -->
     <image>
-      <url>https://rei1237.github.io/CODE-DESTINY/icons/icon-512.svg</url>
+      <url>https://code-destiny.com/icons/icon-512.svg</url>
       <title>🐷 연이의 꿀꿀 만세력</title>
-      <link>https://rei1237.github.io/CODE-DESTINY/</link>
+      <link>https://code-destiny.com/</link>
       <width>144</width>
       <height>144</height>
       <description>연이의 꿀꿀 만세력 로고</description>
     </image>
 
     <!-- Atom 자기 참조 링크 (Google/Feedly 권장) -->
-    <atom:link href="https://rei1237.github.io/CODE-DESTINY/rss.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="https://code-destiny.com/rss.xml" rel="self" type="application/rss+xml"/>
 
     <!-- ────────────────────────────────────────
          ITEM 1: 2026년 3월 운세 특집
     ──────────────────────────────────────── -->
     <item>
       <title>🐷 2026년 3월 — 병오(丙午)월 전체 운세 총운 분석</title>
-      <link>https://rei1237.github.io/CODE-DESTINY/#march2026</link>
-      <guid isPermaLink="true">https://rei1237.github.io/CODE-DESTINY/#march2026</guid>
+      <link>https://code-destiny.com/#march2026</link>
+      <guid isPermaLink="true">https://code-destiny.com/#march2026</guid>
       <pubDate>Sat, 01 Mar 2026 09:00:00 +0900</pubDate>
       <dc:creator>연이</dc:creator>
       <category>월별 운세</category>
@@ -53,8 +53,8 @@
     ──────────────────────────────────────── -->
     <item>
       <title>🦊 AI 동물상 관상 분석 — 나는 어떤 동물상일까?</title>
-      <link>https://rei1237.github.io/CODE-DESTINY/#physiognomy</link>
-      <guid isPermaLink="true">https://rei1237.github.io/CODE-DESTINY/#physiognomy</guid>
+      <link>https://code-destiny.com/#physiognomy</link>
+      <guid isPermaLink="true">https://code-destiny.com/#physiognomy</guid>
       <pubDate>Mon, 16 Feb 2026 10:00:00 +0900</pubDate>
       <dc:creator>연이</dc:creator>
       <category>관상</category>
@@ -71,8 +71,8 @@
     ──────────────────────────────────────── -->
     <item>
       <title>🌌 사주팔자 완전 분석 — 태어난 순간에 새겨진 운명의 지도</title>
-      <link>https://rei1237.github.io/CODE-DESTINY/#saju</link>
-      <guid isPermaLink="true">https://rei1237.github.io/CODE-DESTINY/#saju</guid>
+      <link>https://code-destiny.com/#saju</link>
+      <guid isPermaLink="true">https://code-destiny.com/#saju</guid>
       <pubDate>Fri, 01 Jan 2026 00:00:00 +0900</pubDate>
       <dc:creator>연이</dc:creator>
       <category>사주</category>
@@ -90,8 +90,8 @@
     ──────────────────────────────────────── -->
     <item>
       <title>☯️ 주역(周易) 점괘 — 64괘가 전하는 오늘의 신탁</title>
-      <link>https://rei1237.github.io/CODE-DESTINY/#iching</link>
-      <guid isPermaLink="true">https://rei1237.github.io/CODE-DESTINY/#iching</guid>
+      <link>https://code-destiny.com/#iching</link>
+      <guid isPermaLink="true">https://code-destiny.com/#iching</guid>
       <pubDate>Sun, 01 Feb 2026 08:00:00 +0900</pubDate>
       <dc:creator>연이</dc:creator>
       <category>주역</category>
@@ -108,8 +108,8 @@
     ──────────────────────────────────────── -->
     <item>
       <title>⭐ 오늘의 일일 운세 — 2026년 3월 1일 12간지 전체 분석</title>
-      <link>https://rei1237.github.io/CODE-DESTINY/#daily</link>
-      <guid isPermaLink="true">https://rei1237.github.io/CODE-DESTINY/#daily</guid>
+      <link>https://code-destiny.com/#daily</link>
+      <guid isPermaLink="true">https://code-destiny.com/#daily</guid>
       <pubDate>Sat, 01 Mar 2026 00:01:00 +0900</pubDate>
       <dc:creator>연이</dc:creator>
       <category>일일운세</category>

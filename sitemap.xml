@@ -4,16 +4,16 @@
 
   <!-- 메인 페이지 -->
   <url>
-    <loc>https://rei1237.github.io/CODE-DESTINY/</loc>
+    <loc>https://code-destiny.com/</loc>
     <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="ko" href="https://rei1237.github.io/CODE-DESTINY/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/"/>
   </url>
 
   <!-- index.html 직접 접근 -->
   <url>
-    <loc>https://rei1237.github.io/CODE-DESTINY/index.html</loc>
+    <loc>https://code-destiny.com/index.html</loc>
     <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
