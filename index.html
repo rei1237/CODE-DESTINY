@@ -166,6 +166,112 @@ input:checked + .slider .paw-pad {
   transform: scale(1);
 }
 
+/* ─── 개인정보 동의 모달 ─── */
+#privacy-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(5px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+#privacy-modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+.privacy-modal-card {
+  background: var(--card-bg, #ffffff);
+  width: 100%;
+  max-width: 420px;
+  border-radius: 24px;
+  padding: 32px 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  transform: translateY(20px) scale(0.95);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid var(--border-color, rgba(255,183,178,.15));
+}
+#privacy-modal-overlay.show .privacy-modal-card {
+  transform: translateY(0) scale(1);
+}
+.privacy-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--point-color, #FF8BA7);
+  margin-bottom: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.privacy-title span {
+  font-size: 2.2rem;
+}
+.privacy-content {
+  font-size: 0.92rem;
+  color: var(--text-main, #4A4A4A);
+  line-height: 1.6;
+  background: var(--bg-color, #f9fafb);
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  word-break: keep-all;
+}
+.privacy-content p {
+  margin-bottom: 12px;
+}
+.privacy-content p:last-child {
+  margin-bottom: 0;
+}
+.privacy-content strong {
+  color: var(--point-color, #FF8BA7);
+  font-weight: 700;
+}
+.privacy-btns {
+  display: flex;
+  gap: 12px;
+}
+.btn-cancel {
+  flex: 1;
+  padding: 14px;
+  background: transparent;
+  color: var(--text-main, #6b7280);
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.btn-cancel:hover {
+  background: var(--bg-color, #f3f4f6);
+}
+.btn-agree {
+  flex: 2;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--point-color, #FF8BA7), var(--point-color, #FFB7B2));
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255,139,167,.3);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.btn-agree:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255,139,167,.4);
+}
+
 /* ─── 입력 ─── */
 .logo-area{text-align:center;padding:20px 0 28px}
 .pig-big{font-size:3.8rem;display:block;animation:float 2.5s ease-in-out infinite}
@@ -1780,6 +1886,26 @@ body.neo-mode .monthly-label { color: #64748b; }
   <div class="neo-glitch-layer"></div>
 </div>
 
+<!-- 개인정보 수집 동의 모달 -->
+<div id="privacy-modal-overlay">
+  <div class="privacy-modal-card">
+    <div class="privacy-title">
+      <span>📜</span>
+      개인정보 수집 및 이용 동의
+    </div>
+    <div class="privacy-content">
+      <p><strong>수집 항목:</strong> 생년월일, 출생시간, 성별 (사주 및 만세력 계산을 위한 필수 정보)</p>
+      <p><strong>수집 및 이용 목적:</strong> 개인 맞춤형 사주, 자미두수, 주역점 및 운세 결과 제공</p>
+      <p><strong>보유 및 이용 기간:</strong> 본 서비스는 입력하신 정보를 서버에 저장하지 않으며, 페이지를 새로고침하거나 닫을 경우 즉시 파기됩니다. (단, 로컬 스토리지를 이용한 저장 시 브라우저 삭제 전까지 보관될 수 있습니다.)</p>
+      <p style="font-size: 0.85rem; color: #888; margin-top: 16px;">사용자는 동의를 거부할 권리가 있으나, 거부 시 운세 풀이 서비스 이용이 제한됩니다.</p>
+    </div>
+    <div class="privacy-btns">
+      <button class="btn-cancel" onclick="closePrivacyModal()">취소</button>
+      <button class="btn-agree" onclick="agreeAndCalculate()">동의하고 결과 보기</button>
+    </div>
+  </div>
+</div>
+
 <div id="lib-overlay">
   <div class="pig-float">🐷</div>
   <p id="lib-msg">사주 라이브러리 불러오는 중...</p>
@@ -1883,7 +2009,7 @@ body.neo-mode .monthly-label { color: #64748b; }
       <div style="background:#FFF5F8;border-radius:10px;padding:10px 13px;font-size:.8rem;color:#FF8BA7;font-weight:600;margin-bottom:16px;text-align:center">
         💡 시간 미입력 시 낮 12시로 계산됩니다
       </div>
-      <button class="btn-main" id="run-btn" onclick="calculate()" disabled>🔄 라이브러리 로딩 중...</button>
+      <button class="btn-main" id="run-btn" onclick="checkPrivacyAndCalculate()" disabled>🔄 라이브러리 로딩 중...</button>
       
       <!-- 관상 분석 기능을 위한 버튼 추가 -->
       <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="openPhysiognomyApp()">
@@ -2675,7 +2801,10 @@ body.neo-mode .monthly-label { color: #64748b; }
     </div>
   </div><!-- /#resultPage -->
 
-  <footer style="text-align:center;padding:12px 0 20px">
+  <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;">
+    <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
+      본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
+    </p>
     <button onclick="toggleAdmin()" style="color:#FFD6D8;font-size:11px;font-weight:700;background:none;border:none;cursor:pointer">Admin Mode</button>
   </footer>
 
@@ -2813,7 +2942,11 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
     if(!dVal || typeVal === 'solar') { pEl.style.display = 'none'; return; }
     if(typeof Lunar === 'undefined') { pEl.style.display = 'block'; pEl.innerHTML = "계산 중..."; return; }
     var actualDates = getActualSolarDate(dVal, typeVal);
-    if(actualDates) { pEl.style.display = 'block'; pEl.innerHTML = "➡ 양력: <strong>" + actualDates.y + "년 " + actualDates.m + "월 " + actualDates.d + "일</strong>"; }
+    if(actualDates) { 
+        var isLeapStr = typeVal === 'lunar_leap' ? '(윤달)' : '(평달)';
+        pEl.style.display = 'block'; 
+        pEl.innerHTML = `➡ 변환 완료: 양력 <strong>${actualDates.y}년 ${actualDates.m}월 ${actualDates.d}일</strong> / 음력${isLeapStr} <strong>${dVal.split('-')[0]}년 ${dVal.split('-')[1]}월 ${dVal.split('-')[2]}일</strong>`; 
+    }
     else pEl.style.display = 'none';
 };
 
@@ -4257,6 +4390,27 @@ function showJongVerificationModal(jongResult, p) {
 }
 
 /* ═══════════════════════════════════════
+   개인정보 동의 모달 제어
+═══════════════════════════════════════ */
+function checkPrivacyAndCalculate() {
+  if (sessionStorage.getItem('privacyAgreed') === 'true') {
+    calculate();
+  } else {
+    document.getElementById('privacy-modal-overlay').classList.add('show');
+  }
+}
+
+function closePrivacyModal() {
+  document.getElementById('privacy-modal-overlay').classList.remove('show');
+}
+
+function agreeAndCalculate() {
+  sessionStorage.setItem('privacyAgreed', 'true');
+  closePrivacyModal();
+  calculate();
+}
+
+/* ═══════════════════════════════════════
    STEP 6: 메인 계산
 ═══════════════════════════════════════ */
 async function calculate(){
@@ -4323,6 +4477,23 @@ async function calculate(){
     // 보정된 시간 (correctedHour, correctedMinute) 으로 만세력 명식 계산
     var solar=Solar.fromYmdHms(year,month,day,correctedHour,correctedMinute,0);
     var bazi=solar.getLunar().getEightChar();
+    
+    // [NEW] KASI 기반 초정밀 24절기 및 야자시 적용 간지 추출
+    try {
+      var _d = new Date(year, month-1, day, correctedHour, correctedMinute);
+      var _gj = KasiEngine.getGanji(_d); 
+      if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
+          bazi.getYearGan = function() { return _gj.secha[0]; };
+          bazi.getYearZhi = function() { return _gj.secha[1]; };
+          bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
+          bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
+          bazi.getDayGan = function() { return _gj.iljin[0]; };
+          bazi.getDayZhi = function() { return _gj.iljin[1]; };
+      }
+    } catch(e) {
+      console.warn("정밀 간지 적용 실패(기본값 사용)", e);
+    }
+    
     var yg=bazi.getYearGan(),yz=bazi.getYearZhi();
     var mg=bazi.getMonthGan(),mz=bazi.getMonthZhi();
     var dg=bazi.getDayGan(),dz=bazi.getDayZhi();
@@ -4374,8 +4545,15 @@ async function calculate(){
                            </div>`;
     }
 
+    var lunarInfo = '';
+    try {
+      var lunarDateObj = KasiEngine.solarToLunar(new Date(year, month-1, day, correctedHour, correctedMinute));
+      var leapStr = lunarDateObj.isLeap ? '(윤달)' : '(평달)';
+      lunarInfo = `<br>✨ 입춘기준 년도: ${bazi.getYearGan()}${bazi.getYearZhi()}년<br>✨ 음력: ${lunarDateObj.year}년 ${lunarDateObj.month}월 ${lunarDateObj.day}일 ${leapStr}`;
+    } catch(e) {}
+
     document.getElementById('heroSub').innerHTML=
-      year+'년 '+month+'월 '+day+'일 '+hour+'시 '+minute+'분 (' + document.getElementById('birthCountry').options[document.getElementById('birthCountry').selectedIndex].text + ')<br>'+
+      year+'년 '+month+'월 '+day+'일 '+hour+'시 '+minute+'분 (' + document.getElementById('birthCountry').options[document.getElementById('birthCountry').selectedIndex].text + ')'+lunarInfo+'<br>'+
       (GENDER==='M'?'남성':'여성')+' · '+animal+'띠 · 일지 '+dz+'('+dayAnimal+') · 만 '+(CURRENT_AGE-1)+'세'+
       timeCorrectionStr;
 
@@ -6904,6 +7082,21 @@ function runCompat(){
   try{
     var solar=Solar.fromYmdHms(year,month,day,hour,minute,0);
     var bazi=solar.getLunar().getEightChar();
+    
+    // [NEW] KASI 기반 초정밀 24절기 및 야자시 적용 간지 추출 (궁합 대상자)
+    try {
+      var _d = new Date(year, month-1, day, hour, minute);
+      var _gj = KasiEngine.getGanji(_d); 
+      if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
+          bazi.getYearGan = function() { return _gj.secha[0]; };
+          bazi.getYearZhi = function() { return _gj.secha[1]; };
+          bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
+          bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
+          bazi.getDayGan = function() { return _gj.iljin[0]; };
+          bazi.getDayZhi = function() { return _gj.iljin[1]; };
+      }
+    } catch(e) {}
+    
     var yg=bazi.getYearGan(),yz=bazi.getYearZhi();
     var mg=bazi.getMonthGan(),mz=bazi.getMonthZhi();
     var dg=bazi.getDayGan(),dz=bazi.getDayZhi();
@@ -7899,6 +8092,16 @@ function showDwDetail(age,gan,zhi,evaluation,score){
     try{
       var ySolar=Solar.fromYmdHms(yr,6,15,12,0,0);
       var yBazi=ySolar.getLunar().getEightChar();
+      
+      // [NEW] 세운의 정밀 간지(입춘 기준) 적용
+      try {
+        var _sj = KasiEngine.getGanji(new Date(yr, 5, 15, 12, 0, 0)); 
+        if(_sj && _sj.secha) {
+            yBazi.getYearGan = function() { return _sj.secha[0]; };
+            yBazi.getYearZhi = function() { return _sj.secha[1]; };
+        }
+      } catch(e) {}
+
       var yg2=yBazi.getYearGan(),yz2=yBazi.getYearZhi();
       var ygd=GAN[yg2]||{e:'earth',n:'?'},yzd=JI[yz2]||{e:'water',a:'?'};
       var yEv=evalDaewun(yg2,yz2);
@@ -8203,6 +8406,19 @@ function findSimilarCelebs(p){
     try {
       var solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
       var bazi = solar.getLunar().getEightChar();
+      
+      try {
+        var _sj = KasiEngine.getGanji(new Date(year, month-1, day, hour, minute)); 
+        if(_sj && _sj.secha && _sj.weolgeon && _sj.iljin) {
+            bazi.getYearGan = function() { return _sj.secha[0]; };
+            bazi.getYearZhi = function() { return _sj.secha[1]; };
+            bazi.getMonthGan = function() { return _sj.weolgeon[0]; };
+            bazi.getMonthZhi = function() { return _sj.weolgeon[1]; };
+            bazi.getDayGan = function() { return _sj.iljin[0]; };
+            bazi.getDayZhi = function() { return _sj.iljin[1]; };
+        }
+      } catch(e) {}
+
       var cg = [bazi.getYearGan(), bazi.getMonthGan(), bazi.getDayGan(), bazi.getTimeGan()];
       var cz = [bazi.getYearZhi(), bazi.getMonthZhi(), bazi.getDayZhi(), bazi.getTimeZhi()];
       
@@ -8478,6 +8694,15 @@ function renderTodayDestinyCard(p){
   try{
     todaySolar=Solar.fromYmdHms(now.getFullYear(),now.getMonth()+1,now.getDate(),12,0,0);
     var todayBazi=todaySolar.getLunar().getEightChar();
+    
+    try {
+      var _gj = KasiEngine.getGanji(now);
+      if(_gj && _gj.iljin) {
+         todayBazi.getDayGan = function() { return _gj.iljin[0]; };
+         todayBazi.getDayZhi = function() { return _gj.iljin[1]; };
+      }
+    } catch(e){}
+
     todayGan=todayBazi.getDayGan();
     todayZhi=todayBazi.getDayZhi();
     todayGd=GAN[todayGan]||{e:'earth',n:'무기',y:'음'};
