@@ -4896,19 +4896,11 @@ async function calculate(){
       document.getElementById('letterBox').style.display='block';
       document.getElementById('emailSubBox').style.display='block';
       document.getElementById('btnNewSaju').style.display='block';
-    // 모바일 호환 최상단 스크롤 (rAF → 16ms timeout 이중 보정)
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    // 모바일 호환 최상단 스크롤 (부드러운 스크롤 적용)
     requestAnimationFrame(function () {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
       setTimeout(function () {
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      }, 16);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 50);
     });
 
     // 히어로
@@ -10706,13 +10698,10 @@ function resetApp(){
   var dmCard=document.getElementById('dailyMonthlyCard');
   if(dmCard)dmCard.style.display='none';
   G_POWER=null;G_JONG=null;G_JOHU=null;
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
   requestAnimationFrame(function () {
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    setTimeout(function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
   });
 }
 
@@ -11460,19 +11449,10 @@ window.addEventListener('load', function() {
     /* DOM 렌더링 완전 반영 후 초기화 (requestAnimationFrame 2프레임) */
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        /* reveal 의 transform 적용 전 스크롤 최상단 고정 */
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
+        /* reveal 의 transform 적용 전 스크롤 최상단 고정 (부드러운 스크롤로 대체) */
         initReveal();
         initSectionTracker();
         watchLateReveal();
-        /* reveal 클래스 적용 후 다시 한 번 강제 최상단 */
-        setTimeout(function () {
-          window.scrollTo(0, 0);
-          document.documentElement.scrollTop = 0;
-          document.body.scrollTop = 0;
-        }, 50);
       });
     });
   }
