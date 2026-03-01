@@ -1,4 +1,4 @@
-﻿// ============================================
+// ============================================
 // Face Analysis UI Controller (Vanilla JS)
 // 초상권 안내 문구 추가 & 동물 뱃지 미출력 오류 수정
 // 초정밀 안면 / 귀 관상 분석 프롬프트 고도화 적용
@@ -303,7 +303,7 @@ window.sharePhysiognomyKakao = function() {
       title: 'AI 관상 분석 결과',
       text: text,
       url: window.location.href
-    }).catch(function(e){ console.log("Share API failed", e); });
+    }).catch(function(e){  });
     return;
   }
   
@@ -477,7 +477,7 @@ window.switchMode = async function(mode) {
               }
               await faceMesh.send({image: imgEl});
             } catch (err) {
-              console.error("FaceMesh 실행 중 오류 발생:", err);
+              
               document.getElementById('phyStatus').innerText = "이미지 분석 중 오류가 발생했습니다. 다시 시도해주세요.";
             }
           }
@@ -506,7 +506,7 @@ window.switchMode = async function(mode) {
 
       renderResult(result);
     } catch (error) {
-      console.error(error);
+      
       document.getElementById('phyStatus').innerText = "분석 실패: " + (error.message || error);
       document.getElementById('captureBtn').style.display = "block";
       isAnalyzing = false;
