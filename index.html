@@ -2089,9 +2089,120 @@ body.neo-mode .monthly-label { color: #64748b; }
   body.neo-mode .fate-scroll-next-label {
     color: var(--point-color, #FFD700);
   }
+
+  /* ══════════════════════════════════════════
+     fsn-navbar │ 섹션 네비게이션 바
+     pig mode: 꽃 장식 | neo mode: 발바닥 장식
+  ══════════════════════════════════════════ */
+  .fsn-navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 480;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 52px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transform: translateY(-100%);
+    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+                background 0.4s ease, border-color 0.4s ease;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .fsn-navbar.fsn-visible {
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  /* 꽃돼지 모드 */
+  .fsn-navbar.fsn-pig {
+    background: rgba(255, 245, 248, 0.9);
+    border-bottom: 1.5px solid rgba(255, 183, 178, 0.45);
+    box-shadow: 0 3px 16px rgba(255, 139, 167, 0.18);
+  }
+  /* 네오 모드 */
+  .fsn-navbar.fsn-neo {
+    background: rgba(14, 14, 20, 0.92);
+    border-bottom: 1.5px solid rgba(255, 215, 0, 0.28);
+    box-shadow: 0 3px 16px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 215, 0, 0.07);
+  }
+  /* 장식 아이콘 */
+  .fsn-deco {
+    font-size: 1rem;
+    line-height: 1;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+  .fsn-pig .fsn-deco {
+    animation: fsn-flower-rock 3.5s ease-in-out infinite;
+  }
+  .fsn-neo .fsn-deco {
+    animation: fsn-paw-pulse 1.9s ease-in-out infinite;
+  }
+  @keyframes fsn-flower-rock {
+    0%, 100% { transform: rotate(-12deg) scale(1); }
+    50%       { transform: rotate(12deg) scale(1.18); }
+  }
+  @keyframes fsn-paw-pulse {
+    0%, 100% { opacity: 0.65; transform: scale(0.9); }
+    50%       { opacity: 1;    transform: scale(1.15); }
+  }
+  /* 섹션 제목 텍스트 */
+  .fsn-title {
+    font-size: 0.77rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 58vw;
+    transition: color 0.3s ease;
+  }
+  .fsn-pig .fsn-title  { color: var(--pink, #FF8BA7); }
+  .fsn-neo .fsn-title  { color: #FFD700; text-shadow: 0 0 8px rgba(255,215,0,.3); }
+  /* 구분 점 */
+  .fsn-sep {
+    font-size: 0.6rem;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+  .fsn-pig .fsn-sep { color: var(--pink, #FF8BA7); }
+  .fsn-neo .fsn-sep { color: #FFD700; }
+  /* 케이스 하단 스크롤 진행 바 */
+  .fsn-progress {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    width: 0%;
+    border-radius: 0 2px 2px 0;
+    transition: width 0.08s linear;
+  }
+  .fsn-pig .fsn-progress {
+    background: linear-gradient(90deg, var(--pink-l,#FFB7B2), var(--pink,#FF8BA7));
+  }
+  .fsn-neo .fsn-progress {
+    background: linear-gradient(90deg, #FFA500, #FFD700);
+  }
   </style>
 </head>
 <body>
+
+<!-- 스크롤 복원 자동 처리 방지 (모바일 중단 스크롤 문제 구조적 해결) -->
+<script>
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+</script>
+
+<!-- 섹션 네비게이션 바 -->
+<div id="fsnNavBar" class="fsn-navbar fsn-pig" role="navigation" aria-label="현재 섹션">
+  <span class="fsn-deco" id="fsnDecoL">🌸</span>
+  <span class="fsn-sep">▸</span>
+  <span class="fsn-title" id="fsnTitle">운명의 지도</span>
+  <span class="fsn-sep">▸</span>
+  <span class="fsn-deco" id="fsnDecoR">🌸</span>
+  <div class="fsn-progress" id="fsnProgress"></div>
+</div>
 
 <!-- 구글 번역 요소 -->
 <div id="google_translate_element"></div>
@@ -11349,9 +11460,19 @@ window.addEventListener('load', function() {
     /* DOM 렌더링 완전 반영 후 초기화 (requestAnimationFrame 2프레임) */
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
+        /* reveal 의 transform 적용 전 스크롤 최상단 고정 */
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
         initReveal();
         initSectionTracker();
         watchLateReveal();
+        /* reveal 클래스 적용 후 다시 한 번 강제 최상단 */
+        setTimeout(function () {
+          window.scrollTo(0, 0);
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        }, 50);
       });
     });
   }
@@ -11376,6 +11497,158 @@ window.addEventListener('load', function() {
   }
 
   /* DOMContentLoaded or immediate */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+
+<!-- ════════════════════════════════════════════
+     fsn-navbar JS │ 섹션 네비게이션 바 로직
+     Intersection Observer 기반 · IIFE 켜슬화
+     외부 의존 없음 · 전역 오염 없음
+════════════════════════════════════════════ -->
+<script>
+;(function () {
+  'use strict';
+
+  var PIG_DECO = '\uD83C\uDF38'; /* 꽃 */
+  var NEO_DECO = '\uD83D\uDC3E'; /* 발바닥 */
+
+  var navBar     = null;
+  var titleEl    = null;
+  var progressEl = null;
+  var decoEls    = [];
+  var secObs     = null;
+  var rafId      = null;
+  var isNeo      = false;
+
+  /* ─ 모드 동기화 ─ */
+  function syncMode () {
+    isNeo = document.body.classList.contains('neo-mode');
+    if (!navBar) return;
+    if (isNeo) {
+      navBar.classList.add('fsn-neo');
+      navBar.classList.remove('fsn-pig');
+    } else {
+      navBar.classList.add('fsn-pig');
+      navBar.classList.remove('fsn-neo');
+    }
+    decoEls.forEach(function (el) { el.textContent = isNeo ? NEO_DECO : PIG_DECO; });
+  }
+
+  /* ─ 표시 / 숨김 ─ */
+  function showNav () { navBar?.classList.add('fsn-visible'); }
+  function hideNav () {
+    navBar?.classList.remove('fsn-visible');
+    if (titleEl) titleEl.textContent = '\uc6b4\uba85\uc758 \uc9c0\ub3c4';
+  }
+
+  /* ─ 대상 섹션 목록 ─ */
+  function getSections () {
+    var rp = document.getElementById('resultPage');
+    return rp ? Array.from(rp.querySelectorAll(
+      '.card, .destiny-section, .letter-box, .top-hero'
+    )) : [];
+  }
+
+  /* ─ 설명 텍스트 추출 ─ */
+  function getTitle (el) {
+    if (el.classList.contains('top-hero')) return '\uD83D\uDD2E \uc6b4\uba85\uc758 \uc2dc\uc791';
+    var t = el.querySelector('.sec-title, .destiny-title, .fortune-sec-title, h3');
+    if (!t) return '';
+    var txt = (t.textContent || '').trim();
+    return txt.length > 20 ? txt.slice(0, 19) + '\u2026' : txt;
+  }
+
+  /* ─ 섹션 감지 Observer ─ */
+  function initSecObs () {
+    if (secObs) secObs.disconnect();
+    if (!('IntersectionObserver' in window)) return;
+    secObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var txt = getTitle(entry.target);
+        if (txt && titleEl) titleEl.textContent = txt;
+      });
+    }, { rootMargin: '-18% 0px -62% 0px', threshold: 0 });
+    getSections().forEach(function (el) { secObs.observe(el); });
+  }
+
+  /* ─ 스크롤 진행률 리본 ─ */
+  function startProgress () {
+    if (rafId) cancelAnimationFrame(rafId);
+    function tick () {
+      var st  = window.pageYOffset || document.documentElement.scrollTop;
+      var dh  = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      var pct = dh > 0 ? Math.min(100, (st / dh) * 100) : 0;
+      if (progressEl) progressEl.style.width = pct + '%';
+      rafId = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  function stopProgress () {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    if (progressEl) progressEl.style.width = '0%';
+  }
+
+  /* ─ 결과 페이지 상태 감시 ─ */
+  function watchResultPage () {
+    var rp = document.getElementById('resultPage');
+    if (!rp) return;
+    function check () {
+      var visible = rp.style.display !== 'none' &&
+                    getComputedStyle(rp).display !== 'none';
+      if (visible) {
+        showNav();
+        setTimeout(function () { initSecObs(); startProgress(); }, 150);
+      } else {
+        hideNav(); stopProgress();
+      }
+    }
+    new MutationObserver(check).observe(rp, { attributes: true, attributeFilter: ['style'] });
+    check(); /* 초기 상태 확인 */
+  }
+
+  /* ─ 인스턴스 는리 변화 감시 (late reveal 컴플) ─ */
+  function watchLateSections () {
+    var rp = document.getElementById('resultPage');
+    if (!rp) return;
+    new MutationObserver(function (muts) {
+      muts.forEach(function (m) {
+        var el = m.target;
+        if (el.matches && el.matches('.card, .destiny-section, .letter-box')) {
+          if (getComputedStyle(el).display !== 'none') {
+            secObs?.observe(el);
+          }
+        }
+      });
+    }).observe(rp, { subtree: true, attributes: true, attributeFilter: ['style'] });
+  }
+
+  /* ─ 엔트리 ─ */
+  function init () {
+    navBar     = document.getElementById('fsnNavBar');
+    titleEl    = document.getElementById('fsnTitle');
+    progressEl = document.getElementById('fsnProgress');
+    decoEls    = [
+      document.getElementById('fsnDecoL'),
+      document.getElementById('fsnDecoR')
+    ].filter(Boolean);
+    if (!navBar) return;
+    syncMode();
+    /* body 클래스 변화 (neo 모드 전환) 감지 */
+    new MutationObserver(syncMode).observe(
+      document.body, { attributes: true, attributeFilter: ['class'] }
+    );
+    watchResultPage();
+    watchLateSections();
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
