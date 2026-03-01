@@ -1,11 +1,19 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
+  <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>🐷 연이의 꿀꿀 만세력</title>
+<!-- PWA 설정 -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#FFD700">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* ─── 변수 & 리셋 ─── */
@@ -712,9 +720,124 @@ input:checked + .slider .paw-pad {
 .btn-insta{padding:14px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:13px;
   font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
 .btn-insta:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(131,58,180,.4)}
-.btn-copy-link{padding:14px;background:#f0f0f0;color:#333;border:none;border-radius:13px;
-  font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s;grid-column:span 2}
-.btn-copy-link:hover{background:#e0e0e0;transform:translateY(-1px)}
+/* ── PWA 설치 버튼 (홈 화면 부적 설치) ── */
+.btn-install{
+  padding:14px;
+  background:linear-gradient(135deg,#1A1A1B 0%,#2D2A1E 50%,#1A1A1B 100%);
+  color:#FFD700;
+  border:2px solid #FFD70066;
+  border-radius:13px;
+  font-size:.92rem;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-family:inherit;
+  transition:all .3s;
+  grid-column:span 2;
+  position:relative;
+  overflow:hidden;
+  animation:pwa-pulse 2.4s ease-in-out infinite;
+}
+.btn-install::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at center,rgba(255,215,0,.18) 0%,transparent 70%);
+  opacity:0;
+  transition:opacity .3s;
+}
+.btn-install:hover::before{opacity:1}
+.btn-install:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 24px rgba(255,215,0,.45);
+  border-color:#FFD700;
+  color:#fff;
+}
+.btn-install:active{transform:translateY(0)}
+/* 맥박 애니메이션 */
+@keyframes pwa-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.35)}
+  50%{box-shadow:0 0 0 8px rgba(255,215,0,0)}
+}
+/* 이미 설치된 경우 버튼 숨기기 */
+.btn-install.installed{
+  opacity:0.45;
+  animation:none;
+  cursor:default;
+  pointer-events:none;
+}
+/* iOS 안내 모달 */
+#ios-install-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  align-items:flex-end;
+  justify-content:center;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(4px);
+}
+#ios-install-modal.open{display:flex;animation:modal-up .35s ease}
+@keyframes modal-up{
+  from{opacity:0;transform:translateY(40px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.ios-modal-box{
+  background:linear-gradient(160deg,#1E1C14,#2A2510);
+  border:1px solid #FFD70055;
+  border-radius:24px 24px 0 0;
+  padding:28px 24px 36px;
+  width:100%;
+  max-width:520px;
+  color:#F5E6A0;
+  font-size:.92rem;
+  line-height:1.8;
+}
+.ios-modal-title{
+  font-size:1.08rem;
+  font-weight:700;
+  color:#FFD700;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.ios-modal-step{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:8px;
+  font-size:.88rem;
+}
+.ios-step-num{
+  min-width:22px;
+  height:22px;
+  background:#FFD700;
+  color:#1A1A1B;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:.78rem;
+  margin-top:1px;
+}
+.ios-modal-close{
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  background:#FFD700;
+  color:#1A1A1B;
+  border:none;
+  border-radius:12px;
+  font-weight:700;
+  font-size:.95rem;
+  cursor:pointer;
+  font-family:inherit;
+}
 .share-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
   background:rgba(50,50,50,.9);color:#fff;padding:10px 22px;border-radius:99px;
   font-size:.85rem;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
@@ -2769,8 +2892,8 @@ body.neo-mode .monthly-label { color: #64748b; }
         <button class="btn-insta" onclick="shareInstagram()">
           <span style="font-size:1.2rem">📷</span> 인스타 DM
         </button>
-        <button class="btn-copy-link" onclick="copyShareLink()">
-          <span style="font-size:1.1rem">🔗</span> 링크 복사하기
+        <button class="btn-install" id="btnPwaInstall" onclick="handlePwaInstall()">
+          <span style="font-size:1.1rem">🔮</span> <span id="pwaInstallLabel">꽃돼지 운세 서비스 앱 설치하기</span>
         </button>
       </div>
     </div>
@@ -3931,18 +4054,42 @@ function detectJong(p){
     var pct=Math.max(pct1,pct2);
     var parEl=parentOf(dominant);
     var jongName;
-    if(dominant===dayEl)jongName='종강격(從强格)';
-    else if(parEl===dayEl)jongName='종인격(從印格)';
-    else if(SHENG[dayEl]===dominant)jongName='종아격(從兒格)';
-    else if(KE[dominant]===dayEl||KE[dayEl]===dominant){
-      jongName=KE[dominant]===dayEl?'종관격(從官格)':'종재격(從財格)';
-    }else jongName='종기격(從氣格)';
     
-    var jongResult = {isJong:true,dominant:dominant,parEl:parEl,pct:pct.toFixed(0),name:jongName,dayEl:dayEl};
+    // 명칭 매핑 로직 완벽 적용
+    if(dominant === dayEl) {
+      // 종왕격(비겁기세) - 오행별 특수 명칭
+      var J_MAP = {'wood':'곡직격(曲直格)','fire':'염상격(炎上格)','earth':'가색격(稼穡格)','metal':'종혁격(從革格)','water':'윤하격(潤下格)'};
+      jongName = J_MAP[dayEl] || '종왕격(從旺格)';
+    } else if(parEl === dayEl) { 
+      // dominant가 식상 (day가 dominant의 parent)
+      jongName = '종아격(從兒格)';
+    } else if(dominant === parentOf(dayEl)) {
+      // 강한 인성의 기세에 종함
+      jongName = '종강격(從强格)';
+    } else if(KE[dayEl] === dominant) {
+      jongName = '종재격(從財格)';
+    } else if(KE[dominant] === dayEl) {
+      jongName = '종살격(從殺格)';
+    } else {
+      jongName = '화격(化格)';
+    }
+    
+    var jongResult = {isJong:true, dominant:dominant, parEl:parEl, pct:pct.toFixed(0), name:jongName, dayEl:dayEl};
 
-    // [1차 검증: 극도로 보수적인 접근] //
-    var hasRoot = false;
-    var rootElements = [dayEl, parentOf(dayEl)]; // 비겁, 인성
+    // [1차 검증: 21% 가종격 판별 로직]
+    var myForceCount = (cnt[dayEl]||0) + (cnt[parentOf(dayEl)]||0);
+    var myForcePct = (myForceCount / total) * 100;
+    
+    var isFollowingOthers = (jongName==='종아격(從兒格)' || jongName==='종재격(從財格)' || jongName==='종살격(從殺格)' || jongName==='화격(化格)');
+    var isFollowingSelf = !isFollowingOthers;
+
+    // 타 오행에 종할 때(종아/재/살), 일간을 돕는 기운이 21% 이상이면 가종격(pending)
+    // 인/비에 종할 때(종강/왕/곡직 등), 나를 누르는/설기하는 반대 기운이 21% 이상이면 가종격(pending)
+    var opposingCount = total - myForceCount;
+    var opposingPct = (opposingCount / total) * 100;
+
+    var hasRootInJanggan = false;
+    var rootElements = [dayEl, parentOf(dayEl)];
     var JANGGAN_DB = {
       '子':['壬','癸'], '丑':['癸','辛','己'], '寅':['戊','丙','甲'], '卯':['甲','乙'], '辰':['乙','癸','戊'], '巳':['戊','庚','丙'],
       '午':['丙','己','丁'], '未':['丁','乙','己'], '申':['戊','壬','庚'], '酉':['庚','辛'], '戌':['辛','丁','戊'], '亥':['戊','甲','壬']
@@ -3950,14 +4097,16 @@ function detectJong(p){
     [p.y.j, p.m.j, p.d.j, p.h.j].forEach(function(z){
       if(!z) return;
       (JANGGAN_DB[z] || []).forEach(function(jgGan){
-        if(GAN[jgGan] && rootElements.indexOf(GAN[jgGan].e) >= 0) hasRoot = true;
+        if(GAN[jgGan] && rootElements.indexOf(GAN[jgGan].e) >= 0) hasRootInJanggan = true;
       });
     });
-    
-    var isFollowingOthers = (jongName==='종아격' || jongName==='종재격' || jongName==='종관격');
-    if (isFollowingOthers && hasRoot) {
-        // 일간의 뿌리가 단 하나라도 있다면 2차 검증(Pending)으로 유보
-        jongResult.isJong = 'pending';
+
+    if (isFollowingOthers) {
+        if (myForcePct >= 21) jongResult.isJong = 'pending'; // 가종격 가능성
+        else if (myForcePct > 0 || hasRootInJanggan) jongResult.isJong = 'pending'; // 지장간 뿌리라도 있으면 검증
+    } else if (isFollowingSelf) {
+        if (opposingPct >= 21) jongResult.isJong = 'pending'; // 가종격 가능성
+        else if (opposingPct > 0) jongResult.isJong = 'pending'; // 일말의 반대세력이라도 있으면 검증
     }
     
     return jongResult;
@@ -4270,11 +4419,27 @@ function getGaeunTips(strongE){
 }
 
 /* ═ 종격 감별 UI (Interactive Jong-gyeok) ═ */
-function extractPastTestingYears(jongResult, p) {
-  var jGood = [jongResult.dominant, jongResult.parEl]; 
-  if(jongResult.name === '종아격') jGood.push(KE[jongResult.dominant]?whoControls(KE[jongResult.dominant]):'');
-  var nGood = [jongResult.dayEl, parentOf(jongResult.dayEl)];
+function extractSixPastTestingYears(jongResult, p) {
+  // 용신: 종격의 방향 (종왕/강은 비겁/인성, 종아/재/살은 그 기세 오행 및 생하는 오행)
+  var yongshin = [jongResult.dominant, jongResult.parEl];
+  if(jongResult.name.indexOf('종아')>-1) yongshin.push(KE[jongResult.dayEl]); // 식상 생재
+  if(jongResult.name.indexOf('종재')>-1) yongshin.push(SHENG[jongResult.dominant]); // 식상 생재
+  if(jongResult.name.indexOf('종살')>-1) yongshin.push(KE[jongResult.dayEl]); // 재성 생살
   
+  // 기신: 종격 방향을 극하거나 극받는 오행
+  var kishin = [whoControls(jongResult.dominant)];
+  var JongSelfNames = ['종강격', '곡직격', '염상격', '가색격', '종혁격', '윤하격', '종왕격'];
+  var isFollowingSelf = false;
+  JongSelfNames.forEach(function(n) { if(jongResult.name.indexOf(n)>-1) isFollowingSelf = true; });
+
+  if (!isFollowingSelf) {
+      // 타 오행에 종할 때 흉운(기신)은 일간을 돕는 인성/비겁
+      kishin.push(jongResult.dayEl, parentOf(jongResult.dayEl));
+  } else {
+      // 내 오행에 종할 때 흉운(기신)은 나를 극하거나 기운을 빼는 재성/관살/식상
+      kishin.push(KE[jongResult.dayEl], SHENG[jongResult.dayEl], whoControls(jongResult.dayEl));
+  }
+
   var cY = new Date().getFullYear();
   var candidates = [];
   var GAN_E = { '甲':'wood','乙':'wood','丙':'fire','丁':'fire','戊':'earth','己':'earth','庚':'metal','辛':'metal','壬':'water','癸':'water' };
@@ -4282,110 +4447,100 @@ function extractPastTestingYears(jongResult, p) {
   var gArr = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
   var zArr = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
   
-  for(var i=cY-15; i<=cY-1; i++) {
-      var diff = i - 1984;
+  var birthYear = p.y.y ? parseInt(p.y.y) : (cY - 30);
+  for(var i=cY-25; i<=cY-1; i++) {
+      var diff = i - 1984; // 1984년 甲子년 기준
       var gId = (diff % 10 + 10) % 10;
       var zId = (diff % 12 + 12) % 12;
+      if (gId < 0) gId += 10;
+      if (zId < 0) zId += 12;
       var g = gArr[gId]; var z = zArr[zId];
-      candidates.push({y: i, g:g, z:z, gE:GAN_E[g], zE:ZHI_E[z]});
+      if (i - birthYear > 8) { // 8살 이전 과거는 제외
+          candidates.push({y: i, g:g, z:z, gE:GAN_E[g], zE:ZHI_E[z]});
+      }
   }
+  
+  // 뒤에서부터 탐색 (가장 최근 기억)
+  candidates.reverse();
+  
+  var bestYears = [];
+  var worstYears = [];
+  
+  candidates.forEach(function(c) {
+      if(bestYears.length < 3 && yongshin.indexOf(c.gE)>-1 && yongshin.indexOf(c.zE)>-1) bestYears.push(c);
+  });
+  candidates.forEach(function(c) {
+      if(bestYears.length < 3 && !bestYears.includes(c) && (yongshin.indexOf(c.zE)>-1 || yongshin.indexOf(c.gE)>-1)) bestYears.push(c);
+  });
 
-  var jongYear = candidates.find(c => jGood.includes(c.gE) && jGood.includes(c.zE));
-  var naeYear = candidates.find(c => nGood.includes(c.gE) && nGood.includes(c.zE));
-  
-  var results = [];
-  if(jongYear) results.push(jongYear);
-  if(naeYear) results.push(naeYear);
-  
-  var jongYear2 = candidates.slice().reverse().find(c => c !== jongYear && c !== naeYear && (jGood.includes(c.zE) || jGood.includes(c.gE)));
-  var naeYear2 = candidates.slice().reverse().find(c => c !== jongYear && c !== naeYear && c !== jongYear2 && (nGood.includes(c.zE) || nGood.includes(c.gE)));
+  candidates.forEach(function(c) {
+      if(worstYears.length < 3 && kishin.indexOf(c.gE)>-1 && kishin.indexOf(c.zE)>-1 && !bestYears.includes(c)) worstYears.push(c);
+  });
+  candidates.forEach(function(c) {
+      if(worstYears.length < 3 && !worstYears.includes(c) && !bestYears.includes(c) && (kishin.indexOf(c.zE)>-1 || kishin.indexOf(c.gE)>-1)) worstYears.push(c);
+  });
 
-  if(results.length < 3 && jongYear2) results.push(jongYear2);
-  if(results.length < 3 && naeYear2) results.push(naeYear2);
-  
-  for(var i=0; i<candidates.length && results.length < 3; i++){
-      if(!results.includes(candidates[i])) results.push(candidates[i]);
-  }
-  return results.sort(function(a,b){return a.y - b.y;});
+  return {best: bestYears.sort(function(a,b){return a.y-b.y;}), worst: worstYears.sort(function(a,b){return a.y-b.y;})};
 }
 
 function showJongVerificationModal(jongResult, p) {
   return new Promise(function(resolve) {
-      var testYears = extractPastTestingYears(jongResult, p);
+      var parsedYrs = extractSixPastTestingYears(jongResult, p);
+      var bestText = parsedYrs.best.map(function(y){return y.y+"년(" + y.g + y.z + ")"}).join(', ');
+      var worstText = parsedYrs.worst.map(function(y){return y.y+"년(" + y.g + y.z + ")"}).join(', ');
       
       var overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(4px); padding:20px;';
       
       var box = document.createElement('div');
-      box.style.cssText = 'background:#1a1a2e; color:#e2e8f0; max-width:450px; width:100%; border-radius:12px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:1px solid #c084fc;';
+      box.style.cssText = 'background:#1a1a2e; color:#e2e8f0; max-width:500px; width:100%; border-radius:12px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:1px solid #c084fc; max-height: 90vh; overflow-y: auto;';
       box.innerHTML = `
-          <div style="font-size:1.25rem; font-weight:bold; color:#c084fc; margin-bottom:14px; text-align:center;">
-              <i class="fa fa-balance-scale"></i> 종격 감별 (영적인 질의응답)
+          <div style="font-size:1.3rem; font-weight:bold; color:#c084fc; margin-bottom:14px; text-align:center;">
+              <i class="fa fa-balance-scale"></i> 종격(從格) 정밀 판별
           </div>
-          <div style="font-size:0.9rem; line-height:1.6; color:#cbd5e1; margin-bottom:20px; text-align:justify;">
-              당신의 데이터는 가종격(假從格)과 강력한 내격의 모호한 경계에 서 있습니다. 지장간 깊은 곳의 작은 뿌리가 운명을 지탱하고 있을 수 있어, 확정적인 결론을 보류합니다.<br><br>
-              <b style="color:#f472b6;">우주의 궤적을 묻겠습니다.</b><br>
-              당신의 과거 타임라인에서 에너지가 극명하게 충돌했던 3개의 좌표([A,B,C]년도)를 아래에 추출했습니다. 각 시간대 속에서 당신은 <b>'성취와 확장'</b>을 경험했습니까, 아니면 <b>'상실과 침체'</b>의 터널을 지났습니까? 솔직하게 답해주십시오.
+          <div style="font-size:0.95rem; line-height:1.6; color:#cbd5e1; margin-bottom:20px; text-align:justify;">
+              이 명식은 <b>${jongResult.name}</b>일 가능성이 있습니다. 일간을 돕는 기운이나 반대 세력이 내장되어 있어 '가종격(假從格)' 여부를 판별해야 합니다.<br><br>
+              <b style="color:#f472b6;">정확한 판별을 위해 다음 연도들의 길흉을 확인해 주십시오.</b><br>
           </div>
-          <div id="jongQuestionList" style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;"></div>
-          <button id="btnJongSubmit" style="width:100%; padding:14px; background:linear-gradient(135deg, #a855f7, #7e22ce); border:none; border-radius:8px; color:#fff; font-weight:bold; font-size:1.05rem; cursor:pointer; box-shadow:0 4px 12px rgba(168,85,247,0.3);">운명의 스위치 판독하기</button>
+          
+          <div style="background:#0f172a; padding:16px; border-radius:8px; border:1px solid #334155; margin-bottom:16px;">
+              <div style="font-weight:bold; color:#10b981; margin-bottom:10px; font-size:1.05rem;">[길운의 시기 대조]</div>
+              <div style="color:#94a3b8; font-size:0.9rem; margin-bottom:12px;">대상 연도: ${bestText}</div>
+              <div style="color:#e2e8f0; font-size:0.95rem; margin-bottom:12px;">"이 시기에 사회적 성취가 수월하게 좋았고 심리적으로 안정되었습니까?"</div>
+              <div style="display:flex; gap:12px;">
+                  <label style="flex:1; cursor:pointer;"><input type="radio" name="best_ans" value="yes" checked> <span style="font-size:1rem; color:#a7f3d0; font-weight:bold;">예, 맞습니다.</span></label>
+                  <label style="flex:1; cursor:pointer;"><input type="radio" name="best_ans" value="no"> <span style="font-size:1rem;">아니오</span></label>
+              </div>
+          </div>
+
+          <div style="background:#0f172a; padding:16px; border-radius:8px; border:1px solid #334155; margin-bottom:24px;">
+              <div style="font-weight:bold; color:#ef4444; margin-bottom:10px; font-size:1.05rem;">[흉운의 시기 대조]</div>
+              <div style="color:#94a3b8; font-size:0.9rem; margin-bottom:12px;">대상 연도: ${worstText}</div>
+              <div style="color:#e2e8f0; font-size:0.95rem; margin-bottom:12px;">"이 시기에 건강, 재물, 혹은 관계의 극심한 부침이 있었습니까?"</div>
+              <div style="display:flex; gap:12px;">
+                  <label style="flex:1; cursor:pointer;"><input type="radio" name="worst_ans" value="yes" checked> <span style="font-size:1rem; color:#fca5a5; font-weight:bold;">예, 맞습니다.</span></label>
+                  <label style="flex:1; cursor:pointer;"><input type="radio" name="worst_ans" value="no"> <span style="font-size:1rem;">아니오</span></label>
+              </div>
+          </div>
+
+          <button id="btnJongSubmit" style="width:100%; padding:15px; background:linear-gradient(135deg, #a855f7, #7e22ce); border:none; border-radius:8px; color:#fff; font-weight:bold; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 12px rgba(168,85,247,0.3);">최종 격국 확정</button>
       `;
       
       overlay.appendChild(box);
       document.body.appendChild(overlay);
-      
-      var qList = document.getElementById('jongQuestionList');
-      var selections = {};
-      testYears.forEach(function(yr) {
-          selections[yr.y] = 'good';
-          var row = document.createElement('div');
-          row.style.cssText = 'background:#0f172a; padding:12px; border-radius:8px; border:1px solid #334155;';
-          row.innerHTML = `
-              <div style="font-weight:bold; color:#cbd5e1; margin-bottom:10px;">
-                  [ ${yr.y}년 ] <span style="color:#94a3b8; font-size:0.85rem; font-weight:normal;">${yr.g}${yr.z}년의 기운</span>
-              </div>
-              <div style="display:flex; gap:8px;">
-                  <label style="flex:1; display:flex; align-items:center; gap:6px; cursor:pointer;" onclick="this.style.color='#a7f3d0';this.nextElementSibling.style.color='';">
-                      <input type="radio" name="yr_${yr.y}" value="good" checked> <span style="font-size:0.85rem; color:#a7f3d0; font-weight:bold;">성취·확장</span>
-                  </label>
-                  <label style="flex:1; display:flex; align-items:center; gap:6px; cursor:pointer;" onclick="this.style.color='#fecaca';this.previousElementSibling.style.color='';">
-                      <input type="radio" name="yr_${yr.y}" value="bad"> <span style="font-size:0.85rem;">상실·침체</span>
-                  </label>
-              </div>
-          `;
-          qList.appendChild(row);
-      });
 
       document.getElementById('btnJongSubmit').onclick = function() {
-          testYears.forEach(function(yr) {
-              var checked = document.querySelector('input[name="yr_'+yr.y+'"]:checked');
-              if(checked) selections[yr.y] = checked.value;
-          });
-          
-          var jGood = [jongResult.dominant, jongResult.parEl];
-          var nGood = [jongResult.dayEl, parentOf(jongResult.dayEl)];
-          var jongScore = 0; var naeScore = 0;
-
-          testYears.forEach(function(yr) {
-              var ans = selections[yr.y];
-              var isJYear = jGood.includes(yr.gE) || jGood.includes(yr.zE);
-              var isNYear = nGood.includes(yr.gE) || nGood.includes(yr.zE);
-
-              if (isJYear && !isNYear) {
-                  if (ans === 'good') jongScore++; else naeScore++;
-              } else if (!isJYear && isNYear) {
-                  if (ans === 'good') naeScore++; else jongScore++;
-              }
-          });
+          var bestAns = document.querySelector('input[name="best_ans"]:checked').value;
+          var worstAns = document.querySelector('input[name="worst_ans"]:checked').value;
 
           document.body.removeChild(overlay);
 
-          if (jongScore >= naeScore && jongScore > 0) {
+          if (bestAns === 'yes' && worstAns === 'yes') {
               jongResult.isJong = true;
-              jongResult.verifiedText = "<span style='color:#a855f7'>[종격 확정]</span> 생애 파동 분석 결과, 극단적 에너지의 터널을 지날 때 용희신(종격)의 폭발적 성취가 입증되었습니다.";
+              jongResult.verifiedText = "<span style='color:#a855f7'>[종격 확정]</span> 과거의 길흉 화복을 대조한 결과, 해당 오행에 완전히 종(從)하는 "+jongResult.name+"의 운세 흐름이 일치함이 검증되었습니다.";
               resolve(jongResult);
           } else {
-              resolve({isJong: false, verifiedText: "<span style='color:#3b82f6'>[내격 전환]</span> 생애 파동 분석 결과, 극심한 에너지 충돌 속에서도 정체성을 지키는 안정기가 입증되었습니다."});
+              resolve({isJong: false, verifiedText: "<span style='color:#3b82f6'>[일반 내격 전환]</span> 과거 운세 흐름이 종격의 길흉과 일치하지 않아 일반격(내격)으로 회귀하여 재분석하였습니다."});
           }
       };
   });
@@ -10404,10 +10559,80 @@ function shareInstagram(){
   // Best approach: copy text+link for user to paste in IG DM
   copyToClipboard(text,'링크를 복사했어요! 📷 인스타그램 DM에 붙여넣기 하세요 ✨');
 }
-function copyShareLink(){
-  var text=getShareText();
-  copyToClipboard(text,'링크가 복사되었어요! 🔗 원하는 곳에 붙여넣기 하세요');
+/* ══════════════════════════════════════════════
+   PWA 설치 비술 (홈 화면 부적 설치)
+   ══════════════════════════════════════════════ */
+var _pwaPrompt = null;
+var _pwaInstalled = false;
+
+// beforeinstallprompt 이벤트 포획 (Chrome/Edge/Android)
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _pwaPrompt = e;
+  var btn = document.getElementById('btnPwaInstall');
+  if (btn) {
+    btn.classList.remove('installed');
+    document.getElementById('pwaInstallLabel').textContent = '홈 화면에 부적 설치';
+  }
+});
+
+// 앱 설치 완료 감지
+window.addEventListener('appinstalled', function() {
+  _pwaInstalled = true;
+  _pwaPrompt = null;
+  var btn = document.getElementById('btnPwaInstall');
+  if (btn) {
+    btn.classList.add('installed');
+    document.getElementById('pwaInstallLabel').textContent = '✅ 부적 설치 완료';
+  }
+  showToast('🔮 홈 화면에 부적이 설치되었어요!');
+});
+
+// 이미 standalone 모드(앱)로 실행 중인지 감지
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+  _pwaInstalled = true;
 }
+
+async function handlePwaInstall() {
+  // 이미 설치된 경우
+  if (_pwaInstalled) {
+    showToast('✅ 이미 홈 화면에 설치되어 있어요!');
+    return;
+  }
+
+  // Chrome / Android: 네이티브 설치 프롬프트
+  if (_pwaPrompt) {
+    _pwaPrompt.prompt();
+    var result = await _pwaPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      _pwaInstalled = true;
+      _pwaPrompt = null;
+      showToast('🔮 홈 화면에 부적이 설치됩니다!');
+    } else {
+      showToast('설치를 취소했어요. 언제든 다시 설치할 수 있어요 ✨');
+    }
+    return;
+  }
+
+  // iOS Safari / 미지원 브라우저: 가이드 모달
+  var modal = document.getElementById('ios-install-modal');
+  if (modal) modal.classList.add('open');
+}
+
+function closeIosModal() {
+  var modal = document.getElementById('ios-install-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+// Service Worker 등록
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(function(reg) { console.log('🔮 SW 등록 완료:', reg.scope); })
+      .catch(function(err) { console.log('SW 등록 실패:', err); });
+  });
+}
+
 function copyToClipboard(text,successMsg){
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(function(){
@@ -10808,6 +11033,53 @@ window.addEventListener('load', function() {
     <div id="modalBody"></div>
   </div>
 </div>
+
+<!-- 🔮 iOS/미지원 브라우저: 홈 화면 추가 안내 모달 -->
+<div id="ios-install-modal" onclick="if(event.target===this)closeIosModal()">
+  <div class="ios-modal-box">
+    <div class="ios-modal-title">
+      <span style="font-size:1.5rem">🔮</span>
+      홈 화면에 부적 설치하기
+    </div>
+    <p style="margin-bottom:16px;font-size:.85rem;color:#C8B96A">
+      이 브라우저는 자동 설치를 지원하지 않습니다.<br>
+      아래 방법으로 직접 홈 화면에 추가하세요.
+    </p>
+
+    <!-- iOS Safari -->
+    <div id="ios-guide" style="display:none">
+      <div class="ios-modal-step"><div class="ios-step-num">1</div><div>Safari 하단 바의 <strong style="color:#FFD700">□↑ 공유 버튼</strong>을 탭하세요</div></div>
+      <div class="ios-modal-step"><div class="ios-step-num">2</div><div>스크롤을 내려 <strong style="color:#FFD700">'홈 화면에 추가'</strong>를 탭하세요</div></div>
+      <div class="ios-modal-step"><div class="ios-step-num">3</div><div>오른쪽 상단 <strong style="color:#FFD700">'추가'</strong>를 탭하면 완료!</div></div>
+    </div>
+
+    <!-- Android / 기타 -->
+    <div id="android-guide" style="display:none">
+      <div class="ios-modal-step"><div class="ios-step-num">1</div><div>브라우저 우측 상단 <strong style="color:#FFD700">⋮ 메뉴</strong>를 탭하세요</div></div>
+      <div class="ios-modal-step"><div class="ios-step-num">2</div><div><strong style="color:#FFD700">'앱 설치'</strong> 또는 <strong style="color:#FFD700">'홈 화면에 추가'</strong>를 선택하세요</div></div>
+      <div class="ios-modal-step"><div class="ios-step-num">3</div><div><strong style="color:#FFD700">'설치'</strong> 버튼을 탭하면 완료!</div></div>
+    </div>
+
+    <button class="ios-modal-close" onclick="closeIosModal()">✓ 확인했습니다</button>
+  </div>
+</div>
+
+<script>
+// iOS/Android 가이드 분기
+(function(){
+  var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var modal = document.getElementById('ios-install-modal');
+  if (modal) {
+    var iosGuide = document.getElementById('ios-guide');
+    var andGuide = document.getElementById('android-guide');
+    if (isIos) {
+      if(iosGuide) iosGuide.style.display = 'block';
+    } else {
+      if(andGuide) andGuide.style.display = 'block';
+    }
+  }
+})();
+</script>
 
 </body>
 </html>

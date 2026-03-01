@@ -450,58 +450,70 @@ window.switchMode = async function(mode) {
   }
 }
 
-window.handleFileUpload = async function(event) {
-  const file = event.target.files[0];
-  if(!file) return;
-    
-    const fileInput = document.getElementById('phyFileInput');
-    if (fileInput) fileInput.value = ''; // 값을 초기화하여 같은 파일도 다시 선택 가능하게 함
+  window.handleFileUpload = async function(event) {
+    const file = event.target.files[0];
+    if(!file) return;
 
-    resetPhysiognomyApp();
-    document.getElementById('phyStatus').innerText = "이미지 딥러닝 스캔 중... (기기 내 보안 처리)";
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imgEl = document.getElementById('phyImage');
-      imgEl.onload = async () => {
-        if(canvasCtx) {
-           canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-           canvasCtx.drawImage(imgEl, 0, 0, canvasElement.width, canvasElement.height);
-        }
-        document.getElementById('phyStatus').innerText = "귀와 이목구비의 468개 랜드마크를 추출 중입니다...";
-        if(faceMesh) await faceMesh.send({image: imgEl});
+      const fileInput = document.getElementById('phyFileInput');
+      if (fileInput) fileInput.value = ''; // 값을 초기화하여 같은 파일도 다시 선택 가능하게 함
+
+      resetPhysiognomyApp();
+      document.getElementById('phyStatus').innerText = "이미지 딥러닝 스캔 중... (기기 내 보안 처리)";
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imgEl = document.getElementById('phyImage');
+        imgEl.onload = async () => {
+          if(canvasCtx) {
+             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+             canvasCtx.drawImage(imgEl, 0, 0, canvasElement.width, canvasElement.height);
+          }
+          document.getElementById('phyStatus').innerText = "귀와 이목구비의 468개 랜드마크를 추출 중입니다...";
+          
+          if(faceMesh) {
+            try {
+              // faceMesh 내부 상태(특히 타임스탬프)를 초기화하여 연속적인 정적 이미지 분석이 무시되는 문제 해결
+              if (typeof faceMesh.reset === 'function') {
+                faceMesh.reset();
+              }
+              await faceMesh.send({image: imgEl});
+            } catch (err) {
+              console.error("FaceMesh 실행 중 오류 발생:", err);
+              document.getElementById('phyStatus').innerText = "이미지 분석 중 오류가 발생했습니다. 다시 시도해주세요.";
+            }
+          }
+        };
+        imgEl.src = e.target.result;
       };
-      imgEl.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
-
-window.startCapture = async function() {
-  if (!landmarksData) { alert("얼굴이 제대로 인식되지 않았습니다. 밝은 곳에서 다시 시도해주세요."); return; }
-  isAnalyzing = true;
-  document.getElementById('captureBtn').style.display = "none";
-  document.getElementById('scanOverlay').style.display = "block";
-  document.getElementById('phyStatus').innerText = "상/중/하정 밸런스 및 이상(귀) 수치 정밀 분석 중... ";
-
-  try {
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    if(!window.faceAnalysisEngine) throw new Error("분석 엔진 부재");
-
-    const result = await window.faceAnalysisEngine.analyze(landmarksData);
-    
-    analysisComplete = true;
-    document.getElementById('scanOverlay').style.display = "none";
-    document.getElementById('phyStatus').innerText = " 초정밀 관상 분석이 100% 완료되었습니다!";
-    
-    renderResult(result);
-  } catch (error) {
-    console.error(error);
-    document.getElementById('phyStatus').innerText = "분석 실패: " + (error.message || error);
-    document.getElementById('captureBtn').style.display = "block";
-    isAnalyzing = false;
+      reader.readAsDataURL(file);
   }
-}
 
-function renderResult(result) {
+  window.startCapture = async function() {
+    if (!landmarksData) { alert("얼굴이 제대로 인식되지 않았습니다. 밝은 곳에서 다시 시도해주세요."); return; }
+    isAnalyzing = true;
+    document.getElementById('captureBtn').style.display = "none";
+    document.getElementById('scanOverlay').style.display = "block";
+    document.getElementById('phyStatus').innerText = "상/중/하정 밸런스 및 이상(귀) 수치 정밀 분석 중... ";
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      if(!window.faceAnalysisEngine) throw new Error("분석 엔진 부재");
+
+      const result = await window.faceAnalysisEngine.analyze(landmarksData);
+      
+      analysisComplete = true;
+      document.getElementById('scanOverlay').style.display = "none";
+      document.getElementById('phyStatus').innerText = " 초정밀 관상 분석이 100% 완료되었습니다!";
+
+      renderResult(result);
+    } catch (error) {
+      console.error(error);
+      document.getElementById('phyStatus').innerText = "분석 실패: " + (error.message || error);
+      document.getElementById('captureBtn').style.display = "block";
+      isAnalyzing = false;
+    }
+  }
+
+  function renderResult(result) {
   let emojiNode = document.getElementById('resEmoji');
   emojiNode.innerText = result.emoji || '';
   
