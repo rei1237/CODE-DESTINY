@@ -100,14 +100,17 @@ body{background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F
 }
 .wrap{
   width:100%;
-  max-width:480px; /* narrowed for mobile feel */
+  max-width:550px; /* Slightly wider for complex charts but still app-focused */
   margin:0 auto;
   position: relative;
+  overflow-x: hidden; /* Prevent horizontal overflow */
 }
-@media (min-width: 481px) {
+@media (min-width: 551px) {
   .wrap {
-    box-shadow: 0 0 50px rgba(0,0,0,0.05); /* subtle shadow on desktop */
+    box-shadow: 0 0 50px rgba(0,0,0,0.08);
     min-height: 100vh;
+    border-left: 1px solid rgba(0,0,0,0.05); /* Subtle border */
+    border-right: 1px solid rgba(0,0,0,0.05);
   }
 }
 
@@ -133,7 +136,23 @@ body{background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F
 .sec-title::before{content:'';display:block;width:4px;height:18px;
   background:var(--point-color, linear-gradient(var(--pink),var(--pink-l)));border-radius:2px}
 
-/* ─── 테마 토글 스위치 ─── */
+/* Force content to respect container width */
+img, canvas, svg, video {
+  max-width: 100%;
+  height: auto;
+}
+.manse-grid {
+  /* Ensure grid fits */
+  width: 100%;
+  overflow-x: auto; /* Allow horizontal scroll if needed on tiny screens */
+}
+/* Ensure result page does not break layout */
+#resultPage {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .theme-switch-wrapper {
   position: fixed;
   bottom: 30px;
