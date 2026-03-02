@@ -2591,7 +2591,7 @@ body.neo-mode .monthly-label { color: #64748b; }
           <button onclick="closeTarotModal()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
         </div>
         
-        <div style="max-width:420px; margin:60px auto 40px; padding:0 20px; position:relative;">
+        <div id="tarotInnerContainer" style="max-width:420px; margin:60px auto 40px; padding:0 20px; position:relative;">
           
           <!-- Glass Oracle Design Inside Modal -->
           <style>
@@ -2718,15 +2718,12 @@ body.neo-mode .monthly-label { color: #64748b; }
           
         </div>
       </div>
+      <style>
+        #tarotModalOverlay:-webkit-full-screen #tarotInnerContainer { max-width: 640px !important; }
+        #tarotModalOverlay:fullscreen #tarotInnerContainer { max-width: 640px !important; }
+      </style>
       <script>
-        function openTarotModal() {
-          document.getElementById('tarotModalOverlay').style.display = 'block';
-          document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        }
-        function closeTarotModal() {
-          document.getElementById('tarotModalOverlay').style.display = 'none';
-          document.body.style.overflow = '';
-          // Reset UI if needed
+        function _resetTarotUI() {
           document.getElementById('tarotResultContainer').style.display = 'none';
           document.getElementById('tarotCardEl').classList.remove('flipped');
           document.getElementById('tarotRitualMsg').innerText = '"당신의 간절한 고민을 선택해주세요..."';
@@ -2734,6 +2731,43 @@ body.neo-mode .monthly-label { color: #64748b; }
           window.curTarotCat = null;
           window.isReading = false;
         }
+        function openTarotModal() {
+          var overlay = document.getElementById('tarotModalOverlay');
+          overlay.style.display = 'block';
+          document.body.style.overflow = 'hidden';
+          var req = overlay.requestFullscreen || overlay.webkitRequestFullscreen || overlay.mozRequestFullScreen || overlay.msRequestFullscreen;
+          if (req) {
+            req.call(overlay).catch(function(e) { console.log('Fullscreen not available:', e); });
+          }
+        }
+        function closeTarotModal() {
+          var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+          if (isFs) {
+            var exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exit) exit.call(document);
+          } else {
+            document.getElementById('tarotModalOverlay').style.display = 'none';
+            document.body.style.overflow = '';
+            _resetTarotUI();
+          }
+        }
+        (function() {
+          function onFsChange() {
+            var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            if (!isFs) {
+              var overlay = document.getElementById('tarotModalOverlay');
+              if (overlay && overlay.style.display !== 'none') {
+                overlay.style.display = 'none';
+                document.body.style.overflow = '';
+                _resetTarotUI();
+              }
+            }
+          }
+          document.addEventListener('fullscreenchange', onFsChange);
+          document.addEventListener('webkitfullscreenchange', onFsChange);
+          document.addEventListener('mozfullscreenchange', onFsChange);
+          document.addEventListener('MSFullscreenChange', onFsChange);
+        })();
       </script>
     </div>
 
