@@ -608,8 +608,9 @@ input:checked + .slider .paw-pad {
 .ad-container{background:#f9f9f9;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid #f0f0f0;text-align:center;min-height:250px;display:flex;align-items:center;justify-content:center}
 .ad-container ins{display:inline-block!important}
 
+
 /* ══════════════════════════════════════
-   🎴 오늘의 운명 카드 (Destiny Tarot)
+   🎴 오늘의 운명 카드 (Universal Oracle)
 ══════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap');
 .destiny-section{margin-bottom:16px}
@@ -630,74 +631,78 @@ input:checked + .slider .paw-pad {
   font-size:.82rem;letter-spacing:.22em;color:rgba(255,220,120,.75);
   text-transform:uppercase;margin-bottom:18px;
 }
+
+/* 타로 카테고리 선택 */
+.tarot-cats{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:24px;position:relative;z-index:2}
+.tarot-cat-btn{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);
+  color:#ccc;padding:8px 14px;border-radius:20px;font-size:0.75rem;cursor:pointer;
+  transition:all 0.3s ease;backdrop-filter:blur(4px);
+}
+.tarot-cat-btn:hover{background:rgba(255,255,255,0.15);color:#fff;transform:translateY(-2px)}
+.tarot-cat-btn.active{
+  background:linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+  color:#1a0a2e;font-weight:700;border-color:transparent;
+  box-shadow:0 0 15px rgba(255,215,0,0.4);
+}
+
+/* 타로 리추얼 텍스트 (스트리밍) */
+.tarot-ritual-msg{
+  min-height:30px;text-align:center;font-size:0.8rem;color:#bda0e3;
+  font-style:italic;margin-bottom:20px;opacity:0.9;
+  font-family:'KoPub Batang', serif;
+  text-shadow:0 0 10px rgba(189,160,227,0.3);
+}
+
 .destiny-card-scene{
   perspective:800px;width:100%;display:flex;justify-content:center;margin-bottom:20px;
 }
 .destiny-card{
   width:200px;height:340px;position:relative;
   transform-style:preserve-3d;
-  animation:cardFloat 5s ease-in-out infinite;
+  transition:transform 1s;
   cursor:pointer;
 }
-@keyframes cardFloat{
-  0%,100%{transform:translateY(0) rotateX(3deg) rotateY(-4deg)}
-  30%{transform:translateY(-10px) rotateX(5deg) rotateY(3deg)}
-  70%{transform:translateY(-6px) rotateX(2deg) rotateY(-2deg)}
-}
-.destiny-card-inner{
-  position:absolute;inset:0;
-  background:linear-gradient(145deg,#1e1040 0%,#2a1058 40%,#1a0c3a 100%);
-  border-radius:18px;
-  border:2px solid rgba(255,215,0,.35);
-  box-shadow:0 0 30px rgba(160,80,255,.25),0 0 0 1px rgba(255,215,0,.1),inset 0 0 30px rgba(80,20,120,.3);
-  overflow:hidden;
-  display:flex;flex-direction:column;align-items:center;
-  padding:14px 10px 12px;
-}
-.destiny-card-inner::before{
-  content:'';position:absolute;inset:6px;
-  border:1px solid rgba(255,215,0,.2);border-radius:14px;
-  pointer-events:none;
-}
-.dc-crown{
-  font-size:.65rem;letter-spacing:.25em;color:rgba(255,210,80,.6);
-  font-family:'Cinzel Decorative',serif;text-align:center;margin-bottom:8px;
-  text-transform:uppercase;
-}
-.dc-symbol{
-  width:110px;height:130px;
-  background:radial-gradient(circle at 50% 45%,rgba(180,100,255,.18),transparent 70%);
+/* 카드 뒷면 */
+.destiny-card-back{
+  position:absolute;inset:0;backface-visibility:hidden;
+  background-image:url('https://www.sacred-texts.com/tarot/xr/pents01.jpg'); /* 임시 텍스처 */
+  background-size:cover;border-radius:14px;
+  border:2px solid #5c4d80;
   display:flex;align-items:center;justify-content:center;
-  position:relative;margin-bottom:10px;
-  flex-shrink:0;
 }
-.dc-symbol svg{width:100%;height:100%;filter:drop-shadow(0 0 14px rgba(200,160,255,.6))}
-.dc-el-badge{
-  font-size:.58rem;letter-spacing:.18em;
-  color:rgba(255,215,0,.55);text-align:center;
-  text-transform:uppercase;margin-bottom:6px;
-  font-family:'Cinzel Decorative',serif;
+.destiny-card-back::after{
+  content:'';position:absolute;inset:0;background:rgba(20,10,40,0.85);
+  background-image:repeating-linear-gradient(45deg, rgba(255,215,0,0.05) 0px, rgba(255,215,0,0.05) 1px, transparent 1px, transparent 10px);
 }
-.dc-name{
-  font-family:'Noto Serif KR',serif;
-  font-size:.95rem;font-weight:700;
-  color:#fff;text-align:center;margin-bottom:4px;
-  text-shadow:0 0 18px rgba(220,160,255,.8);
-  letter-spacing:.06em;
+.destiny-card-back span{z-index:1;font-size:2rem;opacity:0.5;filter:grayscale(1)}
+
+/* 카드 앞면 */
+.destiny-card-front{
+  position:absolute;inset:0;backface-visibility:hidden;
+  transform:rotateY(180deg);
+  border-radius:14px;overflow:hidden;
+  background-size:cover;background-position:center;
+  box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
-.dc-sub{
-  font-size:.62rem;color:rgba(255,255,255,.5);
-  text-align:center;letter-spacing:.1em;margin-bottom:8px;
+.destiny-card.flipped { transform: rotateY(180deg); }
+
+/* 영적 처방전 */
+.tarot-oracle{
+  margin-top:20px;padding:15px;background:rgba(0,0,0,0.3);
+  border-left:3px solid #FFD700;border-radius:4px;
+  color:#e0e0e0;font-size:0.85rem;line-height:1.6;
+  opacity:0;transform:translateY(10px);transition:all 1s ease;
 }
-.dc-divider{
-  width:60%;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,215,0,.35),transparent);
-  margin:2px auto 8px;
+.tarot-oracle.show{opacity:1;transform:translateY(0)}
+
+/* 골드 더스트 효과 */
+.gold-dust{
+  position:absolute;width:4px;height:4px;background:#FFD700;
+  border-radius:50%;pointer-events:none;animation:dustFloat 2s linear forwards;
 }
-.dc-msg{
-  font-size:.7rem;line-height:1.6;color:rgba(255,255,255,.72);
-  text-align:center;padding:0 4px;font-style:italic;
-}
+@keyframes dustFloat{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-50px) scale(0);opacity:0}}
+
 .destiny-stats{
   display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;
 }
@@ -2319,7 +2324,11 @@ body.neo-mode .monthly-label { color: #64748b; }
         <h1>쌈바의 팩폭 운세 만세력</h1>
         <p>감성 제로. 팩트만 남는다.</p>
       </div>
+
     </div>
+
+
+
     <div class="card">
       <div class="form-group">
         <label class="form-label">이름</label>
@@ -2385,6 +2394,148 @@ body.neo-mode .monthly-label { color: #64748b; }
       <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="openPhysiognomyApp()">
         🎭 AI 동물 관상 (NEW)
       </button>
+
+      <!-- 타로 카드 버튼 (Universal Oracle) -->
+      <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);" onclick="openTarotModal()">
+        🔮 신비의 타로 (Universal Oracle)
+      </button>
+
+      <!-- 타로 모달 (Hidden Overlay) -->
+      <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
+        <div style="position:absolute; top:20px; right:20px; z-index:100000;">
+          <button onclick="closeTarotModal()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
+        </div>
+        
+        <div style="max-width:420px; margin:60px auto 40px; padding:0 20px; position:relative;">
+          
+          <!-- Glass Oracle Design Inside Modal -->
+          <style>
+            .glass-oracle-modal {
+              position: relative;
+              background: linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 100%);
+              border-radius: 20px;
+              padding: 24px;
+              box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(139, 92, 246, 0.15);
+              border: 1px solid rgba(139, 92, 246, 0.3);
+              overflow: hidden;
+            }
+            .glass-oracle-modal::before {
+              content: '';
+              position: absolute;
+              top: -50%; left: -50%;
+              width: 200%; height: 200%;
+              background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
+              animation: rotateBgModal 25s linear infinite;
+              pointer-events: none;
+            }
+            @keyframes rotateBgModal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            
+            .oracle-header-m { text-align: center; margin-bottom: 24px; position: relative; z-index: 2; }
+            .oracle-title-m {
+              font-family: 'Cinzel', serif; font-size: 1.5rem;
+              background: linear-gradient(to right, #e2e8f0, #fff, #e2e8f0);
+              -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+              letter-spacing: 2px; margin-bottom: 6px; text-shadow: 0 0 15px rgba(255,255,255,0.3);
+            }
+            .oracle-subtitle-m { font-family: 'Gowun Batang', serif; font-size: 0.9rem; color: #a78bfa; letter-spacing: 0.5px; }
+
+            .oracle-cats-m { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 30px; position: relative; z-index: 2; }
+            .oracle-cat-btn-m {
+              background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+              color: #d8b4fe; padding: 8px 14px; border-radius: 99px; font-size: 0.82rem;
+              cursor: pointer; transition: all 0.3s ease; font-family: 'Gowun Batang', serif;
+            }
+            .oracle-cat-btn-m:hover, .oracle-cat-btn-m.active {
+              background: rgba(139, 92, 246, 0.25); border-color: #a78bfa; color: #fff;
+              box-shadow: 0 0 15px rgba(167, 139, 250, 0.4); transform: translateY(-2px);
+            }
+
+            .oracle-scene-m {
+              height: 340px; perspective: 1000px; display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; margin-bottom: 20px;
+            }
+            .oracle-card-m {
+              width: 200px; height: 310px; position: relative; transform-style: preserve-3d;
+              transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer;
+            }
+            .oracle-card-m.flipped { transform: rotateY(180deg); }
+            .oracle-face-m {
+              position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+              border-radius: 14px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            }
+            .oracle-back-m {
+              background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+              border: 2px solid #6366f1; display: flex; justify-content: center; align-items: center;
+              font-size: 3.5rem;
+              background-image: radial-gradient(#6366f1 1px, transparent 1px), radial-gradient(#6366f1 1px, transparent 1px);
+              background-size: 20px 20px; background-position: 0 0, 10px 10px;
+            }
+            .oracle-back-m::after { content: '⚛'; color: rgba(255,255,255,0.25); animation: pulse 2.5s infinite; }
+            .oracle-front-m {
+              transform: rotateY(180deg); background-size: cover; background-position: center;
+              border: 2px solid #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+            }
+
+            .oracle-result-box-m {
+              margin-top: 20px; padding: 22px; background: rgba(0, 0, 0, 0.5);
+              border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08);
+              position: relative; z-index: 2; display: none; animation: fadeIn 0.8s ease;
+            }
+            .oracle-text-m {
+              font-family: 'Gowun Batang', serif; color: #e2e8f0; font-size: 1.05rem;
+              line-height: 1.85; text-align: justify; word-break: keep-all; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            }
+            .ritual-text-m { text-align: center; color: #cbd5e1; font-size: 0.95rem; min-height: 28px; margin-top: 15px; font-family: 'Gowun Batang', serif; }
+          </style>
+
+          <div class="glass-oracle-modal">
+            <div class="oracle-header-m">
+              <div class="oracle-title-m">THE MYSTIC TAROT</div>
+              <div class="oracle-subtitle-m">무의식이 이끄는 단 하나의 해답</div>
+            </div>
+            
+            <div class="oracle-cats-m" id="tarotCats">
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('love', this)">💘 연애운</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('reunion', this)">💞 재회운</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('wealth', this)">💰 금전운</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('business', this)">📊 사업운</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('success', this)">🎓 합격운</div>
+            </div>
+
+            <div class="ritual-text-m" id="tarotRitualMsg">"당신의 간절한 고민을 선택해주세요..."</div>
+
+            <div class="oracle-scene-m">
+              <div class="oracle-card-m" id="tarotCardEl" onclick="startTarotReading()">
+                <div class="oracle-face-m oracle-back-m" id="tarotCardBack"></div>
+                <div class="oracle-face-m oracle-front-m" id="tarotCardFront"></div>
+              </div>
+            </div>
+            
+            <div id="tarotResultContainer" class="oracle-result-box-m">
+              <div style="font-family:'Cinzel', serif; color:#ffcc00; font-size:1.4rem; text-align:center; margin-bottom:14px; text-shadow:0 2px 4px rgba(0,0,0,0.8); padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1);" id="tarotCardName"></div>
+              <div class="oracle-text-m" id="destinyFortune"></div>
+              <div style="margin-top:16px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.2); color:#a78bfa; font-size:0.95rem; font-style:italic; text-align:center;" id="tarotOracleText"></div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      <script>
+        function openTarotModal() {
+          document.getElementById('tarotModalOverlay').style.display = 'block';
+          document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+        function closeTarotModal() {
+          document.getElementById('tarotModalOverlay').style.display = 'none';
+          document.body.style.overflow = '';
+          // Reset UI if needed
+          document.getElementById('tarotResultContainer').style.display = 'none';
+          document.getElementById('tarotCardEl').classList.remove('flipped');
+          document.getElementById('tarotRitualMsg').innerText = '"당신의 간절한 고민을 선택해주세요..."';
+          document.querySelectorAll('.oracle-cat-btn-m').forEach(btn => btn.classList.remove('active'));
+          window.curTarotCat = null;
+          window.isReading = false;
+        }
+      </script>
     </div>
 
     <!-- 광고: 입력 페이지 광고 -->
@@ -3090,21 +3241,6 @@ body.neo-mode .monthly-label { color: #64748b; }
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
-    <!-- 🎴 오늘의 운명 카드 -->
-    <div class="destiny-section" id="destinySection" style="display:none">
-      <div class="destiny-wrap">
-        <div class="destiny-title">✦ Today's Destiny Card ✦</div>
-        <div class="destiny-card-scene">
-          <div class="destiny-card" id="destinyCardEl" onclick="flipDestinyCard()">
-            <div class="destiny-card-inner" id="destinyCardInner">
-              <!-- JS로 채워짐 -->
-            </div>
-          </div>
-        </div>
-        <div class="destiny-stats" id="destinyStats"></div>
-        <div class="destiny-fortune" id="destinyFortune"></div>
-      </div>
-    </div>
 
     <!-- 9. 연이의 편지 / 쌈바의 팩폭 -->
     <div class="letter-box" id="letterBox" style="margin-bottom:16px; display:none;">
@@ -6310,20 +6446,7 @@ function renderAstroInsight() {
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 2. 전체 행성 배치도 (출생 시 실제 천체 위치)</div>'
-        +'<div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse;min-width:360px">'
-        +'<thead><tr style="background:rgba(88,28,220,0.25)">'
-        +'<th style="padding:7px 10px;text-align:left;color:#c084fc;font-size:0.76rem">행성</th>'
-        +'<th style="padding:7px 10px;text-align:left;color:#c084fc;font-size:0.76rem">별자리 (황경)</th>'
-        +'<th style="padding:7px 10px;text-align:left;color:#c084fc;font-size:0.76rem">원소</th>'
-        +'<th style="padding:7px 10px;text-align:left;color:#c084fc;font-size:0.76rem">역행</th>'
-        +'</tr></thead>'
-        +'<tbody>'+planetRows+'</tbody>'
-        +'</table></div>'
-        +'</div>'
-
-        +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 3. 사회적 소명과 천직 (MC & 하우스 시스템 · Placidus)</div>'
+        +'<div class="astro-subhead">📌 2. 사회적 소명과 천직 (MC & 하우스 시스템 · Placidus)</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">MC 천정(10H)</span> <span class="astro-planet">'+mcSign+'</span>'
         +' <span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
@@ -6337,7 +6460,7 @@ function renderAstroInsight() {
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 4. 관계 역학과 내면의 타자 투사</div>'
+        +'<div class="astro-subhead">📌 3. 관계 역학과 내면의 타자 투사</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
         +' <span class="astro-tag">Venus 금성 ♀</span> <span class="astro-planet">'+venusSign+(chart.planets.Venus&&chart.planets.Venus.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
@@ -6351,7 +6474,7 @@ function renderAstroInsight() {
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 5. 거대한 우주의 통신 (현재 목성 트랜짓 기류)</div>'
+        +'<div class="astro-subhead">📌 4. 거대한 우주의 통신 (현재 목성 트랜짓 기류)</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">Jupiter ♃ Transit</span> <span class="astro-planet">'+jupiterTransit+'</span>'
         +' <span style="color:#94a3b8;font-size:0.78rem">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+(now.getDate())+'일 기준)</span>'
@@ -6360,6 +6483,20 @@ function renderAstroInsight() {
         +'<p>현재 하늘을 통과하는 목성(Jupiter)이 <b>'+jupiterTransit+'</b>에 상주하며 당신의 거시적 운명에 거대한 기류 변화를 촉구하고 있습니다.</p>'
         +'<div class="astro-core" style="font-size:1.05rem;margin-top:20px;font-weight:bold">"👉 '+transitMsg[jupiterIndex]+'"</div>'
         +'<p>이 시기에는 수축보다 경험이, 두려움보다는 확장이 당신의 운을 지배해야만 합니다.</p>'
+        +'</div>'
+        +'</div>'
+
+        +'<div class="astro-section">'
+        +'<div class="astro-subhead">📌 5. 영혼이 공명하는 별들의 궁합 (Healing Synergy)</div>'
+        +'<div class="astro-desc">'
+        +'<p>사람과 사람의 만남은 우주가 안배한 치유의 여정입니다. 당신의 <b>'+sunSign+'</b> 태양과 <b>'+moonSign+'</b> 달이 그려내는 따스한 파동을 통해 힐링 에너지를 불어넣는 궁합의 결을 들여다봅니다.</p>'
+        +'<div class="astro-core" style="font-size:0.95rem;line-height:1.6;font-weight:normal">'
+        +'<ul style="padding-left:20px;margin-bottom:0;">'
+        +'<li style="margin-bottom:10px;"><b>💕 연애 궁합 (정서적 지지와 안식처)</b><br>당신의 지친 하루를 안아줄 사람은, 본연의 감수성을 온전히 이해해주는 수용적인 에너지를 가진 사람입니다. 특히 <b>'+moonSign+'</b>의 감정선과 잔잔하게 공명할 수 있는 물이나 땅(흙)의 기운을 가진 영혼 곁에서 큰 위안을 얻습니다. 밀고 당기기보다는, 그저 같은 공간에서 서로 숨 쉬는 것만으로도 충전되는 은은하고 따뜻한 유대감이 당신의 마음을 가장 완벽하게 지켜줍니다.</li>'
+        +'<li style="margin-bottom:10px;"><b>✨ 속 궁합 (본능과 영혼의 교감)</b><br>보이지 않는 교감과 은밀한 감정선이 하나로 이어질 때, 당신의 몸도 가장 평안한 이완을 경험합니다. <b>'+venusSign+'</b> 금성과 <b>'+marsSign+'</b> 화성의 결합은 단순히 뜨거움을 넘어선 무의식적 치유의 스킨십을 원합니다. 사랑하는 사람의 부드러운 눈빛과 섬세한 터치는 세상의 모든 스트레스를 씻어내는 우주 최고의 힐링 리추얼이 되어 당신을 더욱 단단하게 만들어줍니다.</li>'
+        +'<li><b>🤝 일 궁합 (상호 보완적인 조력자)</b><br>당신의 '+mcSign+' MC(사회적 소명)를 뒷받침해주면서도 언제나 부드러운 피드백으로 용기를 불어넣는 조력자가 필요합니다. 완벽을 기하려다 홀로 지쳐버리지 않도록, 당신 대신 무거운 짐을 기꺼이 나누어 지는 현실적이면서도 배려심 깊은 인연(특히 흙의 별자리 성향)이 조직 내의 든든한 나무가 되어줄 것입니다. 함께 성장하며 만들어가는 성취의 기쁨 속에서 진정한 자존감을 확인해보세요.</li>'
+        +'</ul>'
+        +'</div>'
         +'</div>'
         +'</div>'
 
@@ -9205,50 +9342,250 @@ function renderTodayDestinyCard(p){
   var svgSymbols={
     wood:'<svg viewBox="0 0 80 80"><g opacity=".9"><path d="M40 70 Q40 50 40 10" stroke="#4CAF50" stroke-width="3" fill="none"/><path d="M40 30 Q25 20 15 25" stroke="#66BB6A" stroke-width="2.5" fill="none"/><path d="M40 40 Q55 28 65 33" stroke="#81C784" stroke-width="2.5" fill="none"/><path d="M40 50 Q28 40 22 42" stroke="#A5D6A7" stroke-width="2" fill="none"/><circle cx="40" cy="68" r="5" fill="#2E7D32" opacity=".7"/><path d="M28 74 Q40 68 52 74" stroke="#388E3C" stroke-width="2" fill="none"/></g></svg>',
     fire:'<svg viewBox="0 0 80 80"><g opacity=".9"><path d="M40 65 Q25 55 22 40 Q30 42 32 35 Q28 25 35 15 Q38 28 42 25 Q46 15 52 22 Q60 32 55 45 Q52 38 46 40 Q52 55 40 65Z" fill="url(#fg)" stroke="#C62828" stroke-width="1.5"/><defs><radialGradient id="fg" cx="50%" cy="70%"><stop offset="0%" stop-color="#FF8F00"/><stop offset="50%" stop-color="#E53935"/><stop offset="100%" stop-color="#B71C1C" stop-opacity=".7"/></radialGradient></defs><ellipse cx="40" cy="52" rx="8" ry="5" fill="#FF5722" opacity=".6"/></g></svg>',
+
+
     earth:'<svg viewBox="0 0 80 80"><g opacity=".9"><polygon points="40,12 70,65 10,65" fill="none" stroke="#F57F17" stroke-width="2"/><polygon points="40,20 62,60 18,60" fill="rgba(255,152,0,.15)" stroke="#FF9800" stroke-width="1.5"/><circle cx="40" cy="42" r="10" fill="none" stroke="#FFA726" stroke-width="2"/><circle cx="40" cy="42" r="4" fill="#E65100" opacity=".8"/><line x1="10" y1="65" x2="70" y2="65" stroke="#F57F17" stroke-width="2.5"/></g></svg>',
     metal:'<svg viewBox="0 0 80 80"><g opacity=".9"><polygon points="40,10 55,30 65,55 40,70 15,55 25,30" fill="none" stroke="#90A4AE" stroke-width="2"/><polygon points="40,20 50,34 57,52 40,62 23,52 30,34" fill="rgba(144,164,174,.2)" stroke="#78909C" stroke-width="1.5"/><polygon points="40,30 46,38 49,50 40,55 31,50 34,38" fill="rgba(144,164,174,.15)" stroke="#607D8B" stroke-width="1.5"/><circle cx="40" cy="42" r="4" fill="#546E7A" opacity=".8"/></g></svg>',
     water:'<svg viewBox="0 0 80 80"><g opacity=".9"><ellipse cx="40" cy="55" rx="26" ry="16" fill="none" stroke="#1976D2" stroke-width="2"/><path d="M15 55 Q20 40 40 32 Q60 40 65 55" fill="rgba(33,150,243,.15)" stroke="#42A5F5" stroke-width="2"/><path d="M20 46 Q25 38 40 33 Q55 38 60 46" fill="none" stroke="#64B5F6" stroke-width="1.5"/><circle cx="40" cy="33" r="5" fill="none" stroke="#1565C0" stroke-width="2"/><path d="M38 28 Q40 18 42 28" stroke="#1565C0" stroke-width="2" fill="none"/></g></svg>'
   };
 
-  var cardHTML=
-    '<div class="dc-crown">'+EL_SYM[todayEl]+' '+EL_K[todayEl]+' '+EL_E[todayEl]+'</div>'+
-    '<div class="dc-symbol" style="filter: drop-shadow(0 0 16px '+tc.glow+')">'+
-      (svgSymbols[todayEl]||svgSymbols.earth)+
-    '</div>'+
-    '<div class="dc-el-badge">'+todayGan+todayZhi+' · 오늘의 일진</div>'+
-    '<div class="dc-name">'+todayGd.n+' '+todayJd.a+'의 날</div>'+
-    '<div class="dc-sub">'+(now.getMonth()+1)+'월 '+now.getDate()+'일 · '+['일','월','화','수','목','금','토'][now.getDay()]+'요일</div>'+
-    '<div class="dc-divider"></div>'+
-    '<div class="dc-msg">'+msg.overall+'</div>';
-
-  document.getElementById('destinyCardInner').innerHTML=cardHTML;
-
-  var relLabel={gen_in:'상생 (오늘→나)',gen_out:'상생 (나→오늘)',ke_in:'상극 (오늘→나)',ke_out:'상극 (나→오늘)',same:'동기 (同氣)',neutral:'중립 (中立)'};
-  var relIcon={gen_in:'🌸',gen_out:'🌱',ke_in:'⚡',ke_out:'🗡️',same:'🔵',neutral:'🙂'};
-  document.getElementById('destinyStats').innerHTML=
-    '<div class="destiny-stat"><span class="destiny-stat-icon">'+EL_SYM[todayEl]+'</span><span class="destiny-stat-label">오늘 기운</span><span class="destiny-stat-val">'+EL_K[todayEl]+' '+EL_E[todayEl]+'</span></div>'+
-    '<div class="destiny-stat"><span class="destiny-stat-icon">'+EL_SYM[birthEl]+'</span><span class="destiny-stat-label">내 일간</span><span class="destiny-stat-val">'+EL_K[birthEl]+' '+p.d.g+'</span></div>'+
-    '<div class="destiny-stat"><span class="destiny-stat-icon">'+relIcon[rel]+'</span><span class="destiny-stat-label">오행 관계</span><span class="destiny-stat-val" style="font-size:.72rem">'+relLabel[rel]+'</span></div>';
-
-  document.getElementById('destinyFortune').innerHTML=
-    '<div class="destiny-fortune-title">✦ Today\'s Fortune Reading ✦</div>'+
-    '<div class="destiny-fortune-rows">'+
-      '<div class="destiny-fortune-row"><span class="dfr-icon">'+msg.love.charAt(0)+'</span><div class="dfr-body"><span class="dfr-cat">연애·인간관계</span><span class="dfr-text">'+msg.love.slice(2)+'</span></div></div>'+
-      '<div class="destiny-fortune-row"><span class="dfr-icon">'+msg.money.charAt(0)+'</span><div class="dfr-body"><span class="dfr-cat">재물·금전</span><span class="dfr-text">'+msg.money.slice(2)+'</span></div></div>'+
-      '<div class="destiny-fortune-row"><span class="dfr-icon">'+msg.action.charAt(0)+'</span><div class="dfr-body"><span class="dfr-cat">행동 지침</span><span class="dfr-text">'+msg.action.slice(2)+'</span></div></div>'+
-    '</div>';
-
+  /* 
+     [Legacy Code Cleaned] 
+     기존 '운명 카드' UI 로직 제거 완료.
+     Bazi 계산에 따른 충(Chung) 등 핵심 알고리즘은 상단에 유지됨.
+  */
+  
   sec.style.display='block';
 }
 
-function flipDestinyCard(){
-  var card=document.getElementById('destinyCardEl');
-  if(!card)return;
-  card.style.animation='none';
-  card.style.transform=card.dataset.flipped==='1'?'':'rotateY(360deg) scale(1.06)';
-  card.dataset.flipped=card.dataset.flipped==='1'?'0':'1';
-  setTimeout(function(){card.style.animation='cardFloat 5s ease-in-out infinite';},700);
+/* ═══════════════════════════════════════
+   🔮 Universal Oracle (Tarot Engine)
+   Role: Master Tarot Architect
+═══════════════════════════════════════ */
+var TAROT_DATA = [
+  {id:'ar00', name:'The Fool', name_kr:'바보', short:'thefool', type:'major', 
+   desc:'무한한 가능성과 자유로운 여정의 시작. 세속적인 계산을 내려놓고 본능에 몸을 맡겨라.'},
+  {id:'ar01', name:'The Magician', name_kr:'마법사', short:'themagician', type:'major', 
+   desc:'창조의 도구는 이미 네 손안에 있다. 의지를 현실로 구현해낼 강력한 실행력.'},
+  {id:'ar02', name:'The High Priestess', name_kr:'여사제', short:'thehighpriestess', type:'major', 
+   desc:'베일에 가려진 무의식의 지혜. 직관은 논리보다 날카롭고, 침묵은 말보다 웅변적이다.'},
+  {id:'ar03', name:'The Empress', name_kr:'여황제', short:'theempress', type:'major', 
+   desc:'풍요와 감각적인 기쁨의 절정. 자연스러운 흐름에 몸을 맡기면 결실은 저절로 맺힌다.'},
+  {id:'ar04', name:'The Emperor', name_kr:'황제', short:'theemperor', type:'major', 
+   desc:'견고한 질서와 통제력. 감정을 배제한 냉철한 구조가 때로는 가장 큰 보호막이 된다.'},
+  {id:'ar05', name:'The Hierophant', name_kr:'교황', short:'thehierophant', type:'major', 
+   desc:'전통과 신념의 연결고리. 검증된 길을 따르는 것이 지금은 가장 안전한 혁명이다.'},
+  {id:'ar06', name:'The Lovers', name_kr:'연인', short:'TheLovers', type:'major', 
+   desc:'순수한 결합, 혹은 갈림길에서의 선택. 이끌림은 운명이지만 책임은 인간의 몫이다.'},
+  {id:'ar07', name:'The Chariot', name_kr:'전차', short:'thechariot', type:'major', 
+   desc:'모순된 두 욕망을 통제하고 질주하라. 승리는 오직 흔들리지 않는 의지에서 온다.'},
+  {id:'ar08', name:'Strength', name_kr:'힘', short:'thestrength', type:'major', 
+   desc:'부드러움이 강함을 제압한다. 내면의 야수를 길들이는 것은 무력이 아니라 인내심이다.'},
+  {id:'ar09', name:'The Hermit', name_kr:'은둔자', short:'thehermit', type:'major', 
+   desc:'군중 속의 고독, 그 안에서 찾는 진리. 답은 세상 밖이 아니라 네 안에 등불처럼 있다.'},
+  {id:'ar10', name:'Wheel of Fortune', name_kr:'운명의 수레바퀴', short:'wheeloffortune', type:'major', 
+   desc:'변화만이 유일한 상수다. 상승과 하강, 그 거대한 사이클조차 운명의 일부임을 받아들여라.'},
+  {id:'ar11', name:'Justice', name_kr:'정의', short:'justice', type:'major', 
+   desc:'인과응보의 차가운 칼날. 감정을 섞지 않은 객관적 판단만이 균형을 되찾아준다.'},
+  {id:'ar12', name:'The Hanged Man', name_kr:'매달린 사람', short:'thehangedman', type:'major', 
+   desc:'정지된 시간 속에서의 깨달음. 시각을 뒤집어야 비로소 보이지 않던 세상이 열린다.'},
+  {id:'ar13', name:'Death', name_kr:'죽음', short:'death', type:'major', 
+   desc:'완전한 종결만이 새로운 시작을 허락한다. 썩은 것을 도려내는 아픔을 두려워 마라.'},
+  {id:'ar14', name:'Temperance', name_kr:'절제', short:'temperance', type:'major', 
+   desc:'극단 사이의 황금비율. 감정의 연금술사가 되어 불순물을 걸러내고 순수함만 남겨라.'},
+  {id:'ar15', name:'The Devil', name_kr:'악마', short:'thedevil', type:'major', 
+   desc:'달콤한 구속, 벗어날 수 없는 욕망의 사슬. 네가 갇힌 감옥의 열쇠는 사실 네가 쥐고 있다.'},
+  {id:'ar16', name:'The Tower', name_kr:'탑', short:'thetower', type:'major', 
+   desc:'거짓된 기반의 필연적 붕괴. 무너짐은 재앙이 아니라, 진실을 가리던 벽이 사라지는 축복이다.'},
+  {id:'ar17', name:'The Star', name_kr:'별', short:'thestar', type:'major', 
+   desc:'혼돈 뒤에 찾아오는 치유와 희망. 어둠이 깊을수록 별은 더 명징하게 네 길을 비춘다.'},
+  {id:'ar18', name:'The Moon', name_kr:'달', short:'themoon', type:'major', 
+   desc:'불확실성의 안개와 무의식의 공포. 환영에 속지 말고 직관의 눈으로 어둠을 응시하라.'},
+  {id:'ar19', name:'The Sun', name_kr:'태양', short:'thesun', type:'major', 
+   desc:'순수한 기쁨과 명확한 성공. 그림자가 사라진 정오의 햇살 아래 어린아이처럼 뛰어라.'},
+  {id:'ar20', name:'Judgement', name_kr:'심판', short:'judgement', type:'major', 
+   desc:'과거의 청산과 영혼의 부활. 나팔 소리가 들린다면 이제는 긴 잠에서 깨어나 결단할 때다.'},
+  {id:'ar21', name:'The World', name_kr:'세계', short:'theworld', type:'major', 
+   desc:'여정의 완성, 그리고 또 다른 시작의 예고. 모든 조각이 맞춰진 순간의 황홀경을 만끽하라.'}
+];
+
+// 카테고리별 해석 로직 (Master Tarot Architect)
+var TAROT_CONTEXT = {
+  love: {
+    label: '연애 (Love)',
+    vibe: '감정의 교감, 주파수 일치, 낭만적 환상보다는 실질적인 관계의 온도를 분석한다.',
+    oracle: (c) => `흐린 눈을 거두고, ${c.name_kr}의 기운으로 관계의 실체를 직시해. 사랑은 환상이 아니라 핏줄 터지는 현실이니까.`
+  },
+  reunion: {
+    label: '재회 (Reunion)',
+    vibe: '끊어진 인연의 실타래 잔여물, 미련의 정체, 다시 얽힐 천시(天時)가 있는지 냉정하게 진단한다.',
+    oracle: (c) => `${c.name_kr} 카드가 말하네. 과거의 잔해를 밟고 서야만, 인연의 끈이 다시 보이기 시작할 거야.`
+  },
+  wealth: {
+    label: '금전 (Wealth)',
+    vibe: '에너지가 물질화되는 흐름, 재물의 입구와 출구, 막힌 기운을 뚫을 숫자와 방향을 제시한다.',
+    oracle: (c) => `돈은 에너지야. ${c.name_kr}의 흐름을 타면, 막혔던 혈이 뚫리듯 재물이 순환하기 시작할 거야.`
+  },
+  business: {
+    label: '사업 (Business)',
+    vibe: '확장과 수렴의 타이밍, 동업자와의 기운 충돌, 시장의 파도를 타는 전략적 통찰을 제공한다.',
+    oracle: (c) => `비즈니스는 전쟁이지. ${c.name_kr} 카드를 깃발 삼아, 지금은 ${c.type==='major'?'판을 키울':'내실을 다질'} 타이밍이야.`
+  },
+  success: {
+    label: '합격 (Success)',
+    vibe: '관성(官星)의 기운, 집중력이 폭발하는 시기, 경쟁자를 압도할 영적 무기를 짚어준다.',
+    oracle: (c) => `너에겐 이미 합격의 기운이 서려 있어. ${c.name_kr}의 에너지를 영적 무기로 삼아 경쟁자들을 압도해버려.`
+  }
+};
+
+var curTarotCat = null;
+var isReading = false;
+var autoStartTimer = null;
+
+function selectTarotCategory(cat, btn) {
+  if(isReading) return;
+  curTarotCat = cat;
+  
+  // UI 업데이트 (구버전 호환)
+  var siblings = btn.parentElement.children;
+  for(var i=0; i<siblings.length; i++) {
+    siblings[i].classList.remove('active');
+  }
+  btn.classList.add('active');
+  
+  // 리추얼 메시지 초기화
+  var msgEl = document.getElementById('tarotRitualMsg');
+  msgEl.innerHTML = `... [STAGE:ATMOSPHERE] 잠시 숨을 고르며 <b>${TAROT_CONTEXT[cat].label}</b> 고민이 서린 공기를 읽고 있어.`;
+  msgEl.style.opacity = 0.6;
+  
+  // 결과창 초기화
+  document.getElementById('tarotResultContainer').style.display='none';
+  document.getElementById('tarotOracleText').classList.remove('show');
+  document.getElementById('tarotOracleText').innerHTML='';
+  document.getElementById('tarotCardName').innerHTML='';
+  
+  var card = document.getElementById('tarotCardEl');
+  card.classList.remove('flipped');
+
+  // [수정: 클릭 없이 자동 진행]
+  if (autoStartTimer) clearTimeout(autoStartTimer);
+  autoStartTimer = setTimeout(function() {
+    startTarotReading();
+  }, 1200); // 1.2초 후 자동 시작
 }
+
+function startTarotReading() {
+  if(!curTarotCat) {
+    alert("먼저 고민 카테고리를 선택해줘. 너의 파동을 읽어야 하니까.");
+    return;
+  }
+  if(isReading) return;
+  isReading = true;
+  
+  var context = TAROT_CONTEXT[curTarotCat];
+  var msgEl = document.getElementById('tarotRitualMsg');
+  var card = document.getElementById('tarotCardEl');
+  
+  // 1. 셔플 단계
+  msgEl.innerHTML = `[STAGE:SHUFFLING] 이 패들이 네 운명의 궤적을 따라 섞이는 소리를 들어봐...`;
+  msgEl.style.opacity = 1;
+  
+  // 카드 흔들림 효과
+  card.style.animation = 'cardShake 0.5s ease-in-out infinite';
+  
+  // 2초 후 뽑기
+  setTimeout(() => {
+    card.style.animation = ''; // 흔들림 멈춤
+    
+    // 랜덤 카드 선택
+    var picked = TAROT_DATA[Math.floor(Math.random() * TAROT_DATA.length)];
+    var isReversed = Math.random() < 0.2; // 20% 확률로 역방향 (구현은 일단 정방향 위주로)
+    
+    // 카드 이미지 매핑 (krates98/tarotcardapi 활용)
+    // The Lovers 파일명만 대소문자 주의 (TheLovers.jpg), 나머지는 소문자.jpeg
+    var ext = picked.short === 'TheLovers' ? '.jpg' : '.jpeg';
+    var imgUrl = `https://raw.githubusercontent.com/krates98/tarotcardapi/main/images/${picked.short}${ext}`;
+    var frontEl = document.getElementById('tarotCardFront');
+    frontEl.style.backgroundImage = `url('${imgUrl}')`;
+    
+    // 카드 뒤집기
+    card.classList.add('flipped');
+    
+    // [EFFECT:GOLD_DUST]
+    createGoldDust(card);
+    
+    // 메시지 출력
+    msgEl.innerHTML = `[CARD:${picked.id}_${picked.name}] ... 이 카드가 솟구쳤군. 상징을 봐.`;
+    document.getElementById('tarotCardName').innerHTML = `${picked.name_kr} <span style="font-size:0.7rem;opacity:0.7">(${picked.name})</span>`;
+    document.getElementById('tarotResultContainer').style.display = 'block';
+    
+    // 3. 해석 스트리밍 시작
+    var interpretation = `
+      ... ${context.vibe.split(',')[0]}... 
+      ${picked.desc} ...
+      네가 선택한 <b>${context.label}</b>의 관점에서 보면, 이 카드는 아주 중요한 신호를 보내고 있어. 
+      ... (침묵) ... 
+      지금 흐름은 거부할 수 없는 궤적을 그리며 다가오고 있군.
+    `.trim();
+    
+    streamRitualText(interpretation, 'destinyFortune', () => {
+       // 마무리 오라클
+       var oracleHtml = `<div style="font-weight:bold;color:#FFD700;margin-bottom:5px">⚡ Master's Oracle</div>"${context.oracle(picked)}"`;
+       var oracleEl = document.getElementById('tarotOracleText');
+       oracleEl.innerHTML = oracleHtml;
+       oracleEl.classList.add('show');
+       isReading = false;
+    });
+    
+  }, 2000);
+}
+
+function streamRitualText(text, targetId, callback) {
+  var el = document.getElementById(targetId);
+  el.innerHTML = '';
+  var i = 0;
+  var speed = 20; // ms
+  
+  function type() {
+    if (i < text.length) {
+      // 줄바꿈이나 태그 처리
+      if(text.charAt(i) === '<') {
+         var tagEnd = text.indexOf('>', i);
+         el.innerHTML += text.substring(i, tagEnd+1);
+         i = tagEnd + 1;
+      } else {
+         el.innerHTML += text.charAt(i);
+         i++;
+      }
+      // ... 이 나오면 잠시 멈춤
+      if(text.substring(i-3, i) === '...') {
+        setTimeout(type, 800);
+      } else {
+        setTimeout(type, speed + Math.random()*20);
+      }
+    } else {
+      if(callback) callback();
+    }
+  }
+  type();
+}
+
+function createGoldDust(element) {
+  var rect = element.getBoundingClientRect();
+  for(var i=0; i<30; i++) {
+    var dust = document.createElement('div');
+    dust.className = 'gold-dust';
+    dust.style.left = (Math.random() * rect.width) + 'px';
+    dust.style.top = (Math.random() * rect.height) + 'px';
+    dust.style.animationDelay = (Math.random() * 0.5) + 's';
+    element.appendChild(dust);
+    setTimeout(() => dust.remove(), 2000); // 청소
+  }
+}
+
+// 구형 함수 대체
+function flipDestinyCard(){/* Deprecated */}
+
 /* ═══════════════════════════════════════
    일운 & 월운 엔진
 ═══════════════════════════════════════ */
@@ -9413,9 +9750,7 @@ function buildFortuneHTML(res, p){
   html+='<div class="fr-summary-grade">'+res.label+' '+res.gz.g+res.gz.j+' — '+res.grade+'</div>';
   html+='<div class="fr-summary-desc">'+GAN_K[res.gEl]+EL_K[res.gEl]+' 천간 · '+GAN_K[res.jEl]+EL_K[res.jEl]+' 지지 기운의 하루</div>';
   html+='<div class="fr-battery-gauge"><div class="fr-battery-fill" style="width:'+(res.batteryPercent||50)+'%"></div></div>';
-  var battLabel=NEO_MODE
-    ?(res.batteryPercent>=80?'⚡ 에너지 과잉 — 돌파 타이밍':res.batteryPercent>=65?'📊 양호 — 공격적 실행 가능':res.batteryPercent>=50?'🔍 중립 — 수비 유지':'⚠️ 에너지 부족 — 방어 전략 필수')
-    :(res.batteryPercent>=80?'⚡ 대길운':res.batteryPercent>=65?'🌟 길운':res.batteryPercent>=50?'🍀 무난':'⚠️ 주의');
+  var battLabel=res.batteryPercent>=80?'⚡ 대길운':res.batteryPercent>=65?'🌟 길운':res.batteryPercent>=50?'🍀 무난':'⚠️ 주의';
   html+='<div class="fr-battery-label">'+battLabel+' · 배터리 '+res.batteryPercent+'%</div>';
   html+='</div>';
   html+='</div>';
