@@ -98,7 +98,19 @@ body{background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F
   html { font-size: 14px; }
   .wrap { padding: 0; }
 }
-.wrap{width:100%;max-width:600px;margin:0 auto}
+.wrap{
+  width:100%;
+  max-width:480px; /* narrowed for mobile feel */
+  margin:0 auto;
+  position: relative;
+}
+@media (min-width: 481px) {
+  .wrap {
+    box-shadow: 0 0 50px rgba(0,0,0,0.05); /* subtle shadow on desktop */
+    min-height: 100vh;
+  }
+}
+
 
 /* ─── 로딩 오버레이 ─── */
 #lib-overlay{position:fixed;inset:0;background:var(--bg-color, linear-gradient(135deg,#FFF5F8,#FFF0FA));
