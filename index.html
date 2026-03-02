@@ -77,6 +77,7 @@
 .theme-pig {
   --bg-color: #FFF9F9;
   --card-bg: #FFFFFF;
+  --card-glass: rgba(255,255,255,0.86);
   --text-main: #4A4A4A;
   --point-color: #FF85A2;
   --border-color: #FFE0E6;
@@ -85,6 +86,7 @@
 .theme-neo {
   --bg-color: #1A1A1B;
   --card-bg: #2D2D30;
+  --card-glass: rgba(45,45,48,0.82);
   --text-main: #E1E1E1;
   --point-color: #FFD700;
   --border-color: #3F3F42;
@@ -93,24 +95,55 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Gowun Dodum',sans-serif}
 html{scroll-behavior:smooth;overflow-x:hidden}
 body{background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
-  min-height:100vh;color:var(--text-main, #3D3D3D);padding:16px 12px 60px;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;}
+  min-height:100vh;min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,139,167,.14), transparent 35%),
+    radial-gradient(circle at 85% 78%, rgba(124,58,237,.14), transparent 38%),
+    radial-gradient(circle at 50% 12%, rgba(255,215,0,.09), transparent 32%);
+}
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:.18;
+  background-image:radial-gradient(rgba(255,255,255,.5) .6px, transparent .6px);
+  background-size:3px 3px;
+}
 @media (max-width: 480px) {
   html { font-size: 14px; }
-  .wrap { padding: 0; }
 }
 .wrap{
   width:100%;
-  max-width:550px; /* Slightly wider for complex charts but still app-focused */
+  max-width:480px;
   margin:0 auto;
   position: relative;
-  overflow-x: hidden; /* Prevent horizontal overflow */
+  overflow-x: hidden;
+  min-height:100vh;
+  min-height:100dvh;
+  padding:calc(14px + env(safe-area-inset-top)) 12px calc(26px + env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  z-index:1;
+  isolation:isolate;
 }
-@media (min-width: 551px) {
+@media (min-width: 768px) {
   .wrap {
-    box-shadow: 0 0 50px rgba(0,0,0,0.08);
-    min-height: 100vh;
-    border-left: 1px solid rgba(0,0,0,0.05); /* Subtle border */
-    border-right: 1px solid rgba(0,0,0,0.05);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.06),
+      0 0 40px rgba(255,215,0,.12),
+      0 24px 56px rgba(0,0,0,.28);
+    border-left:1px solid rgba(255,255,255,.08);
+    border-right:1px solid rgba(255,255,255,.08);
+    backdrop-filter:blur(3px);
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
   }
 }
 
@@ -129,8 +162,11 @@ body{background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F
 #lib-sub{font-size:.8rem;color:#bbb}
 
 /* ─── 공통 카드 ─── */
-.card{background:var(--card-bg, #fff);border-radius:var(--radius-lg, 20px);padding:24px;
-  box-shadow:var(--card-shadow, 0 2px 24px rgba(255,139,167,.1));border:1px solid var(--border-color, rgba(255,183,178,.15));margin-bottom:var(--spacing-md, 16px); transition: background 0.4s ease, border-color 0.4s ease;}
+.card{background:var(--card-glass, var(--card-bg, #fff));border-radius:var(--radius-lg, 20px);padding:22px;
+  box-shadow:var(--card-shadow, 0 2px 24px rgba(255,139,167,.1));border:1px solid var(--border-color, rgba(255,183,178,.15));margin-bottom:var(--spacing-md, 16px); transition: background 0.4s ease, border-color 0.4s ease;backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);}
+@media (max-width: 480px){
+  .card{padding:16px}
+}
 .sec-title{color:var(--point-color, var(--pink));font-weight:700;font-size:1.05rem;
   margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .sec-title::before{content:'';display:block;width:4px;height:18px;
@@ -151,6 +187,7 @@ img, canvas, svg, video {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .theme-switch-wrapper {
@@ -2493,6 +2530,7 @@ body.neo-mode .monthly-label { color: #64748b; }
             .oracle-title-m {
               font-family: 'Cinzel', serif; font-size: 1.5rem;
               background: linear-gradient(to right, #e2e8f0, #fff, #e2e8f0);
+              background-clip: text;
               -webkit-background-clip: text; -webkit-text-fill-color: transparent;
               letter-spacing: 2px; margin-bottom: 6px; text-shadow: 0 0 15px rgba(255,255,255,0.3);
             }
