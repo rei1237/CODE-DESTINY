@@ -397,7 +397,11 @@ window.openPhysiognomyApp = async function() {
   try {
     await loadMediaPipeScripts();
     await startMediaPipe();
-    if (window.faceAnalysisEngine) await window.faceAnalysisEngine.loadDatabase();
+    if (window.faceAnalysisEngine) {
+      await window.faceAnalysisEngine.loadDatabase();
+      // face-api.js 표정 분석 모델 비동기 로드 (실패해도 기본 분석은 동작)
+      window.faceAnalysisEngine.loadFaceApiModels().catch(() => {});
+    }
   } catch (e) {
     document.getElementById('phyStatus').innerText = "로딩 중 오류 발생. 새로고침 후 다시 시도해주세요.";
   }
@@ -498,7 +502,18 @@ window.switchMode = async function(mode) {
       await new Promise(resolve => setTimeout(resolve, 2500));
       if(!window.faceAnalysisEngine) throw new Error("분석 엔진 부재");
 
-      const result = await window.faceAnalysisEngine.analyze(landmarksData);
+      // face-api.js 표정 감지 (실패 시 null → 기하학 분석만으로 동작)
+      let expressionData = null;
+      try {
+        const mediaSource = (typeof currentMode !== 'undefined' && currentMode === 'file')
+          ? document.getElementById('phyImage')
+          : document.getElementById('phyVideo');
+        if (mediaSource && window.faceAnalysisEngine.faceApiModelsLoaded) {
+          expressionData = await window.faceAnalysisEngine.detectExpressions(mediaSource);
+        }
+      } catch(exErr) { /* 표정 감지 실패 무시 */ }
+
+      const result = await window.faceAnalysisEngine.analyze(landmarksData, expressionData);
       
       analysisComplete = true;
       document.getElementById('scanOverlay').style.display = "none";

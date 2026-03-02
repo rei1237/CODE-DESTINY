@@ -5,6 +5,7 @@
 
 class AnalysisEngine {
   constructor() {
+    this.faceApiModelsLoaded = false; // face-api.js 모델 로드 완료 여부
     this.animalDb = {
       animals: [
     {
@@ -259,7 +260,7 @@ class AnalysisEngine {
           id: 'lynx',
           name: '시라소니상',
           emoji: '🐆',
-          celebrities: ['현진(Stray Kids)', '예지(ITZY)', '지민(BTS)'],
+          celebrities: ['현진(Stray Kids)', '예지(ITZY)', '지민(BTS)', '이재명'],
           description: `<strong>[성격 및 특징]</strong><br>고양이보다 날카롭고 표범보다 기민해 보이는 눈매가 특징입니다. 독립심이 극도로 강하며 타인의 간섭을 싫어하는 고고한 기질을 가졌습니다. 감각이 예민하고 직관력이 뛰어나 창의적인 발상을 자주 합니다.<br><br><strong>[연애 및 결혼]</strong><br>구속받는 것을 극도로 싫어하며, 서로의 사생활을 존중해주는 쿨하고 세련된 연애를 지향합니다.<br><br><strong>[진로 및 직업]</strong><br>예술가, 패션 디자이너, 프리랜서 전문가, 전문 기술직 등 자신만의 독보적인 영역을 구축할 수 있는 직업에서 성공합니다.<br><br><strong>[재물운]</strong><br>큰 조직에 의존하기보다 자신의 전문성을 바탕으로 수익을 창출하며, 자산의 독립성을 중요하게 여깁니다.`,
           key_features: { 'jaw_shape': 'sharp', 'eye_slant': 'upward', 'eye_distance': 'narrow' }
       },
@@ -543,7 +544,55 @@ class AnalysisEngine {
         advice: karmaAdvice
       };
     }
-async analyze(landmarksData) {
+
+  // ─────────────────────────────────────────────
+  // face-api.js 모델 로드 (CDN 기반, 최초 1회)
+  // ─────────────────────────────────────────────
+  async loadFaceApiModels() {
+    if (this.faceApiModelsLoaded) return;
+    try {
+      // face-api.js 스크립트 동적 로드
+      if (!window.faceapi) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js';
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+      const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+      ]);
+      this.faceApiModelsLoaded = true;
+      console.log('[AnalysisEngine] face-api.js 모델 로드 완료');
+    } catch(e) {
+      console.warn('[AnalysisEngine] face-api.js 로드 실패 (표정 분석 비활성화):', e);
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // face-api.js 표정 감지 (이미지 또는 비디오 엘리먼트)
+  // 반환: { happy, sad, angry, fearful, disgusted, surprised, neutral } (합계 ≈ 1)
+  // ─────────────────────────────────────────────
+  async detectExpressions(mediaEl) {
+    if (!this.faceApiModelsLoaded || !window.faceapi) return null;
+    try {
+      const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.3 });
+      const detection = await faceapi
+        .detectSingleFace(mediaEl, options)
+        .withFaceExpressions();
+      if (!detection) return null;
+      return detection.expressions; // faceapi.FaceExpressions 객체
+    } catch(e) {
+      console.warn('[AnalysisEngine] 표정 감지 실패:', e);
+      return null;
+    }
+  }
+
+async analyze(landmarksData, expressionData) {
     const features = this.extractGeometricFeatures(landmarksData);
     
           // --- 6차원 유클리디안-중력장 거리 연산 (절대 좌표 매핑 복원 & 스케일 최적화) ---
@@ -625,61 +674,79 @@ async analyze(landmarksData) {
                         (Math.pow(diffE, 2) * 150);
           
           // 확률 계산을 나중으로 미루고 정확한 유클리디안 거리를 먼저 기록 (중요)
-          candidates.push({ animal, penalty });
+          let geoScore = Math.max(0, 2000 - penalty);
+          candidates.push({ animal, penalty, geoScore });
       });
 
-      // --- [특정 동물상 절대 조건 (Feature Locking) 및 시너지 보정] ---
+      // (특수 조건 보정은 위 점수 산출 블록에서 처리됨)
+
+      // ── face-api.js 표정 기반 동물상 부스트 맵핑 ──
+      const EXPR_BOOST = {
+        happy:     { dog:40, rabbit:35, hamster:35, otter:30, koala:25, cat:5,  deer:15, bear:20, sparrow:30, alpaca:10 },
+        neutral:   { cat:30, fox:25, snake:20, wolf:20, leopard:25, eagle:15, tiger:10 },
+        angry:     { tiger:40, crocodile:35, lion:30, eagle:25, wolf:25, dinosaur:20, leopard:15 },
+        surprised: { deer:35, rabbit:25, hamster:20, koala:20, alpaca:30, frog:20 },
+        fearful:   { rabbit:30, hamster:25, deer:25, sparrow:30, otter:15 },
+        disgusted: { cat:30, snake:25, leopard:25, fox:20, crocodile:15, eagle:15 },
+        sad:       { dog:30, deer:35, bear:20, rabbit:15, camel:25, giraffe:10 }
+      };
+
+      // 표정 점수 보정 및 최종 totalScore 산출 (기하 60% + 표정 40%)
       candidates.forEach(c => {
-          // 1. 여우상 (지코 등) 시너지: 찢어진 눈매와 날렵한 턱선
-          if (c.animal.id === 'fox') {
-              if (features.eyeSlant < -1.0 && features.faceRatio <= 0.85 && features.noseWidthRatio > 0.85) {
-                  c.penalty -= 300.0; // 무조건 1순위로 견인
-              }
-          }
-          
-          // 2. 뱀상(V라인) / 악어상(넓고 두꺼운 하관) 턱선 절대 방어 로직
-          // 페널티는 "낮을수록" 정답(1위)에 가까워집니다.
-          // 턱이 두꺼운데 나오는 것을 원천 차단하기 위해 뱀상에 엄청난 +페널티 부여!
-          // 반대로 완벽한 V라인(얇은 턱)이라면 페널티를 대폭 마이너스(-) 처리하여 뱀상 1위 확률 극대화.
-          // [고양이상 강화] 제니, 한소희 등: 눈꼬리가 충분히 올라가고 얼굴이 둥근 경우
-          if (c.animal.id === 'cat') {
-              if (features.eyeSlant <= -4.0 && features.faceRatio >= 0.79) {
-                  c.penalty -= 1500.0; // 강하게 고양이상 견인
-              }
-          }
-
-          // [뱀상] 승리, 카리나 등: 턱이 완전히 사각형이 아닌 경우에 허용
-          // 기존 0.77에서 0.85로 대폭 완화 → 남성 뱀상도 커버 가능
-          if (c.animal.id === 'snake') {
-              if (features.jawSquareness >= 0.85) {
-                  c.penalty += 2000.0; // 완전 사각턱 → 뱀상 절대 불가
-              } else if (features.jawSquareness <= 0.72) {
-                  c.penalty -= 2000.0; // 극강 V라인 → 뱀상 무조건 1등
-              }
-              // 뱀상 시너지: 살짝 찢어진 눈 + 입이 큰 경우
-              if (features.eyeSlant <= -2.0 && features.mouthRatio >= 1.38) {
-                  c.penalty -= 700.0;
-              }
-          }
-
-          // [악어상] 윤석열 등: 턱이 두껍고 단단해야 함
-          if (c.animal.id === 'crocodile') {
-              if (features.jawSquareness <= 0.75) {
-                  c.penalty += 2000.0; // 턱이 얇으면 악어상 절대 불가
-              } else if (features.jawSquareness >= 0.85) {
-                  c.penalty -= 2000.0; // 완전 사각턱 → 악어상 무조건 1등
-              }
-          }
+        let exprScore = 0;
+        if (expressionData && typeof expressionData === 'object') {
+          Object.keys(EXPR_BOOST).forEach(expr => {
+            const prob = expressionData[expr] || 0; // 0~1
+            const boost = (EXPR_BOOST[expr][c.animal.id] || 0);
+            exprScore += prob * boost * 20;
+          });
+        }
+        c.exprScore = exprScore;
+        c.totalScore = Math.max(0, c.geoScore * 0.60 + exprScore * 0.40);
       });
 
-      // 페널티가 가장 적은(차이가 없는, 가장 완벽하게 일치하는) 순으로 오름차순 정렬 (핵심 수정 사항)
-      candidates.sort((a, b) => a.penalty - b.penalty);
-      
+      // 특수 조건 보정 반영 (기존 penalty 조정 → totalScore 직접 가감)
+      candidates.forEach(c => {
+        if (c.animal.id === 'fox') {
+          if (features.eyeSlant < -1.0 && features.faceRatio <= 0.85 && features.noseWidthRatio > 0.85) {
+            c.totalScore += 300;
+          }
+        }
+        if (c.animal.id === 'cat') {
+          if (features.eyeSlant <= -4.0 && features.faceRatio >= 0.79) {
+            c.totalScore += 1500;
+          }
+        }
+        if (c.animal.id === 'snake') {
+          if (features.jawSquareness >= 0.85)  c.totalScore -= 2000;
+          else if (features.jawSquareness <= 0.72) c.totalScore += 2000;
+          if (features.eyeSlant <= -2.0 && features.mouthRatio >= 1.38) c.totalScore += 700;
+        }
+        if (c.animal.id === 'crocodile') {
+          if (features.jawSquareness <= 0.75)      c.totalScore -= 2000;
+          else if (features.jawSquareness >= 0.85) c.totalScore += 2000;
+        }
+        c.totalScore = Math.max(0, c.totalScore);
+      });
+
+      // 내림차순 정렬 (높은 점수가 1위)
+      candidates.sort((a, b) => b.totalScore - a.totalScore);
+
+      // ── 소프트맥스(Softmax)로 퍼센트 계산 ──
+      const TOP_K = candidates.slice(0, 6);
+      const TEMP = 0.003;
+      const expArr = TOP_K.map(c => Math.exp(c.totalScore * TEMP));
+      const sumExp = expArr.reduce((s, v) => s + v, 0);
+      const pctArr = expArr.map(v => (v / sumExp) * 100);
+
       let bestMatch = candidates[0].animal;
-      let minPenalty = candidates[0].penalty;
-      
-      // 가장 낮은 페널티를 예쁜 확률 구조(70%~99.9%)로 역산환 스케일링
-      let matchProb = Math.max(72.5, Math.min(99.9, 100 - (minPenalty * 0.08)));
+      let matchProb = pctArr[0];
+
+      const top3 = TOP_K.slice(0, 3).map((c, i) => ({
+        animal: c.animal,
+        pct: pctArr[i].toFixed(1),
+        isTop: i === 0
+      }));
 
     // --- 1. 정밀 안상(眼相) 분석 (운명을 결정짓는 창) --- 
     let eyes = [
@@ -843,6 +910,21 @@ async analyze(landmarksData) {
 
         <div>
            <div style="font-weight: 800; font-size: 1.05rem; color: #0f172a; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;"> 🐾 이면의 현대적 동물상 매칭</div>
+           <!-- Top3 동물상 퍼센트 표시 -->
+           <div style="margin-bottom:14px; background:#f0f9ff; padding:14px; border-radius:10px; border-left:4px solid #0ea5e9;">
+             <div style="font-weight:800; font-size:0.95rem; color:#0c4a6e; margin-bottom:10px;">🐾 동물상 매칭 순위 (TOP 3)</div>
+             ${top3.map((t, i) => `
+             <div style="margin-bottom:${i<2?'10':'0'}px;">
+               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                 <span style="font-weight:${t.isTop?'800':'600'};font-size:${t.isTop?'1.05':'0.88'}rem;color:${t.isTop?'#0f172a':'#475569'};">${i+1}위 ${t.animal.emoji} ${t.animal.name}</span>
+                 <span style="font-weight:800;color:${t.isTop?'#0ea5e9':'#64748b'};font-size:${t.isTop?'1rem':'0.85'}rem;">${t.pct}%</span>
+               </div>
+               <div style="background:#e2e8f0;height:${t.isTop?'10':'6'}px;border-radius:9px;overflow:hidden;">
+                 <div style="height:100%;width:${t.pct}%;background:${t.isTop?'linear-gradient(90deg,#38bdf8,#0ea5e9)':'#94a3b8'};border-radius:9px;"></div>
+               </div>
+               ${t.isTop ? `<div style="font-size:0.75rem;color:#64748b;margin-top:3px;">대표 연예인: ${t.animal.celebrities.slice(0,3).join(', ')}</div>` : ''}
+             </div>`).join('')}
+           </div>
            <p style="font-size: 0.95rem; color: #475569; margin: 0;">위의 고전 관상학적 특질을 현대 매력 지수로 체환하면 <b>[${bestMatch.name} ${bestMatch.emoji}]</b>의 기운과 흡사합니다. (대표 연예인: ${bestMatch.celebrities.join(", ")})</p>
         </div>
       </div>
@@ -854,8 +936,9 @@ async analyze(landmarksData) {
       celebrities: bestMatch.celebrities.join(", "),
       description: bestMatch.description,
       expertReportHtml: expertReportHtml,
-      // 최종 동물상 매칭 적합도(확률)를 우주의 척도로 반환
+      // 소프트맥스 기반 1위 퍼센트 (face-api 표정 반영)
       confidence: matchProb.toFixed(1),
+      top3,
       extractedFeatures: features
     };
   }

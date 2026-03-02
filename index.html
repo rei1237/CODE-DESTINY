@@ -727,8 +727,7 @@ button,.dw-item,.year-row,.fortune-tab,.mystic-tab-btn,.lang-btn,.tog-btn,.oracl
 .year-row:hover{box-shadow:0 3px 10px rgba(255,183,178,.18)}
 .year-top{display:flex;justify-content:space-between;align-items:center}
 .year-title{font-weight:700;color:var(--pink);font-size:.92rem}
-.year-sub{max-height:0;overflow:hidden;transition:max-height .35s ease}
-.year-row.open .year-sub{max-height:3000px}
+.year-sub{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(0.4,0,0.2,1)}
 .yr-section{margin-top:10px;padding-top:10px;border-top:1px dashed #FFE0D6}
 .yr-label{font-weight:700;color:var(--pink);font-size:.82rem;margin-bottom:5px}
 .yr-content{font-size:.8rem;color:#666;line-height:1.68}
@@ -2570,7 +2569,7 @@ body.neo-mode .monthly-label { color: #64748b; }
       
       <!-- 관상 분석 기능을 위한 버튼 추가 -->
       <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="openPhysiognomyApp()">
-        🎭 AI 동물 관상 (NEW)
+        🎭 AI 동물 관상 (beta)
       </button>
 
       <!-- 타로 카드 버튼 (Universal Oracle) -->
@@ -2780,10 +2779,24 @@ body.neo-mode .monthly-label { color: #64748b; }
       <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
+
+    <!-- 앱 설치 버튼 (홈 화면 하단) -->
+    <div style="padding: 0 0 24px; display:flex; justify-content:center;">
+      <button class="btn-install" id="btnPwaInstallHome" onclick="handlePwaInstall()">
+        <span style="font-size:1.1rem">🔮</span> <span id="pwaInstallLabelHome">꽃돼지 운세 서비스 앱 설치하기</span>
+      </button>
+    </div>
   </main>
 
   <!-- ═══ 결과 페이지 (SEO: Result Content) ═══ -->
   <article id="resultPage" style="display: none;">
+
+    <!-- 홈 바로가기 버튼 -->
+    <div style="position:fixed; top:12px; left:12px; z-index:9999;">
+      <button onclick="resetApp()" style="background:rgba(30,10,50,0.75); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.3); color:#fff; font-size:0.88rem; font-weight:600; padding:8px 16px; border-radius:50px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 12px rgba(0,0,0,0.35); transition:background 0.2s;" onmouseover="this.style.background='rgba(168,85,247,0.75)'" onmouseout="this.style.background='rgba(30,10,50,0.75)'">
+        🏠 홈
+      </button>
+    </div>
 
     <!-- 0. 상단 히어로 -->
     <div class="top-hero">
@@ -4459,8 +4472,8 @@ function analyzeJohu(p){
   var type,advice,badgeCls,badgeTxt;
   if(score>=5){type='hot';advice='사주가 매우 뜨겁습니다. 水·金 기운이 절실히 필요합니다.';badgeCls='jb-hot';badgeTxt='🔥 뜨거운 사주';}
   else if(score>=2){type='warm';advice='사주가 따뜻한 편입니다. 水 기운으로 조절하면 좋습니다.';badgeCls='jb-warm';badgeTxt='🌞 따뜻한 사주';}
-  else if(score>=-2){type='neutral';advice='사주의 한난이 비교적 균형잡혀 있습니다.';badgeCls='jb-neutral';badgeTxt='⚖️ 균형 사주';}
-  else if(score>=-5){type='cool';advice='사주가 차가운 편입니다. 火·木 기운이 필요합니다.';badgeCls='jb-cool';badgeTxt='🍃 서늘한 사주';}
+  else if(score>=-2){type='neutral';advice='사주의 온도가 시원하게 균형잡혀 있습니다. 계절 변화에 맞춰 음양을 조절하세요.';badgeCls='jb-neutral';badgeTxt='🌤️ 시원한 사주';}
+  else if(score>=-5){type='cool';advice='사주가 서늘한 편입니다. 火·木 기운으로 온기를 보충하면 좋습니다.';badgeCls='jb-cool';badgeTxt='🍃 서늘한 사주';}
   else{type='cold';advice='사주가 매우 차갑습니다. 火·木 기운이 절실히 필요합니다.';badgeCls='jb-cold';badgeTxt='❄️ 차가운 사주';}
   var moistType,moistAdvice;
   var diff=moistCnt-dryCnt;
@@ -4615,10 +4628,11 @@ function detectJong(p){
   var pct1=max1/total*100, pct2=max2/total*100;
   var dayEl=GAN[p.d.g]&&GAN[p.d.g].e;
 
-  // ── 종격 판정 임계값: 70%+ 진종격 / 60~70% 가종격 ──────────────
-  var JONG_TRUE_THRESHOLD = 70;
-  var JONG_GA_THRESHOLD   = 60;
-  var HWA_TRUE_THRESHOLD  = 80; // 합화格: 80%+ 진종격 / 60~80% 가종격
+  // ── 종격 판정 임계값: 80%+ 진종격 / 70~80% 가종격 ──────────────
+  var JONG_TRUE_THRESHOLD = 80;
+  var JONG_GA_THRESHOLD   = 70;
+  var HWA_GA_THRESHOLD    = 75; // 합화格: 75%+ 성립 (가화格 시작)
+  var HWA_TRUE_THRESHOLD  = 80; // 합화格: 80%+ 진화格 / 75~80% 가화格
 
   // ── 합화格(化格) 특별 판별: 일간이 천간합화에 참여한 경우 ──────────
   // 예) 戊癸합화火: 癸 일간이 합화 → 합화된 오행+모(母)오행 기준으로 화格 판별
@@ -4628,8 +4642,8 @@ function detectJong(p){
     var hwaPar = parentOf(hwaDom);    // 합화오행을 생하는 부모 오행
     var hwaCnt = (cnt[hwaDom]||0) + (hwaPar ? (cnt[hwaPar]||0) : 0);
     var hwaPct = hwaCnt / total * 100;
-    if(hwaPct >= JONG_GA_THRESHOLD) {
-      var hwaIsGaJong = (hwaPct < HWA_TRUE_THRESHOLD); // 60~80% = 가종格
+    if(hwaPct >= HWA_GA_THRESHOLD) {
+      var hwaIsGaJong = (hwaPct < HWA_TRUE_THRESHOLD); // 75~80% = 가화格
       var hwaName = (hwaIsGaJong ? '가' : '') + '화格(化格)';
       return {
         isJong: true,
@@ -4647,13 +4661,13 @@ function detectJong(p){
   }
 
   var maxPct = Math.max(pct1, pct2);
-  // ── 단일 오행이 60% 미만이면 절대 종격 판별 모달을 띄우지 않음 ──
+  // ── 단일 오행이 70% 미만이면 절대 종격 판별 모달을 띄우지 않음 ──
   if(pct1 < JONG_GA_THRESHOLD) return{isJong:false};
   if(maxPct >= JONG_GA_THRESHOLD) {
     var dominant = pct1>=pct2 ? dom1 : dom2;
     var pct = maxPct;
     var parEl = parentOf(dominant);
-    var isGaJong = (pct < JONG_TRUE_THRESHOLD); // 60~70% = 가종격
+    var isGaJong = (pct < JONG_TRUE_THRESHOLD); // 70~80% = 가종격
 
     var jongName;
     if(dominant === dayEl) {
@@ -6157,8 +6171,37 @@ function renderJohu(johu) {
                 </div>
             </div>
         </div>
-        <div style="background: rgba(255,255,255,0.8); border-left: 3px solid #8A63A5; padding: 12px 14px; border-radius: 0 8px 8px 0; margin-top: 16px; font-size: 0.85rem; line-height: 1.5; color: #555;">
-            <b> 조후 밸런스 처방:</b><br>${johu.advice} ${johu.moistAdvice || ''}
+        <div style="background: rgba(255,255,255,0.8); border-left: 3px solid #8A63A5; padding: 14px 16px; border-radius: 0 8px 8px 0; margin-top: 16px; font-size: 0.85rem; line-height: 1.7; color: #444;">
+            <b>🌿 조후 밸런스 처방</b>
+            ${(function(){
+              var t = johu.type;
+              var m = johu.moistType;
+              var rows = [];
+
+              // ── 온도 처방 (6종 명확 구분) ──
+              if(t === 'hot'){
+                rows.push('<div style="margin-top:10px; background:#FFF3E0; border-radius:8px; padding:10px 12px; border-left:3px solid #EF6C00;"><b style="color:#BF360C;">🔥 뜨거운 사주 처방</b><br>火 기운이 과잉입니다. <b>水·金</b> 기운을 적극 보충해야 합니다.<br>· 추천 색상: 파란색·검은색·흰색<br>· 추천 방향: 북쪽·서쪽<br>· 추천 활동: 수영, 물가 산책, 냉탕·족욕, 명상<br>· 주의: 과격한 운동·뜨거운 환경·붉은 컬러 과용 자제</div>');
+              } else if(t === 'warm'){
+                rows.push('<div style="margin-top:10px; background:#FFF8E1; border-radius:8px; padding:10px 12px; border-left:3px solid #F9A825;"><b style="color:#F57F17;">🌞 따뜻한 사주 처방</b><br>열기가 다소 강합니다. <b>水</b> 기운으로 균형을 잡으면 좋습니다.<br>· 추천 색상: 파란색·하늘색·민트<br>· 추천 방향: 북쪽<br>· 추천 활동: 물 자주 마시기, 계곡·바다 나들이, 쿨다운 스트레칭<br>· 주의: 과음·과식·야식 자제</div>');
+              } else if(t === 'neutral'){
+                rows.push('<div style="margin-top:10px; background:#E8F5E9; border-radius:8px; padding:10px 12px; border-left:3px solid #43A047;"><b style="color:#2E7D32;">🌤️ 시원한(균형) 사주 처방</b><br>온도 균형이 양호합니다. 계절 변화와 습도에 맞춰 세밀하게 조절하세요.<br>· 오행을 고루 활용하는 멀티플레이어 전략 유효<br>· 봄·가을: 木·金 기운 활용, 여름: 水 보충, 겨울: 火·木 보충<br>· 다양한 환경 변화에 유연하게 적응하는 것이 개운의 핵심</div>');
+              } else if(t === 'cool'){
+                rows.push('<div style="margin-top:10px; background:#E3F2FD; border-radius:8px; padding:10px 12px; border-left:3px solid #1976D2;"><b style="color:#0D47A1;">🍃 서늘한 사주 처방</b><br>온기가 다소 부족합니다. <b>火·木</b> 기운으로 보충하면 좋습니다.<br>· 추천 색상: 주황색·녹색·붉은 계열<br>· 추천 방향: 남쪽·동쪽<br>· 추천 활동: 햇빛 쬐기, 온탕·반신욕, 스트레칭·요가<br>· 주의: 찬 음식·냉방 과다 노출 자제</div>');
+              } else if(t === 'cold'){
+                rows.push('<div style="margin-top:10px; background:#E8EAF6; border-radius:8px; padding:10px 12px; border-left:3px solid #3949AB;"><b style="color:#1A237E;">❄️ 차가운 사주 처방</b><br>水·金 기운이 과잉입니다. <b>火·木</b> 기운이 절실히 필요합니다.<br>· 추천 색상: 빨간색·주황색·연두색<br>· 추천 방향: 남쪽·동쪽<br>· 추천 활동: 따뜻한 음식·온탕, 유산소 운동으로 체온 올리기, 햇빛 충분히 쬐기<br>· 주의: 냉수욕·과한 냉방·어두운 색상 과다 사용 자제</div>');
+              }
+
+              // ── 습조 처방 (건조함 별도 강조) ──
+              if(m === 'dry'){
+                rows.push('<div style="margin-top:8px; background:#FFF3E0; border-radius:8px; padding:10px 12px; border-left:3px solid #F57C00;"><b style="color:#E65100;">🏜️ 건조한 사주 추가 처방</b><br>습기가 부족합니다. <b>水·木</b> 기운과 실제 수분 보충이 필요합니다.<br>· 물 충분히 마시기(하루 1.5L 이상), 가습기 사용<br>· 목욕·족욕·수영·자연(숲·물가) 자주 접하기<br>· 촉촉한 생활 환경(식물 키우기, 수족관 등) 조성</div>');
+              } else if(m === 'wet'){
+                rows.push('<div style="margin-top:8px; background:#E8F5E9; border-radius:8px; padding:10px 12px; border-left:3px solid #388E3C;"><b style="color:#2E7D32;">💧 촉촉한 사주 보완 처방</b><br>습기가 많습니다. <b>金·火</b> 기운으로 건조함을 추가해 균형을 맞추세요.<br>· 환기 자주 하기, 건조한 환경 조성<br>· 흰색·금색 소품 활용, 서쪽 방향 에너지 활용<br>· 규칙적인 생활로 끈적한 감정·관계의 경계선 명확히 하기</div>');
+              } else {
+                rows.push('<div style="margin-top:8px; background:#F3E5F5; border-radius:8px; padding:10px 12px; border-left:3px solid #8E24AA;"><b style="color:#6A1B9A;">⚖️ 습조(濕燥) 균형 유지</b><br>습도 균형이 양호합니다. 현재 생활 패턴을 유지하면서 온도 처방에 집중하세요.</div>');
+              }
+
+              return rows.join('');
+            })()}
         </div>
     </div>
     `;
@@ -9269,11 +9312,50 @@ function showDwDetail(age,gan,zhi,evaluation,score){
     }catch(e){console.error(yr+'년 오류',e);}
   }
   document.getElementById('yearList').innerHTML=yearHTML;
+
+  // 모바일 드래그(스크롤) vs 탭 구별: touchstart/touchmove/touchend 위임
+  (function(){
+    var list = document.getElementById('yearList');
+    if(!list || list._touchBound) return;
+    list._touchBound = true;
+    var _startY = 0;
+    list.addEventListener('touchstart', function(e){
+      var row = e.target.closest('.year-row');
+      if(row){ row._touchMoved = false; _startY = e.touches[0].clientY; }
+    }, {passive:true});
+    list.addEventListener('touchmove', function(e){
+      var row = e.target.closest('.year-row');
+      if(row && Math.abs(e.touches[0].clientY - _startY) > 8) row._touchMoved = true;
+    }, {passive:true});
+  })();
 }
 
 function toggleYear(el, event){
-  if(event && event.target.closest('.year-sub')) return;
-  el.classList.toggle('open');
+  if(event) {
+    // 모바일에서 스크롤 제스처와 충돌 방지
+    if(event.target.closest('.year-sub')) return;
+    // 터치 시작 위치 기록이 있으면 드래그로 판단해 무시
+    if(el._touchMoved) { el._touchMoved = false; return; }
+  }
+  var sub = el.querySelector('.year-sub');
+  if(!sub) return;
+  var isOpen = el.classList.contains('open');
+  if(isOpen){
+    // 닫기: 현재 실제 높이를 먼저 확정(transition 없이)한 후 0으로
+    sub.style.maxHeight = sub.scrollHeight + 'px';
+    sub.offsetHeight; // reflow 강제
+    sub.style.maxHeight = '0';
+    el.classList.remove('open');
+  } else {
+    // 열기: 실제 scrollHeight로 설정
+    el.classList.add('open');
+    sub.style.maxHeight = sub.scrollHeight + 'px';
+    // 트랜지션 완료 후 auto로 풀어줘서 내부 동적 변경에 대응
+    sub.addEventListener('transitionend', function onEnd(){
+      if(el.classList.contains('open')) sub.style.maxHeight = 'none';
+      sub.removeEventListener('transitionend', onEnd);
+    });
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -11805,6 +11887,11 @@ window.addEventListener('beforeinstallprompt', function(e) {
     btn.classList.remove('installed');
     document.getElementById('pwaInstallLabel').textContent = '홈 화면에 행운의 만세력 설치';
   }
+  var btnHome = document.getElementById('btnPwaInstallHome');
+  if (btnHome) {
+    btnHome.classList.remove('installed');
+    document.getElementById('pwaInstallLabelHome').textContent = '홈 화면에 행운의 만세력 설치';
+  }
 });
 
 window.addEventListener('appinstalled', function() {
@@ -11814,6 +11901,11 @@ window.addEventListener('appinstalled', function() {
   if (btn) {
     btn.classList.add('installed');
     document.getElementById('pwaInstallLabel').textContent = '✅ 부적 설치 완료';
+  }
+  var btnHome = document.getElementById('btnPwaInstallHome');
+  if (btnHome) {
+    btnHome.classList.add('installed');
+    document.getElementById('pwaInstallLabelHome').textContent = '✅ 부적 설치 완료';
   }
   showToast('🔮 홈 화면에 부적이 설치되었어요!');
 });
