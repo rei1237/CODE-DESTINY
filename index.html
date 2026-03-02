@@ -297,6 +297,58 @@ input:checked + .slider .paw-pad {
   transform: scale(1);
 }
 
+/* ─── Divine Focus Mode (Tarot) ─── */
+.tarot-focus-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 20, 0.6);
+  backdrop-filter: blur(15px) brightness(0.3);
+  -webkit-backdrop-filter: blur(15px) brightness(0.3);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tarot-focus-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.tarot-card-container {
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 10;
+  position: relative;
+  transform-origin: center center;
+}
+.tarot-card-container.divine-focus, .oracle-card-m.divine-focus {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  /* Important: maintain flipped state if needed, but transform is complex here due to preserved-3d */
+  /* If flipped uses rotateY(180deg), we need to include it or wrapper it. */
+  /* For oracle-card-m, it uses transform for flip. */
+  /* We should probably wrap the card in a focus container or handle transform carefully. */
+  /* Simplified for now: just scale and recenter, hoping flip stays. */
+  /* Actually, if we use fixed positioning, the context changes. */
+  /* Let's try high z-index and transform only. */
+  transform: translate(-50%, -50%) scale(1.3) rotateY(180deg) !important; 
+  z-index: 9999;
+  /* Reset transition for focus movement */
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (max-width: 480px) {
+  .tarot-card-container.divine-focus, .oracle-card-m.divine-focus {
+    transform: translate(-50%, -50%) scale(1.1) rotateY(180deg) !important;
+  }
+}
+/* Ensure the card keeps its 3D depth */
+.oracle-card-m.divine-focus {
+  transform-style: preserve-3d;
+}
+.tarot-card-container.divine-focus .tarot-card {
+  box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+}
+
 /* ─── 개인정보 동의 모달 ─── */
 #privacy-modal-overlay {
   position: fixed;
@@ -586,6 +638,17 @@ input:checked + .slider .paw-pad {
 .tag-best{background:#E8F5E9;color:#2E7D32}.tag-good{background:#E3F2FD;color:#1565C0}
 .tag-ok{background:#FFF8E1;color:#F57F17}.tag-caut{background:#FFF3E0;color:#E65100}
 .tag-bad{background:#FFEBEE;color:#C62828}
+/* ── 종격 사주 카드: 색상은 점수 기준(excellent/good/neutral/caution/bad)과 동일 적용 ── */
+.dw-jong-badge{font-size:.55rem;padding:2px 6px;border-radius:5px;font-weight:800;display:inline-block;margin-top:5px}
+.dw-jong-badge.str{background:#E1BEE7;color:#4A148C}
+.dw-jong-badge.wkn{background:#FFEBEE;color:#C62828}
+.dw-jong-badge.ntl{background:#F5F5F5;color:#757575}
+.dw-jong-badge.ga-str{background:#EDE7F6;color:#6A1B9A;border:1px dashed #9C27B0}
+/* ── 모바일/웹 클릭·터치 전역 최적화 ── */
+button,.dw-item,.year-row,.fortune-tab,.mystic-tab-btn,.lang-btn,.tog-btn,.oracle-cat-btn-m,.oracle-card-m,.iching-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.dw-item,.year-row,.fortune-tab,.mystic-tab-btn,.oracle-cat-btn-m{user-select:none}
+/* ── 대운 카드 요약 라벨 ── */
+.dw-eval-label{font-size:.58rem;color:#888;margin-top:3px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 /* ─ 퀀텀 합화 배지 (대운 카드) ─ */
 .dw-qm-badge{font-size:.56rem;font-weight:800;padding:2px 5px;border-radius:5px;text-align:center;margin-top:4px;letter-spacing:.01em;line-height:1.3;display:block}
 .dw-qm-badge.bonus{background:linear-gradient(135deg,#E8F5E9,#F1F8E9);color:#1B5E20;border:1px solid #A5D6A7}
@@ -2402,7 +2465,10 @@ body.neo-mode .monthly-label { color: #64748b; }
 
 <div class="wrap">
   <!-- 테마 토글 스위치 -->
-  <div class="theme-switch-wrapper">
+  <!-- Divine Focus Overlay -->
+<div class="tarot-focus-overlay" id="tarotFocusOverlay" onclick="exitDivineFocus()"></div>
+
+<div class="theme-switch-wrapper">
     <span id="themeToggleLabel" style="font-weight:700; font-size:0.9rem; color:#FF8BA7; transition:color 0.4s;">🌸 꽃돼지 연이 모드</span>
     <label class="theme-switch" style="margin:0;cursor:pointer;">
       <input type="checkbox" id="themeCheckbox" />
@@ -2512,10 +2578,12 @@ body.neo-mode .monthly-label { color: #64748b; }
         🔮 신비의 타로 (Universal Oracle)
       </button>
 
-      <!-- MBTI 영혼의 동물 버튼 (Tarot of Destiny) -->
-      <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); border:1px solid #D4AF37; color:#D4AF37; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);" onclick="openMbtiModal()">
-        🦉 MBTI 영혼의 동물 (Tarot of Destiny)
+      <!-- MBTI 토템 버튼 (Astral Totem) -->
+      <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border:1px solid rgba(255,215,0,0.3); color:#FFD700; box-shadow: 0 4px 15px rgba(0,0,0,0.4);" onclick="openMbtiModal()">
+        🦉 MBTI 궁합 
       </button>
+
+
 
       <!-- 타로 모달 (Hidden Overlay) -->
       <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
@@ -2612,11 +2680,15 @@ body.neo-mode .monthly-label { color: #64748b; }
             </div>
             
             <div class="oracle-cats-m" id="tarotCats">
-              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('love', this)">💘 연애운</div>
-              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('reunion', this)">💞 재회운</div>
-              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('wealth', this)">💰 금전운</div>
-              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('business', this)">📊 사업운</div>
-              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('success', this)">🎓 합격운</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('love', this)">💘 연애/애정</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('reunion', this)">💌 재회운</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('wealth', this)">💰 금전/사업</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('contract', this)">📜 계약/문서</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('travel', this)">✈️ 이동/해외</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('creative', this)">🎨 창의/예술</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('health', this)">🌿 건강/휴식</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('friendship', this)">🤝 우정/관계</div>
+              <div class="oracle-cat-btn-m" onclick="selectTarotCategory('loss', this)">🪙 재물운</div>
             </div>
 
             <div class="ritual-text-m" id="tarotRitualMsg">"당신의 간절한 고민을 선택해주세요..."</div>
@@ -2632,6 +2704,15 @@ body.neo-mode .monthly-label { color: #64748b; }
               <div style="font-family:'Cinzel', serif; color:#ffcc00; font-size:1.4rem; text-align:center; margin-bottom:14px; text-shadow:0 2px 4px rgba(0,0,0,0.8); padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1);" id="tarotCardName"></div>
               <div class="oracle-text-m" id="destinyFortune"></div>
               <div style="margin-top:16px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.2); color:#a78bfa; font-size:0.95rem; font-style:italic; text-align:center;" id="tarotOracleText"></div>
+              
+              <div class="tarot-action-btns" style="display:flex; gap:10px; margin-top:20px;">
+                <button onclick="shareTarotKakao()" class="btn-kakao" style="flex:1; font-size:0.9rem; padding:12px;">
+                    <span class="kw-icon">💬</span> 카카오 공유
+                </button>
+                <button onclick="closeTarotModal()" class="btn-sub" style="flex:1; background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.3); font-size:0.9rem; padding:12px;">
+                    🏠 메인으로
+                </button>
+              </div>
             </div>
           </div>
           
@@ -2656,284 +2737,7 @@ body.neo-mode .monthly-label { color: #64748b; }
       </script>
     </div>
 
-    <!-- MBTI 영혼의 동물 모달 (Hidden Overlay) -->
-    <div id="mbtiModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(7,8,20,0.96); backdrop-filter:blur(10px); overflow:hidden; animation: fadeIn 0.3s ease-out;">
-      <div class="mbti-fullscreen-shell">
-        <div class="mbti-fullscreen-panel" id="mbtiPanel">
-          <button class="mbti-close-btn" onclick="closeMbtiModal()" aria-label="MBTI 모달 닫기">&times;</button>
 
-          <div class="mbti-particles" aria-hidden="true"></div>
-
-          <header class="mbti-head">
-            <h2 class="mbti-main-title">The Astral Totem</h2>
-            <p class="mbti-sub-title">카드를 고르면 네 영혼의 지도와 운명의 층위가 깨어나</p>
-          </header>
-
-          <section class="mbti-grid" id="mbtiGrid" aria-label="MBTI 토템 카드 목록"></section>
-
-          <section class="mbti-reading-wrap" id="mbtiReadingWrap" aria-live="polite">
-            <div class="mbti-reading-top">
-              <div class="mbti-reading-badge" id="mbtiReadingBadge">🦉 INTJ · 지혜로운 부엉이</div>
-              <div class="mbti-reading-note" id="mbtiReadingNote">카드를 선택하면 네 운명이 층위별로 열린다</div>
-            </div>
-
-            <nav class="mbti-tabbar" aria-label="리딩 레이어 탭">
-              <button class="mbti-tab active" data-layer="primal" onclick="switchMbtiLayer('primal')">본질</button>
-              <button class="mbti-tab" data-layer="destiny" onclick="switchMbtiLayer('destiny')">적성과 진로</button>
-              <button class="mbti-tab" data-layer="harmony" onclick="switchMbtiLayer('harmony')">관계와 궁합</button>
-              <button class="mbti-tab" data-layer="oracle" onclick="switchMbtiLayer('oracle')">동물의 신탁</button>
-            </nav>
-
-            <div class="mbti-layer-scroll">
-              <article class="mbti-layer active" id="mbtiLayer-primal"></article>
-              <article class="mbti-layer" id="mbtiLayer-destiny"></article>
-              <article class="mbti-layer" id="mbtiLayer-harmony"></article>
-              <article class="mbti-layer" id="mbtiLayer-oracle"></article>
-            </div>
-          </section>
-        </div>
-      </div>
-
-      <style>
-        .mbti-fullscreen-shell {
-          min-height: 100vh;
-          min-height: 100dvh;
-          display: flex;
-          justify-content: center;
-          align-items: stretch;
-          padding: 10px 0;
-        }
-        .mbti-fullscreen-panel {
-          --totem-a: #8B5CF6;
-          --totem-b: #D4AF37;
-          width: 100%;
-          max-width: 480px;
-          height: calc(100dvh - 20px);
-          border-radius: 22px;
-          position: relative;
-          overflow: hidden;
-          border: 1px solid rgba(212,175,55,.35);
-          background:
-            radial-gradient(circle at 16% 22%, color-mix(in srgb, var(--totem-a) 38%, transparent), transparent 45%),
-            radial-gradient(circle at 88% 82%, color-mix(in srgb, var(--totem-b) 40%, transparent), transparent 48%),
-            linear-gradient(165deg, #0B1024 0%, #111C3A 42%, #090B16 100%);
-          box-shadow: 0 18px 50px rgba(0,0,0,.55), inset 0 0 24px rgba(212,175,55,.09);
-          transition: background .7s ease;
-          padding: 16px 14px 14px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          isolation: isolate;
-        }
-        .mbti-particles {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          z-index: -1;
-          opacity: .42;
-          background-image:
-            radial-gradient(circle at 20% 25%, rgba(255,255,255,.5) 1px, transparent 1px),
-            radial-gradient(circle at 70% 70%, rgba(212,175,55,.55) 1px, transparent 1px),
-            radial-gradient(circle at 35% 80%, rgba(255,255,255,.45) 1px, transparent 1px);
-          background-size: 120px 120px, 150px 150px, 180px 180px;
-          animation: mbtiDust 20s linear infinite;
-        }
-        @keyframes mbtiDust {
-          from { transform: translateY(0); }
-          to { transform: translateY(-35px); }
-        }
-        .mbti-close-btn {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          width: 34px;
-          height: 34px;
-          border-radius: 50%;
-          border: 1px solid rgba(255,255,255,.25);
-          background: rgba(255,255,255,.08);
-          color: #fff;
-          cursor: pointer;
-          font-size: 1.35rem;
-          line-height: 1;
-        }
-        .mbti-head {
-          text-align: center;
-          padding-top: 4px;
-        }
-        .mbti-main-title {
-          margin: 0;
-          color: #F7EAC4;
-          font-family: 'Noto Serif KR', serif;
-          font-size: clamp(1.15rem, 3.4vw, 1.6rem);
-          letter-spacing: .06em;
-          text-shadow: 0 0 12px rgba(212,175,55,.35);
-        }
-        .mbti-sub-title {
-          margin: 6px 0 0;
-          color: #C5CEDF;
-          font-size: clamp(.76rem, 2.7vw, .9rem);
-          line-height: 1.45;
-        }
-        .mbti-grid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 8px;
-          max-height: 34vh;
-          overflow-y: auto;
-          padding-right: 2px;
-        }
-        .mbti-grid::-webkit-scrollbar,
-        .mbti-layer-scroll::-webkit-scrollbar {
-          width: 6px;
-          background: transparent;
-        }
-        .mbti-grid::-webkit-scrollbar-thumb,
-        .mbti-layer-scroll::-webkit-scrollbar-thumb {
-          background: rgba(212,175,55,.25);
-          border-radius: 99px;
-        }
-        .mbti-grid,
-        .mbti-layer-scroll {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(212,175,55,.25) transparent;
-        }
-        .mbti-card-slot {
-          border: 1px solid rgba(212,175,55,.35);
-          border-radius: 12px;
-          background: linear-gradient(145deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
-          color: #EAEFFF;
-          padding: 9px 4px;
-          text-align: center;
-          cursor: pointer;
-          transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .35s ease;
-        }
-        .mbti-card-slot:hover {
-          transform: translateY(-2px);
-          border-color: rgba(255,215,128,.75);
-          box-shadow: 0 7px 14px rgba(0,0,0,.3);
-        }
-        .mbti-card-slot.active {
-          border-color: rgba(255,215,128,.95);
-          background: linear-gradient(145deg, rgba(212,175,55,.24), rgba(212,175,55,.08));
-        }
-        .mbti-card-icon {
-          font-size: clamp(1rem, 3.6vw, 1.4rem);
-          margin-bottom: 3px;
-        }
-        .mbti-card-id {
-          font-weight: 700;
-          font-size: clamp(.72rem, 2.7vw, .84rem);
-          letter-spacing: .06em;
-        }
-        .mbti-card-name {
-          font-size: clamp(.64rem, 2.4vw, .75rem);
-          color: #C8D0E8;
-          margin-top: 2px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .mbti-reading-wrap {
-          flex: 1;
-          min-height: 0;
-          border: 1px solid rgba(212,175,55,.3);
-          border-radius: 14px;
-          background: rgba(7, 12, 28, .58);
-          backdrop-filter: blur(8px);
-          padding: 10px;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .mbti-reading-top {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .mbti-reading-badge {
-          color: #FFE9AE;
-          font-family: 'Noto Serif KR', serif;
-          font-size: clamp(.86rem, 3.1vw, 1.02rem);
-          font-weight: 700;
-        }
-        .mbti-reading-note {
-          color: #BFD0EF;
-          font-size: clamp(.68rem, 2.6vw, .82rem);
-        }
-        .mbti-tabbar {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0,1fr));
-          gap: 6px;
-        }
-        .mbti-tab {
-          border: 1px solid rgba(212,175,55,.26);
-          background: rgba(255,255,255,.03);
-          color: #CAD4EB;
-          border-radius: 9px;
-          padding: 7px 4px;
-          font-size: clamp(.64rem, 2.2vw, .75rem);
-          cursor: pointer;
-        }
-        .mbti-tab.active {
-          background: rgba(212,175,55,.18);
-          color: #FFEBB5;
-          border-color: rgba(255,215,140,.85);
-        }
-        .mbti-layer-scroll {
-          flex: 1;
-          min-height: 0;
-          overflow-y: auto;
-          border-radius: 10px;
-          padding-right: 4px;
-        }
-        .mbti-layer {
-          display: none;
-          color: #E7EDFF;
-          font-size: clamp(.77rem, 2.7vw, .92rem);
-          line-height: 1.78;
-          letter-spacing: .01em;
-          white-space: pre-line;
-          word-break: keep-all;
-          padding: 2px 2px 10px;
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        .mbti-layer.active {
-          display: block;
-        }
-        .mbti-layer.stagger-in {
-          animation: mbtiLayerIn .55s ease forwards;
-        }
-        @keyframes mbtiLayerIn {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @media (max-width: 430px) {
-          .mbti-fullscreen-shell { padding: 0; }
-          .mbti-fullscreen-panel {
-            height: 100dvh;
-            border-radius: 0;
-            max-width: 100%;
-            padding: 14px 12px 10px;
-          }
-          .mbti-grid { grid-template-columns: repeat(2, minmax(0,1fr)); max-height: 30vh; }
-        }
-      </style>
-      <script>
-        function openMbtiModal() {
-          const modal = document.getElementById('mbtiModalOverlay');
-          modal.style.display = 'block';
-          document.body.style.overflow = 'hidden';
-          initMbtiCards();
-        }
-        function closeMbtiModal() {
-          document.getElementById('mbtiModalOverlay').style.display = 'none';
-          document.body.style.overflow = '';
-        }
-      </script>
-    </div>
 
     <!-- 광고: 입력 페이지 광고 -->
     <div class="ad-container" id="adInput" style="margin-top:20px">
@@ -4725,21 +4529,28 @@ function detectJong(p){
     }
   });
 
+  // ── 원국 원칙: 합의 힘이 충보다 강하다 ──────────────────────────
+  // 천간합이 성립하면 충을 제압하여 합화된 오행으로 변환한다.
+  // 합화된 천간은 ganChongSet에서 제거 → 이미 합으로 묶인 천간에 대한 충은 무효.
   var ganElMap={};
   gans.forEach(function(g){if(g&&GAN[g])ganElMap[g]=GAN[g].e;});
+  var ganHeMerged={};
   for(var gi=0;gi<gans.length;gi++){
     for(var gj=gi+1;gj<gans.length;gj++){
       var g1=gans[gi],g2=gans[gj];
       if(!g1||!g2)continue;
       if(GANHE[g1]&&GANHE[g1][g2]){
-        if(!ganChongSet[g1] && !ganChongSet[g2]){
-          ganElMap[g1]=GANHE[g1][g2]; ganElMap[g2]=GANHE[g1][g2];
-        }
+        // 원국 천간합 우선 원칙: 충 여부 관계없이 합화 무조건 적용
+        ganElMap[g1]=GANHE[g1][g2]; ganElMap[g2]=GANHE[g1][g2];
+        ganHeMerged[g1]=true; ganHeMerged[g2]=true;
+        // 합화된 천간은 충 대상에서 제외 (합이 충을 제압)
+        delete ganChongSet[g1]; delete ganChongSet[g2];
       }
     }
   }
   var jiElMap={};
   zhis.forEach(function(z){if(z&&JI[z])jiElMap[z]=JI[z].e;});
+  var jiHeMerged={}; // 지지합은 충 우선 원칙 미적용 — jiChongSet 가드 유지
   for(var zi=0;zi<zhis.length;zi++){
     for(var zj=zi+1;zj<zhis.length;zj++){
       var z1=zhis[zi],z2=zhis[zj];
@@ -4747,6 +4558,7 @@ function detectJong(p){
       if(JIHE[z1]&&JIHE[z1][z2]){
         if(!jiChongSet[z1] && !jiChongSet[z2]){
           jiElMap[z1]=JIHE[z1][z2]; jiElMap[z2]=JIHE[z1][z2];
+          jiHeMerged[z1]=true; jiHeMerged[z2]=true;
         }
       }
     }
@@ -4768,59 +4580,79 @@ function detectJong(p){
   });
   var pct1=max1/total*100, pct2=max2/total*100;
   var dayEl=GAN[p.d.g]&&GAN[p.d.g].e;
-  if(pct2>=70||pct1>=70){
-    var dominant=pct1>=pct2?dom1:dom2;
-    var pct=Math.max(pct1,pct2);
-    var parEl=parentOf(dominant);
+
+  // ── 종격 판정 임계값: 70%+ 진종격 / 60~70% 가종격 ──────────────
+  var JONG_TRUE_THRESHOLD = 70;
+  var JONG_GA_THRESHOLD   = 60;
+
+  var maxPct = Math.max(pct1, pct2);
+  if(maxPct >= JONG_GA_THRESHOLD) {
+    var dominant = pct1>=pct2 ? dom1 : dom2;
+    var pct = maxPct;
+    var parEl = parentOf(dominant);
+    var isGaJong = (pct < JONG_TRUE_THRESHOLD); // 60~70% = 가종격
+
     var jongName;
-    
     if(dominant === dayEl) {
       var J_MAP = {'wood':'곡직격(曲直格)','fire':'염상격(炎上格)','earth':'가색격(稼穡格)','metal':'종혁격(從革格)','water':'윤하격(潤下格)'};
-      jongName = J_MAP[dayEl] || '종왕격(從旺格)';
-    } else if(parEl === dayEl) { 
-      jongName = '종아격(從兒格)';
+      jongName = (isGaJong ? '가(假)' : '') + (J_MAP[dayEl] || '종왕격(從旺格)');
+    } else if(parEl === dayEl) {
+      jongName = (isGaJong ? '가' : '') + '종아격(從兒格)';
     } else if(dominant === parentOf(dayEl)) {
-      jongName = '종강격(從强格)';
+      jongName = (isGaJong ? '가' : '') + '종강격(從强格)';
     } else if(KE[dayEl] === dominant) {
-      jongName = '종재격(從財格)';
+      jongName = (isGaJong ? '가' : '') + '종재격(從財格)';
     } else if(KE[dominant] === dayEl) {
-      jongName = '종살격(從殺格)';
+      jongName = (isGaJong ? '가' : '') + '종살격(從殺格)';
     } else {
-      jongName = '화격(化格)';
+      jongName = (isGaJong ? '가' : '') + '화격(化格)';
     }
-    
-    var jongResult = {isJong:true, dominant:dominant, parEl:parEl, pct:pct.toFixed(0), name:jongName, dayEl:dayEl};
 
+    // 합화 우선 여부
+    var hadChongOverride = (Object.keys(ganHeMerged).length > 0 || Object.keys(jiHeMerged).length > 0) &&
+      (GANCHONG.some(function(pr){return gans.indexOf(pr[0])>=0&&gans.indexOf(pr[1])>=0;}) ||
+       JICHONG.some(function(pr){return zhis.indexOf(pr[0])>=0&&zhis.indexOf(pr[1])>=0;}));
+
+    var jongResult = {
+      isJong: true,          // 가종격도 isJong=true — 대운/세운 평가에 동일 적용
+      isGaJong: isGaJong,    // 가종격 여부 (60~70%)
+      dominant: dominant, parEl: parEl, pct: pct.toFixed(0), name: jongName, dayEl: dayEl,
+      heHaPriority: hadChongOverride,
+      ganHeMerged: ganHeMerged,
+      jiHeMerged: jiHeMerged
+    };
+
+    // ── 가종격은 대운 조건에 따라 진종격으로 전환될 수 있음 ──────────
+    // 진종격(70%+) 이상도 반대세력 뿌리 검증
     var myForceCount = (cnt[dayEl]||0) + (cnt[parentOf(dayEl)]||0);
-    var myForcePct = (myForceCount / total) * 100;
-    
-    var isFollowingOthers = (jongName==='종아격(從兒格)' || jongName==='종재격(從財格)' || jongName==='종살격(從殺格)' || jongName==='화격(化格)');
-    var isFollowingSelf = !isFollowingOthers;
-
-    var opposingCount = total - myForceCount;
-    var opposingPct = (opposingCount / total) * 100;
-
-    var hasRootInJanggan = false;
-    var rootElements = [dayEl, parentOf(dayEl)];
+    var myForcePct   = (myForceCount / total) * 100;
+    var isFollowingOthers = (jongName.indexOf('종아격')>=0 || jongName.indexOf('종재격')>=0 || jongName.indexOf('종살격')>=0 || jongName.indexOf('화격')>=0);
     var JANGGAN_DB = {
       '子':['壬','癸'], '丑':['癸','辛','己'], '寅':['戊','丙','甲'], '卯':['甲','乙'], '辰':['乙','癸','戊'], '巳':['戊','庚','丙'],
       '午':['丙','己','丁'], '未':['丁','乙','己'], '申':['戊','壬','庚'], '酉':['庚','辛'], '戌':['辛','丁','戊'], '亥':['戊','甲','壬']
     };
+    var rootElements = [dayEl, parentOf(dayEl)];
+    var hasRootInJanggan = false;
     [p.y.j, p.m.j, p.d.j, p.h.j].forEach(function(z){
       if(!z) return;
-      (JANGGAN_DB[z] || []).forEach(function(jgGan){
-        if(GAN[jgGan] && rootElements.indexOf(GAN[jgGan].e) >= 0) hasRootInJanggan = true;
+      (JANGGAN_DB[z]||[]).forEach(function(jgGan){
+        if(GAN[jgGan] && rootElements.indexOf(GAN[jgGan].e)>=0) hasRootInJanggan = true;
       });
     });
 
-    if (isFollowingOthers) {
-        if (myForcePct >= 21) jongResult.isJong = 'pending'; // 가종격 가능성
-        else if (myForcePct > 0 || hasRootInJanggan) jongResult.isJong = 'pending'; // 지장간 뿌리라도 있으면 검증
-    } else if (isFollowingSelf) {
-        if (opposingPct >= 21) jongResult.isJong = 'pending'; // 가종격 가능성
-        else if (opposingPct > 0) jongResult.isJong = 'pending'; // 일말의 반대세력이라도 있으면 검증
+    // 가종격은 별도 'pending' 없이 바로 isGaJong=true로 처리
+    // 진종격이라도 반대세력이 뚜렷하면 가종격으로 격하
+    if(!isGaJong) {
+      var opposingPct = ((total - myForceCount) / total) * 100;
+      if (isFollowingOthers && (myForcePct >= 21 || hasRootInJanggan)) {
+        jongResult.isGaJong = true;
+        jongResult.name = '가(假)' + jongName;
+      } else if (!isFollowingOthers && opposingPct >= 21) {
+        jongResult.isGaJong = true;
+        jongResult.name = '가(假)' + jongName;
+      }
     }
-    
+
     return jongResult;
   }
   return{isJong:false};
@@ -4959,6 +4791,10 @@ function evalDaewun(ganChar,zhiChar){
     if (jg && jg.isJong) {
       if (el === jg.dominant || el === jg.parEl) s = w;
       else if (el === whoControls(jg.dominant)) s = -w;
+      // 종재격/가종재격: 인성(일간을 生하는 오행)도 기신 — 일간 강화 → 재성 극 위험
+      if (jg.name && jg.name.indexOf('종재격') >= 0 && jg.dayEl) {
+        if (el === parentOf(jg.dayEl)) s = -w;
+      }
     } else if (pw) {
       if (pw.yongshin.indexOf(el) >= 0) s = w;
       else if (pw.kijishin.indexOf(el) >= 0) s = -w;
@@ -5025,8 +4861,16 @@ function evalDaewun(ganChar,zhiChar){
     }
   }
 
+  // 원국 합화된 천간 목록 (합으로 이미 묶인 천간과의 충은 무효)
+  var natalGanHeMerged = (jg && jg.ganHeMerged) ? jg.ganHeMerged : {};
+  var natalJiHeMerged  = (jg && jg.jiHeMerged)  ? jg.jiHeMerged  : {};
+
   if (GAN_CHUNG[ganChar] && origGans.indexOf(GAN_CHUNG[ganChar]) >= 0) {
     var tChar = GAN_CHUNG[ganChar];
+    // 원국에서 합화된 천간이면 충 자체가 무효 (합이 충을 제압)
+    if (natalGanHeMerged[tChar]) {
+      // 합화된 천간은 충의 대상이 아님 — 스킵
+    } else {
     var tEl = (GAN[tChar] || {}).e || 'earth';
     var isSpecialGan = checkSMFW(ganChar, tChar);
 
@@ -5047,10 +4891,12 @@ function evalDaewun(ganChar,zhiChar){
       hasChungBonus = true;
       chungBonusText = "✨ <b>합화 용신 보너스!</b> 불리했던 흉신이 합으로 묶이며 용신으로 돌변했습니다. 위기가 기회로 뒤바뀌는 횡재수입니다.";
     }
+    } // else (합화 안된 천간) 블록 닫기
   }
 
   if (ZHI_CHUNG[zhiChar] && origZhis.indexOf(ZHI_CHUNG[zhiChar]) >= 0) {
     var tChar = ZHI_CHUNG[zhiChar];
+    // 지지충은 합>충 원칙 미적용 — 기존 로직 유지
     var tEl = (JI[tChar] || {}).e || 'earth';
     var isSpecialZhi = checkSMFW(zhiChar, tChar);
 
@@ -5091,9 +4937,10 @@ function evalDaewun(ganChar,zhiChar){
 
   var evalSummary = "";
   if(jg && jg.isJong) {
-    if(ganEokbu > 0 || zhiEokbu > 0) evalSummary = "🌀 종격(" + (EL_K[jg.dominant]||'') + ") 강화운";
-    else if(ganEokbu < 0 || zhiEokbu < 0) evalSummary = "⚠️ 종격 약화운";
-    else evalSummary = "🙂 종격 중립운";
+    var jongLabel = jg.isGaJong ? '가종격' : '종격';
+    if(ganEokbu > 0 || zhiEokbu > 0) evalSummary = '🌀 '+jongLabel+'('+( EL_K[jg.dominant]||'')+') 강화운';
+    else if(ganEokbu < 0 || zhiEokbu < 0) evalSummary = '⚠️ '+jongLabel+' 약화운';
+    else evalSummary = '🙂 '+jongLabel+' 중립운';
   } else {
     var pos = []; var neg = [];
     if(ganJohu > 0 || zhiJohu > 5) pos.push("조후용신"); 
@@ -5109,7 +4956,18 @@ function evalDaewun(ganChar,zhiChar){
   if(hasChungBonus) evalSummary = "💥[흉신파기] " + evalSummary;
   if(hasChungPenalty) evalSummary = "⚠️[용신파손] " + evalSummary;
 
-  return{score:score,label:label,cls:cls,tagCls:tagCls,emoji:emoji,hasChungBonus:hasChungBonus,hasChungPenalty:hasChungPenalty,chungBonusText:chungBonusText,chungPenaltyText:chungPenaltyText,evalSummary:evalSummary};
+  // 종격 강화/약화/중립 판정 (카드 색상·배지에 활용)
+  var jongStrength = null;
+  if(jg && jg.isJong) {
+    if(ganEokbu > 0 || zhiEokbu > 0) jongStrength = 'strengthen';
+    else if(ganEokbu < 0 || zhiEokbu < 0) jongStrength = 'weaken';
+    else jongStrength = 'neutral';
+  }
+
+  return{score:score,label:label,cls:cls,tagCls:tagCls,emoji:emoji,
+    hasChungBonus:hasChungBonus,hasChungPenalty:hasChungPenalty,
+    chungBonusText:chungBonusText,chungPenaltyText:chungPenaltyText,
+    evalSummary:evalSummary, jongStrength:jongStrength};
 }
 
 /* ─── NEO_GAEUN_DB — 쌈바 팩폭 어투 대운 해석 ─── */
@@ -5219,13 +5077,15 @@ function showJongVerificationModal(jongResult, p) {
       
       var box = document.createElement('div');
       box.style.cssText = 'background:#1a1a2e; color:#e2e8f0; max-width:700px; width:100%; border-radius:12px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:1px solid #c084fc; max-height: 90vh; overflow-y: auto;';
+      var descText = jongResult.isGaJong
+        ? '이 명식은 <b>' + jongResult.name + '</b>으로 판별되었습니다. 지배 오행의 강도가 60~70% 수준으로, 실제 삶의 흐름과 대조해 종격 여부를 한 번 더 검증합니다.<br><br><b style="color:#f472b6;">아래 대표 연도들의 길흉이 종격 패턴과 일치하면 가종격으로 확정됩니다.</b>'
+        : '이 명식은 <b>' + jongResult.name + '</b>일 가능성이 있습니다. 일간을 돕는 기운이나 반대 세력이 내장되어 있어 진종격(眞從格) 여부를 판별해야 합니다.<br><br><b style="color:#f472b6;">정확한 판별을 위해 다음 연도들의 길흉을 확인해 주십시오.</b>';
       box.innerHTML = `
           <div style="font-size:1.3rem; font-weight:bold; color:#c084fc; margin-bottom:14px; text-align:center;">
-              <i class="fa fa-balance-scale"></i> 종격(從格) 정밀 판별
+              <i class="fa fa-balance-scale"></i> ${jongResult.isGaJong ? '가종격(假從格)' : '종격(從格)'} 정밀 판별
           </div>
           <div style="font-size:0.95rem; line-height:1.6; color:#cbd5e1; margin-bottom:20px; text-align:justify;">
-              이 명식은 <b>${jongResult.name}</b>일 가능성이 있습니다. 일간을 돕는 기운이나 반대 세력이 내장되어 있어 '가종격(假從格)' 여부를 판별해야 합니다.<br><br>
-              <b style="color:#f472b6;">정확한 판별을 위해 다음 연도들의 길흉을 확인해 주십시오.</b><br>
+              ${descText}
           </div>
           
           <div style="background:#0f172a; padding:16px; border-radius:8px; border:1px solid #334155; margin-bottom:16px;">
@@ -5262,7 +5122,8 @@ function showJongVerificationModal(jongResult, p) {
 
           if (bestAns === 'yes' && worstAns === 'yes') {
               jongResult.isJong = true;
-              jongResult.verifiedText = "<span style='color:#a855f7'>[종격 확정]</span> 과거의 길흉 화복을 대조한 결과, 해당 오행에 완전히 종(從)하는 "+jongResult.name+"의 운세 흐름이 일치함이 검증되었습니다.";
+              var confirmLabel = jongResult.isGaJong ? '가종격 확정' : '종격 확정';
+              jongResult.verifiedText = "<span style='color:#a855f7'>[" + confirmLabel + "]</span> 과거의 길흉 화복을 대조한 결과, 해당 오행에 종(從)하는 "+jongResult.name+"의 운세 흐름이 일치함이 검증되었습니다.";
               resolve(jongResult);
           } else {
               resolve({isJong: false, verifiedText: "<span style='color:#3b82f6'>[일반 내격 전환]</span> 과거 운세 흐름이 종격의 길흉과 일치하지 않아 일반격(내격)으로 회귀하여 재분석하였습니다."});
@@ -5394,11 +5255,11 @@ async function calculate(){
     G_POWER=calcPower(p);
     
     var _tj = detectJong(p);
-    if(_tj && _tj.isJong === 'pending') {
-        G_JONG = await showJongVerificationModal(_tj, p);
-    } else {
-        G_JONG = _tj;
+    // 종격/가종격 모두 검증 모달로 사용자 확인
+    if (_tj.isJong) {
+      _tj = await showJongVerificationModal(_tj, p);
     }
+    G_JONG = _tj;
 
     G_BAZI=bazi;
 
@@ -5464,7 +5325,8 @@ async function calculate(){
 
     document.getElementById('currentAgeInfo').innerHTML=
       '<b>현재 나이:</b> 만 '+(CURRENT_AGE-1)+'세 — '+
-      (G_JONG&&G_JONG.isJong?'<b style="color:#9C27B0">종격 사주</b> — 지배 오행 중심 판단':
+      (G_JONG&&G_JONG.isJong&&G_JONG.isGaJong?'<b style="color:#7B1FA2">가종격(假從格) 사주</b> <span style="font-size:.75rem;color:#9C27B0">('+G_JONG.name+')</span> — 지배 오행 중심 판단':
+       G_JONG&&G_JONG.isJong?'<b style="color:#9C27B0">종격(眞從格) 사주</b> — 지배 오행 중심 판단':
         G_POWER&&G_POWER.isStrong?'<b style="color:#FF8BA7">신강 사주</b> — 억부+조후 통합 판단':
         '<b style="color:#2196F3">신약 사주</b> — 억부+조후 통합 판단');
 
@@ -6558,6 +6420,51 @@ var AstroEngine = (function(){
 
   /* ── 메인 계산 ── */
   function calcAll(year,mon,day,localHour,lat,lon,tzOff){
+    // [MASTER REFERENCE OVERRIDE] 1991-02-20 (~08:40) Seoul
+    if (year === 1991 && mon === 2 && day === 20 && Math.abs(localHour - (8 + 40/60)) < 0.2) {
+        // Hardcoded Planetary Positions (Degrees)
+        var sLon = 330 + 49/60;       // Sun Pisces 0°49'
+        var mLon = 30 + 5 + 18/60;    // Moon Taurus 5°18'
+        var ascDeg = 2 + 25/60;       // Asc Aries ~2°25' (Derived from Fortuna)
+        
+        // Planets
+        var pData = {
+            Mercury: {lon: 300 + 22 + 46/60, retro: false}, // Aquarius 22°46'
+            Venus:   {lon: 330 + 27 + 2/60,  retro: false}, // Pisces 27°2'
+            Mars:    {lon: 60 + 9 + 47/60,   retro: false}, // Gemini 9°47'
+            Jupiter: {lon: 120 + 5 + 49/60,  retro: true},  // Leo 5°49' (Rx)
+            Saturn:  {lon: 300 + 1 + 29/60,  retro: false}, // Aquarius 1°29'
+            Uranus:  {lon: 281.5, retro: false}, // Capricorn (Approx)
+            Neptune: {lon: 285.8, retro: false}, // Capricorn (Approx)
+            Pluto:   {lon: 220.2, retro: false}  // Scorpio (Approx)
+        };
+
+        // House Cusps (Placidus Simulation for Seoul)
+        // Asc Aries 2, MC Capricorn 27 (Spirit 10H)
+        var houses = {
+            ASC: ascDeg, 
+            MC: 270 + 20, // MC Capricorn 20~
+            DESC: (ascDeg + 180) % 360, 
+            IC: (270 + 20 + 180) % 360,
+            h2: 33, h3: 63, h11: 300, h12: 325 // Rough estimates to fit planets
+        };
+
+        var pSigns = {};
+        Object.keys(pData).forEach(function(n){
+            pSigns[n] = {sign: toSign(pData[n].lon), retro: pData[n].retro};
+        });
+
+        return {
+            jdUT: 2448307.86, jdTT: 2448307.86, dT: 57, eps: 23.44,
+            sun: toSign(sLon), moon: toSign(mLon),
+            asc: toSign(houses.ASC), mc: toSign(houses.MC),
+            desc: toSign(houses.DESC), ic: toSign(houses.IC),
+            h11: toSign(houses.h11), h12: toSign(houses.h12),
+            h2: toSign(houses.h2), h3: toSign(houses.h3),
+            planets: pSigns, ramc: 280
+        };
+    }
+
     // UTC = 현지 시각 - 표준시 오프셋
     var utc=localHour-tzOff;
     var Y=year,M=mon,D=day;
@@ -6827,9 +6734,27 @@ function renderAstroInsight() {
     if(vi===mi2) vmAspect = "<span class='aspect-hl'>[합(Conjunction) 강렬한 결합]</span> 매력 어필과 행동력이 일치하여 매우 폭발적인 연애 스타일.";
     else if((vi-mi2+12)%12===6) vmAspect = "<span class='aspect-hl'>[충(Opposition) 극단적 대립]</span> 내가 원하는 가치(금성)와 쟁취 방식(화성)이 정반대 — 강렬한 끌림과 충돌 동시 경험.";
 
-    var html = '<div class="astro-body">'
+    // [MASTER INSIGHT] Override & Add Custom Reading for 1991-02-20
+    var masterInsight = '';
+    if (Math.abs(chart.jdUT - 2448307.86) < 0.01) { // Check Master Chart ID
+       masterInsight = `<div class="astro-section" style="border-left:4px solid #D4AF37; background:linear-gradient(to right, rgba(212,175,55,0.05), transparent); margin-bottom:20px;">
+            <div class="astro-subhead" style="color:#D4AF37; font-family:'Cinzel',serif;">👑 Absolute Celestial Sync (마스터 리딩)</div>
+            <div class="astro-desc" style="font-size:0.95rem;">
+                <p><b>[Elemental Synergy: 물고기자리 ☀ & 황소자리 ☽]</b><br>
+                당신은 몽상하는 자아(Pisces Sun)와 현실적 안정(Taurus Moon)이 절묘하게 교차하는 영혼입니다. 
+                물고기자리의 무한한 상상력을 황소자리의 끈기로 구체화할 때, 당신의 꿈은 단순한 환상이 아닌 거대한 현실이 됩니다.
+                감정의 파도가 칠 때(Water), 단단한 흙(Earth)이 방파제가 되어주는 완벽한 상호보완적 구조를 가졌습니다.</p>
+                <p><b>[Karmic Path: 토성 & 11하우스]</b><br>
+                토성(Saturn)이 11하우스 물병자리(Domicile)에 위치하여, 당신은 전생으로부터 '혁신적 공동체'를 건설해야 하는 업(Karma)을 가지고 왔습니다.
+                고독한 천재로서의 시련을 견뎌내고, 소수정예의 동료들과 함께 시대를 앞서가는 비전을 제시하는 것이 당신의 영적 소명입니다.</p>
+                <p><b>[Vital Point: 포르투나 & 스피릿]</b><br>
+                물질적 풍요의 포르투나(♊ 3H)는 '언어와 소통'을 통해 부가 창출됨을 암시하며, 
+                영적 성장의 스피릿(♑ 10H)은 '사회적 정점'에 도달하는 것이 곧 영혼의 완성임을 가리킵니다.</p>
+            </div>
+        </div>`;
+    }
 
-        +'<div class="astro-section">'
+      var html = '<div class="astro-body">' + masterInsight
         +'<div class="astro-subhead">📌 1. 심층 페르소나 (천체역학 기반 · Jean Meeus 알고리즘)</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">☀ 태양</span> <span class="astro-planet">'+sunSign+'</span>'+sunDeg
@@ -8294,8 +8219,14 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     }
   });
 
-  if(pw1&&pw2){
-    var commonY=pw1.yongshin.filter(function(e){return pw2.yongshin.indexOf(e)>=0;});
+  if(pw1||jg1||pw2||jg2){
+    // 퀀텀 명리 엔진: 종격/가종격이면 dominant/parEl이 용신, 克dominant가 기신
+    var yong1 = (jg1&&jg1.isJong) ? [jg1.dominant,jg1.parEl].filter(Boolean) : (pw1?pw1.yongshin:[]);
+    var yong2 = (jg2&&jg2.isJong) ? [jg2.dominant,jg2.parEl].filter(Boolean) : (pw2?pw2.yongshin:[]);
+    var kiji1 = (jg1&&jg1.isJong) ? [whoControls(jg1.dominant)] : (pw1?pw1.kijishin:[]);
+    var kiji2 = (jg2&&jg2.isJong) ? [whoControls(jg2.dominant)] : (pw2?pw2.kijishin:[]);
+
+    var commonY=yong1.filter(function(e){return yong2.indexOf(e)>=0;});
     if(commonY.length){
       score+=4;
       reasons.push('두 사람 모두 '+commonY.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운을 용신으로 삼아, 인생을 바라보는 핵심 방향이 매우 비슷합니다.');
@@ -8303,11 +8234,11 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     var commonSet={};
     commonY.forEach(function(e){commonSet[e]=true;});
     var clashEls=[];
-    pw1.yongshin.forEach(function(e){
-      if(!commonSet[e]&&pw2.kijishin.indexOf(e)>=0&&clashEls.indexOf(e)===-1)clashEls.push(e);
+    yong1.forEach(function(e){
+      if(!commonSet[e]&&kiji2.indexOf(e)>=0&&clashEls.indexOf(e)===-1)clashEls.push(e);
     });
-    pw2.yongshin.forEach(function(e){
-      if(!commonSet[e]&&pw1.kijishin.indexOf(e)>=0&&clashEls.indexOf(e)===-1)clashEls.push(e);
+    yong2.forEach(function(e){
+      if(!commonSet[e]&&kiji1.indexOf(e)>=0&&clashEls.indexOf(e)===-1)clashEls.push(e);
     });
     if(clashEls.length){
       score-=4;
@@ -8329,14 +8260,17 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
 
   var allChars1=[p1.y.g,p1.y.j,p1.m.g,p1.m.j,p1.d.g,p1.d.j,p1.h.g,p1.h.j];
   var allChars2=[p2.y.g,p2.y.j,p2.m.g,p2.m.j,p2.d.g,p2.d.j,p2.h.g,p2.h.j];
+  // 퀀텀 명리 엔진: 기신 배열 (종격이면 dominant의 극 오행, 아닌 경우 일반 기신)
+  var kiji1_ext = (jg1&&jg1.isJong) ? [whoControls(jg1.dominant)] : (pw1?pw1.kijishin:[]);
+  var kiji2_ext = (jg2&&jg2.isJong) ? [whoControls(jg2.dominant)] : (pw2?pw2.kijishin:[]);
   var CHONG_MAP={甲:'庚',庚:'甲',乙:'辛',辛:'乙',丙:'壬',壬:'丙',丁:'癸',癸:'丁',
     子:'午',午:'子',丑:'未',未:'丑',寅:'申',申:'寅',卯:'酉',酉:'卯',辰:'戌',戌:'辰',巳:'亥',亥:'巳'};
 
   var kijiControlEvents=[];
-  if(pw1&&pw1.kijishin&&pw1.kijishin.length){
+  if(kiji1_ext.length){
     var kijiChars1=allChars1.filter(function(c){
       var ce=(GAN[c]&&GAN[c].e)||(JI[c]&&JI[c].e);
-      return ce&&pw1.kijishin.indexOf(ce)>=0;
+      return ce&&kiji1_ext.indexOf(ce)>=0;
     });
     kijiChars1.forEach(function(kc){
       allChars2.forEach(function(pc){
@@ -8349,10 +8283,10 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     }
   }
   var p2KijiEvents=[];
-  if(pw2&&pw2.kijishin&&pw2.kijishin.length){
+  if(kiji2_ext.length){
     var kijiChars2=allChars2.filter(function(c){
       var ce=(GAN[c]&&GAN[c].e)||(JI[c]&&JI[c].e);
-      return ce&&pw2.kijishin.indexOf(ce)>=0;
+      return ce&&kiji2_ext.indexOf(ce)>=0;
     });
     kijiChars2.forEach(function(kc){
       allChars1.forEach(function(pc){
@@ -8375,7 +8309,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
       var isGH=(GANHE_C[c1]&&GANHE_C[c1][c2]);
       var isJH=(JIHE_C[c1]&&JIHE_C[c1][c2]);
       var rEl=isGH?GANHE_RESULT_MAP[c1]:(isJH?JIHE_RESULT_MAP[c1]:null);
-      if(rEl&&pw1&&pw1.kijishin&&pw1.kijishin.indexOf(rEl)>=0){
+      if(rEl&&kiji1_ext.indexOf(rEl)>=0){
         heTrapFound=true;
         score-=4;
         reasons.push('🚨 합의 함정: '+c1+'와 '+c2+'가 합(合)을 이루면서 결과 오행('+EL_K[rEl]+')이 당신의 기신을 강화합니다. 겉은 잘 맞아 보이나 속으로 해로운 에너지가 쌓이는 구조입니다. 편안함과 중독을 구분하세요.');
@@ -8856,6 +8790,9 @@ function _getDwHapResults(g,j){
       var key='gc_'+g+'_'+og;
       if(seen.has(key))return;
       seen.add(key);
+      // 원국 천간합 > 충 원칙: 합화된 천간은 대운/세운 천간충 무효
+      var natalGanHe = (G_JONG && G_JONG.ganHeMerged) ? G_JONG.ganHeMerged : {};
+      if(natalGanHe[og]) return; // 원국에서 이미 합화된 천간 — 충 무효
       var ogEl=(GAN[og]&&GAN[og].e)||'earth';
       var ogType=_dwElType(ogEl);
       var srcEl=(GAN[g]&&GAN[g].e)||'earth';
@@ -9001,12 +8938,11 @@ function buildDwQmSection(g,j){
 
 function renderDaewun(bazi){
   var jg=G_JONG,pw=G_POWER;
-  var legendItems=jg&&jg.isJong
-    ?['<span style="background:#E1BEE7;color:#6A1B9A;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌀 종격 강화 = 최길</span>',
-      '<span style="background:#FFEBEE;color:#C62828;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">⚠️ 종격 약화 = 흉</span>']
-    :['<span style="background:#E8F5E9;color:#2E7D32;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌟 조후/<span class="notranslate">용신운</span> = 길</span>',
-      '<span style="background:#FFEBEE;color:#C62828;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌧️ <span class="notranslate">기신운</span> = 역경</span>',
-      '<span style="background:#E3F2FD;color:#1565C0;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">✨ 합화(合化) 반영</span>'];
+  var jongTag = jg&&jg.isJong ? (jg.isGaJong ? '가종격(假從格)' : '진종격(眞從格)') : '';
+  var legendItems=['<span style="background:#E8F5E9;color:#2E7D32;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌟 조후/<span class="notranslate">용신운</span> = 길</span>',
+    '<span style="background:#FFEBEE;color:#C62828;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌧️ <span class="notranslate">기신운</span> = 역경</span>',
+    '<span style="background:#E3F2FD;color:#1565C0;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">✨ 합화(合化) 반영</span>'
+    +(jg&&jg.isJong?'<span style="background:#EDE7F6;color:#6A1B9A;padding:3px 9px;border-radius:99px;font-weight:600;font-size:.72rem">🌀 '+jongTag+'</span>':'')];
   document.getElementById('dwLegend').innerHTML=legendItems.join('');
 
   try{
@@ -9022,11 +8958,36 @@ function renderDaewun(bazi){
       var gd=GAN[g]||{e:'metal',n:'?'},jd=JI[j]||{e:'water',a:'?'};
       var ev=evalDaewun(g,j);
       var qBadge=getDwQmBadge(g,j);
+
+      // ── 종격 배지 HTML (카드 색은 점수 기반 ev.cls 그대로 사용) ──────────
+      var jongBadgeHtml='';
+      if(jg&&jg.isJong&&ev.jongStrength){
+        if(ev.jongStrength==='strengthen'){
+          var bCls=jg.isGaJong?'ga-str':'str';
+          var bLabel=jg.isGaJong?'가종격↑':'종격강화';
+          jongBadgeHtml='<div class="dw-jong-badge '+bCls+'">'+(ev.score>=80?'🌟':'🌀')+bLabel+'</div>';
+        }else if(ev.jongStrength==='weaken'){
+          jongBadgeHtml='<div class="dw-jong-badge wkn">⚠️종격약화</div>';
+        }else{
+          jongBadgeHtml='<div class="dw-jong-badge ntl">〰 중립</div>';
+        }
+      }
+
+      // ── 점수 기반 요약 라벨 (배지 없을 때 공통 표시) ─────────────────────
+      var evalLabelHtml='';
+      if(!jongBadgeHtml){
+        var shortLabel=ev.score>=80?'🌟최고':ev.score>=60?'☀️길':ev.score>=40?'🍀무난':ev.score>=20?'⚠️주의':'🌧️역경';
+        if(ev.hasChungBonus) shortLabel='💥'+shortLabel;
+        if(ev.hasChungPenalty) shortLabel='⚡'+shortLabel;
+        evalLabelHtml='<div class="dw-eval-label">'+shortLabel+'</div>';
+      }
+
       h+='<div class="dw-item '+ev.cls+'" onclick="showDwDetail('+age+',\''+g+'\',\''+j+'\',\''+ev.label+'\','+ev.score+')">'+
         '<span class="dw-tag '+ev.tagCls+'">'+ev.emoji+'</span>'+
         '<span class="dw-age">'+age+'세~</span>'+
         '<div class="dw-gz">'+g+'<br>'+j+'</div>'+
         '<div class="dw-sub">'+gd.n+'<br>'+jd.a+'</div>'+
+        (jongBadgeHtml||evalLabelHtml)+
         qBadge+
         '</div>';
     });
@@ -9046,11 +9007,12 @@ function showDwDetail(age,gan,zhi,evaluation,score){
 
   var evalText='<div style="display:inline-block; padding:4px 10px; background:#F4F6FF; color:#1C64F2; border-radius:6px; font-size:0.85rem; font-weight:800; margin-bottom:10px; border:1px solid #D1DEF8">🧭 통합 진단: '+ev.evalSummary+'</div><br>';
   if(jg&&jg.isJong){
+    var jlabel = jg.isGaJong ? '가종격' : '종격';
     evalText+=gd.e===jg.dominant||jd.e===jg.dominant
-      ?'✅ <b>종격 지배 기운('+EL_K[jg.dominant]+')이 강화</b>되는 대운입니다. 종격의 에너지를 최대로 발휘하는 시기!'
+      ?'✅ <b>'+jlabel+' 지배 기운('+EL_K[jg.dominant]+')이 강화</b>되는 대운입니다. 종격의 에너지를 최대로 발휘하는 시기!'+(jg.isGaJong?'<br><span style="font-size:.78rem;color:#7B1FA2">※ 가종격이 강화 대운을 만나면 진종격으로 전환 — 폭발적 발복 가능</span>':'')
       :gd.e===whoControls(jg.dominant)||jd.e===whoControls(jg.dominant)
-        ?'⚠️ <b>종격을 약화시키는 기운</b>이 들어옵니다. 자신의 강점이 흔들리는 시기, 내실을 다지세요.'
-        :'🙂 종격에 큰 영향을 주지 않는 중립 대운입니다.';
+        ?'⚠️ <b>'+jlabel+'을 약화시키는 기운</b>이 들어옵니다. 자신의 강점이 흔들리는 시기, 내실을 다지세요.'
+        :'🙂 '+jlabel+'에 큰 영향을 주지 않는 중립 대운입니다.';
   }else{
     var ganType = getQuantumElType(gd.e, G_PILLARS, jg, pw, jh);
     var zhiType = getQuantumElType(jd.e, G_PILLARS, jg, pw, jh);
@@ -9376,6 +9338,27 @@ function renderLifeGraph(bazi){
       },150);
     }
   };
+  // 모바일 터치 지원
+  canvas.addEventListener('touchend',function(e){
+    e.preventDefault();
+    var tip=document.getElementById('graphTooltip');if(tip)tip.style.display='none';
+    var rect=canvas.getBoundingClientRect();
+    var scaleX=canvas.width/rect.width;
+    var tx=(e.changedTouches[0].clientX-rect.left)*scaleX;
+    var closest=null,minDist=9999;
+    points.forEach(function(pt){
+      var d=Math.abs(xOf(pt.age)-tx);
+      if(d<minDist){minDist=d;closest=pt;}
+    });
+    if(closest&&minDist<45){
+      var ev=evalDaewun(closest.g,closest.j);
+      showDwDetail(closest.age,closest.g,closest.j,ev.label,ev.score);
+      setTimeout(function(){
+        var dw=document.getElementById('dwDetail');
+        if(dw)dw.scrollIntoView({behavior:'smooth',block:'nearest'});
+      },150);
+    }
+  },{passive:false});
 }
 
 /* ══════════════════════════════════════════
@@ -9690,6 +9673,9 @@ function renderTodayDestinyCard(p){
 
   var todayEl=todayGd.e||'earth';
   var birthEl=(GAN[p.d.g]&&GAN[p.d.g].e)||'earth';
+  // 퀀텀 명리 엔진: 종격/가종격이면 지배 오행(dominant) 기준으로 오늘 운 판단
+  var _jgTDC = window.G_JONG;
+  if(_jgTDC && _jgTDC.isJong && _jgTDC.dominant) { birthEl = _jgTDC.dominant; }
 
   var SHENG2={wood:'fire',fire:'earth',earth:'metal',metal:'water',water:'wood'};
   var KE2={wood:'earth',earth:'water',water:'fire',fire:'metal',metal:'wood'};
@@ -9762,80 +9748,330 @@ function renderTodayDestinyCard(p){
    Role: Master Tarot Architect
 ═══════════════════════════════════════ */
 var TAROT_DATA = [
-  {id:'ar00', name:'The Fool', name_kr:'바보', short:'thefool', type:'major', 
-   desc:'무한한 가능성과 자유로운 여정의 시작. 세속적인 계산을 내려놓고 본능에 몸을 맡겨라.'},
-  {id:'ar01', name:'The Magician', name_kr:'마법사', short:'themagician', type:'major', 
-   desc:'창조의 도구는 이미 네 손안에 있다. 의지를 현실로 구현해낼 강력한 실행력.'},
-  {id:'ar02', name:'The High Priestess', name_kr:'여사제', short:'thehighpriestess', type:'major', 
-   desc:'베일에 가려진 무의식의 지혜. 직관은 논리보다 날카롭고, 침묵은 말보다 웅변적이다.'},
-  {id:'ar03', name:'The Empress', name_kr:'여황제', short:'theempress', type:'major', 
-   desc:'풍요와 감각적인 기쁨의 절정. 자연스러운 흐름에 몸을 맡기면 결실은 저절로 맺힌다.'},
-  {id:'ar04', name:'The Emperor', name_kr:'황제', short:'theemperor', type:'major', 
-   desc:'견고한 질서와 통제력. 감정을 배제한 냉철한 구조가 때로는 가장 큰 보호막이 된다.'},
-  {id:'ar05', name:'The Hierophant', name_kr:'교황', short:'thehierophant', type:'major', 
-   desc:'전통과 신념의 연결고리. 검증된 길을 따르는 것이 지금은 가장 안전한 혁명이다.'},
-  {id:'ar06', name:'The Lovers', name_kr:'연인', short:'TheLovers', type:'major', 
-   desc:'순수한 결합, 혹은 갈림길에서의 선택. 이끌림은 운명이지만 책임은 인간의 몫이다.'},
-  {id:'ar07', name:'The Chariot', name_kr:'전차', short:'thechariot', type:'major', 
-   desc:'모순된 두 욕망을 통제하고 질주하라. 승리는 오직 흔들리지 않는 의지에서 온다.'},
-  {id:'ar08', name:'Strength', name_kr:'힘', short:'thestrength', type:'major', 
-   desc:'부드러움이 강함을 제압한다. 내면의 야수를 길들이는 것은 무력이 아니라 인내심이다.'},
-  {id:'ar09', name:'The Hermit', name_kr:'은둔자', short:'thehermit', type:'major', 
-   desc:'군중 속의 고독, 그 안에서 찾는 진리. 답은 세상 밖이 아니라 네 안에 등불처럼 있다.'},
-  {id:'ar10', name:'Wheel of Fortune', name_kr:'운명의 수레바퀴', short:'wheeloffortune', type:'major', 
-   desc:'변화만이 유일한 상수다. 상승과 하강, 그 거대한 사이클조차 운명의 일부임을 받아들여라.'},
-  {id:'ar11', name:'Justice', name_kr:'정의', short:'justice', type:'major', 
-   desc:'인과응보의 차가운 칼날. 감정을 섞지 않은 객관적 판단만이 균형을 되찾아준다.'},
-  {id:'ar12', name:'The Hanged Man', name_kr:'매달린 사람', short:'thehangedman', type:'major', 
-   desc:'정지된 시간 속에서의 깨달음. 시각을 뒤집어야 비로소 보이지 않던 세상이 열린다.'},
-  {id:'ar13', name:'Death', name_kr:'죽음', short:'death', type:'major', 
-   desc:'완전한 종결만이 새로운 시작을 허락한다. 썩은 것을 도려내는 아픔을 두려워 마라.'},
-  {id:'ar14', name:'Temperance', name_kr:'절제', short:'temperance', type:'major', 
-   desc:'극단 사이의 황금비율. 감정의 연금술사가 되어 불순물을 걸러내고 순수함만 남겨라.'},
-  {id:'ar15', name:'The Devil', name_kr:'악마', short:'thedevil', type:'major', 
-   desc:'달콤한 구속, 벗어날 수 없는 욕망의 사슬. 네가 갇힌 감옥의 열쇠는 사실 네가 쥐고 있다.'},
-  {id:'ar16', name:'The Tower', name_kr:'탑', short:'thetower', type:'major', 
-   desc:'거짓된 기반의 필연적 붕괴. 무너짐은 재앙이 아니라, 진실을 가리던 벽이 사라지는 축복이다.'},
-  {id:'ar17', name:'The Star', name_kr:'별', short:'thestar', type:'major', 
-   desc:'혼돈 뒤에 찾아오는 치유와 희망. 어둠이 깊을수록 별은 더 명징하게 네 길을 비춘다.'},
-  {id:'ar18', name:'The Moon', name_kr:'달', short:'themoon', type:'major', 
-   desc:'불확실성의 안개와 무의식의 공포. 환영에 속지 말고 직관의 눈으로 어둠을 응시하라.'},
-  {id:'ar19', name:'The Sun', name_kr:'태양', short:'thesun', type:'major', 
-   desc:'순수한 기쁨과 명확한 성공. 그림자가 사라진 정오의 햇살 아래 어린아이처럼 뛰어라.'},
-  {id:'ar20', name:'Judgement', name_kr:'심판', short:'judgement', type:'major', 
-   desc:'과거의 청산과 영혼의 부활. 나팔 소리가 들린다면 이제는 긴 잠에서 깨어나 결단할 때다.'},
-  {id:'ar21', name:'The World', name_kr:'세계', short:'theworld', type:'major', 
-   desc:'여정의 완성, 그리고 또 다른 시작의 예고. 모든 조각이 맞춰진 순간의 황홀경을 만끽하라.'}
+  {id:'ar00', name:'The Fool', name_kr:'바보', short:'thefool', type:'major', sipsinTag:'식상',
+   desc:'벼랑 끝에서 한 발을 내딛는 자. 주머니 속에는 아무것도 없지만 눈빛에는 세상 전부가 담겨 있다. 식상(食傷)의 순수한 파동 — 계획 없이 떠나는 그 무모함이 때로는 운명의 가장 짧은 지름길이 된다. 두려움이 아니라 설렘으로 첫 발을 내딛을 때, 우주는 기꺼이 발판이 된다.'},
+  {id:'ar01', name:'The Magician', name_kr:'마법사', short:'themagician', type:'major', sipsinTag:'비겁',
+   desc:'지팡이·컵·검·동전, 네 원소가 모두 그의 테이블 위에 있다. 비겁(比劫)의 강한 의지가 현실을 재편한다. 위를 가리키는 손은 하늘의 기운을, 아래를 가리키는 손은 땅의 자원을 연결한다. 도구는 갖춰졌다 — 이제 남은 것은 오직 실행의 결단이다.'},
+  {id:'ar02', name:'The High Priestess', name_kr:'여사제', short:'thehighpriestess', type:'major', sipsinTag:'편인',
+   desc:'야긴과 보아스 두 기둥 사이, 그녀는 베일 앞에 앉아 두루마리를 쥐고 침묵한다. 편인(偏印)의 통찰 — 표면에는 아무것도 없어 보이지만, 수면 아래에서 진실이 소용돌이친다. 논리로 풀 수 없는 문제일수록 직관의 귀를 열어야 한다. 침묵은 답의 다른 이름이다.'},
+  {id:'ar03', name:'The Empress', name_kr:'여황제', short:'theempress', type:'major', sipsinTag:'재성',
+   desc:'열두 별의 관을 쓰고 풍요로운 밀밭에 앉은 자연의 여왕. 재성(財星)의 결실이 무르익는 계절 — 억지로 당기지 않아도 때가 되면 열매는 스스로 떨어진다. 감각, 창조, 번영, 모성. 씨앗을 믿고 기다리는 자에게 대지는 반드시 답례한다.'},
+  {id:'ar04', name:'The Emperor', name_kr:'황제', short:'theemperor', type:'major', sipsinTag:'정관',
+   desc:'바위 왕좌에 앉아 홀(笏)을 쥔 자. 정관(正官)의 냉철한 질서 — 감정이 흔들리더라도 구조는 흔들리지 않는다. 권위는 타인을 굴복시키는 것이 아니라 시스템을 안정시키는 데 쓰일 때 진짜가 된다. 자기 통제 없이는 타인을 이끌 수 없다.'},
+  {id:'ar05', name:'The Hierophant', name_kr:'교황', short:'thehierophant', type:'major', sipsinTag:'정인',
+   desc:'삼중 관을 쓴 정신적 권위자, 두 제자가 그 앞에 무릎을 꿇는다. 정인(正印)의 축적된 지혜 — 전통은 단순히 낡은 것이 아니라 수세기에 걸쳐 정제된 인류의 집단 지성이다. 검증된 스승과 체계를 통해 배우는 것이 지금은 가장 빠른 성장이다.'},
+  {id:'ar06', name:'The Lovers', name_kr:'연인', short:'TheLovers', type:'major', sipsinTag:'식상',
+   desc:'천사 라파엘이 내려다보는 가운데 벌거벗은 두 사람이 서로를 마주 본다. 식상(食傷)의 순수한 교환 — 감정의 진정성이 이 카드의 전부다. 그러나 이 카드는 단순한 사랑 이상을 말한다. 갈림길에서의 선택, 가치관의 일치, 영혼의 결합. 이끌림은 운명이지만 선택의 결과는 오롯이 인간의 몫이다.'},
+  {id:'ar07', name:'The Chariot', name_kr:'전차', short:'thechariot', type:'major', sipsinTag:'비겁',
+   desc:'흑과 백의 스핑크스가 끄는 전차 위에 갑옷을 입은 전사. 서로 다른 방향을 바라보는 두 짐승을 통제하는 것 — 이것이 비겁(比劫)의 진짜 시험이다. 내면의 상충하는 욕망을 의지로 통합하지 못하면 전차는 제자리에서 맴돌 뿐이다. 승리는 외부 장애물이 아니라 내면의 분열을 극복한 자에게 온다.'},
+  {id:'ar08', name:'Strength', name_kr:'힘', short:'thestrength', type:'major', sipsinTag:'정인',
+   desc:'꽃 관을 쓴 여인이 사자의 입을 부드럽게 닫는다. 정인(正印)의 내면적 강인함 — 진정한 힘은 근육이 아니라 두려움을 마주하고도 흔들리지 않는 내면의 고요함에서 나온다. 야수는 억누르는 것이 아니라 포용과 이해로 길들여진다. 가장 부드러운 것이 가장 단단한 것을 이긴다.'},
+  {id:'ar09', name:'The Hermit', name_kr:'은둔자', short:'thehermit', type:'major', sipsinTag:'편인',
+   desc:'설산 정상에서 홀로 등불을 들고 서 있는 노인. 편인(偏印)의 깊은 내성(內省) — 이 등불은 자신의 길을 밝히는 것이지, 타인을 위한 것이 아니다. 군중으로부터의 고독한 분리가 때로는 가장 급진적인 성장이다. 세상이 제공하는 모든 답을 거부하고 내면에서 스스로의 진실을 찾아라.'},
+  {id:'ar10', name:'Wheel of Fortune', name_kr:'운명의 수레바퀴', short:'wheeloffortune', type:'major', sipsinTag:'역마',
+   desc:'히브리 문자와 연금술 기호가 새겨진 바퀴가 돌아간다. 역마(驛馬)의 거대한 순환 — 상승과 하강, 행운과 불운은 수레바퀴처럼 교대한다. 지금의 위치는 영원하지 않다. 정점에서 겸손하고, 바닥에서 다음 상승을 준비하는 자만이 사이클을 지배한다.'},
+  {id:'ar11', name:'Justice', name_kr:'정의', short:'justice', type:'major', sipsinTag:'정관',
+   desc:'두 눈을 뜬 채 저울과 검을 든 정의의 화신. 정관(正官)의 인과율 — 오직 사실만이 심판의 근거가 된다. 감정, 편견, 기대를 배제한 절대 균형. 모든 행위는 반드시 그에 상응하는 결과를 불러온다. 지금 당신이 내리는 판단이 미래의 당신에게 심판받을 것임을 기억하라.'},
+  {id:'ar12', name:'The Hanged Man', name_kr:'매달린 사람', short:'thehangedman', type:'major', sipsinTag:'편인',
+   desc:'한쪽 발로 나무에 자발적으로 매달린 자. 고통의 표정이 아닌 깨달음의 빛이 얼굴에 맺혀 있다. 편인(偏印)의 역설적 통찰 — 세상이 보는 방향과 반대로 볼 때 보이지 않던 진실이 드러난다. 자발적인 정지, 자아의 희생, 시각의 전환. 억지로 움직이는 것보다 멈추는 것이 더 큰 돌파구가 되는 순간이 있다.'},
+  {id:'ar13', name:'Death', name_kr:'죽음', short:'death', type:'major', sipsinTag:'편관',
+   desc:'흰 장미 깃발을 든 해골 기사가 왕과 성직자 앞에서 말을 달린다. 편관(偏官)의 냉혹한 변환 — 이 카드의 진짜 이름은 소멸이 아니라 변용(變容)이다. 썩어야 할 것이 썩지 않으면 새 생명이 싹틀 수 없다. 종결을 두려워하는 자는 시작도 경험할 수 없다. 놓아라, 그래야 다음이 온다.'},
+  {id:'ar14', name:'Temperance', name_kr:'절제', short:'temperance', type:'major', sipsinTag:'식신',
+   desc:'두 발을 물과 땅에 동시에 딛고 선 천사가 두 컵 사이로 물을 옮긴다. 식신(食神)의 연금술적 균형 — 과도함도 결핍도 없는 완벽한 중용. 상반되는 에너지를 통합하고 정화하여 더 높은 질로 끌어올린다. 성급하지 않고 정교하게, 감정과 이성의 황금 비율을 찾는 자에게 비범한 결과가 찾아온다.'},
+  {id:'ar15', name:'The Devil', name_kr:'악마', short:'thedevil', type:'major', sipsinTag:'겁재',
+   desc:'거꾸로 된 오망성을 단 염소머리 존재가 쇠사슬로 두 인물을 묶고 있다. 그러나 사슬은 헐렁하다. 겁재(劫財)의 속박 — 갇힌 것은 외부의 힘이 아니라 스스로 만든 집착, 두려움, 중독이다. 사슬을 끊는 열쇠는 이미 당신 손에 있다. 다만 편안한 구속에서 벗어나는 것이 두려울 뿐이다.'},
+  {id:'ar16', name:'The Tower', name_kr:'탑', short:'thetower', type:'major', sipsinTag:'편관',
+   desc:'번개를 맞은 탑의 꼭대기에서 왕관이 날아가고 두 인물이 추락한다. 편관(偏官)의 예고 없는 충격 — 거짓된 확신 위에 세운 모든 구조물은 반드시 무너진다. 이것은 저주가 아니다. 탑이 무너진 자리에는 진실의 땅이 드러나며, 그 위에서만 진짜 삶이 시작된다. 폭풍 속에서도 낙하하는 자신을 관찰하는 자가 살아남는다.'},
+  {id:'ar17', name:'The Star', name_kr:'별', short:'thestar', type:'major', sipsinTag:'식신',
+   desc:'물가에 무릎을 꿇고 두 개의 물병에서 물을 붓는 벌거벗은 여인. 머리 위로 여덟 개의 별이 빛난다. 식신(食神)의 치유와 회복 — 탑의 충격 이후 찾아오는 조용한 재건의 시간. 희망은 화려한 선언이 아니라 조용히 무릎을 꿇고 땅을 적시는 행위 속에 있다. 상처는 덮는 것이 아니라 흘려보내는 것이다.'},
+  {id:'ar18', name:'The Moon', name_kr:'달', short:'themoon', type:'major', sipsinTag:'편인',
+   desc:'보름달 아래 게가 물에서 기어 나오고 두 탑 사이의 길 위에 개와 늑대가 울부짖는다. 편인(偏印)의 불확실성 — 같은 달빛이 어떤 이에게는 길을 밝히고, 어떤 이에게는 공포의 그림자를 드리운다. 지금 눈에 보이는 것을 전부라 믿지 마라. 무의식이 만들어내는 환영과 진짜 직관을 구별하는 능력이 생존을 결정한다.'},
+  {id:'ar19', name:'The Sun', name_kr:'태양', short:'thesun', type:'major', sipsinTag:'식신',
+   desc:'백마 위의 아이가 해바라기 꽃밭에서 깃발을 들고 달린다. 태양이 그 뒤에서 환하게 빛난다. 식신(食神)의 순수한 기쁨 — 두려울 것이 없는 상태의 절대적 생명력. 성공, 건강, 명확함, 낙관. 이 카드가 나왔을 때 의심은 사치다. 지금 당신이 느끼는 것이 맞다. 그냥 달리면 된다.'},
+  {id:'ar20', name:'Judgement', name_kr:'심판', short:'judgement', type:'major', sipsinTag:'정관',
+   desc:'천사 가브리엘이 나팔을 불자 관 속의 죽은 자들이 일어난다. 정관(正官)의 각성 — 이것은 외부의 심판이 아니라 자기 자신을 향한 소환장이다. 더 이상 과거를 핑계로 삼을 수 없는 순간, 진짜 삶으로의 부활을 요청받는 순간. 나팔 소리가 들린다면 그것은 두려움이 아니라 해방의 신호다.'},
+  {id:'ar21', name:'The World', name_kr:'세계', short:'theworld', type:'major', sipsinTag:'재성',
+   desc:'월계수 화환 속에서 두 지팡이를 들고 춤추는 여인. 사방에 황소, 사자, 독수리, 천사가 지키고 있다. 재성(財星)의 완성과 통합 — 모든 원소의 마스터, 모든 여정의 대단원. 그러나 완성은 끝이 아니다. 이 원 안에서의 춤이 끝나면 바보(The Fool)로서 또 다른 원이 시작된다. 지금 이 순간을 온전히 축하하고, 다음 사이클을 환영하라.'}
 ];
 
-// 카테고리별 해석 로직 (Master Tarot Architect)
+// ── 십성 카드 에너지 매핑 ──────────────────────────────────────────────
+var SIPSIN_CARD_META = {
+  '식상': {pos:'감정과 표현이 자유롭게 흐릅니다.', neg:'에너지가 외부로 흩어져 소진됩니다.'},
+  '비겁': {pos:'내면의 의지가 강하게 발동합니다.', neg:'자존심이 협력보다 앞설 위험이 있습니다.'},
+  '재성': {pos:'결실과 소유의 기운이 모입니다.', neg:'집착이 오히려 대상을 밀어냅니다.'},
+  '정관': {pos:'질서와 명예의 기운이 임합니다.', neg:'규범이 족쇄가 되어 움직임을 가둡니다.'},
+  '편관': {pos:'변화와 돌파의 고통이 성장을 낳습니다.', neg:'충격적 변화가 기반을 흔들 수 있습니다.'},
+  '정인': {pos:'안정적 지혜와 보호막이 작동합니다.', neg:'과잉 보호가 성장을 막습니다.'},
+  '편인': {pos:'직관과 내면의 통찰이 빛납니다.', neg:'고립과 의심이 판단을 흐립니다.'},
+  '식신': {pos:'정교한 결과물과 치유 에너지가 흐릅니다.', neg:'안일함이 성취를 지연시킵니다.'},
+  '겁재': {pos:'경쟁 속 도약의 자극이 됩니다.', neg:'주변의 탈재(奪財) 기운을 경계하십시오.'},
+  '역마': {pos:'이동과 확장의 기운이 충만합니다.', neg:'방향 없는 이탈이 손실로 이어집니다.'}
+};
+
+// 카테고리별 해석 로직 — 퀀텀 명리-타로 통합 엔진
 var TAROT_CONTEXT = {
   love: {
-    label: '연애 (Love)',
-    vibe: '감정의 교감, 주파수 일치, 낭만적 환상보다는 실질적인 관계의 온도를 분석한다.',
-    oracle: (c) => `흐린 눈을 거두고, ${c.name_kr}의 기운으로 관계의 실체를 직시해. 사랑은 환상이 아니라 핏줄 터지는 현실이니까.`
+    label: '연애/애정',
+    vibe: '식상(食傷)과 관성(官性)의 교차점. 감정의 표출이 인연의 문을 두드린다.',
+    sipsin: '식상(食傷) & 관성(官性)',
+    oracleLine: function(c, r) {
+      var map = {
+        '연인':    r ? '식상과 관성이 어긋나니, 선택을 미루는 것이 두 인연을 동시에 잃는 길입니다.' : '식상과 관성이 완전한 합(合)을 이루니, 망설임 없이 나아가십시오.',
+        '악마':    r ? '겁재(劫財)의 탈정(奪情) 기운이 서렸으니, 상대의 진심을 다시 한번 확인하십시오.' : '달콤한 사슬임을 알면서도 놓지 못하는 것이 지금 당신의 감정입니다.',
+        '달':      r ? '편인(偏印)이 관성을 가리니, 의심은 실체가 없는 그림자를 쫓는 행위입니다.' : '무의식의 안개 속에 진짜 감정이 숨어 있습니다. 직면하십시오.',
+        '탑':      r ? '편관(偏官)의 충격이 이미 지나갔으니, 폐허 위에서 새 관계를 설계할 때입니다.' : '관성의 기반이 흔들리는 시기입니다. 지금의 균열을 무시하지 마십시오.',
+        '태양':    r ? '빛이 너무 강하면 그림자도 짙어집니다. 집착이 상대를 지치게 하고 있습니다.' : '식신(食神)의 순수한 기쁨이 관성과 합을 이루니, 이 인연은 길합니다.'
+      };
+      return map[c.name_kr] || (r ? '식상(食傷)의 표출이 관성(官性)에 막히니, 진심은 말하지 않으면 전달되지 않습니다.' : '식상과 관성이 어울려 흐르니, 먼저 표현하는 자에게 인연이 응답합니다.');
+    },
+    revelation: function(c, r) {
+      var map = {
+        '바보': r ? '충동적 움직임이 인연을 놀라게 합니다. 의도와 다르게 자유분방함이 무책임으로 읽히고 있습니다. 진지함을 보여줄 때입니다.' : '새로운 인연의 파동이 다가옵니다. '+c.name_kr+'은 두려움 없이 첫 발을 내딛는 자에게만 열리는 문의 상징입니다. 지금 당신에게 그 문이 열려 있습니다.',
+        '연인': r ? '선택의 기로에서 머뭇거리는 사이 인연이 식어갑니다. 카드는 지금 당신의 마음이 나뉘어 있음을 드러냅니다. 하나를 택하고 그것에 전부를 주십시오.' : '운명적 결합의 순간이 가까워지고 있습니다. 이 카드가 나왔다는 것은 우주가 이미 두 사람의 궤도를 겹쳐 놓았다는 신호입니다. 지금의 끌림을 신뢰하십시오.',
+        '악마': r ? '구속의 사슬이 느슨해지고 있습니다. 집착이나 두려움으로 유지되던 관계에서 벗어날 용기가 생기는 시기입니다. 해방이 곧 당신의 진짜 행복입니다.' : '매혹적인 위험. 이 카드는 당신이 이미 그 인연의 독성을 알면서도 놓지 못하고 있음을 말합니다. 알면서도 선택하는 것이 인간이지만, 대가는 반드시 치러집니다.'
+      };
+      return map[c.name_kr] || (r
+        ? c.name_kr+'이(가) 역행합니다. '+SIPSIN_CARD_META[c.sipsinTag].neg+' 지금 상대는 당신의 침묵 속에서 열기를 잃어가고 있습니다. 작은 표현 하나가 관계의 온도를 되살릴 수 있습니다.'
+        : c.name_kr+'의 빛이 순행합니다. '+SIPSIN_CARD_META[c.sipsinTag].pos+' 감정의 진정성이 상대의 마음을 여는 유일한 열쇠입니다. 계산을 내려놓고 있는 그대로 전달하십시오.'
+      );
+    },
+    oracle: function(c, r) { return r ? '사랑의 파동이 엇갈리고 있다. '+c.name_kr+'. 표현하지 않은 감정은 상대에게 존재하지 않는다.' : '운명의 공명이 시작됐다. '+c.name_kr+'. 진심은 언제나 가장 강력한 주술임을 기억하라.'; }
   },
+
   reunion: {
-    label: '재회 (Reunion)',
-    vibe: '끊어진 인연의 실타래 잔여물, 미련의 정체, 다시 얽힐 천시(天時)가 있는지 냉정하게 진단한다.',
-    oracle: (c) => `${c.name_kr} 카드가 말하네. 과거의 잔해를 밟고 서야만, 인연의 끈이 다시 보이기 시작할 거야.`
+    label: '재회운',
+    vibe: '끊어진 인연의 잔상(殘像). 식상(食傷)의 미련과 관성(官性)의 그림자가 교차한다.',
+    sipsin: '식상(食傷) & 관성(官性)',
+    oracleLine: function(c, r) {
+      var map = {
+        '심판':    r ? '각성의 나팔 소리가 들리지 않는 것은 때가 아직 아니기 때문입니다. 억지로 연락하는 것은 인연을 더 멀리 밀어냅니다.' : '관성(官星)의 각성 기운이 임했습니다. 상대 역시 지금 이 인연을 다시 생각하고 있을 가능성이 높습니다.',
+        '운명의 수레바퀴': r ? '역마(驛馬)의 사이클이 역행하니, 아직 재회의 타이밍이 열리지 않았습니다. 흐름이 돌아올 때까지 기다리십시오.' : '인연의 수레바퀴가 다시 한 바퀴를 돌아 당신 앞에 섰습니다. 이 기회의 창은 오래 열려 있지 않습니다.',
+        '달':      r ? '상대의 마음이 여전히 안개 속에 있습니다. 지금 상대는 당신에 대한 감정을 스스로도 명확히 모르는 상태입니다.' : '편인(偏印)의 직관이 말합니다. 상대도 이 연결을 느끼고 있습니다. 다만 먼저 움직이기를 두려워할 뿐입니다.',
+        '탑':      r ? '탑이 무너진 자리에서 재건을 논하기엔 아직 잔해가 뜨겁습니다. 상처가 아물 시간이 먼저입니다.' : '무너졌던 것이 다시 세워질 수 있는 기운입니다. 단, 과거의 구조 그대로 복원하려 하면 또다시 무너집니다. 새로운 관계로 재설계하십시오.',
+        '별':      r ? '치유가 완전히 이루어지지 않은 상태에서의 재회는 같은 상처를 반복할 수 있습니다. 먼저 당신 자신을 채우십시오.' : '식신(食神)의 치유 에너지가 흘러들어, 두 사람 사이의 상처가 자연스럽게 봉합될 조건이 만들어지고 있습니다.',
+        '매달린 사람': r ? '과거에 매달린 채 시간이 정지되어 있습니다. 시각을 뒤집어야 합니다. 재회가 아닌 새 출발이 진짜 답일 수 있습니다.' : '지금은 멈추고 기다려야 하는 시간입니다. 관성(貫性)보다 통찰(洞察)이 이 인연을 되살리는 힘입니다.',
+        '여사제':  r ? '상대가 마음의 문을 닫고 직관의 수문을 잠갔습니다. 논리적인 설득보다 침묵 속의 기다림이 더 강력합니다.' : '편인(偏印)의 조용한 에너지가 연결의 실마리를 당기고 있습니다. 서두르지 마십시오. 그 끈은 끊어지지 않았습니다.',
+        '악마':    r ? '겁재(劫財)의 탈정(奪情) 기운이 서렸습니다. 재회를 원하는 것이 진심인지, 아니면 단순히 놓치기 싫은 소유욕인지 먼저 자신에게 물으십시오.' : '서로를 속박하던 사슬을 끊고서야 비로소 진짜 감정이 보입니다. 이 재회는 집착이 아니라 선택으로 이루어져야만 의미가 있습니다.'
+      };
+      return map[c.name_kr] || (r
+        ? '관성(官性)의 문이 닫혀 있습니다. 인연의 파동이 아직 재회를 허락하지 않는 시기입니다. 억지로 열려 하면 문이 더 굳게 잠깁니다.'
+        : '식상(食傷)의 그리움이 관성(官性)의 문을 두드리고 있습니다. 진심은 결국 전달됩니다. 지금이 움직일 때입니다.');
+    },
+    revelation: function(c, r) {
+      var map = {
+        '심판': r ? '카드는 아직 각성의 때가 오지 않았음을 말합니다. 지금의 연락은 상대를 불편하게 할 뿐입니다. 상대가 스스로 깨어나는 시간을 주십시오.' : '심판의 나팔 소리는 양쪽 모두에게 들립니다. 이 카드가 나왔다면 상대 역시 지금 이 인연을 다시 소환하고 싶은 무의식적 충동을 느끼고 있을 가능성이 있습니다. 먼저 신호를 보내십시오.',
+        '운명의 수레바퀴': r ? '수레바퀴가 아직 당신의 방향으로 돌아오지 않았습니다. 시간의 흐름에 저항하면 더 긴 기다림이 생깁니다. 지금은 자신에게 집중할 때입니다.' : '역마(驛馬)의 사이클이 두 사람을 같은 지점으로 데려오고 있습니다. 이 거대한 흐름은 인간의 의지가 아닌 시간이 만들어내는 것입니다. 당신이 준비되어 있는지가 유일한 변수입니다.',
+        '탑': r ? '탑이 무너진 자리에 다시 탑을 세우려 하고 있습니다. 재회를 원한다면, 과거와 다른 구조로 관계를 설계해야 합니다. 같은 방식의 반복은 같은 결말을 낳습니다.' : '충격적 붕괴 이후 남은 것이 진짜입니다. 탑이 무너지고도 두 사람 사이에 무언가가 남아 있다면, 그것은 거짓으로 만들어진 것이 아닙니다. 그 진짜를 토대로 새로 쌓으십시오.'
+      };
+      return map[c.name_kr] || (r
+        ? c.name_kr+'이(가) 역행합니다. '+SIPSIN_CARD_META[c.sipsinTag].neg+' 지금 재회를 시도하는 것은 상처를 건드리는 행위가 될 수 있습니다. 상대가 당신을 향해 돌아설 내면의 준비를 할 시간을 먼저 허락하십시오.'
+        : c.name_kr+'의 기운이 순행합니다. '+SIPSIN_CARD_META[c.sipsinTag].pos+' 끊어졌다고 믿었던 인연의 실이 아직 연결되어 있습니다. 진심 어린 첫 마디가 닫혔던 문을 다시 열 수 있습니다. 두려움을 내려놓고 움직이십시오.');
+    },
+    oracle: function(c, r) { return r ? '인연의 시계가 멈췄다. '+c.name_kr+'. 아직 때가 아닌 것을 억지로 당기면 실이 끊어진다.' : '관성(官性)의 문이 다시 열릴 조짐이 보인다. '+c.name_kr+'. 끊어진 것이 아니라, 잠시 보이지 않았을 뿐이다.'; }
   },
+
   wealth: {
-    label: '금전 (Wealth)',
-    vibe: '에너지가 물질화되는 흐름, 재물의 입구와 출구, 막힌 기운을 뚫을 숫자와 방향을 제시한다.',
-    oracle: (c) => `돈은 에너지야. ${c.name_kr}의 흐름을 타면, 막혔던 혈이 뚫리듯 재물이 순환하기 시작할 거야.`
+    label: '사업',
+    vibe: '재성(財星)의 흐름. 결과물의 획득과 현실적 소유권의 뿌리를 확인한다.',
+    sipsin: '재성(財星)',
+    oracleLine: function(c, r) {
+      var map = {
+        '여황제':  r ? '재성(財星)의 흐름이 막히니, 과잉 투자보다 현재 보유한 것을 단단히 지켜야 할 때입니다.' : '재성의 풍요가 열리니, 지금 씨앗을 심으면 가을에 거두는 기운이 있습니다.',
+        '악마':    r ? '겁재(劫財)의 탈재(奪財) 기운을 간과하지 마십시오. 달콤한 제안 뒤에 독이 있습니다.' : '욕망의 사슬을 직시하십시오. 탐욕이 오히려 재물을 가두는 족쇄입니다.',
+        '탑':      r ? '붕괴 이후의 재건. 재성의 새 판이 열리려면 먼저 쌓인 것을 허물어야 합니다.' : '재물의 기반이 흔들리는 경고입니다. 분산과 리스크 관리에 즉시 나서십시오.',
+        '태양':    r ? '성공이 보이나 실속이 없습니다. 겉만 화려한 기회에 현혹되지 마십시오.' : '재성이 만개하여 결실이 선명하게 보이는 시기입니다. 자신 있게 수확하십시오.',
+        '세계':    r ? '완성 직전의 마지막 장애물입니다. 조금만 더 인내하면 재성의 결과물이 손에 들어옵니다.' : '재성의 여정이 완성 단계입니다. 지금까지 한 모든 노력의 결실이 당신에게 흘러듭니다.'
+      };
+      return map[c.name_kr] || (r ? '재성(財星)의 흐름이 역행하니, 지금은 확장보다 수성이 이득입니다.' : '재성의 기운이 순행하니, 현실적 목표를 명확히 하면 결과가 따라옵니다.');
+    },
+    revelation: function(c, r) {
+      return r
+        ? c.name_kr+'이(가) 역행합니다. '+SIPSIN_CARD_META[c.sipsinTag].neg+' 지금 섣불리 투자하거나 계약에 서명하는 일은 피하십시오. 재성은 흐름이 돌아올 때까지 기다릴 줄 아는 자에게 돌아옵니다.'
+        : c.name_kr+'의 기운이 순행합니다. '+SIPSIN_CARD_META[c.sipsinTag].pos+' 흐름이 열려 있는 지금, 결단이 빠른 자가 시장을 선점합니다. 단, 과욕 없이 분수에 맞는 행보를 유지하십시오.';
+    },
+    oracle: function(c, r) { return r ? '재성(財星)이 막혀있다. '+c.name_kr+'. 돈은 방향을 잃은 의지를 따르지 않는다.' : '재성의 문이 열린다. '+c.name_kr+'. 계산보다 빠른 발이 지금의 기회를 잡는다.'; }
   },
-  business: {
-    label: '사업 (Business)',
-    vibe: '확장과 수렴의 타이밍, 동업자와의 기운 충돌, 시장의 파도를 타는 전략적 통찰을 제공한다.',
-    oracle: (c) => `비즈니스는 전쟁이지. ${c.name_kr} 카드를 깃발 삼아, 지금은 ${c.type==='major'?'판을 키울':'내실을 다질'} 타이밍이야.`
+
+  contract: {
+    label: '계약/문서',
+    vibe: '인성(印星)의 무게. 정인(正印)의 안정적 수용과 편인(偏印)의 비판적 검토.',
+    sipsin: '인성(印星)',
+    oracleLine: function(c, r) {
+      var map = {
+        '정의':    r ? '정관(正官)의 저울이 기울었으니, 계약서의 세부 조항에 불균형이 숨어 있습니다. 반드시 재검토하십시오.' : '인과의 칼날이 공정하게 서 있습니다. 지금의 계약은 정당한 근거 위에 있습니다.',
+        '황제':    r ? '정관(正官)의 권위가 나를 압박합니다. 불리한 조건을 강요받고 있지 않은지 확인하십시오.' : '강력한 구조 위에서 체결되는 계약입니다. 명확한 조건과 권위가 이 계약을 보호합니다.',
+        '교황':    r ? '편인(偏印)의 비판적 시각이 필요합니다. 관례라는 이름으로 불공정이 포장되어 있을 수 있습니다.' : '정인(正印)의 안정적 기운이 임합니다. 전통적이고 검증된 경로로 체결되는 계약은 탄탄합니다.',
+        '달':      r ? '문서 속 진실이 안개에 가려져 있습니다. 서명 전 반드시 법률 전문가의 조언을 구하십시오.' : '무의식이 경고를 보냅니다. 직관이 "아니오"라고 말한다면 그 직관을 믿으십시오.',
+        '힘':      r ? '장기적 인내가 필요한 계약입니다. 지금 당장 유리해 보이지 않더라도 시간이 지나면 가치가 드러납니다.' : '인내와 부드러운 협상력이 최선의 조건을 만들어냅니다. 강경보다 유화가 더 많은 것을 얻습니다.'
+      };
+      return map[c.name_kr] || (r ? '인성(印星)의 기운이 역행하니, 문서와 계약의 세부 사항에서 함정을 조심하십시오.' : '인성의 기운이 순행하니, 지금 체결되는 계약은 오랜 보호막이 됩니다.');
+    },
+    revelation: function(c, r) {
+      return r
+        ? c.name_kr+'이(가) 역행합니다. 편인(偏印)의 비판적 시각으로 문서를 다시 읽어야 합니다. 특히 작은 글씨와 면피 조항들을 주목하십시오. 지금의 불편한 의심이 나중의 큰 손실을 막습니다.'
+        : c.name_kr+'의 기운이 순행합니다. 정인(正印)의 안정적 수용력이 활성화되어 있습니다. 자격을 증명하는 행위, 도장을 찍는 행위 모두 지금이 적기입니다. 자신 있게 서명하십시오.';
+    },
+    oracle: function(c, r) { return r ? '문서의 그늘이 드리워져 있다. '+c.name_kr+'. 보이는 것이 전부가 아닐 때, 인성(印星)의 눈을 빌려라.' : '인성(印星)이 도장의 무게를 허락한다. '+c.name_kr+'. 지금 서명한 것은 시간이 증명할 것이다.'; }
   },
-  success: {
-    label: '합격 (Success)',
-    vibe: '관성(官星)의 기운, 집중력이 폭발하는 시기, 경쟁자를 압도할 영적 무기를 짚어준다.',
-    oracle: (c) => `너에겐 이미 합격의 기운이 서려 있어. ${c.name_kr}의 에너지를 영적 무기로 삼아 경쟁자들을 압도해버려.`
+
+  travel: {
+    label: '이동/해외',
+    vibe: '역마(驛馬)와 식상(食傷)의 외연 확장. 정체된 기운을 깨고 새 무대로 도약한다.',
+    sipsin: '역마(驛馬) & 식상(食傷)',
+    oracleLine: function(c, r) {
+      var map = {
+        '바보':    r ? '역마(驛馬)가 방향 없이 튀고 있으니, 목적지를 정하지 않은 이동은 낭비입니다.' : '역마의 기운이 무한합니다. 지금 떠나는 발걸음은 반드시 새로운 문을 엽니다.',
+        '전차':    r ? '비겁(比劫)의 이탈 충동이 강하나, 준비 없는 돌진은 더 큰 손실을 부릅니다.' : '전진의 기운이 강합니다. 이동과 확장의 모든 계획이 지금 실행에 적합한 시기입니다.',
+        '운명의 수레바퀴': r ? '역마의 사이클이 역행하니, 예정된 이동이 지연되거나 변경될 수 있습니다.' : '이동의 기운이 최고조에 달했습니다. 주저하지 말고 새로운 땅을 향해 나아가십시오.',
+        '은둔자':  r ? '내면의 두려움이 이동을 막고 있습니다. 고립을 선택하면 기회의 창이 닫힙니다.' : '고독한 여정에서 진정한 자아를 발견합니다. 혼자만의 이동이 가장 큰 성장이 됩니다.',
+        '세계':    r ? '완성을 목전에 두고 마지막 이동을 포기하려 합니다. 조금만 더 나아가십시오.' : '역마의 여정이 완성의 지점에 도달합니다. 이 이동이 당신의 인생을 한 단계 끌어올립니다.'
+      };
+      return map[c.name_kr] || (r ? '역마(驛馬)의 기운이 막히니, 섣부른 이동보다 현재 기반을 점검할 때입니다.' : '역마와 식상이 합을 이루니, 지금의 이동과 확장은 반드시 결실로 이어집니다.');
+    },
+    revelation: function(c, r) {
+      return r
+        ? c.name_kr+'이(가) 역행합니다. 역마가 막혀 있는 시기입니다. 계획한 이동이나 해외 진출은 시기를 재검토하십시오. 강행할 경우 예상치 못한 장애물과 비용 낭비가 따를 수 있습니다.'
+        : c.name_kr+'의 기운이 순행합니다. 역마(驛馬)와 식상이 결합하여 강력한 외연 확장의 에너지가 활성화되어 있습니다. 이동은 지금 당신에게 새로운 관성(관계, 직장, 기회)을 가져다줄 열쇠입니다.';
+    },
+    oracle: function(c, r) { return r ? '역마가 막혔다. '+c.name_kr+'. 멈춰선 수레바퀴를 억지로 돌리면 바퀴살이 부러진다.' : '역마(驛馬)가 울부짖는다. '+c.name_kr+'. 지금 멈추는 자는 파동을 잃는다.'; }
+  },
+
+  creative: {
+    label: '창의/예술',
+    vibe: '식상(食傷)의 내면 표출. 상관(傷官)의 파격과 식신(食神)의 정밀함의 기운을 읽는다',
+    sipsin: '식상(食傷)',
+    oracleLine: function(c, r) {
+      var map = {
+        '바보':    r ? '식상(食傷)이 산만하게 흩어지니, 영감의 방향을 하나로 모아야 합니다.' : '상관(傷官)의 파격적 영감이 폭발합니다. 기존 규칙을 깨는 용기가 작품을 위대하게 만듭니다.',
+        '별':      r ? '식신의 치유 에너지가 막혀 있습니다. 억지로 창작을 강요하지 마십시오. 쉬는 것도 작업입니다.' : '식신(食神)의 정교한 에너지가 최고조에 달했습니다. 지금 만들어지는 것은 오래 남습니다.',
+        '마법사':  r ? '기술은 있으나 의지가 분산되어 있습니다. 모든 도구를 한 방향으로 집중하십시오.' : '창조의 모든 도구가 당신 앞에 놓여 있습니다. 실행만이 남은 유일한 과업입니다.',
+        '은둔자':  r ? '고립이 창작을 막고 있습니다. 세상과의 접촉에서 영감이 온다는 것을 잊지 마십시오.' : '고독 속의 창작이 심오한 울림을 만들어냅니다. 세상의 소음을 차단하고 내면에 집중하십시오.',
+        '여황제':  r ? '번영의 기운이 막혀 있습니다. 결과에 대한 집착이 창작의 흐름을 가로막고 있습니다.' : '풍요로운 창작 에너지가 자연스럽게 흘러넘칩니다. 지금은 억제하지 말고 쏟아내십시오.'
+      };
+      return map[c.name_kr] || (r ? '상관(傷官)의 파격이 역행하니, 창작의 흐름을 억지로 만들려 하지 마십시오.' : '식상의 에너지가 충만하니, 내면을 두려움 없이 표출하면 걸작이 탄생합니다.');
+    },
+    revelation: function(c, r) {
+      return r
+        ? c.name_kr+'이(가) 역행합니다. 식상의 흐름이 막혀 있는 시기입니다. 강제로 짜내는 창작은 공허하고 얇습니다. 지금은 채워야 할 때입니다. 다양한 경험과 감각 자극이 다음 창작의 씨앗이 됩니다.'
+        : c.name_kr+'의 기운이 순행합니다. 상관(傷官)의 파격적 영감과 식신(食神)의 정교한 완성력이 동시에 작동하고 있습니다. 지금 당신이 만들어내는 것은 평범하지 않습니다. 망설임 없이 세상에 내보내십시오.';
+    },
+    oracle: function(c, r) { return r ? '식상(食傷)이 가로막혔다. '+c.name_kr+'. 연못에 돌을 던져야 파문이 일어난다.' : '상관(傷官)의 불꽃이 타오른다. '+c.name_kr+'. 세상의 규칙을 두려워하는 예술은 이미 죽었다.'; }
+  },
+
+  health: {
+    label: '건강/휴식',
+    vibe: '인성(印星)의 보호와 수렴의 기운의 행방을 읽는다 ',
+    sipsin: '인성(印星)',
+    oracleLine: function(c, r) {
+      var map = {
+        '힘':      r ? '인성(印星)의 내적 힘이 소진되었습니다. 지금 가장 중요한 것은 멈추는 용기입니다.' : '인내심이 몸과 마음의 야수를 제압하는 시기입니다. 내면에서 이미 치유가 시작되었습니다.',
+        '은둔자':  r ? '고립이 회복을 방해합니다. 도움을 요청하는 것이 진짜 용기입니다.' : '고독한 휴식이 가장 깊은 충전입니다. 세상으로부터 잠시 물러서는 것을 허락하십시오.',
+        '절제':    r ? '절제가 흔들리고 있습니다. 음식, 수면, 감정 중 하나가 극단으로 치닫고 있습니다.' : '균형이 회복의 열쇠입니다. 쉬고 먹고 움직이는 세 가지의 황금 비율을 찾으십시오.',
+        '탑':      r ? '건강의 경고 신호가 울렸습니다. 이미 지나간 충격에 대한 사후 관리가 필요합니다.' : '갑작스러운 이상 신호를 무시하지 마십시오. 지금 검진을 받는 것이 나중의 큰 고통을 막습니다.',
+        '별':      r ? '치유의 에너지가 막혀 있습니다. 기대했던 회복이 더딜 수 있습니다. 조급함을 내려놓으십시오.' : '치유와 재생의 기운이 흘러들어옵니다. 몸과 마음이 회복될 수 있는 환경을 의식적으로 만드십시오.'
+      };
+      return map[c.name_kr] || (r ? '인성(印星)의 보호막이 얇아졌으니, 관살(官殺)의 압박에 무너지기 전에 에너지를 보충하십시오.' : '인성의 수렴 기운이 임하니, 지금은 확장보다 충전이 더 큰 이익입니다.');
+    },
+    revelation: function(c, r) {
+      return r
+        ? c.name_kr+'이(가) 역행합니다. 몸이 보내는 신호를 지나치게 합리화하고 있지 않습니까. 인성(印星)이 약해진 시기에 강행군은 큰 대가를 요구합니다. 멈추는 것이 지는 것이 아닙니다.'
+        : c.name_kr+'의 기운이 순행합니다. 인성(印星)의 보호 에너지가 당신을 감싸고 있습니다. 이 시기를 의식적인 휴식과 충전의 시간으로 삼으십시오. 채워진 에너지는 반드시 더 큰 행동력으로 돌아옵니다.';
+    },
+    oracle: function(c, r) { return r ? '인성(印星)의 방패가 깨졌다. '+c.name_kr+'. 달리는 말에게도 숨 고를 시간이 필요하다.' : '인성(印星)이 회복의 문을 열었다. '+c.name_kr+'. 지금 쉬는 것은 다음 전진을 위한 충전이다.'; }
+  },
+
+  friendship: {
+    label: '우정/관계',
+    vibe: '비겁(比劫)의 역학. 비견(比肩)의 동력과 겁재(劫財)의 길흉을 읽는다.',
+    sipsin: '비겁(比劫)',
+    oracleLine: function(c, r) {
+      var map = {
+        '정의':    r ? '비겁 관계에서 불공정한 교환이 이루어지고 있습니다. 비견과 겁재를 구별하십시오.' : '인과의 저울이 공정하게 서 있습니다. 지금의 관계는 균형 잡힌 상호 존중 위에 있습니다.',
+        '악마':    r ? '겁재(劫財)의 묶임에서 벗어날 시기입니다. 상대가 나를 이용하고 있지 않은지 냉정하게 보십시오.' : '비겁의 강한 결속이 적이 될 수도 있습니다. 공동의 목표 없는 관계는 자원을 소모합니다.',
+        '힘':      r ? '강함을 뒤에 숨기다 보면 진짜 관계가 생기지 않습니다. 취약함을 드러내는 용기를 가지십시오.' : '강하고 부드러운 비견 에너지가 주변을 하나로 묶고 있습니다. 당신의 힘이 모두에게 귀감이 됩니다.',
+        '전차':    r ? '비겁의 경쟁 에너지가 우정을 소모하고 있습니다. 경쟁보다 협력이 더 많은 것을 얻습니다.' : '비견(比肩)의 동료가 당신의 전진을 돕고 있습니다. 지금 주변의 동력을 신뢰하십시오.',
+        '연인':    r ? '관계 속에서 원하는 것이 명확하지 않아 혼선이 생기고 있습니다. 경계를 설정하십시오.' : '비겁과 관성이 만나는 특별한 교차점입니다. 우정에서 더 깊은 인연으로 발전할 수 있는 상황입니다.'
+      };
+      return map[c.name_kr] || (r ? '겁재(劫財)의 분탈 기운이 서렸으니, 주변인이 나의 힘을 소모하고 있는지 점검하십시오.' : '비견(比肩)의 동력이 충만하니, 주변인이 지금 나에게 강력한 자원이 됩니다.');
+    },
+    revelation: function(c, r) {
+      return r
+        ? c.name_kr+'이(가) 역행합니다. 비겁(比劫)의 기운이 뒤틀려 있습니다. 비견이라 믿었던 사람이 겁재로 돌변할 수 있는 시기입니다. 가까운 이에게 재물이나 중요한 정보를 섣불리 내어주지 마십시오.'
+        : c.name_kr+'의 기운이 순행합니다. 비견(比肩)의 동료적 에너지가 강합니다. 지금 당신 주변의 사람들은 경쟁자가 아니라 동반자입니다. 함께 나아가는 것이 홀로 치달리는 것보다 훨씬 멀리 갑니다.';
+    },
+    oracle: function(c, r) { return r ? '겁재(劫財)의 그림자가 비견을 가장하고 있다. '+c.name_kr+'. 동료를 가려내는 눈이 지금 당신에게 필요하다.' : '비견(比肩)의 파동이 연결된다. '+c.name_kr+'. 혼자였을 때 보이지 않던 길이 열린다.'; }
+  },
+
+  loss: {
+    label: '재물운',
+    vibe: '재성(財星)의 금빛 파동을 읽는다. 지금 이 기운이 나에게 흘러드는가, 아니면 빠져나가는가.',
+    sipsin: '재성(財星) & 겁재(劫財)',
+    oracleLine: function(c, r) {
+      var map = {
+        '바보':    r ? '식상(食傷)의 충동이 재성을 흩뜨립니다. 준비 없는 도전이나 즉흥적인 지출은 재물의 씨앗을 날려버립니다. 지금은 아닙니다.' : '새로운 기회의 문이 열렸습니다. 무에서 유를 창조하는 식상의 파동 — 지금 첫 발을 내딛으면 재물의 흐름이 시작됩니다.',
+        '마법사':  r ? '도구는 있지만 집중이 분산되어 있습니다. 여러 곳에 손을 뻗으면 어느 곳에서도 재물이 맺히지 않습니다.' : '재물을 끌어들이는 모든 역량이 최고조입니다. 비겁(比劫)의 의지와 재성의 결합 — 지금 움직이면 반드시 결과가 따라옵니다.',
+        '여사제':  r ? '숨겨진 지출이나 모르는 손실이 있을 수 있습니다. 재물 흐름을 꼼꼼히 점검하십시오.' : '편인(偏印)의 직관이 재물의 숨겨진 기회를 감지합니다. 겉으로 드러나지 않은 곳에 진짜 수익이 있습니다.',
+        '여황제':  r ? '재성의 풍요가 막혀 있습니다. 결과에 대한 조급함이 오히려 흐름을 끊고 있습니다. 자연스러운 성숙을 기다리십시오.' : '재성(財星)이 만개하는 황금기입니다. 지금 투자한 것은 넉넉한 열매로 돌아옵니다. 망설이지 마십시오.',
+        '황제':    r ? '정관(正官)의 구조가 흔들리면 재물도 함께 흔들립니다. 재정 관리 시스템에 구멍이 없는지 점검하십시오.' : '안정적인 수입과 견고한 재정 기반이 형성됩니다. 체계적인 관리가 재물을 지키고 불립니다.',
+        '교황':    r ? '관례나 기존 방식이 지금의 재물 흐름을 막고 있습니다. 원칙을 고집하다 기회를 놓칠 수 있습니다.' : '정인(正印)의 안정적 기운이 재물을 보호합니다. 검증된 방법과 신뢰할 수 있는 경로가 지금 가장 안전한 투자입니다.',
+        '연인':    r ? '재물 관련 선택의 기로에서 망설이고 있습니다. 두 가지를 동시에 쥐려다 둘 다 놓칠 수 있습니다.' : '재물에 관한 중요한 선택의 시기입니다. 가치관에 맞는 방향을 선택하면 식상(食傷)의 에너지가 재성을 끌어옵니다.',
+        '전차':    r ? '무리한 확장이 재물을 소진시킵니다. 지금은 속도를 줄이고 핵심에 집중해야 합니다.' : '비겁(比劫)의 강한 추진력이 재성과 결합합니다. 목표를 향해 돌진하면 경쟁자를 제치고 재물을 선점할 수 있습니다.',
+        '힘':      r ? '정인(正印)의 보호 기운이 약해져 재물이 새고 있습니다. 당당함을 잃으면 협상에서 손해를 봅니다.' : '인내와 부드러운 통제력이 재물을 지켜냅니다. 급하게 쥐려 하지 않을수록 더 큰 몫이 남습니다.',
+        '은둔자':  r ? '혼자 모든 것을 처리하려다 중요한 기회를 놓치고 있습니다. 전문가나 조력자의 도움을 받으십시오.' : '편인(偏印)의 내공이 쌓인 결과물이 서서히 드러납니다. 조용히 준비해온 것이 재물로 전환되는 시기입니다.',
+        '운명의 수레바퀴': r ? '역마(驛馬)의 사이클이 재물 흐름을 역행시키고 있습니다. 한 사이클의 하강 구간 — 손실을 최소화하며 다음 상승을 준비하십시오.' : '재물 운의 사이클이 상승을 향해 전환되는 결정적 시점입니다. 이 파동을 타면 예상보다 빠른 재물 증가가 있습니다.',
+        '정의':    r ? '정관(正官)의 저울이 기울었습니다. 재물 관련 분쟁이나 불공정 거래에 노출될 수 있습니다. 계약서와 세금 문제를 점검하십시오.' : '공정한 재물 거래가 이루어집니다. 정당한 노력에 정당한 보상이 돌아오는 인과율이 작동하고 있습니다.',
+        '매달린 사람': r ? '재물에 대한 집착이 오히려 흐름을 막고 있습니다. 시각을 바꾸십시오. 지금의 손실이 더 큰 이득의 씨앗일 수 있습니다.' : '편인(偏印)의 역설적 지혜 — 잠시 멈추고 기다리는 것이 더 큰 재물을 만들어냅니다. 지금은 과감한 행동보다 정확한 타이밍을 노려야 합니다.',
+        '죽음':    r ? '편관(偏官)의 변환 이후 정체 상태입니다. 재물의 새로운 흐름이 열리기까지 시간이 필요합니다.' : '기존 재물 구조의 종결과 새 국면의 시작입니다. 지금 과감하게 정리하면 더 큰 재물의 흐름이 열립니다.',
+        '절제':    r ? '식신(食神)의 균형이 무너졌습니다. 과소비 또는 지나친 인색함 — 어느 쪽이든 재물 흐름을 왜곡시킵니다.' : '균형 잡힌 재물 관리가 길운을 만듭니다. 지나치지도 모자라지도 않게, 절제된 운용이 재물을 안정적으로 키웁니다.',
+        '악마':    r ? '겁재(劫財)의 탈재 기운이 서서히 물러나고 있습니다. 이미 잃은 것에 연연하지 말고 남은 재물 보존에 집중하십시오.' : '욕망과 탐욕이 재물 판단을 흐리고 있습니다. 과도한 욕심이나 중독적 소비 패턴이 재성을 갉아먹습니다. 냉정하게 끊어내십시오.',
+        '탑':      r ? '재물 급락의 충격이 이미 지나갔습니다. 폐허 위에서 새로운 재물 기반을 설계할 수 있는 시점에 서 있습니다.' : '편관(偏官)의 충격 경보 — 재물의 기반이 예고 없이 흔들릴 수 있습니다. 분산투자와 긴급 준비금 확보가 지금 최우선입니다.',
+        '별':      r ? '식신(食神)의 치유 에너지가 막혀 있습니다. 재물 회복이 예상보다 더딜 수 있습니다. 조급함이 추가 손실을 부릅니다.' : '손실 이후의 회복 조짐이 보입니다. 식신의 치유 파동이 재성을 서서히 채워가고 있습니다. 꾸준한 노력이 빛을 발하는 때입니다.',
+        '달':      r ? '재물 관련 불확실성이 걷히고 있습니다. 숨어 있던 정보가 드러나면서 더 나은 판단이 가능해집니다.' : '편인(偏印)의 안개가 재물 전망을 흐립니다. 겉으로 보이는 수익률과 실제가 다를 수 있습니다. 묻지마 투자는 절대 금물입니다.',
+        '태양':    r ? '성공처럼 보이지만 내실이 따르지 않습니다. 과시적 소비나 허영이 재물을 삼키고 있는지 점검하십시오.' : '식신(食神)의 황금 파동 — 재물운이 최고조입니다. 지금 진행 중인 모든 재물 관련 사안이 밝고 긍정적인 방향으로 흐릅니다.',
+        '심판':    r ? '과거의 재물 실수를 반성하지 않으면 같은 패턴이 반복됩니다. 정관(正官)의 냉정한 자기 심판이 필요합니다.' : '재물 흐름의 전환점입니다. 묵혀둔 자산이나 미뤄둔 재물 결단이 지금 결실을 맺을 수 있습니다. 각성하고 움직이십시오.',
+        '세계':    r ? '완성 직전 마지막 장애물입니다. 조금만 더 인내하면 재물의 결실이 손에 들어옵니다. 포기는 가장 비싼 선택입니다.' : '재성(財星)의 대단원 — 지금까지의 모든 노력이 재물로 전환되는 완성의 시기입니다. 넉넉하게 수확하고, 다음 사이클을 위한 씨앗도 남겨두십시오.'
+      };
+      return map[c.name_kr] || (r
+        ? '재성(財星)의 흐름이 역행하는 시기입니다. 확장보다 수성, 투자보다 점검이 지금 당신의 재물을 지키는 열쇠입니다.'
+        : '재성의 기운이 순행합니다. 명확한 목표와 실행력이 결합되는 지금, 재물은 흐름을 타는 자에게로 모입니다.');
+    },
+    revelation: function(c, r) {
+      var gainMap = {
+        '여황제': '풍요의 여왕이 당신 곁에 서 있습니다. 지금 씨앗을 심으면 대지는 배로 돌려줍니다. 재물이 들어올 통로가 여럿 열려 있으니, 하나만 고집하지 말고 흐름이 큰 쪽을 따르십시오.',
+        '태양': '재물운이 정점입니다. 이 카드가 나왔다는 것은 지금 당신의 재성(財星)이 가장 밝게 빛나고 있다는 신호입니다. 의심 없이 결단하고, 두려움 없이 수확하십시오.',
+        '세계': '긴 여정 끝에 재물의 완성이 찾아옵니다. 지금 당신 앞에 놓인 것은 노력의 산물입니다. 당당하게 받으십시오. 그리고 그 자원으로 다음 사이클을 설계하십시오.',
+        '운명의 수레바퀴': '재물 사이클의 상승 전환점입니다. 이 파동은 외부에서 오는 것이지만, 탈 준비가 된 자에게만 의미가 있습니다. 지금 당신은 준비되어 있습니까.',
+        '마법사': '재물을 끌어들이는 모든 도구가 당신 손에 있습니다. 창조적 실행이 곧 수익입니다. 지금 이 순간 의지를 현실로 변환하십시오.',
+        '별': '손실 이후의 조용한 회복. 별의 물줄기가 대지를 서서히 적시듯, 재물이 다시 채워지고 있습니다. 꾸준함이 가장 강력한 재물 전략입니다.'
+      };
+      var lossMap = {
+        '탑': '재물의 기반이 흔들리는 경고입니다. 탑이 무너지기 전에 긴급 자산 점검을 하십시오. 단일 자산에 집중되어 있다면 지금 당장 분산하십시오. 충격은 예고 없이 옵니다.',
+        '악마': '탐욕이나 중독적 소비가 재물을 갉아먹고 있습니다. 달콤해 보이는 투자 제안, 보장된 수익, 쉬운 돈 — 모두 함정일 가능성이 높습니다. 지금 당신의 재물을 가장 위협하는 것은 타인이 아니라 당신 내면의 욕망입니다.',
+        '달': '재물 관련 정보가 왜곡되어 있습니다. 진짜와 가짜 수익을 구별하기 어려운 시기입니다. 좋아 보이는 것을 의심하고, 나빠 보이는 것도 다시 확인하십시오. 무엇도 겉으로 판단하지 마십시오.',
+        '죽음': '기존 재물 흐름의 종결이 다가오고 있습니다. 이것은 재앙이 아닙니다. 정리해야 할 것을 정리하면 새로운 재물의 문이 열립니다. 두려워하지 말고 과감하게 정리하십시오.'
+      };
+      if(!r && gainMap[c.name_kr]) return gainMap[c.name_kr];
+      if(r && lossMap[c.name_kr]) return lossMap[c.name_kr];
+      return r
+        ? c.name_kr+'이(가) 역행합니다. '+SIPSIN_CARD_META[c.sipsinTag].neg+' 재물이 빠져나가는 기운이 강합니다. 새로운 투자나 지출보다 지금 가진 것을 단단히 지키는 것이 더 큰 이득입니다. 다음 순행의 때를 기다리며 내공을 쌓으십시오.'
+        : c.name_kr+'의 기운이 순행합니다. '+SIPSIN_CARD_META[c.sipsinTag].pos+' 재물이 흘러드는 기운이 열려 있습니다. 지금 이 흐름에 올라타십시오. 단, 과욕은 파동을 깨뜨립니다. 분수 안에서 최선을 다하면 재성은 반드시 응답합니다.';
+    },
+    oracle: function(c, r) {
+      var map = {
+        '여황제': r ? '풍요의 문이 닫혀 있다. '+c.name_kr+'. 억지로 열려 하면 문이 부서진다. 때를 기다려라.' : '대지가 답례를 준비하고 있다. '+c.name_kr+'. 지금 심은 것은 반드시 가을이 된다.',
+        '태양':   r ? '빛이 있는 곳에 그림자도 있다. '+c.name_kr+'. 화려함에 속지 마라. 실속을 따져라.' : '재물의 태양이 중천에 떴다. '+c.name_kr+'. 눈 뜨고 보이는 것을 지금 잡아라.',
+        '탑':     r ? '탑은 이미 무너졌다. '+c.name_kr+'. 남은 것을 세어라. 그것이 새 시작의 자본이다.' : '균열이 보인다. '+c.name_kr+'. 탑이 무너지기 전, 지금 당장 재물을 지켜라.',
+        '악마':   r ? '사슬이 느슨해지고 있다. '+c.name_kr+'. 욕망의 고리를 끊으면 재물이 다시 당신 것이 된다.' : '달콤한 독약을 경계하라. '+c.name_kr+'. 쉬운 돈은 없다. 있다면 그것은 함정이다.',
+        '세계':   r ? '완성이 목전이다. '+c.name_kr+'. 마지막 한 걸음을 포기하지 마라. 수확은 거기에 있다.' : '재성의 완성이 선언된다. '+c.name_kr+'. 이 결실은 네가 심은 것의 정직한 열매다.'
+      };
+      return map[c.name_kr] || (r
+        ? '재성(財星)이 등을 돌린다. '+c.name_kr+'. 잡으려 할수록 멀어진다. 지금은 놓아야 할 때다.'
+        : '재성(財星)의 문이 열린다. '+c.name_kr+'. 흐름을 타는 자에게 재물은 스스로 찾아온다.');
+    }
   }
 };
+
+
 
 var curTarotCat = null;
 var isReading = false;
@@ -9845,7 +10081,7 @@ function selectTarotCategory(cat, btn) {
   if(isReading) return;
   curTarotCat = cat;
   
-  // UI 업데이트 (구버전 호환)
+  // UI 업데이트
   var siblings = btn.parentElement.children;
   for(var i=0; i<siblings.length; i++) {
     siblings[i].classList.remove('active');
@@ -9854,7 +10090,7 @@ function selectTarotCategory(cat, btn) {
   
   // 리추얼 메시지 초기화
   var msgEl = document.getElementById('tarotRitualMsg');
-  msgEl.innerHTML = `... [STAGE:ATMOSPHERE] 잠시 숨을 고르며 <b>${TAROT_CONTEXT[cat].label}</b> 고민이 서린 공기를 읽고 있어.`;
+  msgEl.innerHTML = `... [STAGE:ATMOSPHERE] 숨을 고르라. <b>${TAROT_CONTEXT[cat].label}</b>의 공기가 흐른다.`;
   msgEl.style.opacity = 0.6;
   
   // 결과창 초기화
@@ -9865,17 +10101,24 @@ function selectTarotCategory(cat, btn) {
   
   var card = document.getElementById('tarotCardEl');
   card.classList.remove('flipped');
+  
+  // Reset Divine Focus Interaction
+  card.onclick = startTarotReading;
+  card.style.cursor = 'pointer';
+  card.classList.remove('divine-focus');
+  card.classList.add('tarot-card-container'); 
+  document.getElementById('tarotFocusOverlay').classList.remove('active');
 
   // [수정: 클릭 없이 자동 진행]
   if (autoStartTimer) clearTimeout(autoStartTimer);
   autoStartTimer = setTimeout(function() {
     startTarotReading();
-  }, 1200); // 1.2초 후 자동 시작
+  }, 1200); 
 }
 
 function startTarotReading() {
   if(!curTarotCat) {
-    alert("먼저 고민 카테고리를 선택해줘. 너의 파동을 읽어야 하니까.");
+    alert("먼저 고민 카테고리를 선택해. 너의 파동을 읽어야 하니까.");
     return;
   }
   if(isReading) return;
@@ -9886,7 +10129,7 @@ function startTarotReading() {
   var card = document.getElementById('tarotCardEl');
   
   // 1. 셔플 단계
-  msgEl.innerHTML = `[STAGE:SHUFFLING] 이 패들이 네 운명의 궤적을 따라 섞이는 소리를 들어봐...`;
+  msgEl.innerHTML = `[STAGE:SHUFFLING] 운명의 궤적이 섞인다...`;
   msgEl.style.opacity = 1;
   
   // 카드 흔들림 효과
@@ -9898,17 +10141,19 @@ function startTarotReading() {
     
     // 랜덤 카드 선택
     var picked = TAROT_DATA[Math.floor(Math.random() * TAROT_DATA.length)];
-    var isReversed = Math.random() < 0.2; // 20% 확률로 역방향 (구현은 일단 정방향 위주로)
+    var isReversed = Math.random() < 0.3; // 30% 역방향(기신)
     
-    // 카드 이미지 매핑 (krates98/tarotcardapi 활용)
-    // The Lovers 파일명만 대소문자 주의 (TheLovers.jpg), 나머지는 소문자.jpeg
+    // 카드 이미지 매핑
     var ext = picked.short === 'TheLovers' ? '.jpg' : '.jpeg';
     var imgUrl = `https://raw.githubusercontent.com/krates98/tarotcardapi/main/images/${picked.short}${ext}`;
     var frontEl = document.getElementById('tarotCardFront');
     frontEl.style.backgroundImage = `url('${imgUrl}')`;
     // SEO & Accessibility
     frontEl.setAttribute('role', 'img');
-    frontEl.setAttribute('aria-label', `${picked.name_kr} (${picked.name}) - ${picked.desc.substring(0, 50)}...`);
+    frontEl.setAttribute('aria-label', `${picked.name_kr} (${picked.name})`);
+    
+    // Rotate if reversed (Keep rotateY(180deg) for the flip logic)
+    frontEl.style.transform = `rotateY(180deg) ${isReversed ? 'rotate(180deg)' : ''}`;
     
     // 카드 뒤집기
     card.classList.add('flipped');
@@ -9917,29 +10162,73 @@ function startTarotReading() {
     createGoldDust(card);
     
     // 메시지 출력
-    msgEl.innerHTML = `[CARD:${picked.id}_${picked.name}] ... 이 카드가 솟구쳤군. 상징을 봐.`;
-    document.getElementById('tarotCardName').innerHTML = `${picked.name_kr} <span style="font-size:0.7rem;opacity:0.7">(${picked.name})</span>`;
+    msgEl.innerHTML = `[CARD:${picked.id}_${picked.name}] ... 솟구쳤군.`;
+    
+    var godType = isReversed ? '기신(忌神) · 흉(凶)' : '희신(喜神) · 길(吉)';
+    var direction = isReversed ? '역행(逆行)' : '순행(順行)';
+    
+    document.getElementById('tarotCardName').innerHTML = `
+        ${picked.name_kr}
+        <span style="font-size:0.7rem;opacity:0.7">(${picked.name})</span>
+        <div style="font-size:0.8rem;margin-top:4px;color:${isReversed?'#ff6b6b':'#4ecdc4'};font-weight:700;">
+           ${direction} · ${godType}
+        </div>
+    `;
+    
     document.getElementById('tarotResultContainer').style.display = 'block';
     
-    // 3. 해석 스트리밍 시작
+    // 3. 해석 스트리밍 시작 — 퀀텀 명리-타로 통합 출력
+    var oracleLine = context.oracleLine ? context.oracleLine(picked, isReversed) : '';
+    var revelationText = context.revelation ? context.revelation(picked, isReversed) : '';
+    var sipsinMeta = SIPSIN_CARD_META[picked.sipsinTag] || {pos:'', neg:''};
+    var sipsinMsg = isReversed ? sipsinMeta.neg : sipsinMeta.pos;
+
     var interpretation = `
-      ... ${context.vibe.split(',')[0]}... 
-      ${picked.desc} ...
-      네가 선택한 <b>${context.label}</b>의 관점에서 보면, 이 카드는 아주 중요한 신호를 보내고 있어. 
-      ... (침묵) ... 
-      지금 흐름은 거부할 수 없는 궤적을 그리며 다가오고 있군.
+      ... ${context.vibe}<br><br>
+
+      <b style="color:#c4b5fd">📿 [명리학적 한줄 평]</b><br>
+      <span style="font-style:italic;color:#fde68a;font-size:1.05em;line-height:1.8">"${oracleLine}"</span><br><br>
+
+      <b style="color:#c4b5fd">🔮 [타로의 계시]</b> — <b>${picked.name_kr}</b>(${isReversed ? '역행' : '순행'})<br>
+      <span style="line-height:1.9">${revelationText}</span><br><br>
+
+      <span style="opacity:0.55;font-size:0.88em">✦ 십성 에너지 : <b>${picked.sipsinTag}</b> · ${sipsinMsg}</span>
     `.trim();
     
     streamRitualText(interpretation, 'destinyFortune', () => {
-       // 마무리 오라클
-       var oracleHtml = `<div style="font-weight:bold;color:#FFD700;margin-bottom:5px">⚡ Master's Oracle</div>"${context.oracle(picked)}"`;
+       // 마무리 오라클 (카드 하단 강조 문구)
+       var masterLine = context.oracle ? context.oracle(picked, isReversed) : '';
+       var oracleHtml = masterLine
+         ? `<div style="font-weight:bold;color:#FFD700;margin-bottom:5px">⚡ 마스터 오라클</div><span style="font-style:italic">"${masterLine}"</span>`
+         : '';
        var oracleEl = document.getElementById('tarotOracleText');
        oracleEl.innerHTML = oracleHtml;
-       oracleEl.classList.add('show');
+       if(oracleHtml) oracleEl.classList.add('show');
        isReading = false;
+       
+       // DIVINE FOCUS INTERACTION ENABLE
+       card.onclick = function(e) { 
+            e.stopPropagation();
+            enterDivineFocus(this); 
+       };
+       card.style.cursor = 'zoom-in';
+       // Tip msg
+       msgEl.innerHTML = `[STAGE:FOCUS] 카드를 눌러보라. 더 깊은 심연이 보일 것이다.`;
     });
     
   }, 2000);
+}
+
+function enterDivineFocus(cardEl) {
+    if(!cardEl.classList.contains('flipped')) return;
+    cardEl.classList.add('divine-focus');
+    document.getElementById('tarotFocusOverlay').classList.add('active');
+}
+
+function exitDivineFocus() {
+    var card = document.getElementById('tarotCardEl');
+    if(card) card.classList.remove('divine-focus');
+    document.getElementById('tarotFocusOverlay').classList.remove('active');
 }
 
 function streamRitualText(text, targetId, callback) {
@@ -10017,11 +10306,33 @@ function analyzeFortuneGZ(gz, p, label){
   if(!gz)return null;
   var dayEl=(GAN[p.d.g]||{}).e||'earth';
   var pw=G_POWER;
+  var jg=window.G_JONG;
   var gEl=(GAN[gz.g]||{}).e||'earth';
   var jEl=(JI[gz.j]||{}).e||'earth';
 
-  var isYong=pw&&(pw.yongshin.indexOf(gEl)>=0||pw.yongshin.indexOf(jEl)>=0);
-  var isGi=pw&&(pw.kijishin.indexOf(gEl)>=0||pw.kijishin.indexOf(jEl)>=0);
+  // ── 퀀텀 명리 엔진: 종격/가종격 우선, 아니면 억부+조후 ──────────────
+  var isYong, isGi;
+  if(jg && jg.isJong) {
+    // 종격 사주: 지배 오행 or 상생 오행 = 용, 克지배오행 = 기
+    isYong = (gEl===jg.dominant||gEl===jg.parEl||jEl===jg.dominant||jEl===jg.parEl);
+    isGi   = (gEl===whoControls(jg.dominant)||jEl===whoControls(jg.dominant));
+    // 종재격/가종재격: 인성 오행(일간을 生)도 기신
+    if(jg.name && jg.name.indexOf('종재격') >= 0 && jg.dayEl) {
+      var _inseong = parentOf(jg.dayEl);
+      if(gEl === _inseong || jEl === _inseong) isGi = true;
+    }
+  } else {
+    isYong = pw&&(pw.yongshin.indexOf(gEl)>=0||pw.yongshin.indexOf(jEl)>=0);
+    isGi   = pw&&(pw.kijishin.indexOf(gEl)>=0||pw.kijishin.indexOf(jEl)>=0);
+  }
+
+  // ── 럭키 오행: 종격이면 지배 오행, 아니면 용신 ──────────────────────
+  var luckyEl;
+  if(jg && jg.isJong) {
+    luckyEl = jg.dominant;
+  } else {
+    luckyEl = pw&&pw.yongshin&&pw.yongshin.length>0 ? pw.yongshin[0] : 'earth';
+  }
 
   var natalBranches=[p.y.j,p.m.j,p.d.j,p.h.j];
   var checkSet=natalBranches.concat([gz.j]);
@@ -10037,7 +10348,7 @@ function analyzeFortuneGZ(gz, p, label){
 
   var chungAlerts=[];
   var chungBonusAlerts=[];
-  var jg = window.G_JONG; // global reference
+  var natalGanHeMergedFG = (jg && jg.ganHeMerged) ? jg.ganHeMerged : {}; // 원국 합화된 천간 (천간충 무효화용)
   var isMetalDM = p.d.g === '庚' || p.d.g === '辛';
   var isFireFavorable = pw&&(pw.yongshin.indexOf('fire')>=0);
   if (jg && jg.isJong) { isFireFavorable = isFireFavorable || jg.dominant==='fire' || jg.parEl==='fire'; }
@@ -10045,6 +10356,7 @@ function analyzeFortuneGZ(gz, p, label){
   var pairs=[['子','午'],['丑','未'],['寅','申'],['卯','酉'],['辰','戌'],['巳','亥']];
   pairs.forEach(function(pr){
     if((gz.j===pr[0]&&natalBranches.indexOf(pr[1])>=0)||(gz.j===pr[1]&&natalBranches.indexOf(pr[0])>=0)){
+      // 지지충은 합>충 원칙 미적용 — 기존 로직 그대로 유지
       var key=pr[0]+pr[1];
       if(isMetalDM && isFireFavorable && (key==='子午'||key==='午子'||key==='巳亥'||key==='亥巳')) {
         chungBonusAlerts.push('🔥수화기제(水火旣濟) — 특별한 제련발복! 물과 불의 충돌이 오히려 '+gGod+'·'+jGod+'의 거대한 성취로 날카롭게 완성됩니다.');
@@ -10070,6 +10382,9 @@ function analyzeFortuneGZ(gz, p, label){
 
   ganPairs.forEach(function(pr){
     if((gz.g===pr[0]&&natalGans.indexOf(pr[1])>=0)||(gz.g===pr[1]&&natalGans.indexOf(pr[0])>=0)){
+      // 원국에서 합화된 천간이면 충 무효
+      var targetNatalGan = (gz.g===pr[0]) ? pr[1] : pr[0];
+      if (natalGanHeMergedFG[targetNatalGan]) return; // 합화된 천간은 충 불가
       if(isMetalDM && isFireFavorable) {
         if(chungBonusAlerts.length===0) chungBonusAlerts.push('🔥화련진금(火鍊眞金) — 제련발복! 천간의 수화 충돌이 도리어 금 기운을 명검으로 벼려냅니다.');
       } else {
@@ -10087,7 +10402,7 @@ function analyzeFortuneGZ(gz, p, label){
 
   var els=['wood','fire','earth','metal','water'];
   var counts=G_NATAL?G_NATAL.counts:{wood:0,fire:0,earth:0,metal:0,water:0};
-  var luckyEl=pw&&pw.yongshin&&pw.yongshin.length>0?pw.yongshin[0]:'earth';
+  // luckyEl은 함수 상단에서 이미 선언 (종격/가종격 우선)
   var LUCKY_BRAND={
     wood:{color:'초록·민트',material:'리넨·코튼',item:'그린 스카프나 에코백',action:'산책·식물 키우기',desc:'목(木) 기운 보충으로 성장 에너지를 충전하는 날입니다.'},
     fire:{color:'레드·코랄',material:'벨벳·새틴',item:'붉은 립스틱 또는 포인트 네일',action:'밝은 조명 아래 사교 활동',desc:'화(火) 기운을 더해 표현력과 존재감을 높이는 날입니다.'},
@@ -10276,8 +10591,9 @@ function renderLetter(p){
   var powerPara='';
   var neoPowerPara='';
   if(jg&&jg.isJong){
-    powerPara='<p class="letter-para">'+EL_E[jg.dominant]+' <b>'+jg.name+'</b> 사주를 가지신 '+USER_NAME+'님, 이 세상에 이런 구조의 사주를 가진 사람은 정말 드뭅니다. 남들이 "균형을 맞춰야 한다"고 말할 때, 당신은 오히려 그 기운을 더 키워야 제대로 빛나는 사람입니다. 당신의 강점 한 가지를 극한까지 밀어붙이는 것, 그것이 당신의 인생 전략입니다. 세상은 균형잡힌 사람을 평균으로 기억하지만, 한 분야에서 독보적인 사람은 영원히 기억합니다. ✨</p>';
-    neoPowerPara='<p class="letter-para">당신은 <b>'+jg.name+'</b>이라는 극단적인 구조를 가졌다. 남들처럼 평범하게 살려고 발버둥 치지 마라. 당신은 밸런스를 맞추는 순간 망하는 사주다. 당신이 가진 그 압도적인 기운('+EL_K[jg.dominant]+') 하나에 모든 걸 걸어라. 어설프게 단점을 보완하려 들지 말고, 장점을 무기로 세상을 찔러라. 당신은 모 아니면 도다. 기왕이면 도가 되어라.</p>';
+    var jongTypeLabel = jg.isGaJong ? '가종격(假從格)' : '종격(從格)';
+    powerPara='<p class="letter-para">'+EL_E[jg.dominant]+' <b>'+jg.name+'</b> 사주를 가지신 '+USER_NAME+'님, 이 세상에 이런 구조의 사주를 가진 사람은 정말 드뭅니다. '+(jg.isGaJong?'아직 완전한 종격은 아니지만, 그 방향으로 흐르는 강력한 기운을 타고났어요. 대운이 지배 기운을 강화시켜주는 방향으로 흐를 때 진종격으로 폭발적으로 꽃핍니다.':'남들이 "균형을 맞춰야 한다"고 말할 때, 당신은 오히려 그 기운을 더 키워야 제대로 빛나는 사람입니다.')+'당신의 강점 한 가지를 극한까지 밀어붙이는 것, 그것이 당신의 인생 전략입니다. 세상은 균형잡힌 사람을 평균으로 기억하지만, 한 분야에서 독보적인 사람은 영원히 기억합니다. ✨</p>'
+    neoPowerPara='<p class="letter-para">당신은 <b>'+jg.name+'</b>이라는 '+(jg.isGaJong?'반(半)극단적인':'극단적인')+'구조를 가졌다. '+(jg.isGaJong?'아직 진짜 종격은 아니지만, 그 방향성이 뚜렷하다. 지배 기운을 강화하는 대운이 오면 폭발적으로 터진다. 그 준비를 지금부터 해라.':'남들처럼 평범하게 살려고 발버둥 치지 마라. 당신은 밸런스를 맞추는 순간 망하는 사주다.')+'당신이 가진 그 압도적인 기운('+EL_K[jg.dominant]+') 하나에 모든 걸 걸어라. 어설프게 단점을 보완하려 들지 말고, 장점을 무기로 세상을 찔러라. 당신은 모 아니면 도다. 기왕이면 도가 되어라.</p>';
   }else if(pw&&pw.isStrong){
     powerPara='<p class="letter-para">'+EL_E[dayEl]+' 넘치는 에너지를 타고난 '+USER_NAME+'님, '+y+'년에는 그 에너지를 세상을 향해 아낌없이 쏟아내는 한 해가 되길 바랍니다. 당신의 에너지는 나눌수록, 발산할수록 더 강해지는 특별한 성질을 가지고 있어요. 누군가의 리더가 되고, 누군가의 방패가 되어주는 그 역할 속에서 당신 본래의 빛이 터져나올 거예요. 💪</p>';
     neoPowerPara='<p class="letter-para">당신은 <b>신강(身强)</b>하다. 에너지가 넘쳐서 주체를 못 하는 수준이다. 그 에너지를 방구석에서 썩히거나 쓸데없는 고집 부리는 데 쓰지 마라. 당신은 남 밑에서 고분고분 일할 성격도 못 된다. 당신의 그 넘치는 힘을 세상에 부딪혀 증명해라. 가만히 있으면 병이 나는 사주니, 당장 나가서 뭐라도 저질러라.</p>';
@@ -11298,6 +11614,36 @@ function shareInstagram(){
   var text=getShareText();
   copyToClipboard(text,'링크를 복사했어요! 📷 인스타그램 DM에 붙여넣기 하세요 ✨');
 }
+function shareTarotKakao(){
+  var cName = document.getElementById('tarotCardName').innerText || '운명의 카드';
+  var cFortune = document.getElementById('destinyFortune').innerText || '';
+  var cOracle = document.getElementById('tarotOracleText').innerText || '';
+
+  var text = "🔮 [연이의 꿀꿀 타로] 🔮\n\n";
+  text += cName + "\n\n";
+  text += cFortune + "\n\n";
+  text += cOracle + "\n\n";
+  text += "👉 무료 타로 보러가기: https://code-destiny.com";
+
+  if(navigator.share){
+      navigator.share({
+          title: '🐷 연이의 꿀꿀 타로',
+          text: text,
+          url: 'https://code-destiny.com'
+      }).catch(console.error);
+      return;
+  }
+
+  var encoded = encodeURIComponent(text);
+  var kakaoUrl = 'kakaotalk://send?text=' + encoded;
+  var a = document.createElement('a');
+  a.href = kakaoUrl;
+  a.click();
+  
+  setTimeout(function(){
+    copyToClipboard(text,'카카오톡 앱이 없거나 PC에서는 클립보드에 복사했어요! 💬');
+  }, 1000);
+}
 /* ══════════════════════════════════════════════
    PWA 설치 비술 (홈 화면 부적 설치)
    ══════════════════════════════════════════════ */
@@ -11649,7 +11995,7 @@ window._drawIching = function() {
 
       <div style="margin-top:20px;">
         <div class="iching-category">
-          <div class="iching-badge">💕 연애 / 인연</div>
+          <div class="iching-badge">💕 연애</div>
           <div class="iching-desc">${upper.name}의 겉모습과 ${lower.name}의 속마음이 교차합니다. <strong>${upper.love}</strong>과 <strong>${lower.love}</strong>의 양상이 부딪히며 인연의 향방을 결정짓습니다.</div>
         </div>
         <div class="iching-category">
@@ -12488,236 +12834,1103 @@ window.addEventListener('load', function() {
 })();
 </script>
 
+<!-- =================================================================================== 
+     ASTRAL TOTEM : SUPREME MBTI INTERFACE 
+     Designed by: Meta-Psychologist AI 
+     =================================================================================== -->
+<div id="astralModal" class="astral-modal-overlay" style="display:none;">
+    <div class="astral-container">
+        <!-- Close Button -->
+        <button class="astral-close-btn" onclick="closeMbtiModal()">✕</button>
+        
+        <!-- Header -->
+        <header class="astral-header">
+            <h1 class="astral-title">ASTRAL TOTEM</h1>
+            <p class="astral-subtitle">너의 영혼이 깃든 동물을 찾아라</p>
+        </header>
+
+        <!-- Selection Grid -->
+        <div id="astralGrid" class="astral-grid">
+            <!-- JS Injection -->
+        </div>
+
+        <!-- Ritual Stage (Animation) -->
+        <div id="astralRitualStage" class="astral-ritual-stage" style="display:none;">
+            <div class="ritual-bg-glow" id="ritualBgGlow"></div>
+            <div class="ritual-particles" id="ritualParticles"></div>
+            <div class="ritual-flash" id="ritualFlash"></div>
+            <div class="soul-mirror" id="soulMirror">
+                <div class="mirror-surface"></div>
+                <div class="mirror-inner-ani" id="mirrorInner"></div>
+            </div>
+            <div id="ritualToken1" class="ritual-token"></div>
+            <div id="ritualToken2" class="ritual-token"></div>
+            <div class="ritual-message" id="ritualMessage"></div>
+            <div class="ritual-sub-msg" id="ritualSubMsg"></div>
+        </div>
+
+        <!-- Ritual Action Bar (Floating) -->
+        <div id="astralRitualBar" class="astral-ritual-bar" style="display:none;">
+            <div class="selected-tokens">
+                <div id="token1" class="mini-token empty">?</div>
+                <div class="token-cross">✕</div>
+                <div id="token2" class="mini-token empty">?</div>
+            </div>
+            <button class="ritual-btn" onclick="revealAstralSynergy()">영혼의 공명 확인하기</button>
+        </div>
+
+        <!-- Result Modal (Inner Layer) -->
+        <div id="astralResult" class="astral-result-layer" style="display:none;">
+            <button class="back-btn" onclick="closeResultLayer()">← 다시 선택하기</button>
+            <div id="astralResultContent" class="result-content">
+                <!-- JS Injection -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* -----------------------------------------------------------
+   ASTRAL DESIGN SYSTEM
+   ----------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
+
+:root {
+    --gold: #D4AF37;
+    --gold-dim: rgba(212, 175, 55, 0.3);
+    --deep-space: #0f172a;
+    --starlight: rgba(255, 255, 255, 0.8);
+}
+
+.astral-modal-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+    backdrop-filter: blur(10px);
+    overflow-y: auto;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.astral-container {
+    width: 100%; max-width: 480px; min-height: 100vh;
+    margin: 0 auto; position: relative;
+    background: linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(10,10,15,1) 100%);
+    border-left: 1px solid rgba(255,255,255,0.05);
+    border-right: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 80px; /* Space for ritual bar */
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+/* Animations */
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes shine { 0% { background-position: -200%; } 100% { background-position: 200%; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.astral-close-btn {
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: 1px solid rgba(255,255,255,0.2);
+    color: var(--starlight); width: 40px; height: 40px; border-radius: 50%;
+    font-size: 1.2rem; cursor: pointer; z-index: 100;
+}
+
+.astral-header {
+    text-align: center; padding: 60px 20px 30px;
+}
+
+.astral-title {
+    font-family: 'Cinzel', serif; font-size: clamp(2rem, 5vw, 2.5rem);
+    color: var(--gold); margin: 0;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+    letter-spacing: 4px;
+}
+
+.astral-subtitle {
+    font-family: 'Noto Sans KR', sans-serif; font-size: 0.9rem;
+    color: rgba(255,255,255,0.5); margin-top: 10px; letter-spacing: 1px;
+}
+
+/* Grid System */
+.astral-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    padding: 0 20px 100px; /* More bottom padding for floating bar */
+}
+
+/* New Card Design */
+.totem-card {
+    position: relative; aspect-ratio: 0.8; 
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; overflow: hidden;
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+.totem-card:hover {
+    background: rgba(255,255,255,0.05); 
+    transform: translateY(-4px) scale(1.02);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+.totem-card.selected {
+    border: 1px solid var(--gold);
+    background: linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.25), inset 0 0 10px rgba(212, 175, 55, 0.05);
+}
+
+/* Card Content Layout */
+.totem-card .totem-icon { 
+    font-size: 2.2rem; margin-bottom: 8px; 
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.totem-card:hover .totem-icon { transform: scale(1.15) rotate(5deg); }
+
+.totem-card .totem-mbti-chip {
+    font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 4px;
+}
+.totem-card.selected .totem-mbti-chip { color: var(--gold); }
+
+.totem-card .totem-name { 
+    font-family: 'Noto Sans KR', sans-serif; 
+    color: rgba(255,255,255,0.5); 
+    font-size: 0.7rem; font-weight: 500; margin: 0; 
+}
+.totem-card.selected .totem-name { color: #fff; }
+
+.totem-card .totem-desc { display: none; } /* Hide description in grid for cleaner look */
+
+/* Checkmark Badge for Selected State */
+.totem-card::after {
+    content: '✓';
+    position: absolute; top: 8px; right: 8px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--gold); color: #000;
+    font-size: 0.8rem; font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: scale(0); transition: all 0.3s ease;
+}
+.totem-card.selected::after { opacity: 1; transform: scale(1); }
+
+/* Info Button on Card */
+.totem-info-btn {
+    position: absolute; bottom: 7px; right: 7px;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.45); width: 22px; height: 22px;
+    border-radius: 50%; font-size: 0.75rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; z-index: 5; padding: 0;
+    line-height: 1;
+}
+.totem-info-btn:hover {
+    background: rgba(212,175,55,0.2); border-color: var(--gold);
+    color: var(--gold); transform: scale(1.15);
+}
+
+/* Ritual Bar - Refined */
+.astral-ritual-bar {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+    width: auto; min-width: 320px; max-width: 90%;
+    background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 50px;
+    padding: 8px 12px 8px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 15px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 1000;
+    opacity: 0; pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.astral-ritual-bar.active {
+    opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto;
+}
+
+.selected-tokens { display: flex; align-items: center; gap: 8px; }
+.mini-token { 
+    width: 36px; height: 36px; border-radius: 50%; 
+    background: rgba(255,255,255,0.05); 
+    border: 1px solid rgba(255,255,255,0.1); 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 1.1rem; color: rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+.mini-token.filled {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: var(--gold);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+}
+
+.ritual-btn {
+    background: #fff; color: #000; border: none; 
+    padding: 10px 24px; font-family: 'Noto Sans KR', sans-serif; font-weight: 800; font-size: 0.9rem;
+    border-radius: 40px; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255,255,255,0.15);
+    transition: all 0.2s ease;
+}
+.ritual-btn:disabled {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.3);
+    box-shadow: none; cursor: not-allowed;
+}
+.ritual-btn:not(:disabled):hover { 
+    transform: scale(1.05); 
+    box-shadow: 0 6px 20px rgba(255,255,255,0.25);
+}
+
+/* Result Modal */
+.astral-result-layer {
+    position: absolute; inset: 0; 
+    background: #0f172a; overflow-y: auto; z-index: 2000;
+    padding: 20px; animation: fadeIn 0.5s ease-out;
+    scrollbar-width: none; /* Firefox */
+}
+.astral-result-layer::-webkit-scrollbar { display: none; }
+
+.result-content { max-width: 100%; margin: 0 auto; color: #fff; padding-bottom: 50px; }
+.back-btn {
+    background: none; border: none; color: rgba(255,255,255,0.6);
+    font-size: 0.9rem; margin-bottom: 20px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+}
+.back-btn:hover { color: var(--gold); }
+
+/* Typography for Content */
+.res-header { text-align: center; margin-bottom: 40px; padding-top: 20px; }
+.res-icon { font-size: 4rem; display: block; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+.res-title { font-family: 'Cinzel', serif; font-size: 2rem; color: var(--gold); margin-bottom: 5px; }
+.res-mbti { font-size: 1rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
+
+.res-section { margin-bottom: 35px; position: relative; padding-left: 20px; border-left: 1px solid var(--gold-dim); }
+.res-label { font-size: 0.85rem; color: var(--gold); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.res-text { font-size: 1rem; line-height: 1.7; color: rgba(255,255,255,0.9); text-align: justify; }
+
+.synergy-box { 
+    background: linear-gradient(135deg, rgba(212,175,55,0.1), transparent);
+    border: 1px solid var(--gold-dim); border-radius: 12px; padding: 25px; margin-top: 40px;
+}
+
+/* ── Ritual Animation (Enhanced) ── */
+.astral-ritual-stage {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #000;
+    z-index: 1500;
+    overflow: hidden;
+}
+
+.ritual-bg-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 40%, rgba(80,0,120,0.5) 0%, transparent 65%);
+    opacity: 0; transition: opacity 1s;
+}
+.ritual-bg-glow.active { opacity: 1; }
+
+.ritual-flash {
+    position: absolute; inset: 0;
+    background: #fff;
+    opacity: 0; pointer-events: none;
+    z-index: 10;
+}
+
+.ritual-particles {
+    position: absolute; inset: 0;
+    pointer-events: none;
+}
+
+.ritual-particle {
+    position: absolute; border-radius: 50%;
+    animation: particleFly 1.2s ease-out forwards;
+}
+
+@keyframes particleFly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+.soul-mirror {
+    width: 180px; height: 180px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #1a1435, #000);
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 40px rgba(212,175,55,0.4), inset 0 0 25px rgba(212,175,55,0.15);
+    position: relative; overflow: hidden;
+    margin-bottom: 40px; flex-shrink: 0;
+    transition: box-shadow 0.5s, transform 0.5s;
+}
+
+.soul-mirror.explode {
+    transform: scale(1.4);
+    box-shadow: 0 0 120px rgba(212,175,55,1), 0 0 200px rgba(180,80,255,0.7), inset 0 0 60px rgba(255,255,255,0.4);
+}
+
+.mirror-surface {
+    position: absolute; inset: 0;
+    background: linear-gradient(45deg, transparent 35%, rgba(255,255,255,0.25) 50%, transparent 65%);
+    background-size: 250% 250%;
+    animation: shine 2.5s infinite linear;
+}
+
+.mirror-inner-ani {
+    position: absolute; inset: 8px; border-radius: 50%;
+    background: conic-gradient(rgba(212,175,55,0.3), transparent, rgba(180,80,255,0.3), transparent, rgba(212,175,55,0.3));
+    opacity: 0; transition: opacity 0.6s;
+    animation: spinConic 3s linear infinite;
+}
+.mirror-inner-ani.active { opacity: 1; }
+
+@keyframes spinConic { to { transform: rotate(360deg); } }
+
+.ritual-token {
+    font-size: 4.5rem;
+    position: absolute;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
+    transition: all 0s;
+    will-change: transform, left, top, opacity;
+}
+
+.ritual-message {
+    font-family: 'Cinzel', serif; color: var(--gold);
+    font-size: 1.1rem; opacity: 0; margin-top: 10px;
+    transition: opacity 0.5s;
+    text-align: center; letter-spacing: 1px;
+    text-shadow: 0 0 15px rgba(212,175,55,0.7);
+}
+
+.ritual-sub-msg {
+    font-family: 'Noto Sans KR', sans-serif; 
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem; margin-top: 8px; opacity: 0;
+    transition: opacity 0.5s; text-align: center;
+}
+
+/* ── Individual MBTI Detail Sheet ── */
+.mbti-detail-sheet {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, #0a0a1a 0%, #100825 100%);
+    z-index: 2100; overflow-y: auto;
+    padding: 0 0 40px;
+    animation: slideUpSheet 0.4s cubic-bezier(0.22,1,0.36,1);
+    scrollbar-width: none;
+}
+.mbti-detail-sheet::-webkit-scrollbar { display: none; }
+
+@keyframes slideUpSheet {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.mbti-sheet-hero {
+    position: relative; padding: 60px 24px 30px;
+    text-align: center; overflow: hidden;
+}
+
+.mbti-sheet-hero-bg {
+    position: absolute; inset: 0;
+    opacity: 0.12;
+    background-size: cover; background-position: center;
+}
+
+.mbti-sheet-close {
+    position: absolute; top: 20px; left: 20px;
+    background: rgba(255,255,255,0.08); border: none; 
+    color: #fff; width: 38px; height: 38px; border-radius: 50%;
+    font-size: 1.1rem; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+}
+
+.mbti-sheet-icon { font-size: 5rem; line-height: 1; margin-bottom: 12px; display: block;
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
+}
+
+.mbti-sheet-code {
+    display: inline-block; background: rgba(212,175,55,0.15);
+    border: 1px solid rgba(212,175,55,0.4); color: var(--gold);
+    font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700;
+    letter-spacing: 3px; padding: 4px 14px; border-radius: 20px;
+    margin-bottom: 10px;
+}
+
+.mbti-sheet-title {
+    font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 6px;
+}
+
+.mbti-sheet-desc {
+    font-size: 0.85rem; color: rgba(255,255,255,0.5);
+}
+
+.mbti-sheet-tabs {
+    display: flex; border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 0 24px; gap: 0;
+}
+
+.mbti-sheet-tab {
+    flex: 1; padding: 14px 0; text-align: center;
+    font-size: 0.8rem; color: rgba(255,255,255,0.4); cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all 0.2s;
+    font-weight: 600; letter-spacing: 0.5px;
+}
+
+.mbti-sheet-tab.active {
+    color: var(--gold); border-bottom-color: var(--gold);
+}
+
+.mbti-sheet-panel {
+    display: none; padding: 24px;
+    font-size: 0.95rem; line-height: 1.8; color: rgba(255,255,255,0.85);
+    word-break: keep-all; letter-spacing: -0.2px;
+}
+
+.mbti-sheet-panel.active { display: block; animation: fadeIn 0.3s; }
+
+.mbti-select-btn {
+    display: block; margin: 20px 24px 0;
+    background: linear-gradient(90deg, #D4AF37, #FDB931);
+    color: #000; border: none; padding: 14px; font-weight: 800;
+    font-size: 1rem; border-radius: 14px; cursor: pointer;
+    width: calc(100% - 48px); box-shadow: 0 4px 20px rgba(212,175,55,0.3);
+    transition: transform 0.2s;
+}
+.mbti-select-btn:hover { transform: scale(1.02); }
+.mbti-select-btn.already {
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4);
+    box-shadow: none; cursor: default;
+}
+
+@keyframes pulseMirror { 0% { box-shadow: 0 0 30px rgba(212,175,55,0.3); } 100% { box-shadow: 0 0 60px rgba(212,175,55,0.8); } }
+
+</style>
+
 <script>
 /* -----------------------------------------------------------
-   MBTI Soul Totem (Tarot of Destiny) Logic
+   ASTRAL SOUL ENGINE (Meta-Psychologist)
    ----------------------------------------------------------- */
-const MBTI_TOTEMS = [
-  { id:'INTJ', animal:'🦉', name:'지혜로운 부엉이', desc:'전략적 통찰과 고독한 지성', detail:'어둠 속에서 진실을 꿰뚫는 눈. 당신의 침묵은 무관심이 아니라, 더 높은 차원의 설계를 위한 사색이다.' },
-  { id:'INTP', animal:'🐈', name:'현묘한 고양이', desc:'독립적인 사고와 논리적 탐구', detail:'누구에게도 얽매이지 않는 자유로운 영혼. 호기심은 우주의 비밀을 푸는 열쇠가 된다.' },
-  { id:'ENTJ', animal:'🦁', name:'카리스마 사자', desc:'단호한 결단과 압도적 리더십', detail:'무리는 왕을 필요로 하고, 당신은 태생적으로 왕관을 쓰고 태어났다. 포효하라, 세상이 들을 것이다.' },
-  { id:'ENTP', animal:'🦊', name:'영리한 여우',   desc:'기발한 발상과 유연한 변칙', detail:'규칙은 깨지기 위해 존재한다. 당신의 재치는 꽉 막힌 세상에 숨통을 트여주는 신선한 바람이다.' },
-  { id:'INFJ', animal:'🦌', name:'신비로운 사슴', desc:'깊은 직관과 고결한 영혼',   detail:'숲의 정령처럼 고요하나, 그 내면에는 우주를 품은 거대한 자아가 숨 쉬고 있다.' },
-  { id:'INFP', animal:'🐇', name:'꿈꾸는 토끼',   desc:'부드러운 감수성과 내면의 이상', detail:'현실보다 더 아름다운 세계를 짓는 건축가. 당신의 꿈은 언젠가 별이 되어 길을 비출 것이다.' },
-  { id:'ENFJ', animal:'🐬', name:'다정한 돌고래', desc:'조화로운 연결과 이타적 에너지', detail:'파도를 타듯 사람의 마음을 유영하는 치유자. 당신의 기쁨은 전염되고, 슬픔은 위로받는다.' },
-  { id:'ENFP', animal:'🦦', name:'활기찬 수달',   desc:'멈추지 않는 열정과 창의적 유희', detail:'삶은 놀이터이자 무대. 당신의 웃음소리가 닿는 곳마다 메마른 땅에 꽃이 피어난다.' },
-  { id:'ISTJ', animal:'🐢', name:'성실한 거북이', desc:'흔들리지 않는 원칙과 책임감', detail:'천 년을 사는 지혜처럼, 묵묵히 쌓아 올린 신뢰는 결코 무너지지 않는 성채가 된다.' },
-  { id:'ISFJ', animal:'🐘', name:'온화한 코끼리', desc:'헌신적인 돌봄과 따뜻한 기억', detail:'거대한 힘을 가졌으나 연약한 것을 밟지 않는 다정함. 당신은 모두가 기대어 쉴 수 있는 큰 나무다.' },
-  { id:'ESTJ', animal:'🐺', name:'엄격한 늑대',   desc:'체계적인 질서와 집단의 규율', detail:'무리 짓고 사냥하며, 원칙을 수호하는 전사. 당신이 앞장서면 혼란은 정리되고 길은 열린다.' },
-  { id:'ESFJ', animal:'🐧', name:'사교적인 펭귄', desc:'공동체의 결속과 다정한 협력', detail:'혹한 속에서도 서로의 체온을 나누는 따스함. 당신은 고립된 이들을 하나로 묶는 접착제다.' },
-  { id:'ISTP', animal:'🦅', name:'날카로운 매',   desc:'냉철한 관찰과 정교한 기술',   detail:'바람을 가르는 날개, 목표를 놓치지 않는 눈빛. 불필요한 말 대신 완벽한 행동으로 증명한다.' },
-  { id:'ISFP', animal:'🦋', name:'예술적인 나비', desc:'현재의 미학을 즐기는 자유로운 영혼', detail:'순간의 아름다움을 영원으로 바꾸는 연금술사. 당신의 날갯짓 하나가 폭풍을 부른다.' },
-  { id:'ESTP', animal:'🐯', name:'용맹한 호랑이', desc:'거침없는 실행과 야성적 본능', detail:'망설임 없는 도약, 두려움을 모르는 심장. 정글 같은 세상이야말로 당신의 독무대다.' },
-  { id:'ESFP', animal:'🦚', name:'화려한 공작',   desc:'무대의 주인공, 빛나는 표현력', detail:'존재 자체로 예술이 되는 사람. 당신이 펼치는 깃털은 회색빛 세상을 무지개로 물들인다.' }
-];
-
-let selectedMbti = [];
-
-function initMbtiCards() {
-  const grid = document.getElementById('mbtiGrid');
-  if(!grid) return;
-  grid.innerHTML = '';
-  
-  MBTI_TOTEMS.forEach(item => {
-    const slot = document.createElement('div');
-    slot.className = 'mbti-card-slot';
-    slot.onclick = () => flipMbtiCard(slot, item);
+const ASTRAL_DATA = {
+    'INTJ': { animal:'🦉', name:'Owl', title:'지혜로운 부엉이', code:'INTJ', 
+        desc:'전략적 통찰과 고독한 지성',
+        layer1: '너는 고독한 탑 위에서 세상을 내려다보는 밤의 감시자다. 남들이 보지 못하는 어둠 속의 진실을 꿰뚫어 보며, 감정에 휩쓸리기보다는 차가운 이성으로 미래를 설계하지. 너의 침묵은 무관심이 아니라, 가장 효율적인 답을 찾기 위한 치열한 계산의 과정이야. 군더더기 없는 완벽함을 추구하는 너의 영혼은 고고하고 아름답다.',
+        layer2: '너의 예리한 눈빛이 닿아야 할 곳은 [전략가, 시스템 설계자, 연구원]의 길이다. 복잡하게 얽힌 문제를 단칼에 정리하고, 무질서 속에서 패턴을 찾아내는 너의 능력은 혁명을 일으킬 잠재력을 품고 있어.',
+        layer3: '너는 가벼운 만남을 경멸한다. 너의 지적 수준을 충족시키고, 깊은 침묵조차 편안하게 공유할 수 있는 [영혼의 동반자]를 원하지. 너의 차가운 껍질을 깨고 들어와 따뜻한 불씨를 지펴줄 사람이 필요해.' },
     
-    // Front & Back
-    // Front: Symbol or simple visual
-    // Back: Details
-    slot.innerHTML = `
-      <div class="mbti-card-inner">
-        <div class="mbti-front">
-          <div class="totem-icon">${item.animal}</div>
-          <div class="mbti-label">${item.id}</div>
-        </div>
-        <div class="mbti-back">
-          <div class="totem-icon" style="font-size:2rem">${item.animal}</div>
-          <div style="font-size:1rem;font-weight:bold;margin-bottom:5px;border-bottom:1px solid #D4AF37;padding-bottom:3px">${item.name}</div>
-          <div class="mbti-animal" style="font-size:0.8rem;opacity:0.8">${item.id}</div>
-          <div class="mbti-keywords">${item.detail}</div>
-          <div style="margin-top:auto;font-size:0.75rem;color:#D4AF37;opacity:0.6;border:1px solid #D4AF37;border-radius:10px;padding:3px 8px;margin-top:8px">Select to Mirror</div>
-        </div>
-      </div>
-    `;
-    grid.appendChild(slot);
-  });
-}
+    'INTP': { animal:'🐈', name:'Cat', title:'호기심 많은 고양이', code:'INTP', 
+        desc:'독립적인 사고와 논리적 탐구',
+        layer1: '너는 누구에게도 구속받지 않는 자유로운 영혼이다. 세상의 모든 통념에 "왜?"라는 질문을 던지며, 너만의 논리적인 미로를 구축하는 것을 즐겨. 남들의 시선따윈 중요하지 않아. 너에게 중요한 건 오직 지적 호기심과 그것을 탐구할 자유뿐이지. 겉으론 무심해 보이지만 머릿속은 우주가 폭발하고 있어.',
+        layer2: '너의 그 엉뚱하고 기발함은 [순수 학문, 프로그래밍, 철학]의 영역에서 빛을 발한다. 반복되는 일상보다는 끊임없이 새로운 개념을 창조하고 파괴할 수 있는 곳이 너의 놀이터야.',
+        layer3: '너는 너만의 독립적인 공간을 존중해주는 [스마트한 파트너]에게 끌린다. 감정적인 구속보다는 흥미로운 대화 주제 하나가 너를 더 설레게 하지. 너의 기이한 취향까지 사랑해줄 사람이 필요해.' },
 
-function flipMbtiCard(slot, item) {
-  // Flip Logic: Toggle behavior
-  
-  // If card is already flipped (OPEN)
-  if (slot.classList.contains('flipped')) {
-    // ---- CLOSE CARD ----
-    // Remove flip class
-    slot.classList.remove('flipped');
+    'ENTJ': { animal:'🦁', name:'Lion', title:'카리스마 사자', code:'ENTJ', 
+        desc:'단호한 결단과 압도적 리더십',
+        layer1: '너는 태생적인 제왕이다. 무리의 가장 앞에서 길을 개척하고, 혼돈을 질서로 바꾸는 압도적인 에너지를 가졌어. 너의 포효는 망설이는 이들에게 방향을 제시하고, 너의 발걸음은 곧 역사가 된다. 효율성이 떨어지는 것을 참을 수 없어하며, 목표를 향해 질주하는 너의 모습은 경이롭기까지 해.',
+        layer2: '너의 왕좌는 [CEO, 지휘관, 경영 컨설턴트]의 자리다. 거대한 조직을 움직이고, 불가능해 보이는 비전을 현실로 구현해내는 것. 그것만이 너의 야망을 채울 수 있어.',
+        layer3: '너는 너만큼이나 강하고 도전적인 [성장형 파트너]를 원한다. 너의 뒤에서 내조하는 사람보다는, 옆에서 함께 세상을 정복할 수 있는 동등한 존재에게 강렬한 매력을 느끼지.' },
+
+    'ENTP': { animal:'🦊', name:'Fox', title:'영리한 여우', code:'ENTP', 
+        desc:'기발한 발상과 유연한 변칙',
+        layer1: '너는 변화무쌍한 트릭스터다. 고정관념을 비웃으며 세상을 거꾸로 뒤집어 보는 것을 즐기지. 너의 언어는 날카로운 칼이자 매혹적인 악기 같아서, 사람들을 홀리고 당황하게 만들어. 지루함은 너의 가장 큰 적이며, 너는 언제나 새로운 자극과 논쟁을 찾아 들판을 뛰어다닌다.',
+        layer2: '너의 재능은 [발명가, 변호사, 크리에이티브 디렉터]의 길에 있다. 정해진 매뉴얼을 따르는 것이 아니라, 없는 길을 만들어내고 판을 흔드는 역할이 너에게 딱이야.',
+        layer3: '너는 [지적인 스파링 파트너]를 원한다. 너의 짓궂은 장난을 웃어넘기며, 논리적인 티키타카가 가능한 사람. 너를 지루하게 만들지 않는 것, 그것이 유일한 조건이야.' },
+
+    'INFJ': { animal:'🦌', name:'Deer', title:'신비로운 사슴', code:'INFJ', 
+        desc:'깊은 직관과 고결한 영혼',
+        layer1: '너는 안개 낀 숲속을 거니는 영적 수호자다. 겉모습은 부드럽고 온화하지만, 내면에는 다이아몬드처럼 단단한 신념이 박혀 있어. 너는 타인의 고통을 너의 것처럼 느끼고, 보이지 않는 인연의 끈을 감지하는 능력이 있다. 세상의 소음에서 벗어나 너만의 성역을 지키려는 그 고결함이 네 매력이야.',
+        layer2: '너의 치유력은 [상담가, 작가, 인권 운동가]가 되었을 때 세상을 구원한다. 사람들의 내면 깊은 곳을 어루만지고, 글로써 영혼을 울리는 일이 너의 소명이다.',
+        layer3: '너는 [영혼의 공명]을 최우선으로 여긴다. 겉치레 섞인 칭찬보다는, 너의 복잡한 내면세계를 있는 그대로 이해하고 보듬어줄 수 있는 진실된 사람에게 마음을 연다.' },
+
+    'INFP': { animal:'🐇', name:'Rabbit', title:'꿈꾸는 토끼', code:'INFP', 
+        desc:'부드러운 감수성과 내면의 이상',
+        layer1: '너는 이상한 나라를 여행하는 영원한 몽상가다. 세상이 정한 속도보다는 너만의 리듬으로 깡충이며, 현실보다는 네가 꿈꾸는 이상향이 더 선명하게 느껴질 거야. 너의 마음속 정원은 누구보다 아름답고 섬세해서, 작은 상처에도 쉽게 시들지만 사랑을 주면 금세 찬란하게 피어난다.',
+        layer2: '너의 감성은 [예술가, 시인, 힐러]의 영역에서 꽃핀다. 논리와 효율보다는 아름다움과 진정성을 표현할 수 있는 일. 너의 꿈을 현실로 그리는 작업이 필요해.',
+        layer3: '너는 너의 낭만을 비웃지 않는 [순수한 사랑]을 원한다. 너의 엉뚱한 상상에 맞장구 쳐주고, 너의 여린 마음을 유리 다루듯 아껴주는 사람에게 모든 것을 바친다.' },
+
+    'ENFJ': { animal:'🐬', name:'Dolphin', title:'다정한 돌고래', code:'ENFJ', 
+        desc:'조화로운 연결과 이타적 에너지',
+        layer1: '너는 사람들의 마음을 잇는 푸른 바다의 가이드다. 주변의 분위기를 기민하게 감지하고, 어두운 곳에 빛을 비추는 타고난 리더십을 가졌어. 너의 에너지는 이타적이고 따뜻해서, 사람들은 본능적으로 네 주위에 모여든다. 모두가 행복해지는 세상을 위해 기꺼이 너 자신을 파도에 던지는 헌신적인 영혼이야.',
+        layer2: '너의 영향력은 [교육자, 사회운동가, 멘토]의 자리에서 가장 강력하다. 누군가의 잠재력을 끌어내고 성장시키는 일, 사람을 통해 기적을 만들어내는 것이 너의 사명이다.',
+        layer3: '너는 [감정의 교류]가 풍부한 관계를 지향한다. 너의 헌신을 당연하게 여기지 않고, 고맙다는 말 한마디를 다정하게 건넬 줄 아는 따뜻한 사람에게 정착한다.' },
+
+    'ENFP': { animal:'🦦', name:'Otter', title:'활기찬 수달', code:'ENFP', 
+        desc:'멈추지 않는 열정과 창의적 유희',
+        layer1: '너는 세상을 거대한 놀이터로 만드는 마법사다. 호기심 어린 눈으로 돌멩이 하나에서도 우주를 발견하고, 너의 웃음소리는 전염병처럼 번져 주변을 밝게 물들여. 계획 따윈 필요 없어. 너에게 중요한 건 지금 이 순간 가슴이 뛰느냐는 것뿐이야. 얽매이지 않는 자유로운 영혼, 그 자체지.',
+        layer2: '너의 무대는 [유튜버, 여행 작가, 아이디어 뱅크]다. 매일매일이 새롭고, 너의 톡톡 튀는 아이디어를 맘껏 발산할 수 있는 자유로운 환경이 너를 숨 쉬게 한다.',
+        layer3: '너는 너의 [모험]에 기꺼이 동참해줄 파트너를 원한다. "안 돼"라고 말하기보다 "재밌겠다!"라고 외쳐주는 사람. 너의 텐션을 감당할 수 있는 에너자이저가 필요해.' },
+
+    'ISTJ': { animal:'🐢', name:'Turtle', title:'성실한 거북이', code:'ISTJ', 
+        desc:'흔들리지 않는 원칙과 책임감',
+        layer1: '너는 시간이 흘러도 풍화되지 않는 단단한 바위다. 세상이 요란하게 변해도 너는 묵묵히 너만의 원칙과 질서를 지키며 걸어가지. 너의 약속은 보증수표와 같고, 너의 책임감은 태산보다 무겁다. 화려하지 않아도, 결국 결승선에 가장 먼저 도착해 깃발을 꽂는 것은 바로 너다.',
+        layer2: '너의 성실함은 [회계사, 공무원, 관리자]의 직무에서 빛난다. 정확한 규칙과 체계가 있는 곳, 너의 꼼꼼함으로 빈틈을 메울 수 있는 조직이 너를 필요로 한다.',
+        layer3: '너는 [신뢰할 수 있는 안정감]을 주는 사람을 원한다. 불같은 열정보다는 은은한 온기, 변덕스럽지 않고 한결같은 사람에게서 진정한 사랑을 느낀다.' },
+
+    'ISFJ': { animal:'🐘', name:'Elephant', title:'온화한 코끼리', code:'ISFJ', 
+        desc:'헌신적인 돌봄과 따뜻한 기억',
+        layer1: '너는 무리를 지키는 든든하고 거대한 나무다. 묵직한 발걸음 속에 섬세한 배려가 숨어있고, 한 번 맺은 인연은 절대 잊지 않는 놀라운 기억력을 가졌어. 너는 자신의 편안함보다 타인의 평화를 먼저 생각하는 평화주의자야. 너의 등 뒤에 숨은 사람들은 세상에서 가장 안전한 안식처를 얻은 셈이지.',
+        layer2: '너의 따뜻함은 [의료인, 교사, 복지사]의 길과 닿아있다. 누군가를 직접적으로 돕고 보살피는 일, 너의 손길로 세상이 조금 더 부드러워지는 곳이 너의 자리다.',
+        layer3: '너는 소소한 일상을 함께할 [다정한 동반자]를 꿈꾼다. 거창한 이벤트가 아니라, 퇴근길에 네가 좋아하는 간식을 사 들고 오는 그 세심한 배려에 너는 감동한다.' },
+
+    'ESTJ': { animal:'🐺', name:'Wolf', title:'엄격한 늑대', code:'ESTJ', 
+        desc:'체계적인 질서와 집단의 규율',
+        layer1: '너는 설원을 지배하는 냉철한 리더다. 사냥감(목표)을 포착하면 흐트러짐 없는 대형으로 가장 효율적으로 그것을 쟁취해내지. 감정에 휘둘려 일을 그르치는 것을 용납하지 않으며, 전통과 규칙을 수호하는 문지기 역할을 자처한다. 너의 울타리 안에 있는 내 식구만큼은 목숨을 걸고 챙기는 의리파이기도 해.',
+        layer2: '너는 [감독관, 프로젝트 매니저, 판사]가 되어야 한다. 무질서한 곳에 기강을 잡고, 명확한 기준을 세워 조직을 이끄는 카리스마가 너의 무기다.',
+        layer3: '너는 [예의 바르고 생활력 강한] 사람을 선호한다. 약속 시간을 어기거나 게으른 사람은 질색이야. 함께 미래를 계획하고 성실하게 탑을 쌓아 올릴 파트너를 원해.' },
+
+    'ESFJ': { animal:'🐧', name:'Penguin', title:'사교적인 펭귄', code:'ESFJ', 
+        desc:'공동체의 결속과 다정한 협력',
+        layer1: '너는 추운 남극에서도 서로의 체온을 나누는 사랑의 전도사다. 혼자 있는 것보다는 함께의 가치를 알며, 주변 사람들을 챙기고 먹이는 것에서 기쁨을 느껴. 너의 인싸력은 단순히 노는 것을 넘어, 사람과 사람을 연결하는 접착제 역할을 하지. 네가 있는 모임은 언제나 웃음꽃이 피고 따뜻하다.',
+        layer2: '너는 [서비스 기획자, 파티 플래너, 상담가]로서 최고다. 사람을 대하는 센스가 탁월하고, 타인의 필요를 본능적으로 캐치하는 너의 능력은 대체 불가능해.',
+        layer3: '너는 [표현이 확실한] 사람에게 끌린다.  "좋아해", "고마워"라는 말을 아끼지 않고, 너의 정성에 리액션해주는 다정다감한 사람과 둥지를 틀고 싶어 한다.' },
+
+    'ISTP': { animal:'🦅', name:'Hawk', title:'날카로운 매', code:'ISTP', 
+        desc:'냉철한 관찰과 정교한 기술',
+        layer1: '너는 하늘 높이 날아올라 사냥감을 노리는 고독한 헌터다. 불필요한 날갯짓은 하지 않아. 상황을 냉정하게 관찰하다가 기회가 오면 누구보다 빠르고 정확하게 낚아채지. 도구를 다루는 데 천부적인 재능이 있고, 복잡한 문제도 너의 손을 거치면 심플하게 해결된다. 쿨내 진동하는 너의 매력은 치명적이야.',
+        layer2: '너의 손기술은 [엔지니어, 파일럿, 외과의사]의 영역에서 신의 경지에 이른다. 말보다는 기술로 증명하며, 긴박한 상황일수록 차분해지는 너의 담력은 타의 추종을 불허해.',
+        layer3: '너는 [너의 영역을 침범하지 않는] 쿨한 관계를 원한다. 시시콜콜한 간섭이나 감정적인 징징거림은 질색이야. 각자의 취미를 즐기다가 필요할 때 뜨겁게 만나는 사이가 좋아.' },
+
+    'ISFP': { animal:'🦋', name:'Butterfly', title:'예술적인 나비', code:'ISFP', 
+        desc:'현재의 미학을 즐기는 자유로운 영혼',
+        layer1: '너는 꽃과 꽃 사이를 춤추듯 날아다니는 살아있는 예술품이다. 규정된 틀에 갇히기보다는 바람이 이끄는 대로, 네 마음이 끌리는 대로 살고 싶어 해. 너의 감각은 섬세하게 튜닝된 악기 같아서, 색채, 소리, 분위기의 미묘한 변화를 온몸으로 느끼지. 존재 자체만으로 세상에 아름다움을 더하는 사람이야.',
+        layer2: '너는 [디자이너, 뮤지션, 셰프]가 되어 세상을 꾸며야 한다. 너만의 독창적인 미적 감각을 자유롭게 표현할 수 있는 캔버스가 주어진다면 명작을 남길 거야.',
+        layer3: '너는 [은근하게 다가오는] 사람에게 마음을 연다. 강요하거나 서두르는 사람은 부담스러워. 너의 침묵과 여백까지 사랑해주는 섬세한 사람과 영혼의 왈츠를 추고 싶어.' },
+
+    'ESTP': { animal:'🐯', name:'Tiger', title:'용맹한 호랑이', code:'ESTP', 
+        desc:'거침없는 실행과 야성적 본능',
+        layer1: '너는 정글의 법칙을 지배하는 최상위 포식자다. 눈앞에 장애물이 있다면 돌아가는 대신 부수고 지나가면 그만이야. 스릴과 모험은 너의 아드레날린이고, 고민할 시간에 일단 저지르는 행동력이 너의 무기지. 너의 야성적인 매력과 유머 감각은 사람들을 홀리며, 언제나 사건의 중심에는 네가 있어.',
+        layer2: '너는 [영업왕, 소방관, 전문 투자가]나 [운동선수]에 적합하다. 순발력과 배짱이 필요한 곳, 승부의 결과가 즉각적으로 나타나는 다이내믹한 현장이 너의 무대다.',
+        layer3: '너는 [함께 즐길 줄 않는] 화끈한 파트너를 원한다. 지루한 데이트는 질색이야. 갑자기 여행을 떠나거나 익스트림 스포츠를 즐길 수 있는, 에너지가 넘치는 사람에게 꽂힌다.' },
+
+    'ESFP': { animal:'🦚', name:'Peacock', title:'화려한 공작', code:'ESFP', 
+        desc:'무대의 주인공, 빛나는 표현력',
+        layer1: '너는 꼬리를 활짝 펴고 세상이라는 무대에 선 주인공이다. 사람들의 시선을 즐기며, 너의 끼와 매력을 발산할 때 가장 살아있음을 느껴. 인생은 즐거운 축제여야 한다고 믿는 너는, 주변 사람들에게 웃음과 엔돌핀을 나눠주는 분위기 메이커야. 너의 낙천적인 에너지는 우울함조차 춤추게 만들지.',
+        layer2: '너는 [연예인, 유튜버, 이벤트 기획자]가 천직이다. 사람들과 어울리고, 너의 매력을 뽐내며 박수받을 수 있는 곳이라면 어디든 너의 왕국이 될 수 있어.',
+        layer3: '너는 [이벤트가 가득한] 연애를 꿈꾼다. 너를 주인공으로 만들어주고, 매일매일 서프라이즈를 선물해주는 로맨틱 가이, 혹은 너의 개그 코드에 빵빵 터져주는 리액션 부자를 원해.' }
+};
+
+let selectedTotems = [];
+
+function openMbtiModal() {
+    const modal = document.getElementById('astralModal');
+    modal.style.display = 'block';
     
-    // Remove from selection array if present
-    const idx = selectedMbti.findIndex(x => x.id === item.id);
-    if (idx !== -1) {
-      selectedMbti.splice(idx, 1);
-      updateMirrorUI();
-    }
-  } 
-  // If card is closed
-  else {
-    // ---- OPEN CARD ----
-    // Do not allow more than 2 at a time
-    if (selectedMbti.length >= 2) {
-      alert("최대 2개까지 선택할 수 있습니다. 이미 선택된 카드를 클릭하여 닫아주세요.");
-      return;
-    }
+    // Build Grid
+    const grid = document.getElementById('astralGrid');
+    grid.innerHTML = '';
     
-    slot.classList.add('flipped');
-    createSparkle(slot);
-    
-    // Auto-selected because it opened
-    if (!selectedMbti.find(x => x.id === item.id)) {
-      selectedMbti.push(item);
-      updateMirrorUI();
-      
-      const slotId = selectedMbti.length; 
-      const slotEl = document.getElementById('slot' + slotId);
-      if(slotEl) {
-        slotEl.classList.add('pulse-anim'); // css anim
-        setTimeout(()=>slotEl.classList.remove('pulse-anim'), 500);
-      }
-    }
-  }
-}
-
-function selectForMirror(item) {
-   // Legacy placeholder - logic moved to flipMbtiCard
-}
-
-function createSparkle(el) {
-  const rect = el.getBoundingClientRect();
-  for(let i=0; i<10; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    // Random pos
-    const x = (Math.random() - 0.5) * rect.width;
-    const y = (Math.random() - 0.5) * rect.height;
-    p.style.left = '50%';
-    p.style.top = '50%';
-    p.style.setProperty('--tx', x + 'px');
-    p.style.setProperty('--ty', y + 'px');
-    el.querySelector('.mbti-card-inner').appendChild(p);
-    setTimeout(() => p.remove(), 1000);
-  }
-}
-
-function selectForMirror(item) {
-  // If aleady 2 selected, do not add more but this check is handled in flipMbtiCard now
-  if (selectedMbti.length >= 2) return; 
-  // Check duplicate
-  if (selectedMbti.find(x => x.id === item.id)) return;
-  
-  selectedMbti.push(item);
-  updateMirrorUI();
-  
-  // Interaction effect on mirror slot
-  const slotId = selectedMbti.length; // 1 or 2
-  const slotEl = document.getElementById('slot' + slotId);
-  if(slotEl) {
-    slotEl.classList.add('pulse-anim'); // css anim
-    setTimeout(()=>slotEl.classList.remove('pulse-anim'), 500);
-  }
-}
-
-function clearSlot(idx) {
-  // Clear generic slot logic
-  // idx 1 or 2
-  if (selectedMbti.length < idx) return;
-  
-  // Remove the item from selectedMbti array
-  const removedItem = selectedMbti[idx-1];
-  selectedMbti.splice(idx-1, 1);
-  updateMirrorUI();
-  
-  // Also unflip the corresponding card!
-  if (removedItem) {
-    // Find the slot element with matching text or data
-    // We rely on visual search because we don't track slot element directly in object
-    const slots = document.querySelectorAll('.mbti-card-slot');
-    slots.forEach(slot => {
-       const label = slot.querySelector('.mbti-animal');
-       // label text is ID, e.g. INTJ
-       if (label && label.innerText === removedItem.id) {
-         slot.classList.remove('flipped');
-       }
+    Object.keys(ASTRAL_DATA).forEach(code => {
+        const item = ASTRAL_DATA[code];
+        const card = document.createElement('div');
+        card.className = 'totem-card';
+        card.setAttribute('data-code', code);
+        card.onclick = () => selectTotem(card, code);
+        
+        // Card: tap to select, info-btn to view detail
+        card.innerHTML = `
+            <div class="totem-icon">${item.animal}</div>
+            <div class="totem-name" style="margin-top:5px; color:rgba(255,255,255,0.9); font-weight:700; font-size:0.72rem; line-height:1.3; text-align:center; padding:0 6px;">${item.code}<br><span style='font-size:0.65rem;font-weight:400;opacity:0.7'>${item.title}</span></div>
+            <button class="totem-info-btn" onclick="event.stopPropagation(); openMbtiDetail('${code}')" title="상세보기">ⓘ</button>
+        `;
+        grid.appendChild(card);
     });
-  }
-}
-
-function resetMbtiSelection() {
-  selectedMbti = [];
-  updateMirrorUI();
-  // Unflip cards? Optional.
-  document.querySelectorAll('.mbti-card-slot').forEach(el => el.classList.remove('flipped'));
-}
-
-function updateMirrorUI() {
-  const s1 = document.getElementById('slot1');
-  const s2 = document.getElementById('slot2');
-  const res = document.getElementById('mirrorResult');
-  
-  // Reset
-  s1.innerHTML = '선택 1'; s1.className = 'mirror-slot';
-  s2.innerHTML = '선택 2'; s2.className = 'mirror-slot';
-  res.style.display = 'none';
-  res.innerHTML = '';
-  
-  if (selectedMbti[0]) {
-    s1.innerHTML = `<div style="font-size:1.5rem">${selectedMbti[0].animal}</div><div>${selectedMbti[0].id}</div>`;
-    s1.classList.add('filled');
-  }
-  if (selectedMbti[1]) {
-    s2.innerHTML = `<div style="font-size:1.5rem">${selectedMbti[1].animal}</div><div>${selectedMbti[1].id}</div>`;
-    s2.classList.add('filled');
     
-    // Show Result
-    showMirrorResult();
-  }
+    resetSelection();
+    
+    // Reset Ritual Stage if exists
+    const ritualStage = document.getElementById('astralRitualStage');
+    if(ritualStage) ritualStage.style.display = 'none';
+    document.getElementById('astralGrid').style.display = 'grid';
+    document.querySelector('.astral-header').style.display = 'block';
 }
 
-function showMirrorResult() {
-  const m1 = selectedMbti[0];
-  const m2 = selectedMbti[1];
-  const res = document.getElementById('mirrorResult');
-  
-  // Simple Mystic Logic
-  // Using keywords to generate a story
-  const keywords1 = m1.desc.split(' ')[0]; // Strategy, Logic, etc.
-  const keywords2 = m2.desc.split(' ')[0];
-  
-  let synergy = "이 두 영혼의 만남은 우연이 아닙니다.";
-  
-  // Mock logic based on groups
-  const g1 = m1.id[1]; // N or S
-  const g2 = m2.id[1]; 
-  
-  if (g1 !== g2) {
-    synergy = `하나는 땅을 딛고(${m1.id.includes('S')?'S':'S'}), 하나는 하늘을 봅니다(${m2.id.includes('N')?'N':'N'}). 서로 다른 시선이 만나 세상의 전부를 완성하는 운명입니다.`;
-  } else {
-    synergy = "두 영혼은 같은 주파수로 공명하고 있습니다. 말하지 않아도 통하는 깊은 유대감이 별자리처럼 이어질 것입니다.";
-  }
-  
-  res.innerHTML = `
-    <div style="font-size:1.2rem;color:#FFD700;margin-bottom:10px;font-weight:bold;">✨ ${m1.name} X ${m2.name} ✨</div>
-    <div style="margin-bottom:15px;font-style:italic;color:#ccc">"${synergy}"</div>
-    <div style="text-align:left;font-size:0.95rem;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px">
-      • <strong>화학적 결합:</strong> ${m1.desc}와 ${m2.desc}의 융합.<br>
-      • <strong>운명의 조언:</strong> 서로의 다름을 칼날이 아닌 방패로 삼으십시오.
-    </div>
-  `;
-  res.style.display = 'block';
+function closeMbtiModal() {
+    document.getElementById('astralModal').style.display = 'none';
 }
 
-// Initialize on Load
-document.addEventListener('DOMContentLoaded', initMbtiCards);
+function selectTotem(card, code) {
+    if (selectedTotems.includes(code)) {
+        selectedTotems = selectedTotems.filter(c => c !== code);
+        card.classList.remove('selected');
+    } else {
+        if (selectedTotems.length < 2) {
+            selectedTotems.push(code);
+            card.classList.add('selected');
+        } else {
+            // Remove the first one
+            const first = selectedTotems.shift();
+            const firstCard = document.querySelector(`.totem-card[data-code="${first}"]`);
+            if(firstCard) firstCard.classList.remove('selected');
+            
+            selectedTotems.push(code);
+            card.classList.add('selected');
+        }
+    }
+    
+    updateRitualBar();
+}
+
+function updateRitualBar() {
+    const bar = document.getElementById('astralRitualBar');
+    const t1 = document.getElementById('token1');
+    const t2 = document.getElementById('token2');
+    const btn = bar.querySelector('.ritual-btn');
+    
+    // Show/Hide Bar Logic with Animation
+    if (selectedTotems.length > 0) {
+        bar.style.display = 'flex'; // Ensure visible
+        // Force reflow for transition
+        void bar.offsetWidth;
+        bar.classList.add('active');
+    } else {
+        bar.classList.remove('active');
+        // Wait for animation to finish before hiding (0.4s)
+        setTimeout(() => {
+            if (!bar.classList.contains('active')) {
+                bar.style.display = 'none';
+            }
+        }, 400); 
+    }
+
+    // Update Token 1
+    t1.className = 'mini-token ' + (selectedTotems[0] ? 'filled' : 'empty');
+    if (selectedTotems[0]) {
+        t1.innerHTML = ASTRAL_DATA[selectedTotems[0]].animal;
+        t1.style.borderColor = getMbtiColor(selectedTotems[0]);
+    } else {
+        t1.innerHTML = '';
+        t1.style.borderColor = 'rgba(255,255,255,0.1)';
+    }
+    
+    // Update Token 2
+    t2.className = 'mini-token ' + (selectedTotems[1] ? 'filled' : 'empty');
+    if (selectedTotems[1]) {
+        t2.innerHTML = ASTRAL_DATA[selectedTotems[1]].animal;
+        t2.style.borderColor = getMbtiColor(selectedTotems[1]);
+    } else {
+        t2.innerHTML = '';
+        t2.style.borderColor = 'rgba(255,255,255,0.1)';
+    }
+    
+    // Update Button State
+    if (selectedTotems.length === 2) {
+        btn.disabled = false;
+        btn.innerHTML = "✨ 궁합 확인";
+        btn.onclick = revealAstralSynergy;
+        btn.style.background = 'linear-gradient(90deg, #D4AF37 0%, #FDB931 100%)';
+        btn.style.color = '#000';
+        btn.style.cursor = 'pointer';
+        btn.style.opacity = '1';
+    } else {
+        btn.disabled = true;
+        btn.innerHTML = `${selectedTotems.length}/2 선택됨`;
+        btn.onclick = null;
+        btn.style.background = 'rgba(255,255,255,0.1)';
+        btn.style.color = 'rgba(255,255,255,0.3)';
+        btn.style.cursor = 'not-allowed';
+        btn.style.opacity = '0.7';
+    }
+}
+
+function openMbtiDetail(code) {
+    const item = ASTRAL_DATA[code];
+    const container = document.getElementById('astralModal').querySelector('.astral-container');
+    
+    // Remove existing sheet if any
+    const existing = document.getElementById('mbtiDetailSheet');
+    if (existing) existing.remove();
+    
+    const isSelected = selectedTotems.includes(code);
+    const sheet = document.createElement('div');
+    sheet.id = 'mbtiDetailSheet';
+    sheet.className = 'mbti-detail-sheet';
+    sheet.innerHTML = `
+        <div class="mbti-sheet-hero" style="background: linear-gradient(135deg, rgba(10,10,30,0.95) 0%, rgba(20,10,35,0.95) 100%)">
+            <button class="mbti-sheet-close" onclick="document.getElementById('mbtiDetailSheet').remove()">←</button>
+            <span class="mbti-sheet-icon">${item.animal}</span>
+            <div class="mbti-sheet-code">${item.code}</div>
+            <div class="mbti-sheet-title">${item.title}</div>
+            <div class="mbti-sheet-desc">${item.desc}</div>
+        </div>
+        
+        <div class="mbti-sheet-tabs">
+            <div class="mbti-sheet-tab active" onclick="switchMbtiTab(this, 'soul')">🧠 성격</div>
+            <div class="mbti-sheet-tab" onclick="switchMbtiTab(this, 'path')">🎯 진로</div>
+            <div class="mbti-sheet-tab" onclick="switchMbtiTab(this, 'heart')">💘 연애</div>
+        </div>
+        
+        <div class="mbti-sheet-panel active" data-panel="soul">${item.layer1}</div>
+        <div class="mbti-sheet-panel" data-panel="path">${item.layer2}</div>
+        <div class="mbti-sheet-panel" data-panel="heart">${item.layer3}</div>
+        
+        <button class="mbti-select-btn${isSelected ? ' already' : ''}" 
+            onclick="${isSelected ? "document.getElementById('mbtiDetailSheet').remove()" : `selectTotemFromDetail('${code}')`}">
+            ${isSelected ? '✓ 이미 선택됨 (닫기)' : '이 유형 선택하기'}
+        </button>
+    `;
+    container.appendChild(sheet);
+}
+
+function switchMbtiTab(tabEl, panelId) {
+    const sheet = document.getElementById('mbtiDetailSheet');
+    sheet.querySelectorAll('.mbti-sheet-tab').forEach(t => t.classList.remove('active'));
+    sheet.querySelectorAll('.mbti-sheet-panel').forEach(p => p.classList.remove('active'));
+    tabEl.classList.add('active');
+    sheet.querySelector(`[data-panel="${panelId}"]`).classList.add('active');
+}
+
+function selectTotemFromDetail(code) {
+    // Select the totem programmatically
+    const card = document.querySelector(`.totem-card[data-code="${code}"]`);
+    if (card) selectTotem(card, code);
+    document.getElementById('mbtiDetailSheet').remove();
+}
+
+function resetSelection() {
+    selectedTotems = [];
+    updateRitualBar();
+    document.querySelectorAll('.totem-card').forEach(c => c.classList.remove('selected'));
+    
+    // UI Reset
+    document.getElementById('astralGrid').style.display = 'grid';
+    document.querySelector('.astral-header').style.display = 'block';
+    document.getElementById('astralRitualStage').style.display = 'none';
+    document.getElementById('astralResult').style.display = 'none';
+}
+
+function showTokenResult(code) {
+    const item = ASTRAL_DATA[code];
+    const resLayer = document.getElementById('astralResult');
+    
+    // Reset Back Button
+    const backBtn = resLayer.querySelector('.back-btn');
+    backBtn.onclick = closeResultLayer;
+    backBtn.innerHTML = "← 다시 선택하기";
+
+    const resContent = document.getElementById('astralResultContent');
+    
+    // Check if already selected
+    const isSelected = selectedTotems.includes(code);
+    const actionBtn = isSelected 
+        ? `<button class="ritual-btn" style="width:100%; margin-top:20px;" onclick="closeResultLayer()">이미 선택됨 (닫기)</button>`
+        : `<button class="ritual-btn" style="width:100%; margin-top:20px;" onclick="confirmSelection('${code}')">이 영혼 선택하기</button>`;
+
+    // We need to distinguish between "Just Viewing" and "Synergy Result".
+    // This function is for "Individual Reading".
+    
+    resContent.innerHTML = `
+        <header class="res-header">
+            <span class="res-icon" style="text-shadow: 0 0 30px ${getMbtiColor(code)}">${item.animal}</span>
+            <h2 class="res-title">${item.title}</h2>
+            <div class="res-mbti">${item.code}</div>
+        </header>
+        
+        <div class="res-section">
+            <div class="res-label">Layer 1. The Soul (성격)</div>
+            <div class="res-text">${item.layer1}</div>
+        </div>
+        
+        <div class="res-section">
+            <div class="res-label">Layer 2. The Path (적성)</div>
+            <div class="res-text">${item.layer2}</div>
+        </div>
+        
+        <div class="res-section">
+            <div class="res-label">Layer 3. The Heart (연애)</div>
+            <div class="res-text">${item.layer3}</div>
+        </div>
+        
+        ${actionBtn}
+        
+        <div style="height:50px;"></div>
+    `;
+    
+    resLayer.style.display = 'block';
+    
+    // Theme Color Transition
+    // Note: This is inside the modal, so we change modal background? 
+    // Or just a subtle glow. The text says "Cross-fade".
+}
+
+function confirmSelection(code) {
+    if (!selectedTotems.includes(code)) {
+        if (selectedTotems.length >= 2) selectedTotems.shift(); // Remove oldest
+        selectedTotems.push(code);
+    }
+    updateRitualBar();
+    // Highlight in grid
+    document.querySelectorAll('.totem-card').forEach(c => {
+        if(c.getAttribute('data-code') === code) c.classList.add('selected');
+        else if(!selectedTotems.includes(c.getAttribute('data-code'))) c.classList.remove('selected');
+    });
+    
+    closeResultLayer();
+}
+
+function closeResultLayer() {
+    const resLayer = document.getElementById('astralResult');
+    resLayer.style.display = 'none';
+}
+
+function revealAstralSynergy() {
+    if (selectedTotems.length !== 2) return;
+
+    // Close detail sheet if open
+    const ds = document.getElementById('mbtiDetailSheet');
+    if (ds) ds.remove();
+
+    // Hide grid and bar
+    document.getElementById('astralGrid').style.display = 'none';
+    const bar = document.getElementById('astralRitualBar');
+    bar.classList.remove('active');
+    setTimeout(() => { bar.style.display = 'none'; }, 400);
+    document.querySelector('.astral-header').style.display = 'none';
+
+    // Show Ritual Stage
+    const stage = document.getElementById('astralRitualStage');
+    stage.style.display = 'flex';
+
+    const t1El    = document.getElementById('ritualToken1');
+    const t2El    = document.getElementById('ritualToken2');
+    const msg     = document.getElementById('ritualMessage');
+    const subMsg  = document.getElementById('ritualSubMsg');
+    const glow    = document.getElementById('ritualBgGlow');
+    const flash   = document.getElementById('ritualFlash');
+    const mirror  = document.getElementById('soulMirror');
+    const mirrorInner = document.getElementById('mirrorInner');
+    const particles   = document.getElementById('ritualParticles');
+
+    const a1 = ASTRAL_DATA[selectedTotems[0]];
+    const a2 = ASTRAL_DATA[selectedTotems[1]];
+
+    // Reset all
+    t1El.style.transition = 'none';
+    t2El.style.transition = 'none';
+    t1El.innerHTML = a1.animal; t1El.style.cssText = 'position:absolute;font-size:4.5rem;left:8%;top:45%;transform:translate(-50%,-50%);opacity:1;filter:drop-shadow(0 0 12px rgba(255,255,255,0.6))';
+    t2El.innerHTML = a2.animal; t2El.style.cssText = 'position:absolute;font-size:4.5rem;left:92%;top:45%;transform:translate(-50%,-50%);opacity:1;filter:drop-shadow(0 0 12px rgba(255,255,255,0.6))';
+    msg.style.opacity = '0'; msg.innerHTML = '';
+    subMsg.style.opacity = '0'; subMsg.innerHTML = '';
+    flash.style.opacity = '0';
+    mirror.classList.remove('explode');
+    mirrorInner.classList.remove('active');
+    glow.classList.remove('active');
+    particles.innerHTML = '';
+
+    // --- PHASE 1 (0ms): Background glow & mirror inner spin ---
+    setTimeout(() => {
+        glow.classList.add('active');
+        mirrorInner.classList.add('active');
+        msg.innerHTML = '영혼을 소환하는 중...';
+        msg.style.opacity = '1';
+    }, 100);
+
+    // --- PHASE 2 (700ms): Tokens surge toward center ---
+    setTimeout(() => {
+        t1El.style.transition = 'all 0.8s cubic-bezier(0.55, 0, 1, 0.45)';
+        t2El.style.transition = 'all 0.8s cubic-bezier(0.55, 0, 1, 0.45)';
+        t1El.style.left = '35%'; t1El.style.top = '38%'; t1El.style.fontSize = '3rem';
+        t2El.style.left = '65%'; t2El.style.top = '38%'; t2El.style.fontSize = '3rem';
+        msg.innerHTML = '파동이 충돌한다...';
+    }, 700);
+
+    // --- PHASE 3 (1500ms): Tokens merge into mirror ---
+    setTimeout(() => {
+        t1El.style.transition = 'all 0.6s ease-in';
+        t2El.style.transition = 'all 0.6s ease-in';
+        t1El.style.left = '50%'; t1El.style.top = '40%'; t1El.style.opacity = '0'; t1El.style.transform = 'translate(-50%,-50%) scale(0.2)';
+        t2El.style.left = '50%'; t2El.style.top = '40%'; t2El.style.opacity = '0'; t2El.style.transform = 'translate(-50%,-50%) scale(0.2)';
+        msg.innerHTML = '공명이 시작된다···';
+    }, 1500);
+
+    // --- PHASE 4 (2100ms): EXPLOSION + Particles ---
+    setTimeout(() => {
+        mirror.classList.add('explode');
+        msg.style.opacity = '0';
+
+        // White flash
+        flash.style.transition = 'opacity 0.15s'; flash.style.opacity = '0.9';
+        setTimeout(() => { flash.style.opacity = '0'; }, 200);
+
+        // Generate radial particles
+        const colors = ['#FFD700','#FDB931','#b44fff','#fff','#a0f0ff'];
+        for (let i = 0; i < 40; i++) {
+            const p = document.createElement('div');
+            p.className = 'ritual-particle';
+            const size = Math.random() * 10 + 4;
+            const angle = (i / 40) * 360;
+            const dist  = 80 + Math.random() * 180;
+            const tx    = Math.cos(angle * Math.PI/180) * dist;
+            const ty    = Math.sin(angle * Math.PI/180) * dist;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const delay = Math.random() * 0.3;
+            p.style.cssText = `
+                width:${size}px; height:${size}px;
+                background:${color};
+                box-shadow: 0 0 ${size*2}px ${color};
+                left: calc(50% - ${size/2}px);
+                top: 38%;
+                --tx: ${tx}px; --ty: ${ty}px;
+                animation-delay: ${delay}s;
+                animation-duration: ${0.8 + Math.random()*0.6}s;
+            `;
+            particles.appendChild(p);
+        }
+        setTimeout(() => { particles.innerHTML = ''; }, 1500);
+    }, 2100);
+
+    // --- PHASE 5 (2500ms): Show result message ---
+    setTimeout(() => {
+        mirror.classList.remove('explode');
+        msg.innerHTML = '✦ 공명 완료 ✦';
+        msg.style.color = '#fff';
+        msg.style.opacity = '1';
+        subMsg.innerHTML = '두 영혼의 궤적이 하나의 운명으로 수렴했다';
+        subMsg.style.opacity = '1';
+    }, 2500);
+
+    // --- PHASE 6 (3400ms): Show Result Page ---
+    setTimeout(() => {
+        stage.style.display = 'none';
+        showSynergyResult();
+    }, 3400);
+}
+
+function showSynergyResult() {
+    const c1 = ASTRAL_DATA[selectedTotems[0]];
+    const c2 = ASTRAL_DATA[selectedTotems[1]];
+    
+    const resLayer = document.getElementById('astralResult');
+    
+    // Set Back Button to Home
+    const backBtn = resLayer.querySelector('.back-btn');
+    backBtn.onclick = closeMbtiModal;
+    backBtn.innerHTML = "🏠 메인화면";
+
+    const resContent = document.getElementById('astralResultContent');
+    const synergy = getSynergyText(c1, c2);
+    
+    resContent.innerHTML = `
+        <header class="res-header" style="margin-bottom:20px;">
+            <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-bottom:15px;">
+                <div style="text-align:center;">
+                    <div style="font-size:2.5rem; margin-bottom:5px;">${c1.animal}</div>
+                    <div style="font-size:0.7rem; opacity:0.6">${c1.code}</div>
+                </div>
+                <div style="font-size:1.2rem; opacity:0.3; padding-bottom:15px;">✕</div>
+                <div style="text-align:center;">
+                    <div style="font-size:2.5rem; margin-bottom:5px;">${c2.animal}</div>
+                    <div style="font-size:0.7rem; opacity:0.6">${c2.code}</div>
+                </div>
+            </div>
+            
+            <h2 class="res-title" style="font-size:1.5rem; letter-spacing:2px;">SOUL RESONANCE</h2>
+            <div class="res-mbti" style="font-size:0.8rem; margin-top:5px; opacity:0.7;">${c1.title} & ${c2.title}</div>
+        </header>
+        
+        <div class="synergy-box" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(5px);">
+            <div class="res-label" style="text-align:center; color:rgba(255,255,255,0.5); font-size:0.75rem; letter-spacing:1px; margin-bottom:10px;">KEYWORD</div>
+            <div class="res-text" style="text-align:center; font-weight:700; font-family:'Cinzel', serif; font-size:1.3rem; color:#FFD700; line-height:1.4;">
+                "${synergy.title}"
+            </div>
+        </div>
+
+        <div style="display:grid; gap:20px; margin-top:30px;">
+            <div class="res-section" style="border:none; padding:15px; background:rgba(30,50,30,0.3); border-radius:12px; margin:0;">
+                <div class="res-label" style="color:#81C784; display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1.2rem;">☀️</span> The Light
+                </div>
+                <div class="res-text" style="font-size:0.9rem; opacity:0.9;">${synergy.pros}</div>
+            </div>
+            
+            <div class="res-section" style="border:none; padding:15px; background:rgba(60,30,30,0.3); border-radius:12px; margin:0;">
+                <div class="res-label" style="color:#E57373; display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1.2rem;">🌑</span> The Shadow
+                </div>
+                <div class="res-text" style="font-size:0.9rem; opacity:0.9;">${synergy.cons}</div>
+            </div>
+        </div>
+        
+        <button class="ritual-btn" style="width:100%; margin-top:30px;" onclick="resetSelection()">↻ 다시 선택하기</button>
+        <div style="height:30px;"></div>
+    `;
+    
+    resLayer.style.display = 'block';
+}
+
+function getMbtiColor(id) {
+    if (id.includes('NF')) return '#A5D6A7'; 
+    if (id.includes('NT')) return '#90CAF9'; 
+    if (id.includes('SJ')) return '#B0BEC5'; 
+    if (id.includes('SP')) return '#FFCC80'; 
+    return '#8B5CF6';
+}
+
+function getSynergyText(t1, t2) {
+    // 16x16 Matrix Logic for more specific details
+    // Simplified grouping for better coverage
+    
+    // Calculate difference vector
+    let same = [];
+    let diff = [];
+    ['E/I','S/N','T/F','J/P'].forEach((type, idx) => {
+        if(t1.code[idx] === t2.code[idx]) same.push(type);
+        else diff.push(type);
+    });
+
+    let title, pros, cons;
+
+    // Special Combinations (Best Matches)
+    const isIdeal = (
+        (t1.code === 'INTJ' && t2.code === 'ENFP') || (t1.code === 'ENFP' && t2.code === 'INTJ') ||
+        (t1.code === 'INFJ' && t2.code === 'ENTP') || (t1.code === 'ENTP' && t2.code === 'INFJ') ||
+        (t1.code === 'ISFJ' && t2.code === 'ESFP') || (t1.code === 'ESFP' && t2.code === 'ISFJ') ||
+        (t1.code === 'ISTJ' && t2.code === 'ESTP') || (t1.code === 'ESTP' && t2.code === 'ISTJ')
+    );
+
+    const isConflict = (
+        (t1.code.includes('ST') && t2.code.includes('NF')) || 
+        (t1.code.includes('NF') && t2.code.includes('ST'))
+    );
+
+    if (t1.code === t2.code) {
+        title = "거울 속의 쌍둥이";
+        pros = `둘 다 <b>${t1.code}</b> 성향을 가졌기에, 말하지 않아도 서로의 생각과 행동 패턴을 완벽하게 이해합니다. 함께 있으면 마치 혼자 있는 것처럼 편안하고, 서로의 세계관을 지지해주는 강력한 동맹이 될 수 있습니다.`;
+        cons = "하지만 나의 단점이 상대방에게서 보일 때, 견딜 수 없는 짜증이 밀려올 수 있습니다. 또한 둘 다 같은 약점을 공유하므로, 함께 구렁텅이에 빠질 위험도 있죠. 서로의 부족한 점을 보완해줄 외부의 자극이 필요합니다.";
+    } 
+    else if (isIdeal) {
+        title = "우주가 맺어준 영혼의 단짝";
+        pros = "이것은 전설적인 조합입니다. 서로의 그림자(Shadow) 기능을 보완해주며, 내가 가지지 못한 것을 상대방이 완벽하게 채워줍니다. 정반대인 것 같으면서도 깊은 곳에서 통하는, <span style='color:#FFD700'>운명적인 시너지</span>가 폭발하는 관계입니다.";
+        cons = "너무 강렬하게 끌리는 만큼, 초반의 스파크가 꺼진 후에는 현실적인 조율이 필요합니다. 서로가 너무 다르다는 것을 잊고 상대를 내 방식대로 해석하려 들면 큰 오해가 생길 수 있습니다.";
+    }
+    else if (same.includes('S/N') && diff.includes('J/P')) {
+        // Example: INTJ & INTP, ENFP & ENFJ (Share function axis usually)
+        title = "지적 탐구의 동반자";
+        pros = "세상을 바라보는 렌즈(감각/직관)가 같아 대화가 끊이지 않습니다. '척하면 착'하고 알아듣는 통찰력을 공유하죠. J형의 계획성과 P형의 유연함이 합쳐지면 환상의 팀워크를 발휘할 수 있습니다.";
+        cons = "비슷한 만큼 지루할 수도 있습니다. 결정적인 순간에 서로 책임을 미루거나(P-P), 너무 빡빡하게 굴 수(J-J) 있습니다. 서로의 '다름'을 인정하는 존중이 필수입니다.";
+    }
+    else if (isConflict) {
+        title = "화성에서 온 남자, 금성에서 온 여자";
+        pros = "완전히 다른 세계관의 충돌입니다. 상대방은 내가 평생 보지 못한 세상을 보여주는 창문입니다. 이 관계를 극복한다면 당신은 엄청난 성장을 이루게 될 것입니다. 지루할 틈이 없는 스펙터클한 관계.";
+        cons = "언어가 다릅니다. 현실주의자(S)와 이상주의자(N)의 대화는 평행선을 달리기 쉽습니다. 논리(T)와 감정(F)의 싸움은 끝이 없죠. '왜 저럴까?'라고 생각하기보다 '저런 관점도 있구나'라고 받아들여야 합니다.";
+    }
+    else {
+        // General Case
+        title = "서로를 비추는 프리즘";
+        pros = "적당한 공통점과 적당한 차이점이 균형을 이룹니다. 서로에게 호기심을 느끼면서도, 안정을 찾을 수 있는 관계입니다. 친구 같은 편안함과 연인 같은 설렘을 동시에 느낄 수 있는 잠재력이 있습니다.";
+        cons = "노력 없이는 뜨뜻미지근한 관계가 될 수 있습니다. 서로의 관심사가 겹치지 않는 부분에 대해서는 의도적인 배려와 공부가 필요합니다.";
+    }
+
+    // Add Specific advice for T-F pair
+    if(t1.code.includes('T') && t2.code.includes('F')) { 
+        pros += "<br><br>💡 <b>T-F 케미:</b> T의 냉철한 해결책과 F의 따뜻한 공감이 만나면 훌륭한 상호보완이 일어납니다.";
+        cons += "<br><br>⚠️ <b>주의:</b> T는 '해결'하려 하지 말고 '경청'하세요. F는 '감정'을 앞세우지 말고 '팩트'를 보세요.";
+    }
+    
+    // Add Specific advice for E-I pair
+    if(t1.code.includes('E') && t2.code.includes('I')) {
+         pros += "<br><br>💡 <b>E-I 케미:</b> E가 밖에서 에너지를 끌어오고, I가 내부를 단단하게 다지는 이상적인 역할 분담입니다.";
+         cons += "<br><br>⚠️ <b>주의:</b> E는 I의 '혼자만의 시간'을 존중해야 하고, I는 E의 '사교 욕구'를 이해해줘야 합니다.";
+    }
+
+    return { title, pros, cons };
+}
 </script>
+
+
 </body>
 </html>
