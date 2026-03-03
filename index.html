@@ -3608,6 +3608,12 @@ body.neo-mode .monthly-label { color: #64748b; }
       <div id="hormoneVibeResult"></div>
     </section>
 
+    <!-- ═══ T발놈 테스트 (Cold Logic) ═══ -->
+    <section id="tTestCard" class="card t-test-card" style="display:none" aria-labelledby="tTestTitle">
+      <h3 id="tTestTitle" class="sec-title">The Frozen Logic — 극T 테스트</h3>
+      <div id="tTestResult"></div>
+    </section>
+
       <!-- /#ichingWrap removed -->
 
       <!-- 쌈바 프로모션 박스 -->
@@ -5636,6 +5642,7 @@ async function calculate(){
     renderSummary(p,johu,natal);
     renderEnergyCoord(natal);
     renderHealthReport(p, natal, johu, G_POWER, G_JONG);
+    renderTTest(p, natal, johu, G_POWER);
     renderLottoNumbers(natal, bazi);
     renderQuantumStrategy(p, natal, bazi);
     renderSpecialCharm(p, natal);
@@ -11344,6 +11351,83 @@ function renderEnergyCoord(natal){
   card.style.display='block';
 }
 
+/* ── renderTTest: 극T 테스트 ── */
+function renderTTest(p, natal, johu, pw) {
+  var area = document.getElementById('tTestResult');
+  var card = document.getElementById('tTestCard');
+  if(!area || !card) return;
+
+  var tScore = 0;
+  var counts = natal.counts || {wood:0,fire:0,earth:0,metal:0,water:0};
+  
+  // Rule 1: Gold element (10 points per metal)
+  var metalScore = counts.metal || 0;
+  tScore += metalScore * 10;
+  
+  // Rule 2: Gwan (Authority - Strict admin)
+  var gwanCount = 0;
+  for(var i=0; i<8; i++) {
+    var tg = getTenGods(p.dayGan, p.bazi[i]);
+    if(tg==='정관' || tg==='편관') gwanCount++;
+  }
+  tScore += (gwanCount * 15);
+
+  // Rule 3: Metal/Earth Sik-sang (Debugging expert)
+  var ssCount = 0;
+  var isMetalEarthSS = false;
+  for(var i=0; i<8; i++) {
+    var tg = getTenGods(p.dayGan, p.bazi[i]);
+    if(tg==='식신' || tg==='상관') {
+      ssCount++;
+      var el = EL_E[p.bazi[i]] || '';
+      if(el==='금' || el==='토') isMetalEarthSS = true;
+    }
+  }
+  if(isMetalEarthSS) tScore += 20;
+
+  // Rule 4: Johu (Cold/Dry - 0% humidity, absolute zero logic)
+  var isColdDry = false;
+  if(johu && (johu.temp==='Cold' || johu.wet==='Dry' || johu.temp==='Cool')) {
+    isColdDry = true;
+    tScore += 25;
+  }
+
+  // Cap Score 
+  var finalScore = Math.min(tScore, 100);
+
+  // Tier logic
+  var tTier = '';
+  var tDesc = '';
+  if(finalScore >= 80) {
+    tTier = 'T발놈 지수: 최상위 (The Frozen Logic)';
+    tDesc = '감정보다 팩트, 당신의 뇌는 이미 합금 상태. 시스템 예외 상황을 용납하지 않는 엄격한 관리자이자 팩트로 뼈 때리는 디버깅 전문가입니다. 감정의 습도가 0%에 수렴하는 절대 영도의 이성.';
+  } else if(finalScore >= 50) {
+    tTier = 'T발놈 지수: 상위 (Cold Steel)';
+    tDesc = '상황 판단 속도가 빠르고 합리적인 대안을 제시하는 전문가. 다소 냉정해 보일 수 있으나 철저히 데이터와 팩트에 기반한 해결책을 줍니다.';
+  } else if(finalScore >= 20) {
+    tTier = 'T발놈 지수: 하이브리드 (Copper Wire)';
+    tDesc = '필요할 때는 분석적이지만, 상황에 맞춰 공감하는 능력도 뛰어납니다. 차갑기보단 은은하게 따뜻한 성향입니다.';
+  } else {
+    tTier = 'T발놈 지수: 최하 (Cotton Candy)';
+    tDesc = '공감과 감정이 뇌를 지배하는 뼛속까지 F 타입. 금속성의 날카로움보다는 유연하고 부드러운 화법을 선호합니다.';
+  }
+
+  var html = '<div class="t-test-wrapper">';
+  html += '<div class="t-test-score"><span class="t-test-val">' + finalScore + '</span><span class="t-test-pct">%</span></div>';
+  html += '<div class="t-test-tier">' + tTier + '</div>';
+  html += '<div class="t-test-desc">' + tDesc + '</div>';
+  
+  html += '<div class="t-test-grid">';
+  html += '<div class="t-test-item"><div>금속성(金)</div><div class="t-val">' + (metalScore * 10) + '%</div></div>';
+  html += '<div class="t-test-item"><div>관성(팩트/통제)</div><div class="t-val">' + (gwanCount * 15) + '%</div></div>';
+  html += '<div class="t-test-item"><div>식상(디버깅)</div><div class="t-val">' + (isMetalEarthSS ? '+20%' : '비활성') + '</div></div>';
+  html += '<div class="t-test-item"><div>조후(건조/차갑)</div><div class="t-val">' + (isColdDry ? '+25%' : '보통') + '</div></div>';
+  html += '</div></div>';
+
+  area.innerHTML = html;
+  card.style.display = 'block';
+}
+
 /* ── renderHealthReport: 명리 헬스 리포트 ── */
 function renderHealthReport(p, natal, johu, pw, jg) {
   var area = document.getElementById('healthReportSection');
@@ -13320,7 +13404,7 @@ window.addEventListener('load', function() {
   ];
 
   var CORE_IDS  = ['sajuCard','iljuCard','tenshinCard','dailyMonthlyCard','compatCard','similarCelebCard','johuCard','ukbuCard','summaryCard','daewunCard','quantumCard'];
-  var FUN_IDS   = ['villainCard','skillTreeCard','energyCoordCard','healthReportCard','hormone-vibe-section'];
+  var FUN_IDS   = ['villainCard','skillTreeCard','energyCoordCard','healthReportCard','hormone-vibe-section','tTestCard'];
   var LOTTO_IDS = ['lottoCard'];
 
   function toRgba(hex, a) {
@@ -14126,6 +14210,70 @@ window.addEventListener('load', function() {
 }
 .hv-stat-num { font-size:1.5rem;font-weight:900;color:#fff; }
 .hv-stat-label { font-size:.72rem;color:rgba(255,255,255,.5);margin-top:2px; }
+
+/* ── T발놈 테스트 (Frozen Logic Theme) ── */
+.t-test-card {
+  background: linear-gradient(135deg, #2C3E50 0%, #1a252f 100%);
+  border: 1px solid #44596e;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,212,255,0.05);
+  color: #E0E0E0;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  filter: grayscale(80%);
+}
+.t-test-card:hover {
+  filter: grayscale(0%);
+  transform: scale(1.02);
+  box-shadow: 0 12px 40px rgba(0,212,255,0.2), inset 0 0 30px rgba(0,212,255,0.1);
+  border-color: #00D4FF;
+}
+.t-test-card::before {
+  content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(0,212,255,0.05) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.5s; pointer-events: none; mix-blend-mode: screen;
+}
+.t-test-card:hover::before { opacity: 1; }
+.t-test-card #tTestTitle {
+  color: #00D4FF; letter-spacing: 1px; font-weight: 900; text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(0,212,255,0.3); border-bottom: 1px solid rgba(0,212,255,0.2);
+  padding-bottom: 10px; margin-bottom: 20px;
+}
+.t-test-wrapper {
+  text-align: center; padding: 10px;
+}
+.t-test-score {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 3.5rem; font-weight: 900; color: #E0E0E0; margin-bottom: 10px;
+  text-shadow: 0 0 15px rgba(224,224,224,0.5);
+  display: flex; justify-content: center; align-items: baseline;
+}
+.t-test-val { background: linear-gradient(to right, #E0E0E0, #00D4FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.t-test-pct { font-size: 1.5rem; color: #00D4FF; margin-left: 5px; opacity: 0.8; }
+.t-test-tier {
+  font-size: 1.2rem; font-weight: 800; color: #00D4FF; margin-bottom: 15px; 
+  letter-spacing: 0.5px;
+}
+.t-test-desc {
+  font-size: 0.95rem; color: #b0c4de; line-height: 1.6; margin-bottom: 25px;
+  background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border-left: 3px solid #00D4FF;
+  text-align: left;
+}
+.t-test-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.t-test-item {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(224,224,224,0.1);
+  padding: 12px; border-radius: 5px; font-size: 0.85rem; color: #a0b2c6;
+  text-align: center; transition: background 0.3s, border-color 0.3s;
+}
+.t-test-card:hover .t-test-item {
+  border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.05);
+}
+.t-test-item .t-val {
+  font-size: 1.1rem; font-weight: 700; color: #E0E0E0; margin-top: 5px; font-family: 'Courier New', Courier, monospace;
+}
 
 </style>
 
