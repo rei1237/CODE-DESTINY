@@ -11728,9 +11728,12 @@ function renderLottoNumbers(natal, bazi){
   var tag=LOTTO_EL_TAG[primary]||LOTTO_EL_TAG.water;
   var resonanceNums=LOTTO_POOL[primary]?LOTTO_POOL[primary].slice(0,5).join(', ')+' …':'1, 6, 11…';
 
+  // Store first game's numbers for the machine animation
+  var firstGameNums = [];
   var gamesHTML='';
   for(var gi=0;gi<5;gi++){
     var nums=pickGame(gi);
+    if(gi === 0) firstGameNums = nums;
     gamesHTML+=
       '<div class="lc-game">'+
         '<div class="lc-game-top">'+
@@ -11748,25 +11751,76 @@ function renderLottoNumbers(natal, bazi){
       '<div class="lc-header">'+
         '<span class="lc-icon">🎱</span>'+
         '<div class="lc-title-wrap">'+
-          '<h3>수리 에너지 * 사주 명리 로또 번호 생성기</h3>'+
-          '<p>하도낙서 수리 공명 × 사주 용신 오행으로 도출한 이번 주기 번호</p>'+
+          '<h3>수리 에너지 &times; 사주 명리 로또 번호 생성기</h3>'+
+          '<p>하도낙서 수리 공명 &times; 사주 용신 오행으로 도출한 이번 주기 번호</p>'+
         '</div>'+
       '</div>'+
-      '<div class="lc-wave-box">'+
-        '<div class="lc-wave-label">⚡ 현재 당신의 수리 파동</div>'+
-        '<span class="lc-resonance" style="color:'+tag.color+'">'+(EL_E[primary]||'')+' '+(EL_K[primary]||'')+' — '+tag.label+'</span>'+
-        '<span style="font-size:.78rem;color:#a08040"> &nbsp;|&nbsp; 공명 번호축: '+resonanceNums+'</span>'+
+      
+      '<button id="lottoDrawBtn" class="lotto-draw-btn">운명의 로또 번호 뽑기 🎯</button>'+
+      '<div id="lottoMachine" class="lotto-machine-container">'+
+        '<div class="lotto-machine-title">✨ 퀀텀 에너지 공명 중... ✨</div>'+
+        '<div id="lottoDrawBalls" class="lotto-draw-balls"></div>'+
       '</div>'+
-      '<div class="lc-games">'+gamesHTML+'</div>'+
-      '<div class="lc-reason">'+
-        '<div class="lc-reason-title">📝 수리적 근거 — 이 번호들이 당신과 동기화되는 이유</div>'+
-        reasons.map(function(r){return '<div class="lc-reason-item">'+r+'</div>';}).join('')+
-      '</div>'+
-      '<div class="lc-disclaimer">※ 본 번호는 명리학적 수리 에너지를 바탕으로 한 참고용입니다.<br>로또는 법적으로 확률에 의한 순수 게임임을 인지하세요. 🐷</div>'+
+
+      '<div id="lottoResultArea" class="lotto-result-area">'+
+        '<div class="lc-wave-box">'+
+          '<div class="lc-wave-label">⚡ 현재 당신의 수리 파동</div>'+
+          '<span class="lc-resonance" style="color:'+tag.color+'">'+(EL_E[primary]||'')+' '+(EL_K[primary]||'')+' — '+tag.label+'</span>'+
+          '<span style="font-size:.78rem;color:#a08040"> &nbsp;|&nbsp; 공명 번호축: '+resonanceNums+'</span>'+
+        '</div>'+
+        '<div class="lc-games">'+gamesHTML+'</div>'+
+        '<div class="lc-reason">'+
+          '<div class="lc-reason-title">📝 수리적 근거 — 이 번호들이 당신과 동기화되는 이유</div>'+
+          reasons.map(function(r){return '<div class="lc-reason-item">'+r+'</div>';}).join('')+
+        '</div>'+
+        '<div class="lc-disclaimer">※ 본 번호는 명리학적 수리 에너지를 바탕으로 한 참고용입니다.<br>로또는 법적으로 확률에 의한 순수 게임임을 인지하세요. 🐷</div>'+
+      '</div>'+ // end lottoResultArea
     '</div>';
 
   area.innerHTML=html;
   card.style.display='block';
+
+  // Animation Logic
+  var drawBtn = document.getElementById('lottoDrawBtn');
+  var machine = document.getElementById('lottoMachine');
+  var drawBallsBox = document.getElementById('lottoDrawBalls');
+  var resultArea = document.getElementById('lottoResultArea');
+
+  // Clear machine state when first loaded
+  drawBallsBox.innerHTML = '';
+  resultArea.classList.remove('show');
+  
+  if(drawBtn) {
+    drawBtn.onclick = function() {
+      drawBtn.disabled = true;
+      drawBtn.innerHTML = '에너지 동기화 중... 🌀';
+      machine.classList.add('active');
+      drawBallsBox.innerHTML = ''; // reset balls
+      resultArea.classList.remove('show');
+
+      var delay = 0;
+      // Drop balls one by one
+      firstGameNums.forEach(function(n, index) {
+        setTimeout(function() {
+          var ball = document.createElement('div');
+          ball.className = 'lotto-draw-ball ' + ballColor(n);
+          ball.innerText = n;
+          drawBallsBox.appendChild(ball);
+        }, delay);
+        delay += 600; // 0.6 seconds per ball
+      });
+
+      // Show full results after all balls have popped
+      setTimeout(function() {
+        drawBtn.style.display = 'none'; // hide button after draw
+        resultArea.classList.add('show');
+        // scroll slightly down to results
+        setTimeout(function() {
+          resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 300);
+      }, delay + 500);
+    };
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -14288,6 +14342,42 @@ window.addEventListener('load', function() {
 .t-test-item .t-val {
   font-size: 1.1rem; font-weight: 700; color: #E0E0E0; margin-top: 5px; font-family: 'Courier New', Courier, monospace;
 }
+
+/* ── Lotto Draw Animation ── */
+.lotto-draw-btn {
+  display: block; width: 100%; padding: 15px; margin: 20px 0;
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  color: #fff; font-size: 1.2rem; font-weight: 800; border: none; border-radius: 12px;
+  cursor: pointer; box-shadow: 0 4px 15px rgba(255,154,158,0.4); transition: transform 0.2s, box-shadow 0.2s;
+}
+.lotto-draw-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,154,158,0.6); }
+.lotto-draw-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+.lotto-machine-container {
+  display: none; text-align: center; margin: 20px 0; padding: 20px;
+  background: rgba(255,255,255,0.05); border-radius: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+.lotto-machine-container.active { display: block; }
+.lotto-machine-title {
+  font-size: 1.1rem; color: #333; font-weight: 700; margin-bottom: 15px;
+}
+.lotto-draw-balls {
+  display: flex; justify-content: center; gap: 10px; min-height: 50px; align-items: center; flex-wrap: wrap;
+}
+.lotto-draw-ball {
+  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-weight: 900; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-size: 1.1rem;
+  opacity: 0; transform: scale(0) translateY(-50px);
+  animation: popInBall 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2);
+}
+@keyframes popInBall {
+  0% { opacity: 0; transform: scale(0.5) translateY(-50px); }
+  50% { opacity: 1; transform: scale(1.1) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.lotto-result-area { display: none; }
+.lotto-result-area.show { display: block; animation: fadeInResult 0.8s ease forwards; }
+@keyframes fadeInResult { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 </style>
 
