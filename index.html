@@ -3548,6 +3548,13 @@ body.neo-mode .monthly-label { color: #64748b; }
         <button class="btn-subscribe neo-only" onclick="subscribeEmail()">구독하기 🦁</button>
       </div>
     </aside>
+
+    <!-- ═══ 호르몬 관상: 테토 vs 에겐 ═══ -->
+    <section id="hormone-vibe-section" class="card hv-card" style="display:none; overflow:hidden; position:relative;">
+      <div class="sec-title">🧬 호르몬 관상 — 테토 vs 에겐</div>
+      <div id="hormoneVibeResult"></div>
+    </section>
+
   </article><!-- /#resultPage -->
 
   <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
@@ -5464,6 +5471,7 @@ async function calculate(){
     renderTodayDestinyCard(p);
     findSimilarCelebs(p);
     renderVillain(p, G_POWER);
+    renderHormoneVibe(p, G_POWER);
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
     document.getElementById('dwDetail').innerHTML='';
     document.getElementById('dwDetail').classList.remove('show');
@@ -9874,8 +9882,171 @@ function renderVillain(p, power) {
 }
 
 /* ══════════════════════════════════════════
-   🎴 오늘의 운명 카드 렌더
+   🧬 호르몬 관상 — 테토 vs 에겐
 ══════════════════════════════════════════ */
+function calculateHormoneVibe(p, power) {
+  var dg = p.d.g;
+  // 일간 제외 7개 자리에서 십성 목록
+  var stars = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j]
+    .map(function(c) { return getTenGod(dg, c); })
+    .filter(function(t) { return t && t !== '?'; });
+
+  var cnt = {};
+  stars.forEach(function(s) { cnt[s] = (cnt[s]||0)+1; });
+
+  var bigyuk  = (cnt['비견']||0) + (cnt['겁재']||0);   // 비겁
+  var siksang = (cnt['식신']||0) + (cnt['상관']||0);   // 식상
+  var insung  = (cnt['정인']||0) + (cnt['편인']||0);   // 인성
+  var gwansung= (cnt['정관']||0) + (cnt['편관']||0);   // 관성
+
+  var isStrong = !!(power && power.isStrong);
+
+  var tetoScore = 0, egenScore = 0;
+  var reasons = [];
+
+  // ── 테토 조건 ──
+  if (bigyuk >= 2 && isStrong) {
+    tetoScore += 40;
+    reasons.push({ type:'teto', icon:'💪', text:'비겁(' + bigyuk + '개)이 뭉치고 신강 — 주도권 절대 안 넘겨' });
+  } else if (bigyuk >= 1 && isStrong) {
+    tetoScore += 18;
+  }
+  if (cnt['식신'] >= 1 && cnt['편관'] >= 1) {
+    tetoScore += 32;
+    reasons.push({ type:'teto', icon:'⚔️', text:'식신제살(食神制殺) 성립 — 내가 통제, 내가 주도' });
+  }
+  if (gwansung >= 2 && isStrong) {
+    tetoScore += 28;
+    reasons.push({ type:'teto', icon:'🔥', text:'관성(' + gwansung + '개) + 신강 — 압박을 즐기는 타입' });
+  } else if (gwansung >= 2 && !isStrong) {
+    tetoScore += 5;
+  }
+  if (isStrong) tetoScore += 8; // 신강 보너스
+
+  // ── 에겐 조건 ──
+  if (insung >= 3) {
+    egenScore += 45;
+    reasons.push({ type:'egen', icon:'✨', text:'인성(' + insung + '개) 한도 초과 — 수용·보살핌 에너지 폭발' });
+  } else if (insung >= 2) {
+    egenScore += 20;
+  }
+  if (siksang >= 3) {
+    egenScore += 42;
+    reasons.push({ type:'egen', icon:'🌸', text:'식상(' + siksang + '개) 과다 — 감성 파도가 멈추질 않아' });
+  } else if (siksang >= 2) {
+    egenScore += 22;
+  }
+  if (insung >= 2 && siksang >= 2) {
+    egenScore += 12; // 인성+식상 복합 시너지
+    reasons.push({ type:'egen', icon:'💫', text:'인성·식상 복합 — 섬세함과 표현욕이 동시에' });
+  }
+  if (!isStrong) egenScore += 10; // 신약 보너스
+
+  var diff = tetoScore - egenScore;
+  var result = diff >= 20 ? 'teto' : diff <= -20 ? 'egen' : 'neutral';
+
+  return { result:result, tetoScore:tetoScore, egenScore:egenScore,
+           reasons:reasons, bigyuk:bigyuk, siksang:siksang,
+           insung:insung, gwansung:gwansung, isStrong:isStrong, cnt:cnt };
+}
+
+function renderHormoneVibe(p, power) {
+  var section = document.getElementById('hormone-vibe-section');
+  var target  = document.getElementById('hormoneVibeResult');
+  if (!section || !target) return;
+
+  var vibe = calculateHormoneVibe(p, power);
+  section.style.display = 'block';
+
+  var tPct = Math.round(Math.min(100, vibe.tetoScore * 1.2));
+  var ePct = Math.round(Math.min(100, vibe.egenScore * 1.2));
+
+  var reasonsHtml = vibe.reasons.length
+    ? vibe.reasons.map(function(r) {
+        return '<div class="hv-reason-item ' + (r.type === 'egen' ? 'egen-item' : '') + '">'
+          + r.icon + ' ' + r.text + '</div>';
+      }).join('')
+    : '<div class="hv-reason-item" style="color:rgba(255,255,255,.4)">특정 조건에 집중되지 않은 균형 사주</div>';
+
+  var statsHtml = '<div class="hv-stats-grid">'
+    + '<div class="hv-stat-box"><div class="hv-stat-num">🔥' + vibe.tetoScore + '</div><div class="hv-stat-label">테토 점수</div></div>'
+    + '<div class="hv-stat-box"><div class="hv-stat-num">✨' + vibe.egenScore + '</div><div class="hv-stat-label">에겐 점수</div></div>'
+    + '<div class="hv-stat-box"><div class="hv-stat-num">' + vibe.bigyuk  + '</div><div class="hv-stat-label">비겁(比劫)</div></div>'
+    + '<div class="hv-stat-box"><div class="hv-stat-num">' + vibe.siksang + '</div><div class="hv-stat-label">식상(食傷)</div></div>'
+    + '<div class="hv-stat-box"><div class="hv-stat-num">' + vibe.insung  + '</div><div class="hv-stat-label">인성(印星)</div></div>'
+    + '<div class="hv-stat-box"><div class="hv-stat-num">' + vibe.gwansung+ '</div><div class="hv-stat-label">관성(官星)</div></div>'
+    + '</div>';
+
+  var barHtml = '<div style="margin-bottom:6px;">'
+    + '<div style="display:flex;justify-content:space-between;font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px;"><span>🔥 테토 에너지</span><span>' + tPct + '%</span></div>'
+    + '<div class="hv-bar-wrap"><div class="hv-bar-teto" id="hvBarTeto" style="width:0%"></div></div>'
+    + '</div>'
+    + '<div style="margin-bottom:18px;">'
+    + '<div style="display:flex;justify-content:space-between;font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px;"><span>✨ 에겐 에너지</span><span>' + ePct + '%</span></div>'
+    + '<div class="hv-bar-wrap"><div class="hv-bar-egen" id="hvBarEgen" style="width:0%"></div></div>'
+    + '</div>';
+
+  var html = '';
+
+  if (vibe.result === 'teto') {
+    // 불꽃 배경 데코
+    var flames = '';
+    ['💪','🔥','⚡','💥','🦾'].forEach(function(e, i) {
+      flames += '<span class="hv-teto-flame" style="left:'+(8+i*18)+'%;top:'+(10+((i%3)*22))+'%;animation-delay:'+(.3*i)+'s;">' + e + '</span>';
+    });
+    html = '<div class="hv-teto-wrap">'
+      + '<div class="hv-teto-bg">' + flames + '</div>'
+      + '<div class="hv-teto-content">'
+      + '<div class="hv-teto-badge">🔥 TESTOSTERONE TYPE</div>'
+      + '<div class="hv-teto-title">이 구역<br>야생마는 나야 💪</div>'
+      + '<div class="hv-teto-copy">이 구역의 야생마, 테토력이 폭발하고 있습니다!</div>'
+      + barHtml
+      + '<div class="hv-reason-list">' + reasonsHtml + '</div>'
+      + statsHtml
+      + '<div style="margin-top:16px;font-size:.78rem;color:rgba(255,255,255,.35);line-height:1.6;">비겁·관성 중심의 신강 사주는 강한 추진력과 승부욕을 나타냅니다. 다만 모든 것을 성별·개인 편차로 다양하게 해석하는 재미있는 심리 콘텐츠입니다 😄</div>'
+      + '</div></div>';
+  } else if (vibe.result === 'egen') {
+    var sparkles = '';
+    ['✨','🌸','💫','🦋','💝'].forEach(function(e, i) {
+      sparkles += '<span class="hv-egen-sparkle" style="left:'+(6+i*17)+'%;top:'+(8+((i%3)*25))+'%;animation-delay:'+(.5*i)+'s;animation-duration:'+(1.8+i*.4)+'s;">' + e + '</span>';
+    });
+    html = '<div class="hv-egen-wrap">'
+      + '<div class="hv-egen-bg">' + sparkles + '</div>'
+      + '<div class="hv-egen-content">'
+      + '<div class="hv-egen-badge">✨ ESTROGEN TYPE</div>'
+      + '<div class="hv-egen-title">감성이 파도처럼<br>밀려오는 중 🌊</div>'
+      + '<div class="hv-egen-copy">감성이 파도를 치네요, 에겐 지수가 한도 초과입니다!</div>'
+      + barHtml
+      + '<div class="hv-reason-list">' + reasonsHtml + '</div>'
+      + statsHtml
+      + '<div style="margin-top:16px;font-size:.78rem;color:rgba(255,255,255,.35);line-height:1.6;">인성·식상 중심 사주는 수용성과 감성 표현이 특징입니다. 성별·개인 편차로 다양하게 해석하는 재미있는 심리 콘텐츠입니다 😊</div>'
+      + '</div></div>';
+  } else {
+    html = '<div class="hv-neutral-wrap">'
+      + '<div class="hv-neutral-content">'
+      + '<div class="hv-teto-badge" style="background:linear-gradient(90deg,#4ecdc4,#a8e6df);margin-bottom:14px;">🌀 BALANCED TYPE</div>'
+      + '<div class="hv-neutral-title">테토도 에겐도 아닌<br>뭔가 독특한 사주 🌀</div>'
+      + '<div class="hv-neutral-copy" style="margin-bottom:18px;">"당신은 그냥 특별한 케이스입니다. 카테고리로 나눌 수가 없어요 🤷"<br>하나의 성향에 치우치지 않는 균형 잡힌 에너지를 보유 중!</div>'
+      + barHtml
+      + '<div class="hv-reason-list">' + reasonsHtml + '</div>'
+      + statsHtml
+      + '</div></div>';
+  }
+
+  target.innerHTML = html;
+
+  // 바 애니메이션 (DOM 삽입 후 약간 딜레이)
+  requestAnimationFrame(function() {
+    setTimeout(function() {
+      var bt = document.getElementById('hvBarTeto');
+      var be = document.getElementById('hvBarEgen');
+      if (bt) bt.style.width = tPct + '%';
+      if (be) be.style.width = ePct + '%';
+    }, 120);
+  });
+}
+
+
 function renderTodayDestinyCard(p){
   var sec=document.getElementById('destinySection');
   if(!sec)return;
@@ -13563,6 +13734,112 @@ window.addEventListener('load', function() {
 }
 
 @keyframes pulseMirror { 0% { box-shadow: 0 0 30px rgba(212,175,55,0.3); } 100% { box-shadow: 0 0 60px rgba(212,175,55,0.8); } }
+
+/* ══════════════════════════════════════════
+   호르몬 관상 — 테토 vs 에겐
+══════════════════════════════════════════ */
+@keyframes hv-flame { 0%,100%{transform:scaleY(1) rotate(-2deg)} 50%{transform:scaleY(1.18) rotate(2deg)} }
+@keyframes hv-sparkle { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1.4) rotate(180deg)} }
+@keyframes hv-shake  { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+@keyframes hv-float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes hv-fadein { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes hv-neon-red { 0%,100%{box-shadow:0 0 8px #ff2d2d,0 0 20px #ff2d2d,0 0 40px #ff5e00} 50%{box-shadow:0 0 18px #ff2d2d,0 0 40px #ff2d2d,0 0 70px #ff5e00} }
+@keyframes hv-neon-pink { 0%,100%{box-shadow:0 0 8px #ff79c8,0 0 20px #d980fa,0 0 40px #c2b9ff} 50%{box-shadow:0 0 18px #ff79c8,0 0 40px #d980fa,0 0 70px #c2b9ff} }
+@keyframes hv-drift { 0%{transform:translateX(-5%) translateY(0)} 50%{transform:translateX(5%) translateY(-4%)} 100%{transform:translateX(-5%) translateY(0)} }
+
+.hv-card { animation: hv-fadein .7s ease both; }
+
+/* 테토 카드 */
+.hv-teto-wrap {
+  background: linear-gradient(135deg,#1a0a00 0%,#2d0d00 50%,#1a0800 100%);
+  border-radius: 18px; padding: 0; overflow: hidden; position: relative;
+  animation: hv-neon-red 2.6s ease-in-out infinite;
+  border: 2.5px solid #ff3d00;
+}
+.hv-teto-bg {
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;
+  background: radial-gradient(ellipse at 50% 120%, rgba(255,60,0,.35) 0%, transparent 65%);
+}
+.hv-teto-flame {
+  position:absolute;font-size:3.2rem;animation:hv-flame 1.1s ease-in-out infinite;
+  opacity:.18;user-select:none;
+}
+.hv-teto-content { position:relative;z-index:1;padding:28px 22px 24px; }
+.hv-teto-badge {
+  display:inline-block;background:linear-gradient(90deg,#ff3d00,#ff7320);
+  color:#fff;font-weight:900;font-size:.78rem;letter-spacing:.12em;
+  padding:4px 14px;border-radius:50px;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.hv-teto-title {
+  font-size:2.1rem;font-weight:900;color:#fff;line-height:1.1;
+  text-shadow:0 0 18px #ff5500,0 2px 4px rgba(0,0,0,.8);
+  font-family:'Impact',sans-serif;letter-spacing:.03em;
+  animation:hv-shake 4s infinite;
+  margin-bottom:10px;
+}
+.hv-teto-copy {
+  font-size:.97rem;color:#ffcbaa;font-weight:700;
+  text-shadow:0 1px 6px rgba(0,0,0,.6);margin-bottom:18px;
+}
+.hv-bar-wrap { background:rgba(255,255,255,.08);border-radius:12px;overflow:hidden;height:12px;margin-bottom:6px; }
+.hv-bar-teto { height:100%;background:linear-gradient(90deg,#ff3d00,#ff9500);border-radius:12px;transition:width 1.5s cubic-bezier(.22,1,.36,1); }
+.hv-bar-egen { height:100%;background:linear-gradient(90deg,#e040fb,#ff79c8);border-radius:12px;transition:width 1.5s cubic-bezier(.22,1,.36,1); }
+.hv-score-row { display:flex;justify-content:space-between;font-size:.77rem;color:rgba(255,255,255,.55);margin-bottom:14px; }
+.hv-reason-list { display:flex;flex-direction:column;gap:7px; }
+.hv-reason-item { display:flex;align-items:center;gap:8px;font-size:.83rem;color:#ffcbaa;background:rgba(255,255,255,.06);padding:7px 12px;border-radius:8px;border-left:3px solid #ff5500; }
+
+/* 에겐 카드 */
+.hv-egen-wrap {
+  background: linear-gradient(135deg,#1a0025 0%,#2a0838 50%,#180020 100%);
+  border-radius: 18px; padding: 0; overflow: hidden; position: relative;
+  animation: hv-neon-pink 2.8s ease-in-out infinite;
+  border: 2.5px solid #d980fa;
+}
+.hv-egen-bg {
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;
+  background: radial-gradient(ellipse at 50% 120%, rgba(217,128,250,.3) 0%, transparent 65%);
+}
+.hv-egen-sparkle {
+  position:absolute;font-size:2rem;animation:hv-sparkle 2s ease-in-out infinite;
+  opacity:.22;user-select:none;
+}
+.hv-egen-content { position:relative;z-index:1;padding:28px 22px 24px; }
+.hv-egen-badge {
+  display:inline-block;background:linear-gradient(90deg,#d980fa,#ff79c8);
+  color:#fff;font-weight:900;font-size:.78rem;letter-spacing:.12em;
+  padding:4px 14px;border-radius:50px;text-transform:uppercase;margin-bottom:14px;
+}
+.hv-egen-title {
+  font-size:2.1rem;font-weight:900;color:#fff;line-height:1.1;
+  text-shadow:0 0 18px #d980fa,0 2px 4px rgba(0,0,0,.8);
+  letter-spacing:.02em;animation:hv-float 3s ease-in-out infinite;
+  margin-bottom:10px;
+}
+.hv-egen-copy { font-size:.97rem;color:#f3c4ff;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.6);margin-bottom:18px; }
+.hv-reason-item.egen-item { color:#f3c4ff;border-left-color:#d980fa; }
+
+/* 중립 카드 */
+.hv-neutral-wrap {
+  background:linear-gradient(135deg,#0d1a2e 0%,#1a2a40 100%);
+  border-radius:18px;padding:0;overflow:hidden;position:relative;
+  border:2.5px solid #4ecdc4;
+  box-shadow:0 0 22px rgba(78,205,196,.3);
+}
+.hv-neutral-content { padding:28px 22px 24px; }
+.hv-neutral-title { font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:10px; }
+.hv-neutral-copy { font-size:.95rem;color:#a8e6df;font-weight:600; }
+
+/* 공통 스탯 그리드 */
+.hv-stats-grid {
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px;
+}
+.hv-stat-box {
+  background:rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;
+  text-align:center;
+}
+.hv-stat-num { font-size:1.5rem;font-weight:900;color:#fff; }
+.hv-stat-label { font-size:.72rem;color:rgba(255,255,255,.5);margin-top:2px; }
 
 </style>
 
