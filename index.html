@@ -769,8 +769,10 @@ button,.dw-item,.year-row,.fortune-tab,.mystic-tab-btn,.lang-btn,.tog-btn,.oracl
   cursor:pointer;font-weight:700;font-family:inherit;font-size:.85rem}
 
 /* ─── 광고 ─── */
-.ad-container{background:#f9f9f9;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid #f0f0f0;text-align:center;min-height:250px;display:flex;align-items:center;justify-content:center}
-.ad-container ins{display:inline-block!important}
+.ad-container{background:#f9f9f9;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid #f0f0f0;text-align:center;min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ad-sponsor-text{font-size:0.8rem;color:#999;margin-bottom:10px;line-height:1.4;word-break:keep-all;}
+body.neo-mode .ad-sponsor-text{color:#777;}
+.ad-container ins{display:inline-block!important;width:100%}
 
 
 /* ══════════════════════════════════════
@@ -2564,7 +2566,13 @@ body.neo-mode .monthly-label { color: #64748b; }
 
     </header>
 
-
+    <!-- 입력 폼 상단 광고 -->
+    <div class="ad-container" id="adInputTop" style="margin-bottom:20px;">
+      <div class="ad-sponsor-text">💖 운세 풀이를 위해 잠시만요! 저희 서비스를 후원해 주시는 마음으로 광고를 둘러봐주시면 큰 힘이 됩니다. 🍀</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
 
     <section class="card input-section" aria-label="사주 정보 입력">
       <div class="form-group">
@@ -2775,6 +2783,14 @@ body.neo-mode .monthly-label { color: #64748b; }
             </div>
           </div>
           
+          <!-- 타로 모달 하단 광고 -->
+          <div class="ad-container" id="adTarotBottom" style="margin-top:20px; text-align:center;">
+            <div class="ad-sponsor-text">✨ 신비로운 타로의 메시지가 도움이 되셨나요? 광고 클릭은 복채가 되어 다시 행운으로 돌아옵니다! 🌙</div>
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          </div>
+
         </div>
       </div>
       <style>
@@ -2834,6 +2850,7 @@ body.neo-mode .monthly-label { color: #64748b; }
 
     <!-- 광고: 입력 페이지 광고 -->
     <div class="ad-container" id="adInput" style="margin-top:20px">
+      <div class="ad-sponsor-text">💖 광고 클릭은 콘텐츠 제작에 큰 힘이 됩니다. 내어주신 작은 복채는 더 큰 행운이 되어 여러분께 돌아갈 거예요! 🍀</div>
       <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
       <!-- 사주 입력 페이지 광고 -->
       <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
@@ -2867,6 +2884,7 @@ body.neo-mode .monthly-label { color: #64748b; }
 
     <!-- 광고 1: 상단 광고 -->
     <div class="ad-container" id="adTop">
+      <div class="ad-sponsor-text">✨ 무료 운세 서비스 운영에 힘을 보태주세요! 광고를 구경해 주시면 여러분의 앞날에 더 큰 복으로 돌아옵니다. 🙏</div>
       <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
       <!-- 사주 분석 상단 광고 -->
       <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
@@ -3073,6 +3091,14 @@ body.neo-mode .monthly-label { color: #64748b; }
       </div>
     </div>
 
+    <!-- 일주론과 핵심 십성 사이 광고 -->
+    <div class="ad-container" id="adMiddle1" style="margin-bottom:20px;">
+      <div class="ad-sponsor-text">🦊 사주에 숨겨진 비밀을 확인하셨나요? 광고 한 번 클릭은 저희가 더 정확한 운세를 제공하는 힘이 됩니다! 🍀</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
     <!-- 2. 핵심 십성 -->
     <div class="card" id="tenshinCard">
       <div class="sec-title">🎴 보유 십성 (十星) — 탭하면 상세 분석!</div>
@@ -3100,6 +3126,14 @@ body.neo-mode .monthly-label { color: #64748b; }
     <div class="card" id="ukbuCard">
       <div class="sec-title">⚖️ 억부(抑扶) · 종격(從格) 분석</div>
       <div id="ukbuSection"></div>
+    </div>
+
+    <!-- 억부 종격과 대운 사이 광고 -->
+    <div class="ad-container" id="adMiddle2" style="margin-bottom:20px;">
+      <div class="ad-sponsor-text">⚖️ 운명의 균형을 알아가고 계신가요? 광고 한 번 둘러보시는 여유가 운의 흐름을 더욱 좋게 만듭니다. 🙏</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
     <!-- 7. 대운 -->
@@ -3134,6 +3168,14 @@ body.neo-mode .monthly-label { color: #64748b; }
       <div id="summaryArea"></div>
     </section>
 
+    <!-- 종합 사주 풀이와 오늘의 운세 사이 광고 -->
+    <div class="ad-container" id="adMiddle3" style="margin-bottom:20px;">
+      <div class="ad-sponsor-text">☕ 긴 글 읽으시느라 수고하셨습니다. 잠시 커피 한 잔 하듯 광고를 클릭해 주시면 큰 힘이 됩니다. 💖</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
     <!-- 오늘의 운세 & 이달의 운세 -->
     <section class="card" id="dailyMonthlyCard" style="display:none" aria-labelledby="dailyMonthlyTitle">
       <h3 id="dailyMonthlyTitle" class="sec-title">🔆 오늘의 운세 &amp; 이달의 운세</h3>
@@ -3150,6 +3192,14 @@ body.neo-mode .monthly-label { color: #64748b; }
       <h3 id="quantumTitle" class="sec-title">⚡ 퀀텀 명리 전략 리포트 — 합화 우선 분석</h3>
       <div id="quantumSection"></div>
     </section>
+
+    <!-- 퀀텀 리포트와 통합점술 사이 광고 -->
+    <div class="ad-container" id="adMiddle4" style="margin-bottom:25px;">
+      <div class="ad-sponsor-text">🌌 무료로 즐기는 심층 분석! 스폰서 광고를 클릭하셔서 제작자에게 복채를 남겨주시면 큰 행운이 따를 거예요. 🌟</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
 
         <!-- 🌟 통합 점술 탭 시스템 (Mystic Tab System) 🌟 -->
     <section class="mystic-tabs-wrapper" style="margin-bottom:25px; position:relative;" aria-label="Mystic Tab System">
@@ -3535,6 +3585,14 @@ body.neo-mode .monthly-label { color: #64748b; }
       }
     </script>
 
+    <!-- 점술 탭과 궁합 사이 광고 -->
+    <div class="ad-container" id="adMiddle5" style="margin-bottom:20px;">
+      <div class="ad-sponsor-text">💖 운명의 짝을 찾아볼까요? 잠시 광고를 클릭해 따뜻한 마음을 나누시면 더 좋은 인연이 다가올 수 있습니다! 🥰</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
     <!-- 2-1. 궁합 보기 -->
     <section class="card" id="compatCard" aria-labelledby="compatTitle">
       <h3 id="compatTitle" class="sec-title">💞 궁합 보기 (연애 · 사업 · 친구)</h3>
@@ -3580,6 +3638,12 @@ body.neo-mode .monthly-label { color: #64748b; }
     </section>
 
     <!-- 2-3. 요주의 빌런 블랙리스트 -->
+    <div class="ad-container" id="adMiddle6" style="margin-bottom:20px;">
+      <div class="ad-sponsor-text">💢 내 인생의 빌런을 피하려면? 잠시 광고를 눌러 기운을 정화하시고 액운을 예방해 보세요! 🛡️</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
     <section class="card" id="villainCard" style="display:none" aria-labelledby="villainTitle">
       <h3 id="villainTitle" class="sec-title">💀 요주의 빌런 블랙리스트</h3>
       <div id="villainResult"></div>
@@ -3592,6 +3656,12 @@ body.neo-mode .monthly-label { color: #64748b; }
     </section>
 
     <!-- 6-2. 에너지 원정 리포트 (NEW) -->
+    <div class="ad-container" id="adMiddle7" style="margin-bottom:20px;">
+      <div class="ad-sponsor-text">🌍 나에게 맞는 에너지 좌표는 어딜까요? 하단 광고를 한 번씩 둘러봐주시면, 더욱 신비로운 운세 연구에 큰 도움이 됩니다! ✈️</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
     <section class="card" id="energyCoordCard" style="display:none" aria-labelledby="energyTitle">
       <h3 id="energyTitle" class="sec-title">🧭 에너지 원정 리포트 — 사주 맞춤 에너지 좌표</h3>
       <div id="energyCoordSection"></div>
@@ -3610,6 +3680,12 @@ body.neo-mode .monthly-label { color: #64748b; }
     </section>
 
     <!-- ═══ 호르몬 관상: 테토 vs 에겐 ═══ -->
+    <div class="ad-container" id="adMiddle8" style="margin-bottom:20px;">
+      <div class="ad-sponsor-text">🧬 나의 호르몬 관상이 궁금하신가요? 광고 한 번 클릭은 저희가 유익한 콘텐츠를 끝없이 제작하는 원동력이 됩니다! 💪</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
     <section id="hormone-vibe-section" class="card hv-card" style="display:none; overflow:hidden; position:relative;">
       <div class="sec-title">🧬 호르몬 관상 — 테토 vs 에겐</div>
       <div id="hormoneVibeResult"></div>
@@ -3680,8 +3756,11 @@ body.neo-mode .monthly-label { color: #64748b; }
         <!-- 하단 상담 신청 띠 -->
       </aside>
       <!-- 사주 분석 중단 광고 -->
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      <div class="ad-container" style="margin-top:16px;">
+        <div class="ad-sponsor-text">☕ 관심 있는 광고를 클릭해 주시면 서비스 운영에 큰 도움이 됩니다! 여러분의 따뜻한 마음이 복으로 돌아갈 것입니다. 💕</div>
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </div>
     </div>
 
 
@@ -3693,6 +3772,7 @@ body.neo-mode .monthly-label { color: #64748b; }
 
     <!-- 광고 3: 하단 광고 -->
     <aside class="ad-container" id="adBottom" style="margin-bottom:16px" aria-label="Advertisement">
+      <div class="ad-sponsor-text">🌟 무료로 제공되는 양질의 콘텐츠, 광고 클릭 한 번이 그 원동력이 됩니다. 여러분의 넉넉한 인심이 복이 되어 돌아갈 거예요! 🍀</div>
       <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
       <!-- 사주 분석 하단 광고 -->
       <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
