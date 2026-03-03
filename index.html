@@ -3138,8 +3138,8 @@ body.neo-mode .monthly-label { color: #64748b; }
     <section class="card" id="dailyMonthlyCard" style="display:none" aria-labelledby="dailyMonthlyTitle">
       <h3 id="dailyMonthlyTitle" class="sec-title">🔆 오늘의 운세 &amp; 이달의 운세</h3>
       <div class="fortune-tab-wrap">
-        <button class="fortune-tab active" onclick="switchFortune('daily',this)">📅 일운 (오늘)</button>
-        <button class="fortune-tab" onclick="switchFortune('monthly',this)">📆 월운 (이번달)</button>
+        <button type="button" class="fortune-tab active" onclick="switchFortune('daily',this); event.stopPropagation();">📅 일운 (오늘)</button>
+        <button type="button" class="fortune-tab" onclick="switchFortune('monthly',this); event.stopPropagation();">📆 월운 (이번달)</button>
       </div>
       <div id="dailyPanel" class="fortune-panel active"></div>
       <div id="monthlyPanel" class="fortune-panel"></div>
@@ -10881,10 +10881,24 @@ function flipDestinyCard(){/* Deprecated */}
    일운 & 월운 엔진
 ═══════════════════════════════════════ */
 function switchFortune(tab, btn){
-  document.querySelectorAll('.fortune-tab').forEach(function(b){b.classList.remove('active');});
-  document.querySelectorAll('.fortune-panel').forEach(function(el){el.classList.remove('active');});
-  btn.classList.add('active');
-  document.getElementById(tab==='daily'?'dailyPanel':'monthlyPanel').classList.add('active');
+  var wrapper = btn ? btn.closest('.fortune-tab-wrap') : null;
+  var container = wrapper ? wrapper.parentElement : document;
+  
+  var tabs = container.querySelectorAll('.fortune-tab');
+  for(var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.remove('active');
+  }
+  
+  var panels = container.querySelectorAll('.fortune-panel');
+  for(var p = 0; p < panels.length; p++) {
+    panels[p].classList.remove('active');
+  }
+  
+  if(btn) btn.classList.add('active');
+  var targetPanel = document.getElementById(tab === 'daily' ? 'dailyPanel' : 'monthlyPanel');
+  if(targetPanel) {
+    targetPanel.classList.add('active');
+  }
 }
 
 function getGanZhiForDate(y,m,d,h){
