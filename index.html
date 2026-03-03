@@ -12350,7 +12350,7 @@ var NEO_MODE=false;
 var NEO_TITLES={
   '사주 명식 (四柱命式)':'사주 명식 — 운명 회로도',
   '핵심 십성 (十星) — 탭하면 상세 분석!':'핵심 십성 — 당신의 심리 코드',
-  '궁합 보기 (연애 · 사업 · 친구)':'충돌값 분석 — 케미인가, 독인가',
+  '궁합 보기 (연애 · 사업 · 친구)':'궁합 분석 — 우리 케미는 어떨까?',
   '한난조습 (寒暖燥濕) 조후 분석':'에너지 극성 — 당신은 차갑나 뜨겁나',
   '종합 사주 풀이':'팩트 보고서 — 사주로 보는 당신의 수습',
   '오행 밸런스를 위한 여행지':'부족 오행 충전 원정 — 당장 떠나라',
@@ -12512,13 +12512,78 @@ function subscribeEmail() {
     alert('일일 운세 또는 월별 운세 중 하나 이상을 선택해주세요!');
     return;
   }
+
+  // 1) 사주 분석 여부 확인
+  if(!window.G_PILLARS) {
+    alert('운세 구독을 위해 먼저 상단에서 [사주 분석하기]를 완료해주세요!');
+    return;
+  }
+
+  // 2) 오늘/이번달 정보 추출
+  const today = new Date();
+  const ty = today.getFullYear(), tm = today.getMonth() + 1, td = today.getDate(), th = today.getHours();
+  const dayGZ = getGanZhiForDate(ty, tm, td, th);
+  const monGZ = getMonthGanZhi(ty, tm);
+  const dayRes = analyzeFortuneGZ(dayGZ, window.G_PILLARS, '오늘 일진');
+  const monRes = analyzeFortuneGZ(monGZ, window.G_PILLARS, '이달 월운');
+
+  // 3) 편지 내용 포맷팅
+  const uName = window.USER_NAME || '당신';
+  const isNeo = document.body.classList.contains('neo-mode'); 
+  const sender = isNeo ? "Destiny Strategist 쌈바" : "당신의 안식처, 꽃돼지 연이";
   
-  let msg = `[${emailVal}] 주소로 구독을 신청했습니다.\n\n[선택한 항목]\n`;
-  if(subDaily) msg += `- 일일 운세 받기\n`;
-  if(subMonthly) msg += `- 월별 운세 받기\n`;
+  let letter = isNeo 
+    ? `[전략 리포트] ${uName}님의 운행 데이터 수신 완료\n\n안녕하십니까, ${uName}님.\n당신의 명식에 기반한 가장 냉철하고 정확한 운세 전략 리포트를 전송합니다.\n\n`
+    : `[꽃돼지 운세] ${uName}님을 위한 맞춤 운세 레터 도착💌\n\n안녕하세요, ${uName}님!\n오늘 하루도 평안하셨나요? 요청하신 따뜻한 운세 편지를 정성껏 담아 보내드립니다.\n\n`;
+
+  function formatSection(resResult, titleNeo, titlePig, periodStr) {
+    if (!resResult) return '';
+    let sec = isNeo ? `[ ${titleNeo} (${periodStr}) ]\n` : `🌸 ${titlePig} (${periodStr}) 🌸\n`;
+    sec += `▶ 흐름: ${resResult.grade} (운세 배터리: ${resResult.batteryPercent}%)\n`;
+    sec += `▶ 에너지: ${resResult.gz.g}${resResult.gz.j} (${resResult.gGod}·${resResult.jGod} 기운)\n\n`;
+    
+    if (resResult.adviceItems && resResult.adviceItems.length > 0) {
+      sec += isNeo ? `[상세 전략 및 경고]\n` : `💡 어드바이스:\n`;
+      resResult.adviceItems.forEach(adv => {
+        let mark = adv.type === 'warn' ? (isNeo ? '경고' : '조심') : (isNeo ? '전략' : '긍정');
+        sec += `- [${mark}] ${adv.title}: ${adv.body}\n`;
+      });
+      sec += `\n`;
+    }
+    
+    if (resResult.lb) {
+      sec += isNeo ? `[운세 강화 솔루션]\n` : `✨ 당신을 위한 행운의 팁:\n`;
+      sec += `- 행운 컬러: ${resResult.lb.color}\n`;
+      sec += `- 추천 아이템/소재: ${resResult.lb.item || resResult.lb.material || '자연스러운 아이템'}\n`;
+      sec += `- 추천 행동: ${resResult.lb.action}\n`;
+      sec += `- 요약: ${resResult.lb.desc}\n\n`;
+    }
+    return sec;
+  }
+
+  if (subDaily && dayRes) {
+    letter += formatSection(dayRes, '일간 전술 지표', '오늘의 운세', `${ty}년 ${tm}월 ${td}일`);
+  }
+  if (subMonthly && monRes) {
+    letter += formatSection(monRes, '월간 거시 지표', '이달의 운세', `${ty}년 ${tm}월`);
+  }
+
+  let closing = isNeo 
+    ? `감정에 휘둘리지 마십시오. 운명은 예측하는 것이 아니라 전략으로 쟁취하는 것입니다.\n\n- ${sender} -`
+    : `당신의 하루하루가 반짝이는 별처럼 빛나길 진심으로 응원할게요!\n\n- ${sender} 드림 -`;
   
-  alert(msg + '\n구독이 완료되었습니다!');
+  letter += closing;
+
+  // 4) 로컬 발송 시뮬레이션 (mailto)
+  const subjectStr = isNeo ? `[전략 리포트] ${uName}님을 위한 일상/월간 운행 분석` : `[꽃돼지 운세] ${uName}님, 맞춤 구독 편지가 도착했어요 💌`;
+  const mailtoLink = `mailto:${encodeURIComponent(emailVal)}?subject=${encodeURIComponent(subjectStr)}&body=${encodeURIComponent(letter)}`;
+  
+  alert(`${emailVal} 주소로 맞춤 운세 편지 구독이 성공적으로 완료되었습니다! 🎉\n\n\n[안내] 발송될 편지(운세)의 형태와 내용을 직접 확인하실 수 있도록\n회원님의 기본 메일 앱을 통해 이메일 초안(미리보기)을 띄워드립니다.`);
+  
   document.getElementById('subEmail').value = '';
+  
+  // 메일 클라이언트 오픈하여 바로 전송/확인 가능하게 함
+  window.location.href = mailtoLink;
 }
 </script>
 
