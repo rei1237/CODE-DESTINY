@@ -11373,10 +11373,13 @@ function renderTTest(p, natal, johu, pw) {
   var metalScore = counts.metal || 0;
   tScore += metalScore * 10;
   
+  var baziArr = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j];
+  var dg = p.d.g;
+
   // Rule 2: Gwan (Authority - Strict admin)
   var gwanCount = 0;
-  for(var i=0; i<8; i++) {
-    var tg = getTenGod(p.dayGan, p.bazi[i]);
+  for(var i=0; i<baziArr.length; i++) {
+    var tg = getTenGod(dg, baziArr[i]);
     if(tg==='정관' || tg==='편관') gwanCount++;
   }
   tScore += (gwanCount * 15);
@@ -11384,12 +11387,14 @@ function renderTTest(p, natal, johu, pw) {
   // Rule 3: Metal/Earth Sik-sang (Debugging expert)
   var ssCount = 0;
   var isMetalEarthSS = false;
-  for(var i=0; i<8; i++) {
-    var tg = getTenGod(p.dayGan, p.bazi[i]);
+  for(var i=0; i<baziArr.length; i++) {
+    var tg = getTenGod(dg, baziArr[i]);
     if(tg==='식신' || tg==='상관') {
       ssCount++;
-      var el = EL_E[p.bazi[i]] || '';
-      if(el==='금' || el==='토') isMetalEarthSS = true;
+      var charObj = GAN[baziArr[i]] || JI[baziArr[i]];
+      if(charObj && (charObj.e === 'metal' || charObj.e === 'earth')) {
+        isMetalEarthSS = true;
+      }
     }
   }
   if(isMetalEarthSS) tScore += 20;
