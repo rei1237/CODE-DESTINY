@@ -2398,6 +2398,66 @@ body.neo-mode .monthly-label { color: #64748b; }
   .fsn-neo .fsn-progress {
     background: linear-gradient(90deg, #FFA500, #FFD700);
   }
+
+  /* ══════════════════════════════════════════
+     신비로운 사주 리셋 버튼 (Mystic Summon Button)
+  ══════════════════════════════════════════ */
+  @keyframes mystic-breathe {
+    0%   { transform: scale(1);   box-shadow: 0 0 15px rgba(212, 175, 55, 0.4), inset 0 0 10px rgba(212, 175, 55, 0.2); }
+    50%  { transform: scale(1.03);box-shadow: 0 0 30px rgba(212, 175, 55, 0.8), inset 0 0 20px rgba(212, 175, 55, 0.4); }
+    100% { transform: scale(1);   box-shadow: 0 0 15px rgba(212, 175, 55, 0.4), inset 0 0 10px rgba(212, 175, 55, 0.2); }
+  }
+  .mystic-summon-btn {
+    display: block;
+    margin: 40px auto;
+    padding: 1.2rem 3rem;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+    background: linear-gradient(135deg, #2c3e50, #000000, #1a1a2e);
+    background-size: 200% 200%;
+    border: 1px solid rgba(212, 175, 55, 0.6);
+    border-radius: 12px;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    animation: mystic-breathe 3.5s ease-in-out infinite;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+    width: 85%;
+    max-width: 400px;
+    position: relative;
+    overflow: hidden;
+  }
+  .mystic-summon-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .mystic-summon-btn:hover {
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: 0 10px 40px rgba(212, 175, 55, 0.9), inset 0 0 25px rgba(212, 175, 55, 0.5);
+    border-color: #d4af37;
+    animation-play-state: paused;
+    color: #FFDF00;
+    text-shadow: 0 0 15px rgba(255, 223, 0, 0.9);
+  }
+  .mystic-summon-btn:hover::before {
+    opacity: 1;
+  }
+  @media (max-width: 480px) {
+    .mystic-summon-btn { 
+      padding: 1.1rem 2rem; 
+      font-size: 1.15rem; 
+      margin: 30px auto;
+    }
+  }
   </style>
 </head>
 <body>
@@ -3528,7 +3588,7 @@ body.neo-mode .monthly-label { color: #64748b; }
       </div>
     </section>
 
-    <button id="btnNewSaju" class="btn-sub" onclick="resetApp()" style="display:none;"> 새로운 사주 보기</button>
+    <button id="btnNewSaju" class="mystic-summon-btn" onclick="resetApp()" style="display:none;">✨ 새로운 운명의 부름</button>
   
     <!-- 운세 이메일 구독 서비스 박스 -->
     <aside class="subscription-wrap" id="emailSubBox" style="display:none;" aria-label="Email Subscription">
@@ -12769,30 +12829,31 @@ window.addEventListener('load', function() {
     document.body.appendChild(topIndicatorEl);
 
     /* 컨테이너 전체(버튼+라벨 포함)에 클릭 등록 — 어느 지점을 눌러도 동작 */
-    topIndicatorEl.addEventListener('click', function () {
+    topIndicatorEl.addEventListener('click', function (e) {
+      e.stopPropagation();
+      e.preventDefault();
       scrollToVeryTop();
     });
   }
 
-  /* ── 확실한 최상단 스크롤 ─────────────────────────
-     iOS Safari: html{overflow-x:hidden} 때문에
-     window.scrollTo 가 먹히지 않는 경우가 있어
-     모든 스크롤 컨테이너를 순차적으로 처리한다. */
+  /* ── 확실한 최상단 스크롤 ───────────────────────── */
   function scrollToVeryTop() {
-    /* 1. requestAnimationFrame 안에서 실행 – 레이아웃 플러시 후 최신값 반영 */
-    requestAnimationFrame(function () {
-      /* 2. window 우선 */
-      try { window.scrollTo(0, 0); } catch(e) {}
-      /* 3. document.documentElement */
-      try { document.documentElement.scrollTop = 0; } catch(e) {}
-      /* 4. document.body */
-      try { document.body.scrollTop = 0; } catch(e) {}
-      /* 5. 혹시 #resultPage 또는 그 부모가 overflow:scroll 을 가질 경우 */
-      var rp = document.getElementById('resultPage');
-      if (rp) { try { rp.scrollTop = 0; } catch(e) {} }
-      var rpa = rp && rp.parentElement;
-      if (rpa) { try { rpa.scrollTop = 0; } catch(e) {} }
-    });
+    /* 1. 기본 부드러운 스크롤 시도 */
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(err) {}
+
+    /* 2. iOS/구형 브라우저 등에서 부드러운 스크롤이 안 먹히는 경우를 위한 강제 폴백 
+          충분한 시간을 두고 여러 속성을 초기화 */
+    setTimeout(function () {
+      var safeY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      if (safeY > 50) {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        
+        var rp = document.getElementById('resultPage');
+        if (rp) rp.scrollTop = 0;
+      }
+    }, 400); // 400ms: 부드러운 스크롤이 대략 끝났거나 작동 안 했을 시간
   }
 
   /* 현재 스크롤 Y 값 – iOS Safari 호환 */
@@ -13048,7 +13109,7 @@ window.addEventListener('load', function() {
   ];
 
   var CORE_IDS  = ['sajuCard','iljuCard','tenshinCard','dailyMonthlyCard','compatCard','similarCelebCard','johuCard','ukbuCard','summaryCard','daewunCard','quantumCard'];
-  var FUN_IDS   = ['villainCard','skillTreeCard','energyCoordCard','healthReportCard'];
+  var FUN_IDS   = ['villainCard','skillTreeCard','energyCoordCard','healthReportCard','hormone-vibe-section'];
   var LOTTO_IDS = ['lottoCard'];
 
   function toRgba(hex, a) {
