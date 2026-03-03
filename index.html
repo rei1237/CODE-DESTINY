@@ -11376,7 +11376,7 @@ function renderTTest(p, natal, johu, pw) {
   // Rule 2: Gwan (Authority - Strict admin)
   var gwanCount = 0;
   for(var i=0; i<8; i++) {
-    var tg = getTenGods(p.dayGan, p.bazi[i]);
+    var tg = getTenGod(p.dayGan, p.bazi[i]);
     if(tg==='정관' || tg==='편관') gwanCount++;
   }
   tScore += (gwanCount * 15);
@@ -11385,7 +11385,7 @@ function renderTTest(p, natal, johu, pw) {
   var ssCount = 0;
   var isMetalEarthSS = false;
   for(var i=0; i<8; i++) {
-    var tg = getTenGods(p.dayGan, p.bazi[i]);
+    var tg = getTenGod(p.dayGan, p.bazi[i]);
     if(tg==='식신' || tg==='상관') {
       ssCount++;
       var el = EL_E[p.bazi[i]] || '';
