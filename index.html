@@ -12599,23 +12599,45 @@ window.addEventListener('load', function() {
 
     var topBtn = document.getElementById('fateTopArrow');
     topBtn && topBtn.addEventListener('click', function () {
-      var rp = getResultPage();
-      if (rp && isDisplayed(rp)) {
-        rp.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
+      /* iOS Safari + html{overflow-x:hidden} 환경 호환 스크롤-투-탑 */
+      try {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (e) {
+        /* scrollTo 옵션 미지원 구형 브라우저 폴백 */
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
       }
     });
+  }
+
+  /* 현재 스크롤 Y 값 – iOS Safari 호환 */
+  function getScrollY() {
+    return window.pageYOffset
+      || document.documentElement.scrollTop
+      || document.body.scrollTop
+      || 0;
+  }
+
+  /* 문서 전체 높이 */
+  function getDocHeight() {
+    return Math.max(
+      document.body.scrollHeight, document.documentElement.scrollHeight,
+      document.body.offsetHeight,  document.documentElement.offsetHeight
+    );
   }
 
   function shouldShowTopIndicator() {
     var rp = getResultPage();
     if (!rp || !isDisplayed(rp)) return false;
 
-    var rect = rp.getBoundingClientRect();
     var viewportH = window.innerHeight || document.documentElement.clientHeight;
-    var longEnough = rp.scrollHeight > viewportH * 1.05;
-    var reachedBottom = rect.bottom <= viewportH + 24;
+    var st = getScrollY();
+    var docH = getDocHeight();
+
+    /* 페이지가 충분히 긴지 */
+    var longEnough = docH > viewportH * 1.5;
+    /* 하단 120px 이내로 스크롤됐는지 */
+    var reachedBottom = (st + viewportH) >= (docH - 120);
 
     return longEnough && reachedBottom;
   }
@@ -12642,7 +12664,10 @@ window.addEventListener('load', function() {
     ensureTopIndicator();
     updateTopIndicator();
 
+    /* iOS Safari: overflow-x:hidden on <html> 시 scroll 이벤트가
+       window 대신 document/body에 붙을 수 있으므로 모두 리스닝 */
     window.addEventListener('scroll', requestUpdate, { passive: true });
+    document.addEventListener('scroll', requestUpdate, { passive: true });
     window.addEventListener('resize', requestUpdate);
 
     var rp = getResultPage();
