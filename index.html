@@ -2973,6 +2973,13 @@ body.neo-mode .monthly-label { color: #64748b; }
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.2), inset 0 0 30px rgba(212, 175, 55, 0.1) !important;
       }
 
+      /* 모바일 환경에서는 호버 시 스케일, 트랜스폼 효과를 줄이거나 제거하여 화면 깨짐/가로 스크롤 방지 */
+      @media (max-width: 768px) {
+        body.neo-mode .sacred-mirror-card:hover {
+          transform: none !important;
+        }
+      }
+
       body.neo-mode .sacred-mirror-card:hover::after {
         opacity: 1;
         animation: pulseSacredGlow 3s infinite alternate;
