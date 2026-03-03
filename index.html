@@ -12768,16 +12768,30 @@ window.addEventListener('load', function() {
 
     document.body.appendChild(topIndicatorEl);
 
-    var topBtn = document.getElementById('fateTopArrow');
-    topBtn && topBtn.addEventListener('click', function () {
-      /* iOS Safari + html{overflow-x:hidden} 환경 호환 스크롤-투-탑 */
-      try {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (e) {
-        /* scrollTo 옵션 미지원 구형 브라우저 폴백 */
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      }
+    /* 컨테이너 전체(버튼+라벨 포함)에 클릭 등록 — 어느 지점을 눌러도 동작 */
+    topIndicatorEl.addEventListener('click', function () {
+      scrollToVeryTop();
+    });
+  }
+
+  /* ── 확실한 최상단 스크롤 ─────────────────────────
+     iOS Safari: html{overflow-x:hidden} 때문에
+     window.scrollTo 가 먹히지 않는 경우가 있어
+     모든 스크롤 컨테이너를 순차적으로 처리한다. */
+  function scrollToVeryTop() {
+    /* 1. requestAnimationFrame 안에서 실행 – 레이아웃 플러시 후 최신값 반영 */
+    requestAnimationFrame(function () {
+      /* 2. window 우선 */
+      try { window.scrollTo(0, 0); } catch(e) {}
+      /* 3. document.documentElement */
+      try { document.documentElement.scrollTop = 0; } catch(e) {}
+      /* 4. document.body */
+      try { document.body.scrollTop = 0; } catch(e) {}
+      /* 5. 혹시 #resultPage 또는 그 부모가 overflow:scroll 을 가질 경우 */
+      var rp = document.getElementById('resultPage');
+      if (rp) { try { rp.scrollTop = 0; } catch(e) {} }
+      var rpa = rp && rp.parentElement;
+      if (rpa) { try { rpa.scrollTop = 0; } catch(e) {} }
     });
   }
 
