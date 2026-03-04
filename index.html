@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
@@ -13327,15 +13327,18 @@ var _pwaInstalled = false;
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   _pwaPrompt = e;
+  var isNeo = (typeof NEO_MODE !== 'undefined' && NEO_MODE);
+  var pigText = '꽃돼지 운세 서비스 앱 설치하기';
+  var neoText = '팩폭 사자 운세 서비스 앱 설치하기';
   var btn = document.getElementById('btnPwaInstall');
   if (btn) {
     btn.classList.remove('installed');
-    document.getElementById('pwaInstallLabel').textContent = '홈 화면에 행운의 만세력 설치';
+    document.getElementById('pwaInstallLabel').textContent = isNeo ? neoText : pigText;
   }
   var btnHome = document.getElementById('btnPwaInstallHome');
   if (btnHome) {
     btnHome.classList.remove('installed');
-    document.getElementById('pwaInstallLabelHome').textContent = '홈 화면에 행운의 만세력 설치';
+    document.getElementById('pwaInstallLabelHome').textContent = isNeo ? neoText : pigText;
   }
 });
 
@@ -13467,6 +13470,14 @@ function toggleNeoMode(){
       tLabel.innerText = '🦁 팩폭 사자 쌈바 모드';
       tLabel.style.color = '#FFD700';
     }
+    /* 사자모드 manifest 교체 */
+    var manifestLink = document.querySelector('link[rel="manifest"]');
+    if(manifestLink) manifestLink.setAttribute('href', 'manifest-samba.json');
+    /* PWA 설치 텍스트 변경 */
+    var pwaLabel = document.getElementById('pwaInstallLabel');
+    var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
+    if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '팩폭 사자 운세 서비스 앱 설치하기';
+    if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '팩폭 사자 운세 서비스 앱 설치하기';
   }else{
     body.classList.remove('neo-mode');
     body.classList.remove('theme-neo');
@@ -13478,6 +13489,14 @@ function toggleNeoMode(){
       tLabel.innerText = '🌸 꽃돼지 연이 모드';
       tLabel.style.color = '#FF8BA7';
     }
+    /* 연이모드 manifest 복원 */
+    var manifestLink = document.querySelector('link[rel="manifest"]');
+    if(manifestLink) manifestLink.setAttribute('href', 'manifest.json');
+    /* PWA 설치 텍스트 복원 */
+    var pwaLabel = document.getElementById('pwaInstallLabel');
+    var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
+    if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '꽃돼지 운세 서비스 앱 설치하기';
+    if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '꽃돼지 운세 서비스 앱 설치하기';
   }
   applyNeoTexts();
 }
