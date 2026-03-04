@@ -81,17 +81,21 @@ const hwatuStyles = `
 .hwatu-front { background: #fff; color: #000; transform: rotateY(180deg); flex-direction: column; }
 .hwatu-front .marker { font-size: 0.9rem; font-weight: bold; margin-top: 10px; color: #b91c1c; }
 
-/* 캐릭터 팝업 */
-#tazzaCharPopup {
-    position: fixed; bottom: -200px; left: 50%; transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.95); border: 2px solid #fbbf24; box-shadow: 0 0 20px rgba(0,0,0,0.9);
-    display: flex; align-items: center; padding: 15px 25px; border-radius: 50px; z-index: 100001;
-    width: 90%; max-width: 450px; opacity: 0; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* 다중 캐릭터 팝업 */
+.tazza-multi-popup {
+    position: fixed; background: rgba(15, 23, 42, 0.95); border: 2px solid #fbbf24;
+    display: flex; align-items: center; padding: 10px 15px; border-radius: 30px; z-index: 100001;
+    width: max-content; max-width: 280px; box-shadow: 0 4px 15px rgba(0,0,0,0.8); opacity: 0; pointer-events: none;
 }
-#tazzaCharPopup.show { bottom: 30px; opacity: 1; }
-.popup-img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #fbbf24; object-fit: cover; margin-right: 15px; }
-.popup-quote { color: #facc15; font-size: 1.05rem; font-weight: bold; font-style: italic; line-height: 1.4; text-shadow: 1px 1px 2px #000; flex:1; text-align: left;}
-.popup-name { display: block; font-size: 0.8rem; color: #e2e8f0; font-style: normal; margin-bottom: 4px; }
+.tazza-multi-popup img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #fbbf24; margin-right: 10px; flex-shrink: 0; object-fit: cover;}
+.tazza-popup-text-col { display: flex; flex-direction: column; }
+.tazza-popup-name { font-size: 0.75rem; color: #e2e8f0; margin-bottom: 2px; text-align:left; }
+.tazza-popup-quote { color: #facc15; font-size: 0.85rem; font-weight: bold; font-style: italic; line-height: 1.3; text-align:left; word-break:keep-all;}
+
+#tcTop { top: -100px; left: 50%; transform: translateX(-50%); }
+#tcBottom { bottom: -100px; left: 50%; transform: translateX(-50%); }
+#tcLeft { top: 25%; left: -350px; transform: translateY(-50%); }
+#tcRight { top: 65%; right: -350px; transform: translateY(-50%); }
 
 /* 공통 버튼 */
 .btn-hwatu {
@@ -167,11 +171,11 @@ function injectHwatuHTML() {
             </div>
         </div>
 
-        <!-- 타짜 캐릭터 팝업 인터랙션 -->
-        <div id="tazzaCharPopup">
-            <img id="popupImg" class="popup-img" src="">
-            <div class="popup-quote"><span class="popup-name" id="popupName"></span><span id="popupText"></span></div>
-        </div>
+        <!-- 다중 타짜 캐릭터 팝업 인터랙션 -->
+        <div class="tazza-multi-popup" id="tcTop"><img id="tcTopImg" src=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcTopName"></span><span class="tazza-popup-quote" id="tcTopText"></span></div></div>
+        <div class="tazza-multi-popup" id="tcBottom"><img id="tcBottomImg" src=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcBottomName"></span><span class="tazza-popup-quote" id="tcBottomText"></span></div></div>
+        <div class="tazza-multi-popup" id="tcLeft"><img id="tcLeftImg" src=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcLeftName"></span><span class="tazza-popup-quote" id="tcLeftText"></span></div></div>
+        <div class="tazza-multi-popup" id="tcRight"><img id="tcRightImg" src=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcRightName"></span><span class="tazza-popup-quote" id="tcRightText"></span></div></div>
     `;
     document.body.appendChild(overlay);
     loadGSAP(() => console.log('GSAP Loaded for Tazza Sequence'));
@@ -282,16 +286,45 @@ window.startShuffleSequence = function() {
         warn.style.display = 'block'; return;
     }
     document.getElementById('startShuffleBtn').style.display = 'none';
+
+    // --- 다시 뽑기 시 이전 UI 및 카드 초기화 --- //
+    document.getElementById('hwatuResultBox').style.display = 'none';
+    document.getElementById('revealArea').style.display = 'none';
+    document.getElementById('hCard1').classList.remove('flipped');
+    document.getElementById('hCard2').classList.remove('flipped');
+    document.getElementById('shuffleArea').style.display = 'block';
+    document.getElementById('shuffleArea').style.opacity = 1;
+    document.getElementById('shuffleArea').style.height = '350px';
+    const areaCards = document.getElementById('shuffleArea').querySelectorAll('.hwatu-deck-card');
+    areaCards.forEach(c => c.remove());
+    // ------------------------------------------ //
+
+    // --- 상하좌우 4명 캐릭터 동시 팝업 등장 --- //
+    const charKeys = Object.keys(TAZZA_SYSTEM.CHARACTERS).sort(() => 0.5 - Math.random());
+    const positions = ['Top', 'Bottom', 'Left', 'Right'];
     
-    // 캐릭터 팝업
-    const charKeys = Object.keys(TAZZA_SYSTEM.CHARACTERS);
-    const randChar = TAZZA_SYSTEM.CHARACTERS[charKeys[Math.floor(Math.random() * charKeys.length)]];
-    const pop = document.getElementById('tazzaCharPopup');
-    document.getElementById('popupImg').src = randChar.image || 'icons/honey%20manse.png'; // fallback
-    document.getElementById('popupName').innerText = randChar.name;
-    document.getElementById('popupText').innerText = randChar.catchphrase;
-    pop.classList.add('show');
-    setTimeout(() => pop.classList.remove('show'), 3500);
+    for(let i=0; i<4; i++) {
+        const char = TAZZA_SYSTEM.CHARACTERS[charKeys[i]];
+        const pos = positions[i];
+        document.getElementById(`tc${pos}Img`).src = char.image || 'icons/honeypig.svg';
+        document.getElementById(`tc${pos}Name`).innerText = char.name;
+        document.getElementById(`tc${pos}Text`).innerText = char.catchphrase;
+    }
+
+    if(window.gsap) {
+        gsap.to('#tcTop', { top: 20, opacity: 1, duration: 0.6, ease: "back.out(1.2)" });
+        gsap.to('#tcBottom', { bottom: 20, opacity: 1, duration: 0.6, ease: "back.out(1.2)", delay: 0.1 });
+        gsap.to('#tcLeft', { left: 10, opacity: 1, duration: 0.6, ease: "back.out(1.2)", delay: 0.2 });
+        gsap.to('#tcRight', { right: 10, opacity: 1, duration: 0.6, ease: "back.out(1.2)", delay: 0.3 });
+
+        setTimeout(() => {
+            gsap.to('#tcTop', { top: -150, opacity: 0, duration: 0.5 });
+            gsap.to('#tcBottom', { bottom: -150, opacity: 0, duration: 0.5 });
+            gsap.to('#tcLeft', { left: -350, opacity: 0, duration: 0.5 });
+            gsap.to('#tcRight', { right: -350, opacity: 0, duration: 0.5 });
+        }, 3800);
+    }
+    // ----------------------------------------- //
 
     // GSAP 셔플 애니메이션 (속도를 위해 24장 사용)
     const area = document.getElementById('shuffleArea');
