@@ -3160,13 +3160,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
     </header>
 
     <!-- 입력 폼 상단 광고 -->
-    <div class="ad-container" id="adInputTop" style="margin-bottom:20px;">
-      <div class="ad-sponsor-text">💖 운세 풀이를 위해 잠시만요! 저희 서비스를 후원해 주시는 마음으로 광고를 둘러봐주시면 큰 힘이 됩니다. 🍀</div>
-      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-
     <section class="card input-section" aria-label="사주 정보 입력">
       <div class="form-group">
         <label class="form-label">이름</label>
@@ -3231,6 +3224,14 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <!-- ═══ 부가 기능 카드 그리드 ═══ -->
       <div class="feature-card-grid">
 
+            <div class="ad-container" id="adInputTop" style="margin-bottom:20px;">
+      <div class="ad-sponsor-text">💖 운세 풀이를 위해 잠시만요! 저희 서비스를 후원해 주시는 마음으로 광고를 둘러봐주시면 큰 힘이 됩니다. 🍀</div>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+
         <!-- 1. AI 동물 관상 -->
         <div class="feature-card feature-card--face" onclick="openPhysiognomyApp()">
           <div class="feature-card__img-wrap">
@@ -3239,7 +3240,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🎭 AI 동물 관상</h3>
-            <p class="feature-card__desc">셀카 한 장으로 나와 닮은 동물을 AI가 분석! 얼굴형·이목구비로 보는 관상 운세</p>
+            <p class="feature-card__desc">셀카 한 장으로 나와 닮은 동물을 AI가 분석! 얼굴형·이목구비로 보는 관상 운세, 관상 궁합도 가능해요!</p>
             <span class="feature-card__cta">분석 시작 →</span>
           </div>
         </div>
@@ -3830,8 +3831,8 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <option value="global">🌍 위성 검색 [글로벌 오컬트 데이터베이스]</option>
         </select>
         <div class="kemet-input-group">
-          <input type="text" id="kemetWorry" class="kemet-input" placeholder="이름 또는 고민거리를 입력하세요 (예: 이직할 수 있을까?)">
-          <button class="kemet-btn" onclick="startKemetOracle()">역사서 스캔</button>
+          <input type="text" id="kemetWorry" class="kemet-input" placeholder="구체적인 질문을 입력하세요 (예: 이번 달 재물운은?, 남친과 재회 가능?, 공무원 합격?)">
+          <button class="kemet-btn" onclick="startKemetOracle()">신탁 해석</button>
         </div>
       </div>
 
@@ -3947,6 +3948,106 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         "토트의 파피루스 두루마리: 꼬여버린 인간관계와 복잡한 갈등을 지혜로운 결단으로 해지하게 만들어 주는 진리의 부적"
       ];
 
+      // ═══ 키워드 기반 맞춤 조언 시스템 ═══
+      const KEMET_KEYWORD_MAP = {
+        wealth: {
+          keywords: ['재물', '돈', '금전', '투자', '주식', '부동산', '로또', '재산', '수입', '월급', '연봉', '빚', '대출', '저축', '펀드', '코인', '비트코인', '재테크', '경매', '부자'],
+          label: '💰 재물·금전운',
+          godWeight: { '오시리스 (Osiris)': 3, '라 (Ra)': 2, '이시스 (Isis)': 1 },
+          advice: [
+            "나일강의 범람이 비옥한 대지를 선물하듯, 당신의 재물 흐름에 거대한 물줄기가 흐르기 시작합니다. 그러나 급류에 떠밀려 무모한 투기에 몸을 던지지 마십시오. 피라미드의 제왕들은 단 하나의 벽돌을 놓더라도 수천 년을 내다보았습니다. <b>향후 3개월간은 공격적 투자보다 안전자산 비중을 70% 이상</b>으로 유지하는 것이 신탁의 처방입니다.",
+            "스카라베가 태양을 굴리듯, 작은 씨앗 자금이 기하급수적으로 불어나는 기운이 감지됩니다. 다만 타인의 감언이설에 현혹되어 보증이나 공동 투자에 엮이는 것은 재앙의 시작입니다. <b>자신만의 독자적인 판단으로 움직이되, 반드시 전문가의 냉철한 검증</b>을 거친 후에만 실행에 옮기십시오.",
+            "현재 당신의 재물 에너지장에 '누수'의 파동이 감지됩니다. 불필요한 구독, 충동 소비, 인간관계에서의 과도한 지출이 피라미드의 토대를 갉아먹고 있습니다. <b>이번 달 안에 모든 고정 지출을 점검하고 최소 20%를 절감</b>하면 3개월 후 놀라운 여유가 찾아옵니다.",
+            "파라오의 보물 창고가 열리는 징조가 보입니다. 예상치 못한 보너스, 환급, 부수입의 통로가 열릴 가능성이 높습니다. 그러나 <b>들어오는 재물의 30%는 반드시 비상금으로 별도 보관</b>하십시오. 풍요 뒤에 찾아오는 시험에 대비하는 것이 진정한 부자의 지혜입니다."
+          ]
+        },
+        love: {
+          keywords: ['연애', '사랑', '결혼', '이별', '짝사랑', '고백', '데이트', '남자친구', '여자친구', '남친', '여친', '배우자', '소개팅', '썸', '재회', '바람', '외도', '이혼', '프로포즈', '커플'],
+          label: '💕 연애·결혼운',
+          godWeight: { '이시스 (Isis)': 3, '아누비스 (Anubis)': 2, '라 (Ra)': 1 },
+          advice: [
+            "이시스가 만 갈래로 흩어진 오시리스의 육신을 기적처럼 되찾았듯, 당신의 감정 세계에도 강력한 결합의 에너지가 밀려옵니다. 현재 마음속에 떠오르는 그 사람과의 인연에는 신성한 끈이 묶여 있습니다. <b>먼저 진심 어린 한 마디를 건네는 용기</b>가 운명의 문을 활짝 열어젖힐 것입니다.",
+            "사막의 신기루처럼 화려하지만 실체 없는 감정에 빠져 있지 않은지 점검이 필요합니다. 진정한 사랑은 조건과 외모가 아니라 <b>영혼의 파장이 공명하는 깊이</b>에서 비롯됩니다. 상대방의 말보다 행동을, 약속보다 일상의 태도를 관찰하십시오. 그것이 진짜 마음을 읽는 호루스의 눈입니다.",
+            "과거의 상처가 새로운 인연의 문 앞에 거대한 장벽을 세우고 있습니다. <b>먼저 자신의 내면을 치유하고 사랑하는 법</b>을 배워야, 비로소 당신에게 어울리는 격의 인연이 끌려옵니다. 자존감이 낮은 상태에서의 만남은 또 다른 상처의 반복일 뿐입니다.",
+            "현재 관계에 솔직한 대화가 급선무입니다. 상대방도 비슷한 불안을 품고 있을 가능성이 높습니다. <b>감정을 숨기거나 눈치만 보는 것을 멈추고, 이번 주 안에 진심을 담은 대화의 자리</b>를 마련하십시오. 침묵 속의 오해가 관계를 병들게 합니다."
+          ]
+        },
+        relation: {
+          keywords: ['인간관계', '친구', '동료', '상사', '부하', '갈등', '다툼', '화해', '배신', '왕따', '따돌림', '뒷담화', '험담', '신뢰', '우정', '가족', '부모', '형제', '시어머니', '며느리', '사이'],
+          label: '🤝 인간관계운',
+          godWeight: { '이시스 (Isis)': 2, '토트 (Thoth)': 2, '오시리스 (Osiris)': 2 },
+          advice: [
+            "나일강이 수많은 지류와 합류하여 대해를 이루듯, 인간관계의 갈등은 사실 당신의 그릇을 넓히기 위한 우주적 시나리오입니다. <b>상대방의 입장에서 3분간 생각하는 훈련</b>을 매일 하십시오. 그것만으로도 관계의 독소가 해독제로 변합니다.",
+            "현재 당신 주변에 에너지 뱀파이어가 숨어 있습니다. 만날 때마다 기운이 빠지고 자존감이 떨어지는 사람이 있다면, 그것은 우주가 보내는 명확한 경고입니다. <b>물리적 거리두기가 어렵다면 심리적 경계선을 확고히</b> 세우십시오. 모든 사람에게 좋은 사람이 되려는 것은 자멸의 시작입니다.",
+            "오해와 불신의 벽은 한 번의 진심 어린 사과로 무너질 수 있습니다. 자존심은 일시적이지만 소중한 인연은 영원합니다. <b>먼저 손을 내미는 것은 약함이 아니라 위대한 강자의 풍격</b>입니다. 이번 주 안에 어색해진 그 사람에게 연락해 보십시오.",
+            "가족 간의 갈등이라면, 각자의 사랑 표현 방식이 다를 뿐 근본적인 마음은 같다는 것을 이해해야 합니다. <b>비난 대신 '나는 이럴 때 이런 감정을 느낀다'는 방식</b>으로 표현을 바꾸면, 수십 년 묵은 관계의 매듭도 풀립니다."
+          ]
+        },
+        exam: {
+          keywords: ['합격', '시험', '수능', '공무원', '자격증', '면접', '입시', '대학', '고시', '토익', '토플', '공부', '학업', '성적', '편입', '대학원', '논문', '졸업', '학점', '필기'],
+          label: '📚 시험·합격운',
+          godWeight: { '토트 (Thoth)': 3, '라 (Ra)': 2, '오시리스 (Osiris)': 1 },
+          advice: [
+            "토트의 지혜가 당신의 두뇌에 강력한 집중력의 빛을 내려쏟고 있습니다. 현재 당신이 준비하는 시험에 대한 운의 흐름은 긍정적입니다. 다만 운에 기대지 말고 <b>매일 최소 핵심 3시간의 고밀도 학습을 반드시 사수</b>하십시오. 신(神)도 노력하지 않는 자는 돕지 않습니다.",
+            "합격의 문은 이미 열려 있으나, 당신의 눈앞을 가리는 것은 불안이라는 모래폭풍입니다. <b>결과에 대한 집착을 내려놓고 오직 오늘 할 분량에만 온 정신을 쏟으면</b> 합격의 신탁은 현실로 내려앉습니다. 시험 전날에는 새로운 내용 대신 기존 정리 노트만 복습하십시오.",
+            "현재 학습 방법에 근본적인 전환이 필요합니다. 양(量)으로 승부하는 시대는 끝났습니다. <b>틀린 문제를 3번 반복하는 것이 새 문제 30개를 푸는 것보다 강력합니다.</b> 오답 노트를 신전의 성서처럼 매일 기도하듯 펼치십시오.",
+            "면접이나 실기를 앞두고 있다면, 준비 내용의 완벽함보다 <b>자신감 있는 태도와 진정성 있는 표현</b>이 합격의 결정적 변수입니다. 거울 앞에서 매일 5분씩 자기소개를 연습하면 당일 떨림이 확신으로 바뀝니다."
+          ]
+        },
+        promotion: {
+          keywords: ['승진', '진급', '연봉협상', '인사', '평가', '포상', '성과', '인정', '발탁', '임원', '팀장', '부장', '과장', '대리', '매니저', '리더', '직급', '고과'],
+          label: '🏆 승진·성과운',
+          godWeight: { '라 (Ra)': 3, '오시리스 (Osiris)': 2, '토트 (Thoth)': 1 },
+          advice: [
+            "라(Ra)의 태양이 당신의 이름을 조직 내에서 찬란하게 비추기 시작합니다. 당신의 성실함과 역량이 드디어 결정권자의 눈에 분명하게 포착되었습니다. <b>이 시기에는 겸손하되 자신의 성과를 명확한 수치와 근거로 어필</b>하는 전략이 승진의 열쇠입니다.",
+            "승진의 기운이 흐르고 있으나, 사내 정치의 모래바람이 방해할 수 있습니다. <b>편가르기에 가담하지 말고, 실력으로만 말하는 고독한 장인의 풍모</b>를 유지하십시오. 한 번의 뒷담화가 3년의 노력을 무(無)로 돌리는 것이 조직의 냉혹한 진리입니다.",
+            "지금 당장 눈에 보이는 승진이 아니더라도 초조해하지 마십시오. <b>현재 맡은 업무에서 대체 불가능한 전문성을 구축</b>하면 기회는 반드시 찾아옵니다. 직급보다 실질적 영향력을 키우는 것이 파라오의 전략입니다.",
+            "연봉 협상을 앞두고 있다면, 감정에 호소하지 마시고 <b>구체적인 기여 데이터(매출 증가율, 비용 절감액, 프로젝트 성과)를 문서화</b>하여 제시하십시오. 숫자로 말하는 자만이 토트(Thoth)의 축복을 받습니다."
+          ]
+        },
+        business: {
+          keywords: ['사업', '창업', '장사', '매출', '거래처', '계약', '프리랜서', '자영업', '폐업', '매장', '브랜드', '마케팅', '고객', '매입', '유통', '프랜차이즈', '스타트업', '투자유치', '벤처'],
+          label: '🏛️ 사업·창업운',
+          godWeight: { '오시리스 (Osiris)': 3, '라 (Ra)': 2, '토트 (Thoth)': 1 },
+          advice: [
+            "파라오가 제국을 건설하듯, 당신의 사업에 거대한 기반을 다질 시기가 도래했습니다. 다만 제국은 하루아침에 세워지지 않습니다. <b>향후 6개월은 규모 확장보다 내부 시스템과 핵심 고객 확보에 모든 에너지를 집중</b>하십시오.",
+            "새로운 거래처나 파트너십의 제안이 다가오고 있습니다. 유혹적이지만 <b>계약서의 세부 조항을 하나하나 면밀히 확인</b>하십시오. 특히 위약금, 독점 조항, 지분 구조에 함정이 없는지 전문가 검토가 필수입니다. 서두르면 사막의 도적에게 보물을 내주는 꼴입니다.",
+            "매출 정체기라면 기존 방식을 고수하는 것이 가장 큰 위험입니다. <b>고객의 불만 리뷰 20개를 직접 읽고 그 안에서 새로운 상품/서비스 아이디어</b>를 발굴하십시오. 피라미드도 하나의 균열에서 무너집니다. 고객의 목소리가 곧 신의 계시입니다.",
+            "사업 초기라면 <b>완벽한 준비보다 빠른 실행과 피드백 반영이 10배 중요</b>합니다. 파피루스에 아무리 완벽한 설계도를 그려도 모래바람 한 번에 달라자비니다. 작게 시작하고 시장의 반응을 보며 즉시 수정하는 스카라베의 민첩함을 갖추십시오."
+          ]
+        },
+        health: {
+          keywords: ['건강', '병', '수술', '입원', '다이어트', '살', '체중', '운동', '피로', '스트레스', '우울', '불면', '정신', '멘탈', '회복', '치료', '약', '병원', '진단', '암'],
+          label: '🏥 건강·회복운',
+          godWeight: { '이시스 (Isis)': 3, '아누비스 (Anubis)': 2, '오시리스 (Osiris)': 1 },
+          advice: [
+            "이시스의 치유 마법이 당신의 생명력 회로에 강력한 재생 에너지를 불어넣고 있습니다. 그러나 신의 축복도 당신의 협조 없이는 작동하지 않습니다. <b>수면 7시간 이상 확보, 가공식품 절반으로 줄이기, 하루 30분 걷기</b> — 이 세 가지가 가장 강력한 현실의 치유 주문입니다.",
+            "몸이 보내는 미세한 경고 신호를 무시하지 마십시오. 찌릿한 통증, 만성 피로, 소화 불량은 영혼이 비명을 지르는 것입니다. <b>미루고 있던 건강 검진을 이번 달 안에 반드시 받으십시오.</b> 조기 발견이 천 개의 부적보다 강력합니다.",
+            "정신적 피로와 번아웃이 감지됩니다. <b>남에게 괜찮다고 말하는 것을 멈추고, 신뢰할 수 있는 한 사람에게 솔직히 힘든 마음을 토로</b>하십시오. 혼자 짊어지는 고통은 두 배로 무겁지만, 나누면 반으로 줄어듭니다.",
+            "다이어트나 체중 관리에 대한 고민이라면, 극단적 단식이나 유행 식단을 쫓지 마십시오. <b>하루 한 끼만 건강식으로 바꾸고 4주간 유지</b>하면 몸이 스스로 변화의 리듬을 찾기 시작합니다. 파라오도 영원한 육체를 위해 절제(節制)를 최고의 덕목으로 삼았습니다."
+          ]
+        },
+        career: {
+          keywords: ['이직', '퇴사', '전직', '취업', '구직', '면접', '이력서', '자소서', '직장', '회사', '일', '직업', '경력', '스펙', '헤드헌터', '워라밸', '퇴직', '실업', '알바', '아르바이트'],
+          label: '💼 직업·이직운',
+          godWeight: { '아누비스 (Anubis)': 3, '라 (Ra)': 2, '토트 (Thoth)': 1 },
+          advice: [
+            "아누비스가 당신의 영혼을 새로운 세계로 안내하려 합니다. 현재 직장에서의 시간이 다했다는 직감이 있다면 그것은 정확합니다. <b>다만 준비 없는 퇴사는 사막 한가운데 맨몸으로 서는 것과 같습니다.</b> 최소 3개월치 생활비와 2개 이상의 확보된 기회가 있을 때 움직이십시오.",
+            "취업 면접이 다가오고 있다면, 토트의 지혜로 준비하십시오. <b>해당 기업의 최근 뉴스 10개, 경쟁사 3곳, 해당 직무의 핵심 KPI</b>를 암기하고 가면 면접관의 눈빛이 달라집니다. 열정보다 준비된 전문성이 채용을 결정합니다.",
+            "지금 자리에 머물지 갈지 고민 중이라면, 감정이 아니라 <b>5년 뒤의 성장 가능성</b>을 냉철하게 따져보십시오. 현재 급여가 낮아도 성장 곡선이 가파르다면 머무는 것이 답이고, 천정이 보인다면 과감히 날개를 펴야 합니다.",
+            "프리랜서나 독립을 고려 중이라면, <b>독립 전 최소 3명의 확실한 고정 클라이언트를 확보</b>하십시오. 자유의 달콤함 뒤에 숨은 불안정의 쓴맛을 견딜 수 있는 안전망이 반드시 필요합니다."
+          ]
+        }
+      };
+
+      // 키워드 미매칭 시 범용 조언
+      const KEMET_GENERAL_ADVICE = [
+        "우주의 흐름은 당신의 질문에 응답하고 있습니다. 지금 가장 중요한 것은 <b>생각의 과잉이 아니라 하나의 명확한 결단</b>입니다. 수백 개의 선택지를 저울질하느라 행동하지 않는 것이야말로 최악의 선택임을 기억하십시오.",
+        "당신이 현재 직면한 고민의 본질은 외부 환경이 아니라 <b>내면의 두려움</b>입니다. 실패에 대한 공포를 인정하고 받아들이는 순간, 역설적으로 실패의 확률 자체가 급격히 줄어듭니다.",
+        "시간이라는 나일강은 결코 거슬러 오를 수 없습니다. 과거의 후회에 에너지를 낭비하지 말고, <b>오늘 할 수 있는 가장 작은 한 걸음</b>에 모든 집중력을 쏟으십시오. 위대한 피라미드도 단 하나의 돌블록에서 시작되었습니다.",
+        "곧 중요한 선택의 갈림길이 나타날 것입니다. 그때 <b>편한 길이 아닌 옳은 길</b>을 택하십시오. 단기적으로는 고통스러울 수 있으나, 그 선택이 1년 뒤의 당신을 완전히 다른 차원에 올려놓을 것입니다."
+      ];
+
       const KEMET_LOADMSG = [
         "이집트 카이로 도서관 접속 중...",
         "사카라 유적지 파피루스 암호 해독 중...",
@@ -3959,7 +4060,11 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       function startKemetOracle() {
         const input = document.getElementById('kemetWorry').value.trim();
         if(!input) {
-          alert('당신의 이름이나 묻고 싶은 고민을 정확히 기재해 주십시오.');
+          alert('당신의 고민이나 질문을 구체적으로 입력해 주십시오.\n\n예시:\n• "이번 달 재물운이 궁금합니다"\n• "남자친구와 재회할 수 있을까요?"\n• "공무원 시험에 합격할 수 있을까?"');
+          return;
+        }
+        if(input.length < 3) {
+          alert('신탁이 정확한 해석을 내리려면 최소 3글자 이상의 구체적인 질문이 필요합니다.');
           return;
         }
         
@@ -3982,19 +4087,86 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
             step++;
           } else {
             clearInterval(interval);
-            showKemetResult();
+            showKemetResult(input);
           }
         }, 600);
       }
 
-      function showKemetResult() {
+      // ═══ 키워드 분석 엔진 ═══
+      function analyzeKemetKeyword(input) {
+        const lowerInput = input.toLowerCase();
+        let bestCategory = null;
+        let bestScore = 0;
+
+        for (const [catKey, catData] of Object.entries(KEMET_KEYWORD_MAP)) {
+          let score = 0;
+          const matchedWords = [];
+          for (const kw of catData.keywords) {
+            if (lowerInput.includes(kw)) {
+              score += kw.length; // 긴 키워드에 더 높은 가중치
+              matchedWords.push(kw);
+            }
+          }
+          if (score > bestScore) {
+            bestScore = score;
+            bestCategory = { key: catKey, ...catData, matchedWords };
+          }
+        }
+
+        return bestCategory; // null이면 범용 조언
+      }
+
+      // ═══ 키워드 기반 신 가중 선택 ═══
+      function selectGodByKeyword(category) {
+        if (!category || !category.godWeight) {
+          return KEMET_GODS[Math.floor(Math.random() * KEMET_GODS.length)];
+        }
+
+        const weighted = [];
+        for (const god of KEMET_GODS) {
+          const w = category.godWeight[god.god] || 1;
+          for (let i = 0; i < w; i++) weighted.push(god);
+        }
+        return weighted[Math.floor(Math.random() * weighted.length)];
+      }
+
+      function showKemetResult(userInput) {
         document.getElementById('kemetLoader').style.display = 'none';
         
-        const god = KEMET_GODS[Math.floor(Math.random() * KEMET_GODS.length)];
+        // 키워드 분석
+        const category = analyzeKemetKeyword(userInput);
+        const god = selectGodByKeyword(category);
         const flowMsg = god.flow[Math.floor(Math.random() * god.flow.length)];
         const warnMsg = god.warning[Math.floor(Math.random() * god.warning.length)];
         const advMsg = god.advice[Math.floor(Math.random() * god.advice.length)];
         const lucky = KEMET_LUCKY[Math.floor(Math.random() * KEMET_LUCKY.length)];
+
+        // 키워드 맞춤 조언 선택
+        let tailoredAdvice = '';
+        let categoryLabel = '';
+        if (category) {
+          categoryLabel = category.label;
+          const advicePool = category.advice;
+          // 2개의 맞춤 조언을 선택 (중복 방지)
+          const shuffled = advicePool.sort(() => Math.random() - 0.5);
+          tailoredAdvice = shuffled.slice(0, 2).map(a => `
+            <div style="margin-bottom:10px; padding:12px 14px; background:rgba(212,175,55,0.06); border-radius:8px; border-left:3px solid #d4af37;">
+              <div style="font-size:0.95rem; color:#e8d5a3; line-height:1.7;">${a}</div>
+            </div>`).join('');
+        } else {
+          categoryLabel = '🔮 종합 운세';
+          const genAdvice = KEMET_GENERAL_ADVICE.sort(() => Math.random() - 0.5).slice(0, 2);
+          tailoredAdvice = genAdvice.map(a => `
+            <div style="margin-bottom:10px; padding:12px 14px; background:rgba(212,175,55,0.06); border-radius:8px; border-left:3px solid #d4af37;">
+              <div style="font-size:0.95rem; color:#e8d5a3; line-height:1.7;">${a}</div>
+            </div>`).join('');
+        }
+
+        // 운세 수치 랜덤 생성 (카테고리에 따라 다른 범위)
+        const luckBase = category ? 55 : 45;
+        const overallLuck = Math.min(99, luckBase + Math.floor(Math.random() * 40));
+        const actionLuck = Math.min(99, luckBase + Math.floor(Math.random() * 38));
+        const cautionLuck = Math.max(10, 100 - overallLuck + Math.floor(Math.random() * 20));
 
         const resArea = document.getElementById('kemetResult');
         resArea.innerHTML = `
@@ -4004,26 +4176,66 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
             <div class="kemet-god-role">${god.role}</div>
           </div>
 
+          <div class="kemet-res-card" style="background:rgba(100,80,200,0.08); border-color:rgba(160,140,255,0.4);">
+            <div class="kemet-r-label" style="color:#c4b5fd; border-bottom-color:rgba(160,140,255,0.3);">
+              <span>🔍</span> 질문 해석 결과
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.85rem; color:#a5b4fc; margin-bottom:6px;">입력된 질문:</div>
+              <div style="font-size:1rem; color:#e0e7ff; font-weight:600; padding:8px 12px; background:rgba(99,102,241,0.15); border-radius:6px; border-left:3px solid #818cf8;">"${userInput}"</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+              <span style="font-size:1.3rem;">${category ? '✅' : '🌐'}</span>
+              <div>
+                <div style="font-size:0.82rem; color:#94a3b8;">감지된 운세 카테고리</div>
+                <div style="font-size:1.05rem; font-weight:700; color:#fbbf24;">${categoryLabel}</div>
+              </div>
+            </div>
+            ${category ? `<div style="font-size:0.8rem; color:#94a3b8;">매칭 키워드: ${category.matchedWords.map(w => '<span style="background:rgba(251,191,36,0.15); color:#fbbf24; padding:1px 6px; border-radius:4px; margin:0 2px;">'+w+'</span>').join(' ')}</div>` : '<div style="font-size:0.8rem; color:#94a3b8;">특정 키워드가 감지되지 않아 종합 운세로 해석합니다</div>'}
+            <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+              <div style="flex:1; min-width:80px; text-align:center; padding:8px; background:rgba(52,211,153,0.1); border-radius:8px; border:1px solid rgba(52,211,153,0.2);">
+                <div style="font-size:0.72rem; color:#6ee7b7;">총운 에너지</div>
+                <div style="font-size:1.4rem; font-weight:800; color:#34d399;">${overallLuck}%</div>
+              </div>
+              <div style="flex:1; min-width:80px; text-align:center; padding:8px; background:rgba(96,165,250,0.1); border-radius:8px; border:1px solid rgba(96,165,250,0.2);">
+                <div style="font-size:0.72rem; color:#93c5fd;">행동 적기</div>
+                <div style="font-size:1.4rem; font-weight:800; color:#60a5fa;">${actionLuck}%</div>
+              </div>
+              <div style="flex:1; min-width:80px; text-align:center; padding:8px; background:rgba(248,113,113,0.1); border-radius:8px; border:1px solid rgba(248,113,113,0.2);">
+                <div style="font-size:0.72rem; color:#fca5a5;">주의 지수</div>
+                <div style="font-size:1.4rem; font-weight:800; color:#f87171;">${cautionLuck}%</div>
+              </div>
+            </div>
+          </div>
+
           <div class="kemet-res-card">
-            <style> #kemetResult .kemet-res-card:nth-of-type(2)::after { content:'𓃀'; } </style>
+            <style> #kemetResult .kemet-res-card:nth-of-type(3)::after { content:'𓃀'; } </style>
             <div class="kemet-r-label"><span>🌊</span> 현재의 운세 파동</div>
             <div class="kemet-r-text">${flowMsg}</div>
           </div>
+
+          <div class="kemet-res-card" style="border-color:rgba(212,175,55,0.4); background:rgba(212,175,55,0.04);">
+            <style> #kemetResult .kemet-res-card:nth-of-type(4)::after { content:'𓋹'; color:rgba(212,175,55,0.05); } </style>
+            <div class="kemet-r-label" style="color:#fbbf24; border-bottom-color:rgba(212,175,55,0.3);">
+              <span>⚱️</span> ${categoryLabel} — 맞춤 신탁 조언
+            </div>
+            ${tailoredAdvice}
+          </div>
           
           <div class="kemet-res-card" style="border-color:rgba(229,115,115,0.3);">
-            <style> #kemetResult .kemet-res-card:nth-of-type(3)::after { content:'𓆣'; color:rgba(229,115,115,0.05); } </style>
+            <style> #kemetResult .kemet-res-card:nth-of-type(5)::after { content:'𓆣'; color:rgba(229,115,115,0.05); } </style>
             <div class="kemet-r-label" style="color:#e57373; border-bottom-color:rgba(229,115,115,0.3);"><span>⚠️</span> 신의 경고 메시지</div>
             <div class="kemet-r-text">${warnMsg}</div>
           </div>
 
           <div class="kemet-res-card">
-            <style> #kemetResult .kemet-res-card:nth-of-type(4)::after { content:'𓋹'; } </style>
+            <style> #kemetResult .kemet-res-card:nth-of-type(6)::after { content:'𓁟'; } </style>
             <div class="kemet-r-label"><span>📜</span> 현실적인 지혜의 조언</div>
             <div class="kemet-r-text">${advMsg}</div>
           </div>
 
           <div class="kemet-res-card" style="background:rgba(212,175,55,0.08); border-color:#d4af37;">
-            <style> #kemetResult .kemet-res-card:nth-of-type(5)::after { content:'𓂀'; color:rgba(212,175,55,0.05); font-size:6rem; top:-10px; right:10px;} </style>
+            <style> #kemetResult .kemet-res-card:nth-of-type(7)::after { content:'𓂀'; color:rgba(212,175,55,0.05); font-size:6rem; top:-10px; right:10px;} </style>
             <div class="kemet-r-label" style="border-bottom:none; margin-bottom:5px; justify-content:center;"><span>🍀</span> 오늘의 운명 수호 상징</div>
             <div class="kemet-r-text" style="color:#ffd700; font-weight:bold; font-size:1.1rem; text-align:center;">[ ${lucky} ]</div>
           </div>

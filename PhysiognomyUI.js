@@ -14,6 +14,11 @@ let analysisComplete = false;
 let landmarksData = null;
 let currentMode = 'camera';
 
+// ── 궁합 분석 상태 변수 ──
+let compatMode = false;        // 궁합 모드 활성화 여부
+let firstAnalysisResult = null; // 첫 번째 사람 분석 결과 저장
+let secondAnalysisResult = null; // 두 번째 사람 분석 결과 저장
+
 if(document.getElementById('phy-styles')) document.getElementById('phy-styles').remove();
 if(document.getElementById('physiognomy-app')) document.getElementById('physiognomy-app').remove();
 
@@ -280,6 +285,7 @@ const appHtml = `
         </div>
 
         <button class="action-btn" style="width: 100%; margin-top: 15px; background: #FEE500; color: #3B1E08; border: none; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" onclick="sharePhysiognomyKakao()">💬 카카오톡으로 관상 결과 공유하기</button>
+        <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px; font-size:1.05rem;" onclick="startCompatMode()">💕 상대방과 관상 궁합 보기</button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #e2e8f0; color: #475569; box-shadow: none; padding:12px;" onclick="resetPhysiognomyApp()"> 다른 사진으로 분석하기</button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #fff; color: #475569; border: 1px solid #cbd5e1; box-shadow: none; padding:12px;" onclick="closePhysiognomyApp()"> 메인 화면으로 돌아가기</button>
       </div>
@@ -357,7 +363,13 @@ function onResults(results) {
 
   if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
     if (!isAnalyzing && !analysisComplete) {
-      document.getElementById('phyStatus').innerText = "이목구비가 인식되었습니다! 버튼을 눌러주세요.";
+      if (compatMode && firstAnalysisResult) {
+        document.getElementById('phyStatus').innerText = "상대방 얼굴이 인식되었습니다! 버튼을 눌러주세요.";
+        document.getElementById('captureBtn').innerText = "💕 궁합 분석 시작하기";
+      } else {
+        document.getElementById('phyStatus').innerText = "이목구비가 인식되었습니다! 버튼을 눌러주세요.";
+        document.getElementById('captureBtn').innerText = " 초정밀 스캔 시작하기";
+      }
       document.getElementById('captureBtn').style.display = "block";
     }
     landmarksData = results.multiFaceLandmarks[0];
@@ -420,44 +432,59 @@ window.closePhysiognomyApp = function() {
   if (camera) camera.stop();
 }
 
-window.resetPhysiognomyApp = function() {
+window.resetPhysiognomyApp = function(preserveCompat) {
   isAnalyzing = false;
   analysisComplete = false;
   landmarksData = null;
+  if (!preserveCompat) {
+    compatMode = false;
+    firstAnalysisResult = null;
+    secondAnalysisResult = null;
+  }
   document.getElementById('phyResult').style.display = "none";
   document.getElementById('scanOverlay').style.display = "none";
   document.getElementById('captureBtn').style.display = "none";
+  document.getElementById('compatStartBtn').style.display = "none";
   document.getElementById('expertReportContainer').innerHTML = "";
     
-    // 이전에 업로드된 이미지 소스도 지워줍니다
-    const imgEl = document.getElementById('phyImage');
-    if(imgEl) {
-        imgEl.src = "";
-        imgEl.onload = null;
+    // 궁합 모드일 때는 이미지 초기화 생략 (두 번째 사진 업로드에 영향)
+    if (!preserveCompat) {
+      const imgEl = document.getElementById('phyImage');
+      if(imgEl) {
+          imgEl.src = "";
+          imgEl.onload = null;
+      }
     }
 
   if(canvasCtx) canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
-  if(currentMode === 'camera') { document.getElementById('phyStatus').innerText = "카메라 정면에서 화면 중앙에 얼굴을 맞춰주세요."; }
-  else { document.getElementById('phyStatus').innerText = "관상을 분석할 사진을 선택해주세요."; }
+  if (preserveCompat) {
+    // 궁합 모드 유지 시 안내 텍스트
+    document.getElementById('phyStatus').innerText = "상대방의 사진을 업로드해주세요.";
+  } else if(currentMode === 'camera') {
+    document.getElementById('phyStatus').innerText = "카메라 정면에서 화면 중앙에 얼굴을 맞춰주세요.";
+  } else {
+    document.getElementById('phyStatus').innerText = "관상을 분석할 사진을 선택해주세요.";
+  }
 }
 
 window.switchMode = async function(mode) {
   currentMode = mode;
   document.getElementById('btnModeCamera').classList.remove('active');
   document.getElementById('btnModeFile').classList.remove('active');
+  const isInCompatMode = compatMode && firstAnalysisResult;
   if (mode === 'camera') {
     document.getElementById('btnModeCamera').classList.add('active');
     document.getElementById('fileUploadContainer').style.display = 'none';      
     document.getElementById('phyVideo').style.display = 'block';
     document.getElementById('phyImage').style.display = 'none';
-    resetPhysiognomyApp();
+    resetPhysiognomyApp(isInCompatMode);
     if(camera) camera.start();
   } else {
     document.getElementById('btnModeFile').classList.add('active');
     document.getElementById('fileUploadContainer').style.display = 'block';     
     document.getElementById('phyVideo').style.display = 'none';
     document.getElementById('phyImage').style.display = 'block';
-    resetPhysiognomyApp();
+    resetPhysiognomyApp(isInCompatMode);
     if(camera) camera.stop();
   }
 }
@@ -469,8 +496,14 @@ window.switchMode = async function(mode) {
       const fileInput = document.getElementById('phyFileInput');
       if (fileInput) fileInput.value = ''; // 값을 초기화하여 같은 파일도 다시 선택 가능하게 함
 
-      resetPhysiognomyApp();
-      document.getElementById('phyStatus').innerText = "이미지 딥러닝 스캔 중... (기기 내 보안 처리)";
+      // 궁합 모드일 때는 상태 보존
+      const isInCompatMode = compatMode && firstAnalysisResult;
+      resetPhysiognomyApp(isInCompatMode);
+      if (isInCompatMode) {
+        document.getElementById('phyStatus').innerText = "상대방 이미지 딥러닝 스캔 중... (기기 내 보안 처리)";
+      } else {
+        document.getElementById('phyStatus').innerText = "이미지 딥러닝 스캔 중... (기기 내 보안 처리)";
+      }
       const reader = new FileReader();
       reader.onload = (e) => {
         const imgEl = document.getElementById('phyImage');
@@ -525,9 +558,42 @@ window.switchMode = async function(mode) {
       
       analysisComplete = true;
       document.getElementById('scanOverlay').style.display = "none";
-      document.getElementById('phyStatus').innerText = " 초정밀 관상 분석이 100% 완료되었습니다!";
 
-      renderResult(result);
+      // 궁합 모드 분기 처리
+      if (compatMode && firstAnalysisResult) {
+        // 두 번째 사람 분석 완료 → 궁합 결과 산출
+        secondAnalysisResult = result;
+        document.getElementById('phyStatus').innerHTML = `<div style="text-align:center;">
+          <div style="font-size:1.1rem; font-weight:800; color:#f472b6;">💕 궁합 분석 완료!</div>
+          <div style="font-size:0.85rem; color:#a7f3d0; margin-top:4px;">${firstAnalysisResult.emoji} ${firstAnalysisResult.primaryAnimal} × ${secondAnalysisResult.emoji} ${secondAnalysisResult.primaryAnimal}</div>
+        </div>`;
+
+        try {
+          const compatResult = window.faceAnalysisEngine.calculateCompatibility(firstAnalysisResult, secondAnalysisResult);
+          if (compatResult && compatResult.compatHtml) {
+            renderCompatResult(compatResult);
+          } else {
+            throw new Error('궁합 결과 생성 실패');
+          }
+        } catch (compatErr) {
+          console.error('궁합 분석 오류:', compatErr);
+          // 궁합 분석 실패 시에도 기본 결과 표시
+          document.getElementById('expertReportContainer').innerHTML = `
+            <div style="padding:20px; text-align:center; color:#e11d48;">
+              <div style="font-size:2rem; margin-bottom:10px;">💕</div>
+              <div style="font-weight:800; font-size:1.1rem; margin-bottom:8px;">${firstAnalysisResult.emoji} ${firstAnalysisResult.primaryAnimal} × ${secondAnalysisResult.emoji} ${secondAnalysisResult.primaryAnimal}</div>
+              <div style="font-size:0.9rem; color:#64748b;">궁합 상세 분석 중 오류가 발생했습니다.<br>다시 시도해주세요.</div>
+              <div style="font-size:0.75rem; color:#94a3b8; margin-top:8px;">오류: ${compatErr.message || compatErr}</div>
+            </div>`;
+          document.getElementById('phyResult').style.display = 'block';
+          compatMode = false;
+        }
+      } else {
+        // 일반 분석 또는 첫 번째 분석
+        firstAnalysisResult = result;
+        document.getElementById('phyStatus').innerText = " 초정밀 관상 분석이 100% 완료되었습니다!";
+        renderResult(result);
+      }
     } catch (error) {
       
       document.getElementById('phyStatus').innerText = "분석 실패: " + (error.message || error);
@@ -537,16 +603,75 @@ window.switchMode = async function(mode) {
   }
 
   function renderResult(result) {
-  let emojiNode = document.getElementById('resEmoji');
-  emojiNode.innerText = result.emoji || '';
-  
-  // 전문가 리포트 삽입
-  if(result.expertReportHtml) {
-      document.getElementById('expertReportContainer').innerHTML = result.expertReportHtml;
-  } else {
-      document.getElementById('expertReportContainer').innerHTML = "<div style='padding:20px;'>분석 결과를 불러올 수 없습니다.</div>";
+    let emojiNode = document.getElementById('resEmoji');
+    emojiNode.innerText = result.emoji || '';
+    
+    // 전문가 리포트 삽입
+    if(result.expertReportHtml) {
+        document.getElementById('expertReportContainer').innerHTML = result.expertReportHtml;
+    } else {
+        document.getElementById('expertReportContainer').innerHTML = "<div style='padding:20px;'>분석 결과를 불러올 수 없습니다.</div>";
+    }
+
+    document.getElementById('phyResult').style.display = "block";
+
+    // 궁합 모드가 아닐 때만 궁합 버튼 표시
+    if (!compatMode) {
+      document.getElementById('compatStartBtn').style.display = 'block';
+    }
+
+    setTimeout(() => { document.getElementById('phyResult').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
   }
 
-  document.getElementById('phyResult').style.display = "block";
-  setTimeout(() => { document.getElementById('phyResult').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
-}
+  // ── 궁합 모드 관련 함수 ──
+  window.startCompatMode = function() {
+    // 첫 번째 분석 결과 저장
+    if (!firstAnalysisResult) {
+      alert('먼저 관상 분석을 완료해주세요.');
+      return;
+    }
+    compatMode = true;
+
+    // UI 리셋하되 궁합 상태는 유지
+    isAnalyzing = false;
+    analysisComplete = false;
+    landmarksData = null;
+    document.getElementById('phyResult').style.display = 'none';
+    document.getElementById('scanOverlay').style.display = 'none';
+    document.getElementById('captureBtn').style.display = 'none';
+    document.getElementById('expertReportContainer').innerHTML = '';
+
+    const imgEl = document.getElementById('phyImage');
+    if(imgEl) {
+      imgEl.src = '';
+      imgEl.onload = null;
+    }
+    if(canvasCtx) canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+    // 궁합 안내 상태 텍스트
+    document.getElementById('phyStatus').innerHTML = `<div style="text-align:center;">
+      <div style="font-size:1.1rem; font-weight:800; color:#f472b6; margin-bottom:6px;">💕 궁합 분석 모드</div>
+      <div style="font-size:0.9rem; color:#a7f3d0;">상대방의 사진을 촬영하거나 업로드해주세요</div>
+      <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">첫 번째: ${firstAnalysisResult.emoji} ${firstAnalysisResult.primaryAnimal}</div>
+    </div>`;
+
+    // 파일 모드면 업로드 UI 다시 표시
+    if (currentMode === 'file') {
+      document.getElementById('fileUploadContainer').style.display = 'block';
+    } else {
+      // 카메라 모드면 카메라 재시작
+      if(camera) camera.start();
+    }
+  }
+
+  // 궁합 결과 렌더링
+  function renderCompatResult(compatResult) {
+    let emojiNode = document.getElementById('resEmoji');
+    emojiNode.innerText = '💕';
+
+    document.getElementById('expertReportContainer').innerHTML = compatResult.compatHtml;
+    document.getElementById('compatStartBtn').style.display = 'none';
+    document.getElementById('phyResult').style.display = 'block';
+
+    setTimeout(() => { document.getElementById('phyResult').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+  }

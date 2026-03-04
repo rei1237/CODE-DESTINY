@@ -158,7 +158,7 @@ class AnalysisEngine {
         emoji: '🐺',
         celebrities: ['주지훈', '우도환', '세훈', '황인엽'],
         description: `<strong>[성격 및 특징]</strong><br>
-            차가운 인상에 앙칼지면서도 남성미가 철철 넘치는 예리하고 강렬한 사백안 계열의 눈매를 가졌습니다. 무리에 충성하는 늑대처럼 차가운 겉모습 속에는 내 사람을 위한 의리와 거친 야성미가 동시에 공존합니다.<br><br>
+            차가운 인상에 앙칼지면서도 성적인 매력미가 철철 넘치는 예리하고 강렬한 사백안 계열의 눈매를 가졌습니다. 무리에 충성하는 늑대처럼 차가운 겉모습 속에는 내 사람을 위한 의리와 거친 야성미가 동시에 공존합니다.<br><br>
             <strong>[연애 및 결혼]</strong><br>
             한번 마음을 허락한 상대에게는 모든 것을 바치는 일편단심 지고지순한 사랑의 표본입니다.<br><br>
             <strong>[진로 및 직업]</strong><br>
@@ -428,22 +428,73 @@ class AnalysisEngine {
 
     return {
       faceRatio: faceWidth / (faceLength||1), // 0.72(Sharp) ~ 0.88(Wide)
+      faceLength: faceLength,
+      faceWidth: faceWidth,
       eyeRatio: eyeRatio, 
       eyeSlant: eyeSlantAngle, // -5(Upward) ~ +5(Downward)
       eyeDistRatio: eyeDistRatio, // 0.8(Narrow) ~ 1.2(Wide)
+      eyeHeight: eyeHeight,
+      eyeWidth: eyeWidth,
       noseRatio: noseRatio,
       noseWidthRatio: noseWidthRatio, // 0.7(Narrow) ~ 1.0(Wide)
       noseZ: noseZ,
+      noseWidth: noseWidth,
       mouthCurve: mouthCurve,
       mouthRatio: mouthWidth / (noseWidth||1), // 1.1(Small) ~ 1.6(Large)
+      mouthWidth: mouthWidth,
       earRatio: earHeight / (faceLength||1),
       earPosition: EAR_LEFT_TOP.y < LEFT_EYE_OUT.y ? "high" : "normal",
+      jawSquareness: faceWidth / (faceLength || 1),
+      // 여성형 판별용 추가 수치
+      eyeToFaceRatio: (eyeWidth * 2 + interEyeDistance) / (faceWidth || 1), // 눈이 얼굴 대비 얼마나 큰지
+      lipThickness: this.calculateDistance(MOUTH_TOP, MOUTH_BOTTOM),
+      chinLength: lower_len / (total_samjung || 1), // 하정 비율 (털선 길이)
       samjung: {
         upper: upper_len / total_samjung,
         middle: middle_len / total_samjung,
         lower: lower_len / total_samjung
       }
     };
+  }
+
+  // ============================================
+  // 여성형 얼굴 정밀 판별 함수 (0~100 점수)
+  // 랜드마크 기하학적 특성으로 성별 구분 없이 자동 감지
+  // ============================================
+  detectFeminineFace(features) {
+    let score = 0;
+
+    // 1. 얼굴 대비 눈 크기 비율 (여성은 눈이 얼굴 대비 더 큼)
+    if (features.eyeToFaceRatio >= 0.72) score += 20;
+    else if (features.eyeToFaceRatio >= 0.65) score += 12;
+    else if (features.eyeToFaceRatio >= 0.60) score += 5;
+
+    // 2. 코 너비 (여성은 코가 좁고 작음)
+    if (features.noseWidthRatio <= 0.82) score += 18;
+    else if (features.noseWidthRatio <= 0.90) score += 12;
+    else if (features.noseWidthRatio <= 0.95) score += 6;
+
+    // 3. 눈 세로 비율 (여성은 눈이 더 둥글고 큼 - eyeRatio가 더 낮음)
+    if (features.eyeRatio <= 2.3) score += 18;
+    else if (features.eyeRatio <= 2.6) score += 12;
+    else if (features.eyeRatio <= 2.9) score += 6;
+
+    // 4. 입 크기 (여성은 입이 작고 단정)
+    if (features.mouthRatio <= 1.25) score += 15;
+    else if (features.mouthRatio <= 1.35) score += 10;
+    else if (features.mouthRatio <= 1.42) score += 4;
+
+    // 5. 하정(털선) 비율 (여성은 털이 짧고 갸름 → 하정 비율이 작음)
+    if (features.chinLength <= 0.32) score += 15;
+    else if (features.chinLength <= 0.35) score += 8;
+    else if (features.chinLength <= 0.37) score += 3;
+
+    // 6. 미간 거리 (여성은 미간이 넓음)
+    if (features.eyeDistRatio >= 1.10) score += 14;
+    else if (features.eyeDistRatio >= 1.02) score += 8;
+    else if (features.eyeDistRatio >= 0.95) score += 3;
+
+    return Math.min(100, score); // 0~100
   }
 
       // ============================================
@@ -545,6 +596,212 @@ class AnalysisEngine {
       };
     }
 
+  // ============================================
+  // 안좋은 관상(凶相) 정밀 감지 시스템
+  // 전통 관상학 10대 흉상 종합 분석
+  // ============================================
+  detectNegativePhysiognomy(landmarks, features) {
+    const negativeTraits = [];
+
+    // ── 랜드마크 추출 ──
+    const LEFT_EYE_IN = landmarks[133];
+    const LEFT_EYE_OUT = landmarks[226];
+    const LEFT_EYE_TOP = landmarks[159];
+    const LEFT_EYE_BOTTOM = landmarks[145];
+    const RIGHT_EYE_IN = landmarks[362];
+    const RIGHT_EYE_OUT = landmarks[446];
+    const RIGHT_EYE_TOP = landmarks[386];
+    const RIGHT_EYE_BOTTOM = landmarks[374];
+    const NOSE_TIP = landmarks[2];
+    const NOSE_BOTTOM = landmarks[164];
+    const NOSE_LEFT = landmarks[129];
+    const NOSE_RIGHT = landmarks[358];
+    const MOUTH_LEFT = landmarks[61];
+    const MOUTH_RIGHT = landmarks[291];
+    const MOUTH_TOP = landmarks[13];
+    const CHIN = landmarks[152];
+    const FOREHEAD = landmarks[10];
+
+    const eyeWidth = this.calculateDistance(LEFT_EYE_IN, LEFT_EYE_OUT);
+    const eyeHeight = this.calculateDistance(LEFT_EYE_TOP, LEFT_EYE_BOTTOM);
+    const noseWidth = this.calculateDistance(NOSE_LEFT, NOSE_RIGHT);
+    const faceLength = this.calculateDistance(FOREHEAD, CHIN);
+
+    // ─── 1. 삼백안/사백안 (三白眼/四白眼) ───
+    // 눈의 세로 폭이 가로 대비 과도하게 넓어 흰자위가 3~4방향으로 노출
+    const eyeOpenness = eyeHeight / (eyeWidth || 1);
+    let sanpakuSeverity = 0;
+    if (eyeOpenness > 0.40) {
+      sanpakuSeverity = Math.min(100, ((eyeOpenness - 0.40) / 0.18) * 100);
+    }
+    negativeTraits.push({
+      name: '삼백안/사백안', hanja: '三白眼/四白眼', icon: '👁️‍🗨️',
+      severity: Math.round(sanpakuSeverity), detected: sanpakuSeverity >= 25,
+      description: '눈의 세로 폭이 넓어 흰자위(白眼)가 세 방향 이상으로 드러나는 형상입니다. 관상학에서는 <b>충동적 기질, 예기치 못한 재난, 배은망덕의 기운</b>이 서린 징조로 봅니다.',
+      advice: '매사 감정을 다스리고 은혜를 갚는 습관(報恩行)을 들이면 살기(殺氣)가 덕(德)으로 변합니다.'
+    });
+
+    // ─── 2. 삼각안 (三角眼) ───
+    // 눈꼬리가 급격히 치켜올라가며 눈 전체가 삼각형 모양
+    let triangleEyeSeverity = 0;
+    const es = features.eyeSlant;
+    const er = features.eyeRatio;
+    if (es <= -5.0 && er <= 2.8) {
+      triangleEyeSeverity = Math.min(100,
+        ((-5.0 - es) / 5.0 * 50) + ((2.8 - er) / 0.8 * 50));
+    } else if (es <= -4.0) {
+      triangleEyeSeverity = Math.min(60, ((-4.0 - es) / 6.0) * 60);
+    }
+    negativeTraits.push({
+      name: '삼각안', hanja: '三角眼', icon: '🔺',
+      severity: Math.round(Math.max(0, triangleEyeSeverity)), detected: triangleEyeSeverity >= 25,
+      description: '눈꼬리가 급격히 치켜올라가며 눈 전체가 삼각형 모양을 이루는 형상입니다. <b>의심이 많고 냉혹하며, 잔인한 성정</b>이 서린 흉상(凶相)으로 봅니다.',
+      advice: '따뜻한 시선과 온화한 눈웃음을 의식적으로 연습하면 날카로운 기운이 누그러집니다.'
+    });
+
+    // ─── 3. 노공/들창코 (露孔) ───
+    // 코끝이 위로 들려 콧구멍이 정면에서 노출 → 재물 누수
+    const upturnedRatio = (NOSE_BOTTOM.y - NOSE_TIP.y) / (noseWidth || 1);
+    let noseSeverity = 0;
+    if (upturnedRatio > 0.03) {
+      noseSeverity = Math.min(100, ((upturnedRatio - 0.03) / 0.15) * 100);
+    }
+    negativeTraits.push({
+      name: '노공(들창코)', hanja: '露孔', icon: '💸',
+      severity: Math.round(noseSeverity), detected: noseSeverity >= 25,
+      description: '코끝이 위로 들려 콧구멍이 정면에서 훤히 보이는 형상입니다. 재물의 기운이 콧구멍을 통해 줄줄 새어나가 <b>모은 재산을 지키기 어렵고 낭비벽</b>이 심해지는 흉상입니다.',
+      advice: '저축 습관과 절약 의식을 키우고, 큰돈을 다룰 때 반드시 신뢰할 수 있는 조언자를 곁에 두십시오.'
+    });
+
+    // ─── 4. 인중 단소 (人中短小) ───
+    // 인중(코 아래~윗입술)이 지나치게 짧거나 불분명
+    const philtrumLength = this.calculateDistance(NOSE_TIP, MOUTH_TOP);
+    const philtrumRatio = philtrumLength / (faceLength || 1);
+    let philtrumSeverity = 0;
+    if (philtrumRatio < 0.06) {
+      philtrumSeverity = Math.min(100, ((0.06 - philtrumRatio) / 0.04) * 100);
+    } else if (philtrumRatio < 0.09) {
+      philtrumSeverity = Math.min(50, ((0.09 - philtrumRatio) / 0.05) * 50);
+    }
+    negativeTraits.push({
+      name: '인중 단소', hanja: '人中短小', icon: '⏳',
+      severity: Math.round(philtrumSeverity), detected: philtrumSeverity >= 25,
+      description: '인중(코 아래에서 윗입술까지의 도랑)이 지나치게 짧거나 불분명한 형상입니다. <b>생명력과 정력이 약하고, 자녀운이 박하며, 말년의 건강</b>에 주의가 필요한 상입니다.',
+      advice: '규칙적인 운동과 충분한 수면으로 정기(精氣)를 보충하고, 봉사활동으로 음덕(陰德)을 쌓으십시오.'
+    });
+
+    // ─── 5. 이마 협소/함몰 (額窄) ───
+    // 상정(上停)의 이마가 지나치게 좁음 → 초년운 불리
+    let foreheadSeverity = 0;
+    const upperRatio = features.samjung ? features.samjung.upper : 0.333;
+    if (upperRatio < 0.28) {
+      foreheadSeverity = Math.min(100, ((0.28 - upperRatio) / 0.10) * 100);
+    }
+    negativeTraits.push({
+      name: '이마 협소/함몰', hanja: '額窄', icon: '📐',
+      severity: Math.round(foreheadSeverity), detected: foreheadSeverity >= 25,
+      description: '상정(上停)의 이마가 지나치게 좁거나 뒤로 밀려 있는 형상입니다. <b>초년운(15~30세)이 험난하고, 부모 덕이 약하며, 학업에서 고비</b>가 많은 상입니다.',
+      advice: '독립심을 일찍 키우고 자기 계발에 꾸준히 투자하면, 중년 이후 크게 성공합니다.'
+    });
+
+    // ─── 6. 구각하수 (口角下垂) ───
+    // 입꼬리가 과도하게 아래로 처짐 → 고독, 불화
+    let mouthDownSeverity = 0;
+    if (features.mouthCurve < -0.002) {
+      mouthDownSeverity = Math.min(100,
+        ((Math.abs(features.mouthCurve) - 0.002) / 0.015) * 100);
+    }
+    negativeTraits.push({
+      name: '구각하수(복선구)', hanja: '口角下垂', icon: '😞',
+      severity: Math.round(mouthDownSeverity), detected: mouthDownSeverity >= 25,
+      description: '입꼬리가 아래로 깊이 처져 불만족과 부정의 기운이 서린 형상입니다. <b>주위 사람과의 불화, 고독감, 말년의 쇠퇴</b>가 우려되는 상입니다.',
+      advice: '의식적으로 미소를 짓는 연습(笑門萬福來)을 매일 하면 복선의 기운이 복록으로 전환됩니다.'
+    });
+
+    // ─── 7. 안면 비대칭 (面偏) ───
+    // 좌우 얼굴의 눈·입 높낮이 불일치
+    const leftEyeH = this.calculateDistance(LEFT_EYE_TOP, LEFT_EYE_BOTTOM);
+    const rightEyeH = this.calculateDistance(RIGHT_EYE_TOP, RIGHT_EYE_BOTTOM);
+    const eyeAsymmetry = Math.abs(leftEyeH - rightEyeH) / (Math.max(leftEyeH, rightEyeH) || 1);
+    const mouthAsymmetry = Math.abs(MOUTH_LEFT.y - MOUTH_RIGHT.y) / (faceLength || 1);
+    const asymmetryScore = (eyeAsymmetry * 60 + mouthAsymmetry * 200) / 2;
+    let asymmetrySeverity = Math.min(100, asymmetryScore * 5);
+    negativeTraits.push({
+      name: '안면 비대칭', hanja: '面偏', icon: '↔️',
+      severity: Math.round(asymmetrySeverity), detected: asymmetrySeverity >= 25,
+      description: '좌우 안면의 균형이 무너져 눈·입의 높낮이가 어긋나는 형상입니다. <b>내면의 갈등, 이중적 성격, 대인관계의 마찰</b>이 잦아질 수 있는 상입니다.',
+      advice: '명상과 자기 성찰을 통해 내면의 균형을 찾으면 외모에도 조화로운 기운이 깃듭니다.'
+    });
+
+    // ─── 8. 하관 빈약 (下顎薄) ───
+    // 턱과 하관이 지나치게 빈약 → 만년운 쇠약
+    let jawSeverity = 0;
+    if (features.chinLength < 0.28) {
+      jawSeverity = Math.min(100, ((0.28 - features.chinLength) / 0.10) * 100);
+    }
+    negativeTraits.push({
+      name: '하관 빈약', hanja: '下顎薄', icon: '🍂',
+      severity: Math.round(jawSeverity), detected: jawSeverity >= 25,
+      description: '하정(下停)의 턱·하관이 지나치게 빈약하고 뒤로 밀린 형상입니다. <b>만년운(50세 이후)이 쇠약하고, 부하 복이 적으며, 노후 재산</b>이 얇아질 우려가 있는 상입니다.',
+      advice: '미리 노후를 대비하는 재테크와 건강 관리에 힘쓰고, 후배와 아랫사람에게 덕을 베푸십시오.'
+    });
+
+    // ─── 9. 이소박 (耳小薄) ───
+    // 귀가 얼굴 대비 지나치게 작고 얇음 → 건강 허약, 조상 덕 부족
+    let earSeverity = 0;
+    if (features.earRatio < 0.16) {
+      earSeverity = Math.min(100, ((0.16 - features.earRatio) / 0.08) * 100);
+    }
+    negativeTraits.push({
+      name: '이소박', hanja: '耳小薄', icon: '👂',
+      severity: Math.round(earSeverity), detected: earSeverity >= 25,
+      description: '귀가 얼굴에 비해 지나치게 작고 얇은 형상입니다. <b>건강 체질이 허약하고, 초년의 고생이 많으며, 조상 음덕</b>이 부족한 상입니다.',
+      advice: '체력 단련과 영양 관리에 특별히 신경 쓰고, 적극적으로 인맥을 넓혀 인복을 보강하십시오.'
+    });
+
+    // ─── 10. 명궁 협소 (命宮狹) ───
+    // 두 눈썹 사이(인당/명궁)가 지나치게 좁음 → 도량 협소, 편견
+    const interEyeDist = this.calculateDistance(LEFT_EYE_IN, RIGHT_EYE_IN);
+    const glabellaRatio = interEyeDist / (eyeWidth || 1);
+    let glabellaSeverity = 0;
+    if (glabellaRatio < 1.05) {
+      glabellaSeverity = Math.min(100, ((1.05 - glabellaRatio) / 0.30) * 100);
+    }
+    negativeTraits.push({
+      name: '명궁 협소', hanja: '命宮狹', icon: '⛓️',
+      severity: Math.round(glabellaSeverity), detected: glabellaSeverity >= 25,
+      description: '두 눈썹 사이(명궁/印堂)가 지나치게 좁아 기운의 흐름이 막힌 형상입니다. <b>도량이 좁고 편협하며, 스트레스에 취약하고, 대인관계에서 마찰</b>이 잦은 상입니다.',
+      advice: '마음을 넓히는 수양(寬心修養)을 하고 미간을 찡그리지 않는 습관을 들이면 기운이 트입니다.'
+    });
+
+    // ── 종합 판정 ──
+    const detectedTraits = negativeTraits.filter(t => t.detected);
+    const totalSeverity = detectedTraits.reduce((sum, t) => sum + t.severity, 0);
+    const overallScore = detectedTraits.length > 0
+      ? Math.min(100, Math.round(totalSeverity / detectedTraits.length))
+      : 0;
+
+    let overallAdvice = '';
+    if (detectedTraits.length === 0) {
+      overallAdvice = '축하합니다! 얼굴에 뚜렷한 흉상(凶相)이 감지되지 않았습니다. 타고난 복상(福相)을 감사히 여기며, 겸손하게 심상(心相)을 가꾸어 가시기 바랍니다.';
+    } else if (detectedTraits.length <= 2) {
+      overallAdvice = '소수의 주의 징후가 감지되었으나, 대부분의 사람에게 하나둘은 나타나는 자연스러운 범위입니다. 해당 부분을 의식하고 개운법을 실천하면 충분히 보완됩니다.';
+    } else if (detectedTraits.length <= 4) {
+      overallAdvice = '여러 주의 징후가 복합적으로 나타나고 있습니다. 그러나 <b>관상은 심상을 이기지 못하는 법(相不如心)</b>입니다. 꾸준한 선행과 마음 수양으로 반드시 운명을 바꿀 수 있습니다.';
+    } else {
+      overallAdvice = '다수의 주의 징후가 감지되었습니다. 이는 선천적 조건일 뿐, 후천적 노력과 심상(心相) 수양으로 <b>얼마든지 극복 가능</b>합니다. 미소, 봉사, 감사의 삶을 실천하면 흉한 기운이 복으로 변합니다.';
+    }
+
+    return {
+      traits: negativeTraits,
+      detectedTraits: detectedTraits,
+      detectedCount: detectedTraits.length,
+      totalCount: negativeTraits.length,
+      overallScore: overallScore,
+      overallAdvice: overallAdvice
+    };
+  }
+
   // ─────────────────────────────────────────────
   // face-api.js 모델 로드 (CDN 기반, 최초 1회)
   // ─────────────────────────────────────────────
@@ -642,8 +899,8 @@ async analyze(landmarksData, expressionData) {
           'alpaca': { face: 0.70, slant: 2.0, dist: 1.15, nose: 0.90, mouth: 1.22, eye: 2.5 },
           // [코알라상] 넓고 귀여운 코, 통통한 볼
           'koala': { face: 0.87, slant: 1.5, dist: 1.22, nose: 1.14, mouth: 1.28, eye: 2.6 },
-          // [레오파드상] 표범처럼 날렵하고 섹시한 얼굴, 고양이상과 여우상의 중간
-          'leopard': { face: 0.80, slant: -4.5, dist: 1.04, nose: 0.88, mouth: 1.45, eye: 2.8 },
+          // [레오파드상] 표범처럼 날렵하고 섹시한 얼굴, 고양이상과 매우 유사
+          'leopard': { face: 0.82, slant: -5.2, dist: 1.10, nose: 0.85, mouth: 1.32, eye: 2.65 },
           // [기린상] 매우 길쭉한 얼굴
           'giraffe': { face: 0.62, slant: 0.0, dist: 1.10, nose: 0.95, mouth: 1.32, eye: 2.4 },
           // [개구리상] 가장 넓은 얼굴, 매우 넓은 미간
@@ -682,13 +939,13 @@ async analyze(landmarksData, expressionData) {
 
       // ── face-api.js 표정 기반 동물상 부스트 맵핑 ──
       const EXPR_BOOST = {
-        happy:     { dog:40, rabbit:35, hamster:35, otter:30, koala:25, cat:5,  deer:15, bear:20, sparrow:30, alpaca:10 },
-        neutral:   { cat:30, fox:25, snake:20, wolf:20, leopard:25, eagle:15, tiger:10 },
-        angry:     { tiger:40, crocodile:35, lion:30, eagle:25, wolf:25, dinosaur:20, leopard:15 },
-        surprised: { deer:35, rabbit:25, hamster:20, koala:20, alpaca:30, frog:20 },
-        fearful:   { rabbit:30, hamster:25, deer:25, sparrow:30, otter:15 },
-        disgusted: { cat:30, snake:25, leopard:25, fox:20, crocodile:15, eagle:15 },
-        sad:       { dog:30, deer:35, bear:20, rabbit:15, camel:25, giraffe:10 }
+        happy:     { dog:40, rabbit:35, hamster:35, otter:30, koala:25, cat:5,  deer:15, bear:20, sparrow:30, alpaca:15, monkey:20, pig:15, turtle:10 },
+        neutral:   { cat:30, fox:25, snake:20, wolf:20, leopard:25, eagle:15, tiger:10, turtle:15, giraffe:15, monkey:10 },
+        angry:     { tiger:40, crocodile:35, lion:30, eagle:25, wolf:25, dinosaur:20, leopard:15, horse:15, lynx:20 },
+        surprised: { deer:35, rabbit:25, hamster:20, koala:20, alpaca:30, frog:25, monkey:20, sparrow:15 },
+        fearful:   { rabbit:30, hamster:25, deer:25, sparrow:30, otter:15, alpaca:15, giraffe:15, turtle:10 },
+        disgusted: { cat:30, snake:25, leopard:25, fox:20, crocodile:15, eagle:15, lynx:15 },
+        sad:       { dog:30, deer:35, bear:20, rabbit:15, camel:25, giraffe:20, horse:15, alpaca:10, pig:10 }
       };
 
       // 표정 점수 보정 및 최종 totalScore 산출 (기하 60% + 표정 40%)
@@ -707,26 +964,459 @@ async analyze(landmarksData, expressionData) {
 
       // 특수 조건 보정 반영 (기존 penalty 조정 → totalScore 직접 가감)
       candidates.forEach(c => {
+        // ── 여우상 ──
         if (c.animal.id === 'fox') {
-          if (features.eyeSlant < -1.0 && features.faceRatio <= 0.85 && features.noseWidthRatio > 0.85) {
-            c.totalScore += 300;
-          }
+          let foxBonus = 0;
+          if (features.faceRatio <= 0.78) foxBonus += 180;
+          else if (features.faceRatio <= 0.82) foxBonus += 115;
+          else if (features.faceRatio <= 0.85) foxBonus += 54;
+          if (features.eyeSlant <= -4.0) foxBonus += 151;
+          else if (features.eyeSlant <= -2.0) foxBonus += 90;
+          else if (features.eyeSlant <= -1.0) foxBonus += 43;
+          if (features.eyeDistance <= 0.95) foxBonus += 65;
+          else if (features.eyeDistance <= 1.00) foxBonus += 32;
+          if (features.noseWidthRatio >= 0.83 && features.noseWidthRatio <= 0.92) foxBonus += 43;
+          if (features.faceRatio <= 0.82 && features.eyeSlant <= -2.0) foxBonus += 101;
+          if (features.faceRatio <= 0.83 && features.eyeSlant <= -1.5 && features.eyeDistance <= 1.00) foxBonus += 72;
+          foxBonus += 54; // 기본 여우상 베이스 부스트
+          c.totalScore += foxBonus;
         }
+        // ── 고양이상 ──
         if (c.animal.id === 'cat') {
-          if (features.eyeSlant <= -4.0 && features.faceRatio >= 0.79) {
-            c.totalScore += 1500;
-          }
+          let catBonus = 0;
+          if (features.eyeSlant <= -4.0) catBonus += 500;
+          else if (features.eyeSlant <= -2.5) catBonus += 300;
+          if (features.faceRatio >= 0.79 && features.faceRatio <= 0.86) catBonus += 300;
+          if (features.eyeRatio <= 2.6) catBonus += 200;
+          c.totalScore += catBonus;
         }
+        // ── 뱀상 ──
         if (c.animal.id === 'snake') {
-          if (features.jawSquareness >= 0.85)  c.totalScore -= 2000;
-          else if (features.jawSquareness <= 0.72) c.totalScore += 2000;
-          if (features.eyeSlant <= -2.0 && features.mouthRatio >= 1.38) c.totalScore += 700;
+          if (features.eyeSlant <= -2.0 && features.mouthRatio >= 1.38) c.totalScore += 400;
         }
+        // ── 호랑이상 ──
+        if (c.animal.id === 'tiger') {
+          let tigerBonus = 0;
+          if (features.faceRatio >= 0.84) tigerBonus += 300;
+          if (features.eyeSlant <= -2.5) tigerBonus += 350;
+          if (features.noseWidthRatio >= 0.95) tigerBonus += 200;
+          if (features.faceRatio >= 0.84 && features.eyeSlant <= -2.0) tigerBonus += 250;
+          c.totalScore += tigerBonus;
+        }
+        // ── 늑대상 ──
+        if (c.animal.id === 'wolf') {
+          let wolfBonus = 0;
+          if (features.faceRatio <= 0.82) wolfBonus += 350;
+          if (features.eyeSlant <= -3.0) wolfBonus += 400;
+          else if (features.eyeSlant <= -1.5) wolfBonus += 200;
+          if (features.eyeDistance <= 1.00) wolfBonus += 200;
+          if (features.mouthRatio >= 1.38) wolfBonus += 150;
+          c.totalScore += wolfBonus;
+        }
+        // ── 사슴상 ──
+        if (c.animal.id === 'deer') {
+          let deerBonus = 0;
+          if (features.eyeRatio <= 2.4) deerBonus += 500;
+          else if (features.eyeRatio <= 2.6) deerBonus += 250;
+          if (features.faceRatio <= 0.80) deerBonus += 300;
+          if (features.eyeSlant >= 0.0 && features.eyeSlant <= 3.0) deerBonus += 200;
+          if (features.noseWidthRatio <= 0.84) deerBonus += 200;
+          c.totalScore += deerBonus;
+        }
+        // ── 토끼상 ──
+        if (c.animal.id === 'rabbit') {
+          let rabbitBonus = 0;
+          if (features.eyeSlant >= 0.5) rabbitBonus += 250;
+          if (features.noseWidthRatio <= 0.88) rabbitBonus += 200;
+          if (features.mouthRatio <= 1.30) rabbitBonus += 200;
+          if (features.faceRatio >= 0.82 && features.faceRatio <= 0.87) rabbitBonus += 200;
+          c.totalScore += rabbitBonus;
+        }
+        // ── 원숭이상 ──
+        if (c.animal.id === 'monkey') {
+          let monkeyBonus = 0;
+          if (features.eyeDistance <= 0.96) monkeyBonus += 350;
+          else if (features.eyeDistance <= 1.02) monkeyBonus += 150;
+          if (features.noseWidthRatio >= 0.98) monkeyBonus += 300;
+          else if (features.noseWidthRatio >= 0.92) monkeyBonus += 150;
+          if (Math.abs(features.eyeSlant) <= 1.5) monkeyBonus += 250;
+          if (features.faceRatio >= 0.80 && features.faceRatio <= 0.87) monkeyBonus += 200;
+          c.totalScore += monkeyBonus;
+        }
+        // ── 말상 ──
+        if (c.animal.id === 'horse') {
+          let horseBonus = 0;
+          if (features.faceRatio <= 0.70) horseBonus += 600;
+          else if (features.faceRatio <= 0.76) horseBonus += 350;
+          else if (features.faceRatio <= 0.80) horseBonus += 150;
+          if (features.mouthRatio >= 1.45) horseBonus += 300;
+          else if (features.mouthRatio >= 1.38) horseBonus += 150;
+          c.totalScore += horseBonus;
+        }
+        // ── 표범상 ──
+        if (c.animal.id === 'leopard') {
+          let leopardBonus = 0;
+          if (features.eyeSlant <= -3.5) leopardBonus += 400;
+          else if (features.eyeSlant <= -2.0) leopardBonus += 200;
+          if (features.faceRatio >= 0.79 && features.faceRatio <= 0.85) leopardBonus += 250;
+          if (features.eyeRatio <= 2.7) leopardBonus += 150;
+          c.totalScore += leopardBonus;
+        }
+        // ── 스라소니상 ──
+        if (c.animal.id === 'lynx') {
+          let lynxBonus = 0;
+          if (features.eyeSlant <= -4.0) lynxBonus += 500;
+          else if (features.eyeSlant <= -2.5) lynxBonus += 300;
+          else if (features.eyeSlant <= -1.5) lynxBonus += 120;
+          if (features.faceRatio <= 0.82) lynxBonus += 300;
+          else if (features.faceRatio <= 0.85) lynxBonus += 150;
+          // 고양이와 차별화: 좁은 미간이면 스라소니 가산
+          if (features.eyeDistance <= 1.02) lynxBonus += 250;
+          c.totalScore += lynxBonus;
+        }
+        // ── 햄스터상 ──
+        if (c.animal.id === 'hamster') {
+          let hamsterBonus = 0;
+          if (features.faceRatio >= 0.86) hamsterBonus += 350;
+          else if (features.faceRatio >= 0.83) hamsterBonus += 150;
+          if (features.eyeSlant >= 0.5) hamsterBonus += 300;
+          if (features.mouthRatio <= 1.20) hamsterBonus += 250;
+          else if (features.mouthRatio <= 1.30) hamsterBonus += 100;
+          c.totalScore += hamsterBonus;
+        }
+        // ── 참새상 ──
+        if (c.animal.id === 'sparrow') {
+          let sparrowBonus = 0;
+          if (features.faceRatio >= 0.80 && features.faceRatio <= 0.86) sparrowBonus += 300;
+          if (features.eyeSlant >= 1.0) sparrowBonus += 350;
+          if (features.mouthRatio <= 1.18) sparrowBonus += 300;
+          else if (features.mouthRatio <= 1.25) sparrowBonus += 150;
+          if (features.noseWidthRatio <= 0.84) sparrowBonus += 200;
+          c.totalScore += sparrowBonus;
+        }
+        // ── 수달상 ──
+        if (c.animal.id === 'otter') {
+          let otterBonus = 0;
+          if (features.faceRatio >= 0.84) otterBonus += 400;
+          else if (features.faceRatio >= 0.81) otterBonus += 200;
+          if (features.eyeDistRatio >= 1.10) otterBonus += 350;
+          else if (features.eyeDistRatio >= 1.05) otterBonus += 180;
+          if (features.mouthRatio >= 1.35) otterBonus += 300;
+          else if (features.mouthRatio >= 1.28) otterBonus += 150;
+          if (Math.abs(features.eyeSlant) <= 1.5) otterBonus += 250;
+          if (features.noseWidthRatio >= 0.90 && features.noseWidthRatio <= 0.98) otterBonus += 200;
+          c.totalScore += otterBonus;
+        }
+        // ── 코알라상 ──
+        if (c.animal.id === 'koala') {
+          let koalaBonus = 0;
+          if (features.faceRatio >= 0.85) koalaBonus += 300;
+          if (features.noseWidthRatio >= 1.08) koalaBonus += 300;
+          else if (features.noseWidthRatio >= 1.00) koalaBonus += 150;
+          if (features.eyeSlant >= 0.5) koalaBonus += 250;
+          c.totalScore += koalaBonus;
+        }
+        // ── 기린상 ──
+        if (c.animal.id === 'giraffe') {
+          let giraffeBonus = 0;
+          if (features.faceRatio <= 0.68) giraffeBonus += 600;
+          else if (features.faceRatio <= 0.74) giraffeBonus += 350;
+          else if (features.faceRatio <= 0.78) giraffeBonus += 150;
+          if (features.eyeDistRatio >= 1.05) giraffeBonus += 200;
+          if (features.noseWidthRatio >= 0.90 && features.noseWidthRatio <= 1.00) giraffeBonus += 150;
+          c.totalScore += giraffeBonus;
+        }
+        // ── 개구리상 ──
+        if (c.animal.id === 'frog') {
+          let frogBonus = 0;
+          if (features.eyeDistRatio >= 1.25) frogBonus += 500;
+          else if (features.eyeDistRatio >= 1.18) frogBonus += 250;
+          if (features.faceRatio >= 0.88) frogBonus += 300;
+          else if (features.faceRatio >= 0.85) frogBonus += 150;
+          if (features.mouthRatio >= 1.55) frogBonus += 300;
+          else if (features.mouthRatio >= 1.45) frogBonus += 150;
+          c.totalScore += frogBonus;
+        }
+        // ── 거북이상 ──
+        if (c.animal.id === 'turtle') {
+          let turtleBonus = 0;
+          if (features.faceRatio >= 0.87) turtleBonus += 300;
+          else if (features.faceRatio >= 0.84) turtleBonus += 150;
+          if (features.eyeSlant >= 1.5) turtleBonus += 350;
+          if (features.eyeDistRatio >= 1.20) turtleBonus += 300;
+          else if (features.eyeDistRatio >= 1.12) turtleBonus += 150;
+          c.totalScore += turtleBonus;
+        }
+        // ── 낙타상 ──
+        if (c.animal.id === 'camel') {
+          let camelBonus = 0;
+          if (features.faceRatio <= 0.72) camelBonus += 450;
+          else if (features.faceRatio <= 0.78) camelBonus += 200;
+          if (features.noseWidthRatio >= 0.96) camelBonus += 250;
+          else if (features.noseWidthRatio >= 0.90) camelBonus += 100;
+          if (features.eyeDistRatio >= 1.10) camelBonus += 150;
+          c.totalScore += camelBonus;
+        }
+        // ── 알파카상 ──
+        if (c.animal.id === 'alpaca') {
+          let alpacaBonus = 0;
+          if (features.faceRatio <= 0.74) alpacaBonus += 450;
+          else if (features.faceRatio <= 0.80) alpacaBonus += 200;
+          if (features.eyeSlant >= 1.0) alpacaBonus += 250;
+          if (features.eyeDistRatio >= 1.10) alpacaBonus += 200;
+          c.totalScore += alpacaBonus;
+        }
+        // ── 돼지상 ──
+        if (c.animal.id === 'pig') {
+          let pigBonus = 0;
+          if (features.faceRatio >= 0.90) pigBonus += 400;
+          else if (features.faceRatio >= 0.87) pigBonus += 200;
+          if (features.noseWidthRatio >= 1.12) pigBonus += 350;
+          else if (features.noseWidthRatio >= 1.02) pigBonus += 180;
+          if (features.eyeSlant >= 0.0) pigBonus += 200;
+          c.totalScore += pigBonus;
+        }
+        // ── 사자상 ──
+        if (c.animal.id === 'lion') {
+          let lionBonus = 0;
+          if (features.faceRatio >= 0.86) lionBonus += 300;
+          if (features.noseWidthRatio >= 1.05) lionBonus += 250;
+          if (features.mouthRatio >= 1.50) lionBonus += 200;
+          c.totalScore += lionBonus;
+        }
+        // ── 독수리상 ──
+        if (c.animal.id === 'eagle') {
+          let eagleBonus = 0;
+          if (features.eyeDistance <= 0.92) eagleBonus += 350;
+          if (features.eyeSlant <= -2.0) eagleBonus += 250;
+          if (features.noseWidthRatio >= 0.94) eagleBonus += 200;
+          c.totalScore += eagleBonus;
+        }
+        // ── 곰상 ──
+        if (c.animal.id === 'bear') {
+          let bearBonus = 0;
+          if (features.faceRatio >= 0.88) bearBonus += 220;
+          if (features.noseWidthRatio >= 1.05) bearBonus += 180;
+          if (Math.abs(features.eyeSlant) <= 1.5) bearBonus += 140;
+          c.totalScore += bearBonus;
+        }
+        // ── 악어상 ──
         if (c.animal.id === 'crocodile') {
-          if (features.jawSquareness <= 0.75)      c.totalScore -= 2000;
-          else if (features.jawSquareness >= 0.85) c.totalScore += 2000;
+          let crocBonus = 0;
+          if (features.faceRatio >= 0.86) crocBonus += 300;
+          if (features.mouthRatio >= 1.55) crocBonus += 350;
+          if (features.eyeDistRatio >= 1.20) crocBonus += 200;
+          c.totalScore += crocBonus;
         }
+        // ── 공룡상 ──
+        if (c.animal.id === 'dinosaur') {
+          let dinoBonus = 0;
+          if (features.mouthRatio >= 1.50) dinoBonus += 350;
+          if (features.noseWidthRatio >= 1.00) dinoBonus += 250;
+          c.totalScore += dinoBonus;
+        }
+
         c.totalScore = Math.max(0, c.totalScore);
+      });
+
+      // ── 여성형 얼굴 정밀 감지 (detectFeminineFace) → 동물상 부스트/페널티 ──
+      const femininityScore = this.detectFeminineFace(features);
+      // 40점 이상이면 여성형으로 판단
+      if (femininityScore >= 40) {
+        // 여성성 강도 배율: 40→×1.0, 60→×1.5, 80→×2.0, 100→×2.5
+        const femPower = 1.0 + (femininityScore - 40) / 40;
+
+        candidates.forEach(c => {
+          let bonus = 0;
+
+          // 1) 갸름한 턱선 + 큰 눈 → 고양이상
+          if (c.animal.id === 'cat') {
+            if (features.faceRatio <= 0.82) bonus += 700;
+            else if (features.faceRatio <= 0.85) bonus += 400;
+            else if (features.faceRatio <= 0.88) bonus += 200;
+            if (features.eyeRatio <= 2.5) bonus += 450;
+            else if (features.eyeRatio <= 2.8) bonus += 220;
+            if (features.eyeSlant <= -2.0) bonus += 400;
+            else if (features.eyeSlant <= -0.5) bonus += 180;
+            if (features.noseWidthRatio <= 0.88) bonus += 200;
+            bonus += 500; // 기본 여성 부스트
+          }
+          // 2) 둥근 얼굴 + 큰 눈 + 순한 인상 → 강아지상
+          if (c.animal.id === 'dog') {
+            if (features.faceRatio >= 0.83) bonus += 1100;
+            else if (features.faceRatio >= 0.80) bonus += 650;
+            else if (features.faceRatio >= 0.77) bonus += 300;
+            if (features.eyeRatio <= 2.6) bonus += 800;
+            else if (features.eyeRatio <= 2.9) bonus += 400;
+            if (features.eyeSlant >= 0.0) bonus += 600;
+            else if (features.eyeSlant >= -1.0) bonus += 280;
+            if (features.mouthCurve > 0) bonus += 350;
+            bonus += 600; // 기본 여성 부스트
+          }
+          // 3) 토끼상 (작은 코, 순한 눈매, 작은 입)
+          if (c.animal.id === 'rabbit') {
+            if (features.noseWidthRatio <= 0.88) bonus += 350;
+            else if (features.noseWidthRatio <= 0.93) bonus += 150;
+            if (features.mouthRatio <= 1.30) bonus += 250;
+            if (features.eyeSlant >= -0.5) bonus += 150;
+            bonus += 250;
+          }
+          // 4) 전체적으로 둥글면 → 곰상/햄스터상
+          if (c.animal.id === 'bear' || c.animal.id === 'hamster') {
+            if (features.faceRatio >= 0.87) bonus += 290;
+            else if (features.faceRatio >= 0.84) bonus += 145;
+            bonus += 145;
+          }
+          // 5) 눈이 매우 크면 → 사슴상
+          if (c.animal.id === 'deer') {
+            if (features.eyeRatio <= 2.3) bonus += 450;
+            else if (features.eyeRatio <= 2.6) bonus += 250;
+            bonus += 200;
+          }
+          // 6) 여우상 — 갸름한 얼굴 + 날카로운 눈매 + 좁은 미간
+          if (c.animal.id === 'fox') {
+            if (features.faceRatio <= 0.78) bonus += 126;
+            else if (features.faceRatio <= 0.82) bonus += 79;
+            else if (features.faceRatio <= 0.85) bonus += 40;
+            if (features.eyeSlant <= -3.0) bonus += 101;
+            else if (features.eyeSlant <= -1.5) bonus += 54;
+            if (features.eyeDistance <= 0.95) bonus += 54;
+            else if (features.eyeDistance <= 1.00) bonus += 29;
+            if (features.mouthRatio >= 1.30 && features.mouthRatio <= 1.45) bonus += 43;
+            bonus += 72; // 기본 여성 부스트
+          }
+          // 7) 표범상 — 날렵하고 섹시한 눈매
+          if (c.animal.id === 'leopard') {
+            if (features.eyeSlant <= -3.0) bonus += 350;
+            else if (features.eyeSlant <= -1.5) bonus += 180;
+            if (features.faceRatio >= 0.79 && features.faceRatio <= 0.85) bonus += 200;
+            bonus += 150;
+          }
+          // 8) 스라소니상
+          if (c.animal.id === 'lynx') {
+            if (features.eyeSlant <= -3.5) bonus += 300;
+            if (features.faceRatio <= 0.82) bonus += 200;
+            bonus += 100;
+          }
+          // 9) 기타 여성 호감 동물상
+          if (c.animal.id === 'otter') bonus += 250;
+          if (c.animal.id === 'sparrow') bonus += 200;
+          if (c.animal.id === 'koala') bonus += 200;
+          if (c.animal.id === 'alpaca') bonus += 150;
+
+          if (bonus > 0) c.totalScore += bonus * femPower;
+
+          // ─ 여성에게 거의 안 나와야 할 동물상: 점수를 비율로 깎아 확실히 차단 ─
+          const crushList = ['eagle', 'crocodile', 'dinosaur', 'lion', 'horse', 'camel'];
+          if (crushList.includes(c.animal.id)) {
+            // femPower가 높을수록 더 강하게 억제 (60%~95% 감소)
+            const crushRate = Math.min(0.95, 0.6 + (femPower - 1.0) * 0.15);
+            c.totalScore *= (1.0 - crushRate);
+          }
+          // 약한 페널티 동물상 (30%~50% 감소)
+          const mildCrush = ['wolf', 'snake', 'tiger'];
+          if (mildCrush.includes(c.animal.id)) {
+            const mildRate = Math.min(0.50, 0.30 + (femPower - 1.0) * 0.08);
+            c.totalScore *= (1.0 - mildRate);
+          }
+        });
+      }
+
+      // ── 남성형 얼굴 (femininityScore < 40) → 남성 대표 동물상 부스트 ──
+      if (femininityScore < 40) {
+        const mascPower = 1.0 + (40 - femininityScore) / 40; // 0→×2.0, 20→×1.5, 39→×1.025
+
+        candidates.forEach(c => {
+          let bonus = 0;
+
+          // 1) 강아지상 — 둥근 얼굴 + 순한 눈매
+          if (c.animal.id === 'dog') {
+            if (features.faceRatio >= 0.83) bonus += 550;
+            else if (features.faceRatio >= 0.80) bonus += 300;
+            if (features.eyeSlant >= 0.5) bonus += 350;
+            else if (features.eyeSlant >= -0.5) bonus += 180;
+            if (features.mouthCurve > 0) bonus += 150;
+            bonus += 250;
+          }
+          // 2) 곰상 — 넓고 큰 얼굴, 두꺼운 코
+          if (c.animal.id === 'bear') {
+            if (features.faceRatio >= 0.87) bonus += 290;
+            else if (features.faceRatio >= 0.84) bonus += 145;
+            if (features.noseWidthRatio >= 1.00) bonus += 220;
+            else if (features.noseWidthRatio >= 0.93) bonus += 110;
+            bonus += 145;
+          }
+          // 3) 악어상 — 넓은 하관 + 큰 입 + 넓은 미간
+          if (c.animal.id === 'crocodile') {
+            if (features.faceRatio >= 0.85) bonus += 450;
+            else if (features.faceRatio >= 0.82) bonus += 220;
+            if (features.mouthRatio >= 1.50) bonus += 400;
+            else if (features.mouthRatio >= 1.40) bonus += 200;
+            if (features.eyeDistRatio >= 1.15) bonus += 250;
+            bonus += 200;
+          }
+          // 4) 공룡상 — 강한 턱선 + 매우 큰 입
+          if (c.animal.id === 'dinosaur') {
+            if (features.mouthRatio >= 1.50) bonus += 400;
+            else if (features.mouthRatio >= 1.40) bonus += 200;
+            if (features.noseWidthRatio >= 0.98) bonus += 300;
+            else if (features.noseWidthRatio >= 0.92) bonus += 150;
+            bonus += 200;
+          }
+          // 5) 호랑이/사자상
+          if (c.animal.id === 'tiger') {
+            if (features.faceRatio >= 0.84 && features.eyeSlant <= -2.0) bonus += 400;
+            bonus += 200;
+          }
+          if (c.animal.id === 'lion') {
+            if (features.faceRatio >= 0.86 && features.noseWidthRatio >= 1.00) bonus += 350;
+            bonus += 200;
+          }
+          // 6) 여우상 — 남성형 갸름한 얼굴 + 날카로운 눈매
+          if (c.animal.id === 'fox') {
+            if (features.faceRatio <= 0.78) bonus += 126;
+            else if (features.faceRatio <= 0.82) bonus += 79;
+            else if (features.faceRatio <= 0.85) bonus += 40;
+            if (features.eyeSlant <= -3.0) bonus += 90;
+            else if (features.eyeSlant <= -1.5) bonus += 47;
+            if (features.eyeDistance <= 0.95) bonus += 54;
+            else if (features.eyeDistance <= 1.00) bonus += 29;
+            if (features.faceRatio <= 0.82 && features.eyeSlant <= -2.0) bonus += 79;
+            bonus += 36; // 기본 남성 부스트
+          }
+          // 7) 늑대상 — 갸름하고 날카로운 눈매
+          if (c.animal.id === 'wolf') {
+            if (features.faceRatio <= 0.82) bonus += 300;
+            if (features.eyeSlant <= -3.0) bonus += 350;
+            else if (features.eyeSlant <= -1.5) bonus += 180;
+            if (features.eyeDistance <= 1.00) bonus += 150;
+          }
+          // 8) 뱀상
+          if (c.animal.id === 'snake') {
+            if (features.eyeSlant <= -2.0) bonus += 250;
+            if (features.mouthRatio >= 1.40) bonus += 200;
+          }
+          // 9) 독수리상
+          if (c.animal.id === 'eagle') {
+            if (features.eyeDistance <= 0.92) bonus += 300;
+            if (features.eyeSlant <= -2.0) bonus += 200;
+            if (features.noseWidthRatio >= 0.94) bonus += 150;
+          }
+
+          if (bonus > 0) c.totalScore += bonus * mascPower;
+        });
+      }
+
+      // ── 점수 압축 (극단적 격차 완화) ──
+      // 1위 점수가 지나치게 높으면 분포가 한 동물에 쏠리므로
+      // 일정 임계값 이상 점수를 로그 스케일로 압축
+      const COMPRESS_THRESHOLD = 1800;
+      candidates.forEach(c => {
+        if (c.totalScore > COMPRESS_THRESHOLD) {
+          const excess = c.totalScore - COMPRESS_THRESHOLD;
+          // 초과분의 40%만 반영 (대수적 감쇄)
+          c.totalScore = COMPRESS_THRESHOLD + excess * 0.4;
+        }
       });
 
       // 내림차순 정렬 (높은 점수가 1위)
@@ -856,6 +1546,26 @@ async analyze(landmarksData, expressionData) {
     // 비술: 업보와 그림자의 농도 계산 (관상학적 흉상 수치화)
       const karmaData = this.calculateKarmaShadow(landmarksData);
 
+      // 안좋은 관상(凶相) 정밀 감지
+      const negPhysioData = this.detectNegativePhysiognomy(landmarksData, features);
+
+      // 안좋은 관상 HTML 생성 (평균 위험도 이상만 표시)
+      const avgSeverity = negPhysioData.detectedTraits.length > 0
+        ? negPhysioData.detectedTraits.reduce((s, t) => s + t.severity, 0) / negPhysioData.detectedTraits.length
+        : 0;
+      const visibleTraits = negPhysioData.detectedTraits.filter(t => t.severity >= avgSeverity);
+      const negTraitsHtml = visibleTraits.length > 0
+        ? visibleTraits.map(t => `
+            <div style="margin-bottom:10px; padding:10px; background:#fff5f5; border-radius:8px; border-left:3px solid ${t.severity >= 60 ? '#dc2626' : t.severity >= 40 ? '#f59e0b' : '#fb923c'};">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-weight:700; font-size:0.95rem; color:#7f1d1d;">${t.icon} ${t.name} <span style="font-size:0.8rem; color:#a1a1aa;">(${t.hanja})</span></span>
+                <span style="font-weight:800; font-size:0.85rem; padding:2px 8px; border-radius:12px; color:#fff; background:${t.severity >= 60 ? '#dc2626' : t.severity >= 40 ? '#f59e0b' : '#fb923c'};">위험도 ${t.severity}%</span>
+              </div>
+              <div style="font-size:0.85rem; color:#991b1b; margin-bottom:5px; line-height:1.5;">${t.description}</div>
+              <div style="font-size:0.82rem; color:#065f46; background:#ecfdf5; padding:6px 8px; border-radius:5px;">💡 <b>개운법:</b> ${t.advice}</div>
+            </div>`).join('')
+        : '<div style="padding:12px; background:#f0fdf4; border-radius:8px; text-align:center; color:#065f46; font-size:0.9rem;">✅ 뚜렷한 흉상(凶相)이 감지되지 않았습니다. 타고난 복상(福相)입니다!</div>';
+
       const expertReportHtml = `
       <div style="font-family: 'Pretendard', sans-serif; color: #333; line-height: 1.6;">
         
@@ -903,6 +1613,25 @@ async analyze(landmarksData, expressionData) {
             <p style="font-size: 0.9rem; color: #7f1d1d; margin: 0; line-height: 1.5;">${karmaData.advice}</p>
           </div>
 
+          <div style="margin-bottom: 15px; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); padding: 18px; border-radius: 12px; border: 1px solid #4338ca; box-shadow: 0 4px 15px rgba(67,56,202,0.3);">
+            <div style="font-weight: 800; font-size: 1.1rem; color: #e0e7ff; margin-bottom: 5px; border-bottom: 1px solid #4338ca; padding-bottom: 8px;">
+              🔮 안좋은 관상 정밀 분석 <span style="font-size:0.8rem; color:#a5b4fc;">(十大 凶相 감별)</span>
+            </div>
+            <div style="font-size:0.9rem; color:#c7d2fe; margin-bottom:12px; line-height:1.5;">
+              전통 관상학의 <b style="color:#fbbf24;">10대 흉상(凶相)</b>을 정밀 분석한 결과,
+              <b style="font-size:1.05rem; color:${negPhysioData.detectedCount === 0 ? '#34d399' : negPhysioData.detectedCount <= 2 ? '#fbbf24' : '#f87171'};">
+                ${negPhysioData.detectedCount}개</b>의 주의 징후가 감지되었습니다.
+              ${negPhysioData.detectedCount > 0 ? '<span style="font-size:0.82rem;">(평균 위험도: <b style="color:#fbbf24;">' + negPhysioData.overallScore + '%</b>)</span>' : ''}
+            </div>
+            <div style="margin-bottom:12px;">
+              ${negTraitsHtml}
+            </div>
+            <div style="background:#1e1b4b; padding:12px; border-radius:8px; border:1px solid #3730a3;">
+              <div style="font-weight:700; color:#fbbf24; margin-bottom:5px; font-size:0.9rem;">📿 종합 개운 처방 (總合 開運 處方)</div>
+              <p style="font-size:0.85rem; color:#c7d2fe; margin:0; line-height:1.6;">${negPhysioData.overallAdvice}</p>
+            </div>
+          </div>
+
           <div style="margin-bottom: 15px; background: #fffbeb; padding: 15px; border-radius: 10px; border: 1px solid #fde68a;">
           <div style="font-weight: 800; font-size: 1.05rem; color: #d97706; margin-bottom: 5px;"> 📜 삶의 지혜 (Advise)</div>
           <p style="font-size: 0.95rem; color: #78350f; margin: 0;">관상의 흠결은 미소 하나로 훌륭하게 덧입혀지고, 아무리 좋은 상(相)도 오만한 태도 앞에서는 금세 빛을 잃습니다. <b>본인의 타고난 강점을 믿고 겸손하게 내면(心相)을 다루는 것</b>이 진정한 개운(開運)의 본질임을 잊지 마십시오.</p>
@@ -942,7 +1671,745 @@ async analyze(landmarksData, expressionData) {
       extractedFeatures: features
     };
   }
-}
+
+  // ============================================
+  // 얼굴형 오행 분류 (圓/方/長/逆三角)
+  // ============================================
+  classifyFaceShape(features) {
+    const fr = features.faceRatio;
+    const chin = features.chinLength;
+    const sj = features.samjung;
+
+    let scores = { round: 0, square: 0, long: 0, triangle: 0 };
+
+    // 원형 (土·水): 넓은 faceRatio, 짧은 턱, 균형 삼정
+    if (fr >= 0.85) scores.round += 35;
+    else if (fr >= 0.82) scores.round += 18;
+    if (chin <= 0.32) scores.round += 20;
+    else if (chin <= 0.34) scores.round += 10;
+    if (Math.abs(sj.upper - sj.middle) < 0.04 && Math.abs(sj.middle - sj.lower) < 0.04) scores.round += 15;
+
+    // 방형 (金): 중간~넓은 faceRatio, 발달된 하정
+    if (fr >= 0.80 && fr <= 0.88) scores.square += 15;
+    if (chin >= 0.36) scores.square += 30;
+    else if (chin >= 0.34) scores.square += 18;
+    if (sj.lower >= 0.36) scores.square += 15;
+
+    // 장형 (木): 좁은 faceRatio, 긴 중정
+    if (fr <= 0.77) scores.long += 40;
+    else if (fr <= 0.80) scores.long += 20;
+    if (sj.middle >= 0.37) scores.long += 15;
+    if (chin >= 0.34) scores.long += 8;
+
+    // 역삼각형 (火): 상정>하정, 짧은 턱, 중간 faceRatio
+    if (sj.upper > sj.lower + 0.04) scores.triangle += 25;
+    if (chin <= 0.30) scores.triangle += 25;
+    else if (chin <= 0.32) scores.triangle += 12;
+    if (fr >= 0.78 && fr <= 0.85) scores.triangle += 10;
+
+    const types = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+    const topType = types[0][0];
+
+    const info = {
+      round:    { name: '원형(圓型)', element: '土·水', emoji: '🟤', desc: '원만하고 포용력 넘치는 상', fortune: '재물복·인복 풍부' },
+      square:   { name: '방형(方型)', element: '金',    emoji: '🔶', desc: '의지가 강하고 실행력 뛰어난 상', fortune: '직업운·관록 왕성' },
+      long:     { name: '장형(長型)', element: '木',    emoji: '🌿', desc: '지적이고 이성적인 상', fortune: '학업운·명예운 양호' },
+      triangle: { name: '역삼각형(逆三角型)', element: '火', emoji: '🔺', desc: '창의적이고 감각적인 상', fortune: '예술적 재능·직관력 출중' }
+    };
+
+    return { type: topType, ...info[topType], score: types[0][1] };
+  }
+
+  // ============================================
+  // 관상 궁합 분석 (두 사람의 분석 결과를 받아 궁합 산출)
+  // ============================================
+  calculateCompatibility(result1, result2) {
+    const animal1 = result1.primaryAnimal;
+    const animal2 = result2.primaryAnimal;
+    const emoji1 = result1.emoji;
+    const emoji2 = result2.emoji;
+    const id1 = this.animalDb.animals.find(a => a.name === animal1)?.id || '';
+    const id2 = this.animalDb.animals.find(a => a.name === animal2)?.id || '';
+
+    // 방어적 null 체크
+    const feat1 = result1.extractedFeatures || {};
+    const feat2 = result2.extractedFeatures || {};
+    if (!feat1.samjung) feat1.samjung = { upper: 0.333, middle: 0.333, lower: 0.334 };
+    if (!feat2.samjung) feat2.samjung = { upper: 0.333, middle: 0.333, lower: 0.334 };
+    if (feat1.faceRatio === undefined) feat1.faceRatio = 0.82;
+    if (feat2.faceRatio === undefined) feat2.faceRatio = 0.82;
+    if (feat1.chinLength === undefined) feat1.chinLength = 0.33;
+    if (feat2.chinLength === undefined) feat2.chinLength = 0.33;
+    if (feat1.eyeToFaceRatio === undefined) feat1.eyeToFaceRatio = 0.65;
+    if (feat2.eyeToFaceRatio === undefined) feat2.eyeToFaceRatio = 0.65;
+
+    // ── 동물상 궁합 매트릭스 (상생/상극/보통) ──
+    const compatMap = {
+      // 최상 궁합 (95+)
+      'dog-cat': { score: 96, type: '천생연분', desc: '순하고 다정한 강아지상과 도도하고 독립적인 고양이상은 서로의 빈자리를 완벽하게 메워주는 최고의 짝입니다. 강아지상의 따뜻한 애정이 고양이상의 마음을 녹이고, 고양이상의 쿨함이 강아지상에게 적절한 공간을 만들어줍니다.' },
+      'dog-rabbit': { score: 97, type: '천생연분', desc: '두 사람 모두 순하고 애정이 넘치는 관상으로, 만나는 순간부터 마치 오래된 연인처럼 자연스럽게 어울립니다. 서로를 향한 헌신과 따뜻한 배려가 끊이지 않아 영원한 사랑을 약속하는 궁합입니다.' },
+      'tiger-deer': { score: 95, type: '천생연분', desc: '호랑이상의 강렬한 카리스마가 사슴상의 순수하고 우아한 내면을 보호하며, 사슴상의 고결한 품성이 호랑이상의 거친 기운을 정화시켜 줍니다. 가장 이상적인 음양 조화의 궁합입니다.' },
+      'bear-rabbit': { score: 95, type: '천생연분', desc: '듬직하고 묵직한 곰상이 활발하고 귀여운 토끼상을 감싸 안아 최강의 안정감을 선사합니다. 토끼상의 밝은 에너지가 곰상의 무뚝뚝함을 녹여 서로가 없으면 안 되는 궁합입니다.' },
+      'wolf-deer': { score: 95, type: '천생연분', desc: '차갑고 의리 있는 늑대상과 순수하고 맑은 사슴상의 만남은 소설 속 같은 드라마틱한 사랑입니다. 늑대상이 사슴상을 세상 누구보다 지켜주고 사슴상이 늑대상의 상처를 치유해주는 운명적 궁합입니다.' },
+      'lion-hamster': { score: 93, type: '천생연분', desc: '위엄 넘치는 사자상이 귀엽고 부지런한 햄스터상을 사랑스럽게 보호하며, 햄스터상의 활력이 사자상에게 무한한 활력을 제공합니다. 권력과 사랑이 동시에 꽃피는 궁합입니다.' },
+
+      // 좋은 궁합 (80-94)
+      'fox-rabbit': { score: 90, type: '상생궁합', desc: '영리한 여우상이 순수한 토끼상을 이끌어주며, 토끼상의 진심이 여우상의 변덕을 잡아줍니다. 서로의 부족한 점을 채워주는 이상적인 파트너십입니다.' },
+      'dog-bear': { score: 88, type: '상생궁합', desc: '다정한 강아지상과 듬직한 곰상은 따뜻하고 안정적인 가정을 꾸리기에 최적의 궁합입니다. 둘 다 진심을 담아 사람을 대하는 성향이라 신뢰가 매우 깊습니다.' },
+      'cat-fox': { score: 87, type: '상생궁합', desc: '도도한 고양이상과 영리한 여우상은 세련되고 감각적인 커플입니다. 서로의 독립성을 인정하면서도 묘한 끌림으로 강하게 연결되어 있습니다.' },
+      'tiger-lion': { score: 86, type: '상생궁합', desc: '두 맹수의 만남! 서로의 카리스마를 존중하면서 거대한 시너지를 만들어냅니다. 권력과 성공을 함께 쥐는 최강의 파워커플 궁합입니다.' },
+      'otter-dog': { score: 89, type: '상생궁합', desc: '사교적인 수달상과 다정한 강아지상은 함께 있으면 웃음이 끊이지 않는 최고의 짝입니다. 서로를 편안하게 해주며 오래 갈수록 깊어지는 궁합입니다.' },
+      'hamster-rabbit': { score: 91, type: '상생궁합', desc: '귀여움의 대결! 두 사람의 밝고 긍정적인 에너지가 만나면 주변까지 행복하게 만드는 힐링 커플이 됩니다.' },
+      'eagle-snake': { score: 85, type: '상생궁합', desc: '날카로운 통찰력의 독수리상과 치밀한 전략가 뱀상의 만남은 비즈니스 파트너로도 최강이며, 서로의 야망을 이해하고 밀어주는 궁합입니다.' },
+      'koala-alpaca': { score: 87, type: '상생궁합', desc: '느긋하고 사려 깊은 코알라상과 온화하고 신념 있는 알파카상은 잔잔하지만 깊은 사랑을 나누는 궁합입니다. 서로에게 가장 편안한 안식처가 됩니다.' },
+      'monkey-sparrow': { score: 88, type: '상생궁합', desc: '재주 많은 원숭이상과 명랑한 참새상의 만남은 활기차고 즐거운 관계를 만듭니다. 서로의 다재다능함이 시너지를 이루어 어떤 상황에서도 웃음을 잃지 않습니다.' },
+      'horse-dog': { score: 85, type: '상생궁합', desc: '활달한 말상과 충직한 강아지상은 함께 여행하고 모험을 즐기며 깊은 유대를 형성합니다. 서로의 자유를 존중하면서도 끈끈한 정으로 이어진 궁합입니다.' },
+
+      // 보통 궁합 (65-79)
+      'cat-cat': { score: 72, type: '동류궁합', desc: '두 고양이상의 만남은 서로의 독립성을 극도로 존중하지만, 때로는 서로 관심을 표현하지 않아 냉전에 빠지기 쉽습니다. 먼저 다가가는 용기가 필요합니다.' },
+      'tiger-tiger': { score: 68, type: '동류궁합', desc: '두 호랑이의 만남은 강렬하지만 주도권 다툼이 잦을 수 있습니다. 서로 양보하는 미덕을 배우면 천하무적의 커플이 됩니다.' },
+      'fox-fox': { score: 70, type: '동류궁합', desc: '두 여우상은 서로의 속내를 너무 잘 알기에 밀당이 끝없이 이어집니다. 진심을 솔직하게 표현하면 최고의 전략적 파트너가 됩니다.' },
+      'snake-wolf': { score: 73, type: '팽팽궁합', desc: '뱀상의 치밀함과 늑대상의 의리가 만나면 강렬한 긴장감 속에서도 묘한 끌림이 있습니다. 서로를 완전히 신뢰하기까지 시간이 걸리지만, 한 번 인정하면 평생입니다.' },
+      'dinosaur-bear': { score: 75, type: '보통궁합', desc: '공룡상의 거친 매력과 곰상의 포근함이 어울리며, 서로 다른 방식으로 상대를 보호하려는 마음이 통합니다.' },
+      'horse-eagle': { score: 74, type: '보통궁합', desc: '활동적인 말상과 날카로운 독수리상은 각자의 방식으로 세상을 누비며, 서로의 자유를 존중하는 관계를 형성합니다.' },
+
+      // 상극 궁합 (50-64)
+      'cat-dog': { score: 96, type: '천생연분', desc: '순하고 다정한 강아지상과 도도하고 독립적인 고양이상은 서로의 빈자리를 완벽하게 메워주는 최고의 짝입니다.' }, // mirror
+      'tiger-rabbit': { score: 58, type: '상극궁합', desc: '호랑이상의 강렬한 기세가 여린 토끼상을 압도하기 쉽습니다. 호랑이상이 부드러움을 배우고, 토끼상이 용기를 내면 의외의 좋은 궁합으로 발전할 수 있습니다.' },
+      'snake-rabbit': { score: 55, type: '상극궁합', desc: '뱀상의 치명적 매력과 토끼상의 순수함은 극과 극의 만남입니다. 초반의 강렬한 끌림 뒤에 서로의 가치관 차이를 극복해야 하는 시련이 옵니다.' },
+      'eagle-sparrow': { score: 52, type: '상극궁합', desc: '독수리상의 날카로운 기운이 참새상의 밝은 에너지를 위축시킬 수 있습니다. 서로의 세계를 이해하려는 노력이 절실히 필요한 궁합입니다.' },
+      'crocodile-hamster': { score: 50, type: '상극궁합', desc: '악어상의 냉철함과 햄스터상의 귀여움은 물과 기름처럼 섞이기 어렵습니다. 그러나 악어상이 마음을 열면 햄스터상이 최고의 활력소가 됩니다.' },
+    };
+
+    // 궁합 키 생성 (양방향 검색)
+    let compKey = `${id1}-${id2}`;
+    let compData = compatMap[compKey];
+    if (!compData) {
+      compKey = `${id2}-${id1}`;
+      compData = compatMap[compKey];
+    }
+
+    // 매트릭스에 없는 경우 기본 궁합 산출 (알고리즘 기반)
+    if (!compData) {
+      compData = this._generateDefaultCompatibility(id1, id2, result1, result2);
+    }
+
+    // ── ① 얼굴형 오행(五行) 궁합 ──
+    const shape1 = this.classifyFaceShape(feat1);
+    const shape2 = this.classifyFaceShape(feat2);
+
+    const faceShapeCompatMap = {
+      'round-square':    { score: 92, label: '土生金 상생', desc: '원형의 부드러운 포용력과 방형의 단단한 의지가 만나 土生金의 상생을 이룹니다. 서로의 빈자리를 완벽하게 채우는 최고의 조합입니다.' },
+      'round-long':      { score: 87, label: '水生木 상생', desc: '원형의 따뜻한 감성과 장형의 이성적 사고가 水生木의 상생으로 어우러집니다. 감정과 논리의 균형이 탁월합니다.' },
+      'round-triangle':  { score: 89, label: '火生土 상생', desc: '역삼각형의 날카로운 창의성을 원형의 안정감이 감싸주는 火生土의 상생입니다. 서로를 자극하면서도 편안한 관계입니다.' },
+      'square-long':     { score: 64, label: '金克木 주의', desc: '방형의 원칙과 장형의 이론이 부딪히는 金克木의 기운이 있습니다. 서로의 방식을 존중하는 유연함이 필요합니다.' },
+      'square-triangle': { score: 60, label: '火克金 주의', desc: '방형의 안정 추구와 역삼각형의 변화 추구가 대립하는 火克金의 기운입니다. 공통의 목표를 세우면 강력한 팀이 됩니다.' },
+      'long-triangle':   { score: 84, label: '木生火 상생', desc: '장형의 깊은 사고와 역삼각형의 직관이 만나 木生火의 상생을 이룹니다. 지적이면서도 감각적인 관계입니다.' },
+    };
+
+    let faceShapeKey = `${shape1.type}-${shape2.type}`;
+    let shapeCompat = faceShapeCompatMap[faceShapeKey];
+    if (!shapeCompat) {
+      faceShapeKey = `${shape2.type}-${shape1.type}`;
+      shapeCompat = faceShapeCompatMap[faceShapeKey];
+    }
+    if (!shapeCompat) {
+      shapeCompat = { score: 73, label: '동형 안정', desc: `같은 ${shape1.name}끼리의 만남은 편안하고 자연스럽지만, 성장과 자극이 부족할 수 있습니다. 새로운 경험을 함께 추구하면 관계가 깊어집니다.` };
+    }
+    const faceShapeScore = shapeCompat.score;
+
+    // ── ② 삼정(三停) 시차 보완 궁합 ──
+    const sj1 = feat1.samjung;
+    const sj2 = feat2.samjung;
+    const upperDiff = Math.abs(sj1.upper - sj2.upper);
+    const middleDiff = Math.abs(sj1.middle - sj2.middle);
+    const lowerDiff = Math.abs(sj1.lower - sj2.lower);
+    const avgDiff = (upperDiff + middleDiff + lowerDiff) / 3;
+
+    // 두 사람의 삼정 평균이 이상적 균형(0.333)에 가까운지
+    const combinedUpper = (sj1.upper + sj2.upper) / 2;
+    const combinedMiddle = (sj1.middle + sj2.middle) / 2;
+    const combinedLower = (sj1.lower + sj2.lower) / 2;
+    const balanceDeviation = Math.abs(combinedUpper - 0.333) + Math.abs(combinedMiddle - 0.333) + Math.abs(combinedLower - 0.333);
+
+    let samjungScore = 70;
+    if (avgDiff >= 0.02 && avgDiff <= 0.07) samjungScore += 18;
+    else if (avgDiff < 0.02) samjungScore += 5;
+    else samjungScore -= Math.min(15, (avgDiff - 0.07) * 200);
+    samjungScore += Math.max(0, (0.15 - balanceDeviation) * 60);
+    samjungScore = Math.max(40, Math.min(98, Math.round(samjungScore)));
+
+    // 삼정 시기별 보완 분석 텍스트
+    let samjungAnalysis = '';
+    if (sj1.upper >= 0.35 && sj2.upper < 0.32) samjungAnalysis += '첫 번째 분의 초년 기운이 두 번째 분의 초년 부족을 보완합니다. ';
+    else if (sj2.upper >= 0.35 && sj1.upper < 0.32) samjungAnalysis += '두 번째 분의 초년 기운이 첫 번째 분의 초년 부족을 보완합니다. ';
+    else if (sj1.upper >= 0.34 && sj2.upper >= 0.34) samjungAnalysis += '두 분 모두 초년운이 강해 젊은 시절 활력이 넘칩니다. ';
+    if (sj1.middle >= 0.36 && sj2.middle < 0.32) samjungAnalysis += '첫 번째 분의 중년 기운이 두 번째 분의 중년 운을 끌어올립니다. ';
+    else if (sj2.middle >= 0.36 && sj1.middle < 0.32) samjungAnalysis += '두 번째 분의 중년 기운이 첫 번째 분의 중년 운을 끌어올립니다. ';
+    if (sj1.lower >= 0.36 && sj2.lower < 0.32) samjungAnalysis += '첫 번째 분의 노년 복이 두 번째 분의 노후를 든든하게 받쳐줍니다.';
+    else if (sj2.lower >= 0.36 && sj1.lower < 0.32) samjungAnalysis += '두 번째 분의 노년 복이 첫 번째 분의 노후를 든든하게 받쳐줍니다.';
+    if (!samjungAnalysis) samjungAnalysis = '두 분의 삼정 비율이 비슷하여 인생 리듬이 안정적으로 어울립니다.';
+
+    // ── ③ 오관(五官) 정밀 궁합 ──
+
+    // 👁️ 눈 궁합 — 관상학적 눈매 페어링
+    const slant1 = feat1.eyeSlant;
+    const slant2 = feat2.eyeSlant;
+    const eyeDiff = Math.abs(slant1 - slant2);
+    let eyeCompat = 0;
+    let eyeComment = '';
+    const isSharpEye1 = slant1 < -1.5;
+    const isSharpEye2 = slant2 < -1.5;
+    const isGentleEye1 = slant1 > 1.0;
+    const isGentleEye2 = slant2 > 1.0;
+
+    if ((isSharpEye1 && isGentleEye2) || (isSharpEye2 && isGentleEye1)) {
+      eyeCompat = 95;
+      eyeComment = '날카로운 눈매와 온화한 눈매의 조합! 기운이 완벽한 음양 균형을 이룹니다.';
+    } else if (isSharpEye1 && isSharpEye2) {
+      eyeCompat = 58;
+      eyeComment = '두 분 모두 날카로운 눈매로 강한 기운이 부딪힐 수 있습니다. 부드러운 소통으로 보완하세요.';
+    } else if (isGentleEye1 && isGentleEye2) {
+      eyeCompat = 80;
+      eyeComment = '두 분 모두 온화한 눈매로 평화로운 관계를 형성합니다. 결단이 필요할 때 서로 밀어주세요.';
+    } else if (eyeDiff >= 2 && eyeDiff <= 5) {
+      eyeCompat = 88;
+      eyeComment = '적당히 다른 눈매가 흥미로운 긴장과 균형을 만듭니다.';
+    } else if (eyeDiff < 2) {
+      eyeCompat = 75;
+      eyeComment = '비슷한 눈매로 감정 파장이 자연스레 동기화됩니다.';
+    } else {
+      eyeCompat = Math.max(50, 88 - (eyeDiff - 5) * 8);
+      eyeComment = '눈매 차이가 크지만, 서로의 시각을 통해 세계가 확장됩니다.';
+    }
+    // 눈 크기 보완 보너스
+    const eyeRatioDiff = Math.abs(feat1.eyeToFaceRatio - feat2.eyeToFaceRatio);
+    if (eyeRatioDiff >= 0.05 && eyeRatioDiff <= 0.12) eyeCompat = Math.min(98, eyeCompat + 5);
+
+    // 👃 코 궁합 — 재물·자존심 페어링
+    const nw1 = feat1.noseWidthRatio;
+    const nw2 = feat2.noseWidthRatio;
+    const noseDiff = Math.abs(nw1 - nw2);
+    let noseCompat = 0;
+    let noseComment = '';
+    const isHighNose1 = nw1 <= 0.78;
+    const isHighNose2 = nw2 <= 0.78;
+    const isRoundNose1 = nw1 >= 0.90;
+    const isRoundNose2 = nw2 >= 0.90;
+
+    if ((isHighNose1 && isRoundNose2) || (isHighNose2 && isRoundNose1)) {
+      noseCompat = 93;
+      noseComment = '높은 코(리더형)와 둥근 코(조화형)의 만남! 자존심과 포용력이 균형을 이루어 재물운이 상승합니다.';
+    } else if (isHighNose1 && isHighNose2) {
+      noseCompat = 60;
+      noseComment = '두 분 모두 자존심이 강한 코상입니다. 재물 주도권을 나누고 서로의 자율성을 인정해야 합니다.';
+    } else if (isRoundNose1 && isRoundNose2) {
+      noseCompat = 82;
+      noseComment = '두 분 모두 넉넉한 코상으로 물질적 풍요와 인정이 넘칩니다. 함께할수록 재물이 모입니다.';
+    } else {
+      noseCompat = Math.max(50, Math.min(92, 88 - noseDiff * 150));
+      noseComment = noseDiff <= 0.05 ? '코 폭이 비슷하여 가치관과 재물관이 잘 맞습니다.' : noseDiff <= 0.10 ? '적당한 코 차이가 재물 운용에 상보적 역할을 합니다.' : '재물 관점이 다를 수 있으니 경제적 대화를 자주 나누세요.';
+    }
+
+    // 👄 입 궁합 — 소통·가정운 페어링
+    const mc1 = feat1.mouthCurve;
+    const mc2 = feat2.mouthCurve;
+    const mr1 = feat1.mouthRatio;
+    const mr2 = feat2.mouthRatio;
+    let mouthCompat = 70;
+    let mouthComment = '';
+    const isBigMouth1 = mr1 >= 1.4;
+    const isBigMouth2 = mr2 >= 1.4;
+    const isSmallMouth1 = mr1 <= 1.2;
+    const isSmallMouth2 = mr2 <= 1.2;
+
+    if ((isBigMouth1 && isSmallMouth2) || (isBigMouth2 && isSmallMouth1)) mouthCompat += 12;
+
+    if (mc1 > 0 && mc2 > 0) {
+      mouthCompat = Math.max(mouthCompat, 95);
+      mouthComment = '두 분 모두 올라간 입꼬리! 가정에 웃음이 끊이지 않는 만복(萬福)의 궁합입니다.';
+    } else if (mc1 > 0 || mc2 > 0) {
+      mouthCompat = Math.max(mouthCompat, 82);
+      mouthComment = '한 분의 올라간 입꼬리가 가정에 밝은 기운을 불어넣습니다. 웃는 입이 복을 부릅니다.';
+    } else {
+      mouthCompat = Math.max(mouthCompat, 58);
+      mouthComment = '두 분 모두 과묵한 입상이지만 깊은 속마음은 진실합니다. 함께 웃는 연습이 운을 끌어올립니다.';
+    }
+    if ((isBigMouth1 && isSmallMouth2) || (isBigMouth2 && isSmallMouth1)) {
+      mouthComment += ' 큰 입과 작은 입의 조합이 자연스러운 대화 균형을 만듭니다.';
+    }
+    mouthCompat = Math.min(98, mouthCompat);
+
+    // 🧑 얼굴형 세부 궁합 (오행 + faceRatio 미세 보정)
+    const faceRatioDiff = Math.abs(feat1.faceRatio - feat2.faceRatio);
+    let faceCompat = faceShapeScore;
+    if (faceRatioDiff >= 0.03 && faceRatioDiff <= 0.12) faceCompat = Math.min(98, faceCompat + 5);
+    else if (faceRatioDiff > 0.15) faceCompat = Math.max(45, faceCompat - 8);
+
+    // ── ④ 종합 궁합 산출 ──
+    // 동물매트릭스 40% + 얼굴형오행 15% + 삼정보완 15% + 오관평균 30%
+    const ogwanAvg = (eyeCompat + noseCompat + mouthCompat) / 3;
+    const finalScore = Math.round(
+      compData.score * 0.40 +
+      faceShapeScore * 0.15 +
+      samjungScore * 0.15 +
+      ogwanAvg * 0.30
+    );
+
+    // 궁합 등급 산출
+    let grade = '';
+    let gradeEmoji = '';
+    if (finalScore >= 90) { grade = '천생연분 💕'; gradeEmoji = '💕'; }
+    else if (finalScore >= 80) { grade = '상생궁합 💛'; gradeEmoji = '💛'; }
+    else if (finalScore >= 70) { grade = '무난궁합 💚'; gradeEmoji = '💚'; }
+    else if (finalScore >= 60) { grade = '노력궁합 🧡'; gradeEmoji = '🧡'; }
+    else { grade = '상극궁합 💔'; gradeEmoji = '💔'; }
+
+    // 궁합 조언 생성 (오행 + 삼정 반영)
+    let advice = '';
+    if (finalScore >= 90) {
+      advice = `두 분은 하늘이 맺어준 최고의 인연입니다! ${shape1.element}과 ${shape2.element}의 기운이 상생하며, 삼정의 흐름도 완벽히 보완됩니다. 서로를 향한 마음을 소중히 간직하세요.`;
+    } else if (finalScore >= 80) {
+      advice = `${shape1.name}과 ${shape2.name}의 조합이 서로의 장점을 빛나게 합니다. 작은 배려와 관심으로 더 깊은 사랑을 꽃피우세요.`;
+    } else if (finalScore >= 70) {
+      advice = '무난하면서도 성장 가능성이 큰 궁합입니다. 서로의 다름을 인정하고 존중하면 시간이 갈수록 더 좋아집니다. 삼정의 시차를 이용해 서로를 보완하세요.';
+    } else if (finalScore >= 60) {
+      advice = '서로 다른 매력이 있지만 노력이 필요한 궁합입니다. 오행의 기운이 충돌할 수 있으니, 대화와 이해로 극복하면 인생의 소중한 파트너가 됩니다.';
+    } else {
+      advice = '첫인상은 어렵게 느껴질 수 있지만, 관상은 심상(心相)을 이기지 못합니다. 진심을 담은 소통으로 운명도 바꿀 수 있습니다.';
+    }
+
+    // ── ⑤ 결핍과 장점 분석 ──
+    // 각 사람의 관상 장점·결핍을 파악하고, 상대가 어떻게 보완하는지 분석
+    const buildTraitProfile = (feat, shape, label) => {
+      const strengths = [];
+      const deficits = [];
+
+      // 눈매 분석
+      if (feat.eyeSlant < -1.5) {
+        strengths.push({ trait: '날카로운 눈매', desc: '결단력과 추진력이 뛰어나며, 상황 판단이 빠릅니다.' });
+        deficits.push({ trait: '강한 눈매', desc: '상대에게 위압감을 줄 수 있고, 감정 표현이 서툴 수 있습니다.' });
+      } else if (feat.eyeSlant > 1.0) {
+        strengths.push({ trait: '온화한 눈매', desc: '포용력이 크며, 사람들에게 편안한 인상을 줍니다.' });
+        deficits.push({ trait: '부드러운 눈매', desc: '우유부단하거나, 단호한 결정이 필요할 때 어려움을 겪을 수 있습니다.' });
+      } else {
+        strengths.push({ trait: '균형 잡힌 눈매', desc: '감성과 이성의 밸런스가 좋아 대인관계가 원만합니다.' });
+      }
+
+      // 눈 크기 분석
+      if (feat.eyeToFaceRatio > 0.30) {
+        strengths.push({ trait: '큰 눈', desc: '감수성이 풍부하고 공감 능력이 뛰어납니다.' });
+        deficits.push({ trait: '큰 눈', desc: '감정에 쉽게 흔들릴 수 있으며, 비밀 유지가 어려울 수 있습니다.' });
+      } else if (feat.eyeToFaceRatio < 0.22) {
+        strengths.push({ trait: '단정한 눈', desc: '집중력이 강하고 분석적 사고에 능합니다.' });
+        deficits.push({ trait: '작은 눈', desc: '감정을 잘 드러내지 않아 오해를 받을 수 있습니다.' });
+      }
+
+      // 코 분석
+      if (feat.noseWidthRatio <= 0.78) {
+        strengths.push({ trait: '높고 날렵한 코', desc: '자존심이 강하고 리더십이 뛰어나 목표 달성 능력이 탁월합니다.' });
+        deficits.push({ trait: '좁은 코', desc: '타인의 의견을 수용하기 어려울 수 있고, 고집이 셀 수 있습니다.' });
+      } else if (feat.noseWidthRatio >= 0.90) {
+        strengths.push({ trait: '넉넉한 코', desc: '재물운이 좋고 인정이 많아 주변 사람들을 잘 챙깁니다.' });
+        deficits.push({ trait: '넓은 코', desc: '거절을 잘 못해 손해를 볼 수 있으며, 지나친 베풂이 약점이 될 수 있습니다.' });
+      } else {
+        strengths.push({ trait: '균형 잡힌 코', desc: '재물 관리와 대인관계 모두 안정적입니다.' });
+      }
+
+      // 입 분석
+      if (feat.mouthCurve > 0) {
+        strengths.push({ trait: '올라간 입꼬리', desc: '긍정적 에너지가 넘치고, 주변에 활력을 줍니다. 복을 부르는 입상입니다.' });
+      } else if (feat.mouthCurve < -0.5) {
+        strengths.push({ trait: '굳은 입매', desc: '신중하고 깊이 있는 사고를 하며, 쉽게 흔들리지 않는 내면의 힘이 있습니다.' });
+        deficits.push({ trait: '내려간 입꼬리', desc: '불만이나 피로가 얼굴에 드러나기 쉬워, 주변에 냉소적 인상을 줄 수 있습니다.' });
+      }
+
+      if (feat.mouthRatio >= 1.4) {
+        strengths.push({ trait: '큰 입', desc: '사교적이고 표현력이 뛰어나 리더형 소통가입니다.' });
+      } else if (feat.mouthRatio <= 1.2) {
+        strengths.push({ trait: '작은 입', desc: '섬세하고 신중한 소통 방식으로 깊은 관계를 형성합니다.' });
+        deficits.push({ trait: '작은 입', desc: '속마음을 표현하지 못해 소통 단절이 올 수 있습니다.' });
+      }
+
+      // 얼굴형 분석
+      if (feat.faceRatio >= 0.88) {
+        strengths.push({ trait: '넓은 얼굴형', desc: '안정감과 신뢰감을 주며 책임감이 강합니다.' });
+        deficits.push({ trait: '넓은 얼굴형', desc: '변화에 적응이 느릴 수 있고 고집이 강할 수 있습니다.' });
+      } else if (feat.faceRatio <= 0.76) {
+        strengths.push({ trait: '좁은 얼굴형', desc: '감각적이고 유연한 사고방식을 가졌습니다.' });
+        deficits.push({ trait: '좁은 얼굴형', desc: '끈기가 부족하거나 집중력이 분산될 수 있습니다.' });
+      }
+
+      // 삼정 분석
+      if (feat.samjung) {
+        if (feat.samjung.upper >= 0.36) {
+          strengths.push({ trait: '넓은 이마(상정)', desc: '초년 지혜운이 강하고 학업·아이디어에 뛰어납니다.' });
+        } else if (feat.samjung.upper <= 0.28) {
+          deficits.push({ trait: '좁은 이마(상정)', desc: '초년기 어려움이 있을 수 있으나, 중년 이후 빛을 발합니다.' });
+        }
+        if (feat.samjung.lower >= 0.36) {
+          strengths.push({ trait: '발달된 턱(하정)', desc: '말년복이 풍부하고 실행력·의지력이 강합니다.' });
+        } else if (feat.samjung.lower <= 0.28) {
+          deficits.push({ trait: '짧은 턱(하정)', desc: '말년 안정감이 부족할 수 있으니, 노후 계획이 중요합니다.' });
+        }
+      }
+
+      return { strengths, deficits, label };
+    };
+
+    const profile1 = buildTraitProfile(feat1, shape1, '첫 번째 분');
+    const profile2 = buildTraitProfile(feat2, shape2, '두 번째 분');
+
+    // 상대가 보완해주는 분석 생성
+    const buildComplementAnalysis = (myProfile, partnerProfile, myLabel, partnerLabel) => {
+      const complements = [];
+      for (const deficit of myProfile.deficits) {
+        for (const strength of partnerProfile.strengths) {
+          // 같은 trait 카테고리의 반대되는 특성 매칭
+          if (
+            (deficit.trait.includes('눈') && strength.trait.includes('눈')) ||
+            (deficit.trait.includes('코') && strength.trait.includes('코')) ||
+            (deficit.trait.includes('입') && strength.trait.includes('입')) ||
+            (deficit.trait.includes('얼굴') && strength.trait.includes('얼굴')) ||
+            (deficit.trait.includes('이마') && strength.trait.includes('턱')) ||
+            (deficit.trait.includes('턱') && strength.trait.includes('이마'))
+          ) {
+            complements.push({
+              deficit: deficit.desc,
+              complement: `${partnerLabel}의 ${strength.trait}이(가) 이를 보완합니다: ${strength.desc}`
+            });
+            break; // 하나만 매칭
+          }
+        }
+      }
+      // 직접 매칭이 안 된 결핍도 포함 (보완 없이)
+      if (complements.length === 0 && myProfile.deficits.length > 0) {
+        complements.push({
+          deficit: myProfile.deficits[0].desc,
+          complement: `${partnerLabel}의 전반적인 기운이 부드럽게 중화시켜 줍니다.`
+        });
+      }
+      return complements;
+    };
+
+    const comp1to2 = buildComplementAnalysis(profile1, profile2, '첫 번째 분', '두 번째 분');
+    const comp2to1 = buildComplementAnalysis(profile2, profile1, '두 번째 분', '첫 번째 분');
+
+    // 결핍/장점 HTML 요소 생성 함수
+    const renderStrengths = (profile) => profile.strengths.slice(0, 4).map(s =>
+      `<div style="display:flex; align-items:flex-start; gap:6px; margin-bottom:5px;">
+        <span style="color:#16a34a; font-weight:800; font-size:0.9rem; flex-shrink:0;">✦</span>
+        <span style="font-size:0.82rem; color:#14532d;"><b>${s.trait}</b> — ${s.desc}</span>
+      </div>`
+    ).join('');
+
+    const renderDeficits = (profile) => profile.deficits.slice(0, 3).map(d =>
+      `<div style="display:flex; align-items:flex-start; gap:6px; margin-bottom:5px;">
+        <span style="color:#dc2626; font-weight:800; font-size:0.9rem; flex-shrink:0;">▾</span>
+        <span style="font-size:0.82rem; color:#7f1d1d;"><b>${d.trait}</b> — ${d.desc}</span>
+      </div>`
+    ).join('');
+
+    const renderComplements = (comps) => comps.slice(0, 3).map(c =>
+      `<div style="margin-bottom:8px; padding:8px 10px; background:rgba(255,255,255,0.6); border-radius:8px; border-left:3px solid #8b5cf6;">
+        <div style="font-size:0.8rem; color:#991b1b; margin-bottom:3px;">⚠️ ${c.deficit}</div>
+        <div style="font-size:0.8rem; color:#5b21b6;">→ ${c.complement}</div>
+      </div>`
+    ).join('');
+
+    // 궁합 HTML 생성
+    const compatHtml = `
+      <div style="font-family: 'Pretendard', sans-serif; color: #333; line-height: 1.6;">
+        
+        <!-- 궁합 메인 헤더 -->
+        <div style="text-align:center; margin-bottom:20px;">
+          <div style="font-size: 4rem; margin-bottom: 10px;">${emoji1} ${gradeEmoji} ${emoji2}</div>
+          <div style="font-weight: 900; font-size: 1.4rem; color: #0f172a; margin-bottom: 5px;">${animal1} × ${animal2}</div>
+          <div style="font-weight: 800; font-size: 1.2rem; color: #e11d48; margin-bottom: 8px;">${grade}</div>
+        </div>
+
+        <!-- 궁합 점수 게이지 -->
+        <div style="margin-bottom: 20px; background: #f8fafc; padding: 18px; border-radius: 14px; border: 1px solid #e2e8f0;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-weight:800; font-size:1rem; color:#0f172a;">💘 종합 궁합 점수</span>
+            <span style="font-weight:900; font-size:1.5rem; color:${finalScore >= 80 ? '#e11d48' : finalScore >= 60 ? '#f59e0b' : '#64748b'};">${finalScore}점</span>
+          </div>
+          <div style="background:#e2e8f0; height:14px; border-radius:10px; overflow:hidden;">
+            <div style="height:100%; width:${finalScore}%; background:linear-gradient(90deg, ${finalScore >= 80 ? '#f472b6, #e11d48' : finalScore >= 60 ? '#fbbf24, #f59e0b' : '#94a3b8, #64748b'}); border-radius:10px; transition: width 1.5s ease;"></div>
+          </div>
+        </div>
+
+        <!-- 궁합 유형 설명 -->
+        <div style="margin-bottom: 18px; background: linear-gradient(135deg, #fdf2f8, #fce7f3); padding: 18px; border-radius: 14px; border: 1px solid #fbcfe8;">
+          <div style="font-weight: 800; font-size: 1.05rem; color: #9d174d; margin-bottom: 8px;">💑 ${compData.type} 분석</div>
+          <p style="font-size: 0.95rem; color: #831843; margin: 0; line-height: 1.6;">${compData.desc}</p>
+        </div>
+
+        <!-- ★ 얼굴형 오행 궁합 (신규) -->
+        <div style="margin-bottom: 18px; background: linear-gradient(135deg, #fefce8, #fef9c3); padding: 18px; border-radius: 14px; border: 1px solid #fde047;">
+          <div style="font-weight: 800; font-size: 1.05rem; color: #854d0e; margin-bottom: 12px;">🔥 얼굴형 오행(五行) 궁합</div>
+          <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin-bottom: 12px;">
+            <div style="text-align:center; background:#fffbeb; padding:10px; border-radius:10px;">
+              <div style="font-size:1.8rem;">${shape1.emoji}</div>
+              <div style="font-weight:800; color:#92400e; font-size:0.9rem;">${shape1.name}</div>
+              <div style="font-size:0.75rem; color:#a16207;">${shape1.element} · ${shape1.fortune}</div>
+            </div>
+            <div style="font-size:1.5rem; font-weight:900; color:#d97706;">⚡</div>
+            <div style="text-align:center; background:#fffbeb; padding:10px; border-radius:10px;">
+              <div style="font-size:1.8rem;">${shape2.emoji}</div>
+              <div style="font-weight:800; color:#92400e; font-size:0.9rem;">${shape2.name}</div>
+              <div style="font-size:0.75rem; color:#a16207;">${shape2.element} · ${shape2.fortune}</div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="font-weight:700; color:#92400e;">${shapeCompat.label || '오행 궁합'}</span>
+            <span style="font-weight:800; color:#d97706;">${faceShapeScore}점</span>
+          </div>
+          <div style="background:#fef3c7; height:8px; border-radius:6px; overflow:hidden; margin-bottom:6px;">
+            <div style="height:100%; width:${faceShapeScore}%; background:linear-gradient(90deg,#fbbf24,#d97706); border-radius:6px;"></div>
+          </div>
+          <div style="font-size:0.85rem; color:#78350f; line-height:1.5;">${shapeCompat.desc}</div>
+        </div>
+
+        <!-- ★ 삼정(三停) 보완 궁합 (신규) -->
+        <div style="margin-bottom: 18px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 18px; border-radius: 14px; border: 1px solid #86efac;">
+          <div style="font-weight: 800; font-size: 1.05rem; color: #166534; margin-bottom: 12px;">⏳ 삼정(三停) 시차 보완 궁합</div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="font-weight:700; color:#166534;">인생 리듬 보완도</span>
+            <span style="font-weight:800; color:#16a34a;">${samjungScore}점</span>
+          </div>
+          <div style="background:#bbf7d0; height:8px; border-radius:6px; overflow:hidden; margin-bottom:10px;">
+            <div style="height:100%; width:${samjungScore}%; background:linear-gradient(90deg,#4ade80,#16a34a); border-radius:6px;"></div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+            <div style="background:#ecfdf5; padding:8px; border-radius:8px; text-align:center;">
+              <div style="font-size:0.7rem; color:#065f46; font-weight:700;">첫 번째 분</div>
+              <div style="font-size:0.72rem; color:#047857;">상정 ${Math.round(sj1.upper*100)}% · 중정 ${Math.round(sj1.middle*100)}% · 하정 ${Math.round(sj1.lower*100)}%</div>
+            </div>
+            <div style="background:#ecfdf5; padding:8px; border-radius:8px; text-align:center;">
+              <div style="font-size:0.7rem; color:#065f46; font-weight:700;">두 번째 분</div>
+              <div style="font-size:0.72rem; color:#047857;">상정 ${Math.round(sj2.upper*100)}% · 중정 ${Math.round(sj2.middle*100)}% · 하정 ${Math.round(sj2.lower*100)}%</div>
+            </div>
+          </div>
+          <div style="font-size:0.85rem; color:#14532d; line-height:1.5;">${samjungAnalysis}</div>
+          <div style="font-size:0.75rem; color:#64748b; margin-top:6px;">※ 상정(上停)=초년운, 중정(中停)=중년운, 하정(下停)=말년운</div>
+        </div>
+
+        <!-- 오관별 궁합 세부 분석 (강화) -->
+        <div style="margin-bottom: 18px; background: #f0f9ff; padding: 18px; border-radius: 14px; border: 1px solid #bae6fd;">
+          <div style="font-weight: 800; font-size: 1.05rem; color: #0c4a6e; margin-bottom: 12px;">🔍 오관(五官) 정밀 궁합 분석</div>
+          
+          <div style="margin-bottom: 10px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span style="font-weight:700; color:#1e40af;">👁️ 눈 궁합 (감정·기운 교류)</span>
+              <span style="font-weight:800; color:#2563eb;">${Math.round(eyeCompat)}점</span>
+            </div>
+            <div style="background:#dbeafe; height:8px; border-radius:6px; overflow:hidden;">
+              <div style="height:100%; width:${eyeCompat}%; background:linear-gradient(90deg,#60a5fa,#2563eb); border-radius:6px;"></div>
+            </div>
+            <div style="font-size:0.8rem; color:#475569; margin-top:3px;">${eyeComment}</div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span style="font-weight:700; color:#7c3aed;">👃 코 궁합 (재물·자존심)</span>
+              <span style="font-weight:800; color:#7c3aed;">${Math.round(noseCompat)}점</span>
+            </div>
+            <div style="background:#ede9fe; height:8px; border-radius:6px; overflow:hidden;">
+              <div style="height:100%; width:${noseCompat}%; background:linear-gradient(90deg,#a78bfa,#7c3aed); border-radius:6px;"></div>
+            </div>
+            <div style="font-size:0.8rem; color:#475569; margin-top:3px;">${noseComment}</div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span style="font-weight:700; color:#db2777;">👄 입 궁합 (소통·가정운)</span>
+              <span style="font-weight:800; color:#db2777;">${Math.round(mouthCompat)}점</span>
+            </div>
+            <div style="background:#fce7f3; height:8px; border-radius:6px; overflow:hidden;">
+              <div style="height:100%; width:${mouthCompat}%; background:linear-gradient(90deg,#f472b6,#db2777); border-radius:6px;"></div>
+            </div>
+            <div style="font-size:0.8rem; color:#475569; margin-top:3px;">${mouthComment}</div>
+          </div>
+
+          <div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span style="font-weight:700; color:#059669;">🧑 얼굴형 궁합 (오행 조화)</span>
+              <span style="font-weight:800; color:#059669;">${Math.round(faceCompat)}점</span>
+            </div>
+            <div style="background:#d1fae5; height:8px; border-radius:6px; overflow:hidden;">
+              <div style="height:100%; width:${faceCompat}%; background:linear-gradient(90deg,#34d399,#059669); border-radius:6px;"></div>
+            </div>
+            <div style="font-size:0.8rem; color:#475569; margin-top:3px;">${faceCompat >= 85 ? '오행이 상생하여 라이프스타일이 자연스럽게 조화됩니다.' : faceCompat >= 70 ? '오행의 기운이 무난하게 어울립니다.' : faceCompat >= 60 ? '오행 차이를 서로 맞춰가는 과정에서 성장이 옵니다.' : '오행의 충돌이 있으나, 의식적인 조율로 극복할 수 있습니다.'}</div>
+          </div>
+        </div>
+
+        <!-- ★ 결핍과 장점 · 상호 보완 분석 (신규) -->
+        <div style="margin-bottom: 18px; background: linear-gradient(135deg, #faf5ff, #f3e8ff); padding: 18px; border-radius: 14px; border: 1px solid #d8b4fe;">
+          <div style="font-weight: 800; font-size: 1.05rem; color: #6b21a8; margin-bottom: 14px;">🔮 결핍과 장점 · 상호 보완 분석</div>
+          
+          <!-- 첫 번째 분 장점 -->
+          <div style="margin-bottom: 14px;">
+            <div style="font-weight:800; color:#065f46; font-size:0.9rem; margin-bottom:6px;">${emoji1} 첫 번째 분의 관상 강점</div>
+            <div style="background:rgba(240,253,244,0.7); padding:10px; border-radius:10px;">
+              ${renderStrengths(profile1)}
+            </div>
+          </div>
+
+          <!-- 첫 번째 분 결핍 -->
+          ${profile1.deficits.length > 0 ? `
+          <div style="margin-bottom: 14px;">
+            <div style="font-weight:800; color:#991b1b; font-size:0.9rem; margin-bottom:6px;">${emoji1} 첫 번째 분의 보완 필요 영역</div>
+            <div style="background:rgba(254,242,242,0.7); padding:10px; border-radius:10px;">
+              ${renderDeficits(profile1)}
+            </div>
+          </div>` : ''}
+
+          <!-- 두 번째 분 장점 -->
+          <div style="margin-bottom: 14px;">
+            <div style="font-weight:800; color:#065f46; font-size:0.9rem; margin-bottom:6px;">${emoji2} 두 번째 분의 관상 강점</div>
+            <div style="background:rgba(240,253,244,0.7); padding:10px; border-radius:10px;">
+              ${renderStrengths(profile2)}
+            </div>
+          </div>
+
+          <!-- 두 번째 분 결핍 -->
+          ${profile2.deficits.length > 0 ? `
+          <div style="margin-bottom: 14px;">
+            <div style="font-weight:800; color:#991b1b; font-size:0.9rem; margin-bottom:6px;">${emoji2} 두 번째 분의 보완 필요 영역</div>
+            <div style="background:rgba(254,242,242,0.7); padding:10px; border-radius:10px;">
+              ${renderDeficits(profile2)}
+            </div>
+          </div>` : ''}
+
+          <!-- 상호 보완 관계 -->
+          <div style="margin-bottom: 6px;">
+            <div style="font-weight:800; color:#5b21b6; font-size:0.9rem; margin-bottom:8px;">💜 서로를 채워주는 상호 보완 관계</div>
+            
+            ${comp1to2.length > 0 ? `
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.78rem; font-weight:700; color:#7c3aed; margin-bottom:5px;">${emoji1} → ${emoji2} 보완 포인트</div>
+              ${renderComplements(comp1to2)}
+            </div>` : ''}
+
+            ${comp2to1.length > 0 ? `
+            <div>
+              <div style="font-size:0.78rem; font-weight:700; color:#7c3aed; margin-bottom:5px;">${emoji2} → ${emoji1} 보완 포인트</div>
+              ${renderComplements(comp2to1)}
+            </div>` : ''}
+          </div>
+
+          <div style="font-size:0.78rem; color:#7c3aed; background:rgba(139,92,246,0.08); padding:8px 10px; border-radius:8px; margin-top:10px; line-height:1.5;">
+            💡 <b>보완도 총평:</b> ${
+              (comp1to2.length + comp2to1.length) >= 4 ? '두 분은 서로의 빈 곳을 절묘하게 채워주는 최고의 상보적 관계입니다! 함께할수록 각자의 약점이 사라지고 장점이 극대화됩니다.' :
+              (comp1to2.length + comp2to1.length) >= 2 ? '서로의 결핍을 일부 보완해주는 좋은 관계입니다. 의식적으로 상대의 장점을 인정하면 시너지가 더욱 커집니다.' :
+              '비슷한 기질을 공유하여 편안하지만, 같은 영역이 부족할 수 있습니다. 함께 성장하는 방향으로 노력하면 단단한 팀이 됩니다.'
+            }
+          </div>
+        </div>
+
+        <!-- 궁합 조언 -->
+        <div style="margin-bottom: 15px; background: #fffbeb; padding: 18px; border-radius: 14px; border: 1px solid #fde68a;">
+          <div style="font-weight: 800; font-size: 1.05rem; color: #d97706; margin-bottom: 5px;">💝 궁합 개운 조언</div>
+          <p style="font-size: 0.95rem; color: #78350f; margin: 0; line-height: 1.6;">${advice}</p>
+        </div>
+
+        <!-- 각 관상 요약 비교 -->
+        <div style="margin-bottom: 15px; background: #f0fdf4; padding: 18px; border-radius: 14px; border: 1px solid #bbf7d0;">
+          <div style="font-weight: 800; font-size: 1.05rem; color: #065f46; margin-bottom: 10px;">📊 두 관상 비교 요약</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="text-align:center; background:#ecfdf5; padding:12px; border-radius:10px;">
+              <div style="font-size:2.5rem; margin-bottom:5px;">${emoji1}</div>
+              <div style="font-weight:800; color:#065f46; font-size:0.95rem;">${animal1}</div>
+              <div style="font-size:0.75rem; color:#047857; margin-top:2px;">${shape1.name} · ${shape1.element}</div>
+              <div style="font-size:0.8rem; color:#047857; margin-top:3px;">첫 번째 분석</div>
+            </div>
+            <div style="text-align:center; background:#ecfdf5; padding:12px; border-radius:10px;">
+              <div style="font-size:2.5rem; margin-bottom:5px;">${emoji2}</div>
+              <div style="font-weight:800; color:#065f46; font-size:0.95rem;">${animal2}</div>
+              <div style="font-size:0.75rem; color:#047857; margin-top:2px;">${shape2.name} · ${shape2.element}</div>
+              <div style="font-size:0.8rem; color:#047857; margin-top:3px;">두 번째 분석</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: center; font-size: 0.8rem; color: #94a3b8; padding: 10px;">
+          ※ AI 관상 궁합은 재미를 위한 참고용이며, 실제 인간관계는 서로를 향한 진심과 노력으로 만들어집니다.
+        </div>
+      </div>
+    `;
+
+    return {
+      score: finalScore,
+      grade,
+      type: compData.type,
+      compatHtml
+    };
+  }
+
+  // 매트릭스에 없는 조합의 기본 궁합 산출 (오행 반영)
+  _generateDefaultCompatibility(id1, id2, result1, result2) {
+    // 동일 동물상
+    if (id1 === id2) {
+      return {
+        score: 72,
+        type: '동류궁합',
+        desc: `같은 ${result1.primaryAnimal}끼리의 만남은 서로를 거울처럼 비추어 장점과 단점을 정확히 알 수 있습니다. 동일한 성향이 편안함을 주지만, 변화와 자극이 부족할 수 있으니 새로운 경험을 함께 시도해보세요.`
+      };
+    }
+
+    const feat1 = result1.extractedFeatures;
+    const feat2 = result2.extractedFeatures;
+    const shape1 = this.classifyFaceShape(feat1);
+    const shape2 = this.classifyFaceShape(feat2);
+
+    let baseScore = 70;
+
+    // 오행 상생 보너스
+    const ohangPairs = ['round-square', 'round-long', 'round-triangle', 'long-triangle'];
+    const ohangKey1 = `${shape1.type}-${shape2.type}`;
+    const ohangKey2 = `${shape2.type}-${shape1.type}`;
+    if (ohangPairs.includes(ohangKey1) || ohangPairs.includes(ohangKey2)) baseScore += 10;
+    // 오행 상극 패널티
+    const clashPairs = ['square-long', 'square-triangle'];
+    if (clashPairs.includes(ohangKey1) || clashPairs.includes(ohangKey2)) baseScore -= 5;
+
+    // 눈매 음양 조화
+    const slantDiff = Math.abs(feat1.eyeSlant - feat2.eyeSlant);
+    if (slantDiff >= 3 && slantDiff <= 7) baseScore += 10;
+    else if (slantDiff >= 1 && slantDiff < 3) baseScore += 4;
+    else if (slantDiff > 7) baseScore -= 4;
+
+    // 코 보완 (높은코+둥근코)
+    const nw1 = feat1.noseWidthRatio; const nw2 = feat2.noseWidthRatio;
+    if ((nw1 <= 0.78 && nw2 >= 0.90) || (nw2 <= 0.78 && nw1 >= 0.90)) baseScore += 8;
+
+    // 입꼬리 조화
+    if (feat1.mouthCurve > 0 && feat2.mouthCurve > 0) baseScore += 6;
+    else if (feat1.mouthCurve > 0 || feat2.mouthCurve > 0) baseScore += 3;
+
+    // 삼정 보완
+    const sjDiff = (Math.abs(feat1.samjung.upper - feat2.samjung.upper) + Math.abs(feat1.samjung.middle - feat2.samjung.middle) + Math.abs(feat1.samjung.lower - feat2.samjung.lower)) / 3;
+    if (sjDiff >= 0.02 && sjDiff <= 0.07) baseScore += 5;
+
+    baseScore = Math.max(45, Math.min(95, baseScore));
+
+    let typeStr = '보통궁합';
+    let descStr = '';
+    if (baseScore >= 85) {
+      typeStr = '상생궁합';
+      descStr = `${result1.primaryAnimal}(${shape1.name})과 ${result2.primaryAnimal}(${shape2.name})은 서로의 기운이 자연스럽게 어우러지는 좋은 조화를 이룹니다. 오행의 상생 기운이 두 사람의 인연을 뒷받침합니다.`;
+    } else if (baseScore >= 70) {
+      typeStr = '보통궁합';
+      descStr = `${result1.primaryAnimal}과 ${result2.primaryAnimal}은 각자의 매력이 뚜렷한 조합입니다. 서로의 다름을 존중하며 배워나가면 점점 깊어지는 관계를 만들 수 있습니다.`;
+    } else {
+      typeStr = '도전궁합';
+      descStr = `${result1.primaryAnimal}과 ${result2.primaryAnimal}은 성향과 기운의 차이가 크지만, 그만큼 서로에게서 배울 점이 많습니다. 관상은 심상(心相)을 이기지 못하니, 진심을 담은 소통이 열쇠입니다.`;
+    }
+
+    return { score: baseScore, type: typeStr, desc: descStr };
+  }
+} // end class AnalysisEngine
 
 window.FaceAnalysisEngine = AnalysisEngine;
 window.faceAnalysisEngine = new AnalysisEngine();
