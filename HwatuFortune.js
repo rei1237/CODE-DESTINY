@@ -588,7 +588,10 @@ function showReveal() {
                 </div>
             </div>
         `;
-        document.getElementById('fortuneDetails').innerHTML = charHTML + reading;
+        let finalHwatuHTML = charHTML + reading;
+          if(window.BokchaeAdComponent) { finalHwatuHTML += window.BokchaeAdComponent.createHtml('Saju'); }
+          document.getElementById('fortuneDetails').innerHTML = finalHwatuHTML;
+          if(window.BokchaeAdComponent) setTimeout(() => window.BokchaeAdComponent.injectScript(), 100);
         document.getElementById('hwatuResultBox').style.display = 'block';
         
         // 다시 뽑기 위한 리셋
