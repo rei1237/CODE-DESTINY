@@ -344,7 +344,6 @@ window.setHwatuCategory = function(cat, btnParam) {
         if(window.gsap) gsap.fromTo(sub, { scale: 1.05, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5 });
     }
 }
-};
 
 function getFortuneAndCharacter(score) {
     let charKey, reading;
