@@ -51,6 +51,8 @@
 </script>
 <!-- PWA 설정 -->
 <link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="icons/honeypig.png">
+<link rel="apple-touch-icon" href="icons/honeypig.png">
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2650,6 +2652,11 @@ body.neo-mode .monthly-label { color: #64748b; }
         🦉 MBTI 궁합 
       </button>
 
+      <!-- 타짜 화투점 버튼 -->
+      <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #0f5132 0%, #14532d 100%); color:#eab308; border:1px solid #ca8a04; box-shadow: 0 4px 15px rgba(20, 83, 45, 0.5); font-family: 'Noto Serif KR', serif;" onclick="openHwatuModal()">
+        🎴 타짜 화투점 (The Tazza fortune)
+      </button>
+
 
 
       <!-- 타로 모달 (Hidden Overlay) -->
@@ -3828,36 +3835,7 @@ body.neo-mode .monthly-label { color: #64748b; }
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
     </p>
-    <button onclick="toggleAdmin()" style="color:#FFD6D8;font-size:11px;font-weight:700;background:none;border:none;cursor:pointer">Admin Mode</button>
   </footer>
-
-  <!-- 어드민 모달 -->
-<div class="adm-modal" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="admTitle">
-  <div class="adm-box">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <h3 id="admTitle" style="font-weight:700;font-size:.95rem;margin:0">Admin ⚙️</h3>
-      <button onclick="toggleAdmin()" style="background:none;border:none;cursor:pointer;font-size:1.3rem;color:#ccc">✕</button>
-    </div>
-    <div id="admAuth">
-      <input type="password" id="admPw" class="adm-inp" placeholder="비밀번호">
-      <button class="adm-btn" onclick="checkPw()">로그인</button>
-    </div>
-    <div id="admBody" style="display:none">
-      <input type="text" id="pt" class="adm-inp" placeholder="블로그 제목">
-      <input type="text" id="pl" class="adm-inp" placeholder="링크 (https://...)">
-      <input type="text" id="pi" class="adm-inp" placeholder="이미지 URL (선택)">
-      <select id="pc" class="adm-inp">
-        <option value="saju">사주 관련 글</option>
-        <option value="celeb">유명인 사주</option>
-        <option value="life">생활/건강</option>
-      </select>
-      <textarea id="ps" class="adm-inp" style="height:55px;resize:none" placeholder="요약"></textarea>
-      <button class="adm-btn" onclick="addPost()">추가</button>
-      <hr style="margin:12px 0;border-color:#FFE0D6">
-      <div id="admList"></div>
-    </div>
-  </div>
-</div>
 
 <script>
 /* ═══════════════════════════════════════
@@ -4440,7 +4418,6 @@ var JANYEOGUN_DATA={
 var GENDER='F', USER_NAME='', BIRTH_YEAR=0, DAY_GAN='', JOHU_TYPE='', JOHU_SCORE=0, CURRENT_AGE=0;
 var G_POWER=null, G_JONG=null, G_JOHU=null;
 var G_PILLARS=null, G_NATAL=null, G_BAZI=null;
-var POSTS=[];
 window._ziweiBirth={year:0,month:0,day:0,hour:12,minute:0};
 const ZHI_FEAT={
   '子':'쥐띠: 영리하고 순발력이 뛰어나다',
@@ -4647,17 +4624,6 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     daHan: daHan
   };
 }
-
-try{
-  var sv=localStorage.getItem('ggms_posts');
-  if(sv){
-    POSTS=JSON.parse(sv);
-    POSTS=POSTS.map(function(p){
-      if(!p.category)p.category='saju';
-      return p;
-    });
-  }
-}catch(e){}
 
 /* ═══════════════════════════════════════
    STEP 4: 유틸 함수
@@ -6393,7 +6359,7 @@ function renderJohu(johu) {
 
         <div style="background: linear-gradient(120deg, #F0F4FF, #F9F1FD); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s;" onclick="this.style.transform='scale(1.02)'; setTimeout(()=>this.style.transform='scale(1)', 200)">
             <div style="font-size: 3rem; margin-bottom: 8px; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.1));">${envEmoji}</div>
-            <div style="font-size: 0.85rem; font-weight: 700; color: #8A63A5; margin-bottom: 6px; letter-spacing: 0.05em;">AI 인생 환경 진단</div>
+            <div style="font-size: 0.85rem; font-weight: 700; color: #8A63A5; margin-bottom: 6px; letter-spacing: 0.05em;">조후, 인생 환경 진단</div>
             <div style="font-size: 1.3rem; font-weight: 800; color: #2C3E50; margin-bottom: 12px;">${envTitle}</div>
             <div style="font-size: 0.9rem; line-height: 1.6; color: #505F6E; text-align: left; background: rgba(255,255,255,0.6); padding: 12px 16px; border-radius: 12px;">${envDesc}</div>
             <div style="display:flex; justify-content: center; gap: 8px; margin-top: 15px;">
@@ -12329,53 +12295,6 @@ function closeModal(e){
   document.getElementById('tsModal').classList.remove('show');
 }
 
-/* ═══════════════════════════════════════
-   STEP 9: 어드민
-═══════════════════════════════════════ */
-
-function toggleAdmin(){
-  var m=document.getElementById('adminModal');
-  m.classList.toggle('show');
-}
-function checkPw(){
-  if(document.getElementById('admPw').value==='kangta!7989'){
-    document.getElementById('admAuth').style.display='none';
-    document.getElementById('admBody').style.display='block';
-    renderAdmList();
-  }else{alert('비밀번호 오류 🐷');}
-}
-function addPost(){
-  var t=(document.getElementById('pt').value||'').trim();
-  var l=(document.getElementById('pl').value||'').trim();
-  if(!t||!l)return;
-  POSTS.push({
-    id:Date.now(),
-    title:t,
-    link:l,
-    img:document.getElementById('pi').value.trim(),
-    summary:document.getElementById('ps').value.trim(),
-    category:document.getElementById('pc').value||'saju'
-  });
-  try{localStorage.setItem('ggms_posts',JSON.stringify(POSTS));}catch(e){}
-  renderAdmList();
-  ['pt','pl','pi','ps'].forEach(function(id){document.getElementById(id).value='';});
-}
-function delPost(id){
-  POSTS=POSTS.filter(function(p){return p.id!==id;});
-  try{localStorage.setItem('ggms_posts',JSON.stringify(POSTS));}catch(e){}
-  renderAdmList();
-}
-function renderAdmList(){
-  document.getElementById('admList').innerHTML=POSTS.map(function(p){
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#FFF5F8;border-radius:9px;font-size:.82rem;margin-bottom:6px;border:1px solid #FFE0D6">'+
-      '<span style="font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
-      '['+(p.category==='celeb'?'유명인':p.category==='life'?'생활/건강':'사주')+'] '+p.title+
-      '</span>'+
-      '<button onclick="delPost('+p.id+')" style="color:#F44336;font-weight:900;background:none;border:none;cursor:pointer;margin-left:8px">삭제</button>'+
-      '</div>';
-  }).join('');
-}
-
 function resetApp(){
   document.getElementById('inputPage').style.display='block';
   document.getElementById('resultPage').style.display='none';
@@ -15111,6 +15030,8 @@ function getSynergyText(t1, t2) {
 }
 </script>
 
+<!-- 타짜 화투점 -->
+<script src="HwatuFortune.js"></script>
 
 </body>
 </html>
