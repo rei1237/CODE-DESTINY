@@ -1274,6 +1274,34 @@ body.neo-mode .ad-sponsor-text{color:#777;}
 .lc-reason-item::before{content:'◆';position:absolute;left:0;font-size:.55rem;top:3px;color:#ffd200}
 .lc-disclaimer{font-size:.7rem;color:#665530;text-align:center;margin-top:12px;line-height:1.7}
 
+/* ── 다시 뽑기 버튼 ── */
+.lotto-redraw-btn {
+  display:block;width:100%;padding:14px;margin:18px 0 8px;
+  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  color:#fff;font-size:1.05rem;font-weight:800;border:none;border-radius:12px;
+  cursor:pointer;box-shadow:0 4px 18px rgba(118,75,162,.4);
+  transition:transform .2s,box-shadow .2s;
+  position:relative;overflow:hidden;
+}
+.lotto-redraw-btn::before {
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+  transition:left .5s;
+}
+.lotto-redraw-btn:hover {
+  transform:translateY(-2px);box-shadow:0 6px 24px rgba(118,75,162,.55);
+}
+.lotto-redraw-btn:hover::before { left:100%; }
+.lotto-redraw-btn:active { transform:translateY(0); }
+.lotto-history-count {
+  text-align:center;font-size:.72rem;color:#8a7a4a;margin:6px 0 4px;
+  letter-spacing:.03em;
+}
+.lotto-history-count span {
+  background:rgba(255,210,0,.08);border:1px solid rgba(255,210,0,.18);
+  border-radius:20px;padding:4px 14px;display:inline-block;
+}
+
 /* ── 퀀텀 명리 전략 리포트 ── */
 .qm-wrap{background:linear-gradient(145deg,#030912,#040f1f,#03091a);border-radius:20px;
   padding:22px 18px;color:#b8d4f0;border:1px solid rgba(0,200,130,.15);
@@ -1468,20 +1496,66 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 
 /* ═══════════ NEO MODE — 백사자 쌈바 다크 모드 ═══════════ */
 
-/* ── 언어 선택 토글 버튼 ── */
+/* ── 언어 선택 드롭다운 (컴팩트) ── */
 .lang-toggle-wrap {
   position: fixed;
   top: 56px;
   right: 14px;
   z-index: 9998;
+}
+.lang-trigger {
   display: flex;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.85);
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(255, 139, 167, 0.5);
-  border-radius: 20px;
-  padding: 4px 6px;
-  box-shadow: 0 4px 15px rgba(255, 139, 167, 0.3);
-  backdrop-filter: blur(8px);
+  border-radius: 22px;
+  padding: 7px 14px 7px 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 139, 167, 0.25);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #FF8BA7;
+  user-select: none;
+}
+.lang-trigger:hover {
+  box-shadow: 0 6px 20px rgba(255, 139, 167, 0.4);
+  transform: translateY(-1px);
+}
+.lang-trigger .lang-icon { font-size: 1rem; }
+.lang-trigger .lang-arrow {
+  font-size: 0.6rem;
+  transition: transform 0.3s ease;
+  margin-left: 2px;
+}
+.lang-toggle-wrap.open .lang-trigger .lang-arrow {
+  transform: rotate(180deg);
+}
+.lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 139, 167, 0.35);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow: 0 8px 32px rgba(255, 139, 167, 0.25);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.95);
+  transition: all 0.25s cubic-bezier(0.34, 0.1, 0.68, 0.55);
+  min-width: 140px;
+}
+.lang-toggle-wrap.open .lang-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
 }
 .lang-btn {
   background: transparent;
@@ -1490,27 +1564,42 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   font-weight: 700;
   color: #888;
   cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.34, 0.1, 0.68, 0.55);
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
+.lang-btn .lang-flag { font-size: 1rem; }
 .lang-btn.active {
   background: #FF8BA7;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(255, 139, 167, 0.5);
+  box-shadow: 0 2px 8px rgba(255, 139, 167, 0.4);
 }
 .lang-btn:hover:not(.active) {
   background: rgba(255, 139, 167, 0.1);
   color: #FF8BA7;
 }
 
-body.neo-mode .lang-toggle-wrap {
-  background: rgba(26, 24, 48, 0.8);
+/* ── 네오 모드 ── */
+body.neo-mode .lang-trigger {
+  background: rgba(26, 24, 48, 0.85);
   border-color: rgba(197, 160, 89, 0.4);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  color: #C5A059;
+}
+body.neo-mode .lang-trigger:hover {
+  box-shadow: 0 6px 24px rgba(197, 160, 89, 0.35);
+}
+body.neo-mode .lang-dropdown {
+  background: rgba(26, 24, 48, 0.95);
+  border-color: rgba(197, 160, 89, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 body.neo-mode .lang-btn {
-  color: #777;
+  color: #999;
 }
 body.neo-mode .lang-btn.active {
   background: #C5A059;
@@ -1520,6 +1609,22 @@ body.neo-mode .lang-btn.active {
 body.neo-mode .lang-btn:hover:not(.active) {
   background: rgba(197, 160, 89, 0.15);
   color: #C5A059;
+}
+
+/* ── 자동 숨김 (3초 후 축소) ── */
+.lang-toggle-wrap.collapsed .lang-trigger {
+  padding: 7px 10px;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  justify-content: center;
+}
+.lang-toggle-wrap.collapsed .lang-trigger .lang-label,
+.lang-toggle-wrap.collapsed .lang-trigger .lang-arrow {
+  display: none;
+}
+.lang-toggle-wrap.collapsed .lang-trigger .lang-icon {
+  margin: 0;
 }
 
 /* ── 구글 번역기 기본 위젯 및 상단 배너 숨김 ── */
@@ -2774,15 +2879,22 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 <!-- 구글 번역 요소 -->
 <div id="google_translate_element"></div>
 
-<!-- ══ 언어 선택 토글 버튼 (우측 상단 고정) ══ -->
-<div class="lang-toggle-wrap notranslate">
-  <button class="lang-btn active" onclick="changeLanguage('ko', this)">KR</button>
-  <button class="lang-btn" onclick="changeLanguage('en', this)">EN</button>
-  <button class="lang-btn" onclick="changeLanguage('ja', this)">JP</button>
-  <button class="lang-btn" onclick="changeLanguage('zh-CN', this)">CN</button>
-  <button class="lang-btn" onclick="changeLanguage('hi', this)">HI</button>
-  <button class="lang-btn" onclick="changeLanguage('es', this)">ES</button>
-  <button class="lang-btn" onclick="changeLanguage('fr', this)">FR</button>
+<!-- ══ 언어 선택 드롭다운 (우측 상단 고정, 컴팩트) ══ -->
+<div class="lang-toggle-wrap notranslate" id="langWrap">
+  <div class="lang-trigger" id="langTrigger" onclick="toggleLangDropdown()">
+    <span class="lang-icon">🌐</span>
+    <span class="lang-label" id="langLabel">KR</span>
+    <span class="lang-arrow">▼</span>
+  </div>
+  <div class="lang-dropdown" id="langDropdown">
+    <button class="lang-btn active" data-lang="ko" onclick="changeLanguage('ko', this)"><span class="lang-flag">🇰🇷</span> KR</button>
+    <button class="lang-btn" data-lang="en" onclick="changeLanguage('en', this)"><span class="lang-flag">🇺🇸</span> EN</button>
+    <button class="lang-btn" data-lang="ja" onclick="changeLanguage('ja', this)"><span class="lang-flag">🇯🇵</span> JP</button>
+    <button class="lang-btn" data-lang="zh-CN" onclick="changeLanguage('zh-CN', this)"><span class="lang-flag">🇨🇳</span> CN</button>
+    <button class="lang-btn" data-lang="hi" onclick="changeLanguage('hi', this)"><span class="lang-flag">🇮🇳</span> HI</button>
+    <button class="lang-btn" data-lang="es" onclick="changeLanguage('es', this)"><span class="lang-flag">🇪🇸</span> ES</button>
+    <button class="lang-btn" data-lang="fr" onclick="changeLanguage('fr', this)"><span class="lang-flag">🇫🇷</span> FR</button>
+  </div>
 </div>
 
 <!-- 글리치 전환 오버레이 -->
@@ -12811,6 +12923,11 @@ var LOTTO_REASON={
 };
 var LOTTO_GAME_NAMES=['⚡ 레조넌스 넘버 A','💎 공명 파동 B','🌀 에너지 서지 C','✨ 하도낙서 D','🔥 파이널 웨이브 E'];
 
+/* 로또 회차 카운터 — 매 회차 새로운 시드 */
+var _lottoDrawCount = 0;
+/* 지금까지 뽑은 전체 게임 번호셋 기록 (중복 방지) */
+var _lottoHistory = [];
+
 function renderLottoNumbers(natal, bazi){
   var area=document.getElementById('lottoSection');
   var card=document.getElementById('lottoCard');
@@ -12834,88 +12951,112 @@ function renderLottoNumbers(natal, bazi){
     pools[e]=LOTTO_POOL[e].slice();
   });
 
-  var seed=0;
-  var today=new Date();
-  
-  if(G_PILLARS){
-    var pg=G_PILLARS;
-    var gs=[pg.y.g,pg.m.g,pg.d.g,pg.h.g,pg.y.j,pg.m.j,pg.d.j,pg.h.j];
-    gs.forEach(function(c,i){seed+=(c.charCodeAt(0)||0)*(i+1);});
-  }
-  
-  try {
-    var solarToday = Solar.fromYmdHms(today.getFullYear(), today.getMonth()+1, today.getDate(), 12, 0, 0);
-    var baziToday = solarToday.getLunar().getEightChar();
-    var todayGans = [baziToday.getYearGan(), baziToday.getMonthGan(), baziToday.getDayGan()];
-    var todayZhis = [baziToday.getYearZhi(), baziToday.getMonthZhi(), baziToday.getDayZhi()];
-    
-    todayGans.forEach(function(c,i){seed+=(c.charCodeAt(0)||0)*(i+10);});
-    todayZhis.forEach(function(c,i){seed+=(c.charCodeAt(0)||0)*(i+20);});
-  } catch(e) {}
-
-  try {
-    if(bazi){
-      var yun=bazi.getYun(GENDER==='M'?1:0);
-      var list=yun.getDaYun();
-      var curDw=null;
-      list.forEach(function(dw,idx){
-        if(idx===0)return;
-        var age=dw.getStartAge();
-        if(age&&age>0&&age<=CURRENT_AGE) curDw=dw;
-      });
-      if(curDw){
-        var gz=curDw.getGanZhi();
-        seed += (gz[0].charCodeAt(0)||0)*30 + (gz[1].charCodeAt(0)||0)*40;
-      }
-    }
-  } catch(e) {}
-
-  seed += today.getFullYear() * 365 + (today.getMonth()+1) * 31 + today.getDate() * (counts[primary]||1) * 13;
-  try {
+  /* ── 시드 생성: 사주 팔자 + 오늘 일진 + 대운 + 회차 카운터 + 랜덤 ── */
+  function buildSeed(){
+    var s=0;
+    var today=new Date();
     if(G_PILLARS){
+      var pg=G_PILLARS;
+      var gs=[pg.y.g,pg.m.g,pg.d.g,pg.h.g,pg.y.j,pg.m.j,pg.d.j,pg.h.j];
+      gs.forEach(function(c,i){s+=(c.charCodeAt(0)||0)*(i+1);});
+    }
+    try {
       var solarToday = Solar.fromYmdHms(today.getFullYear(), today.getMonth()+1, today.getDate(), 12, 0, 0);
       var baziToday = solarToday.getLunar().getEightChar();
-      var dGz = baziToday.getDayGan() + baziToday.getDayZhi();
-      var dEv = analyzeFortuneGZ(dGz, G_PILLARS, '일진');
-      seed += (dEv.score || 50) * 7;
-    }
-  } catch(e) {}
+      [baziToday.getYearGan(), baziToday.getMonthGan(), baziToday.getDayGan()].forEach(function(c,i){s+=(c.charCodeAt(0)||0)*(i+10);});
+      [baziToday.getYearZhi(), baziToday.getMonthZhi(), baziToday.getDayZhi()].forEach(function(c,i){s+=(c.charCodeAt(0)||0)*(i+20);});
+    } catch(e) {}
+    try {
+      if(bazi){
+        var yun=bazi.getYun(GENDER==='M'?1:0);
+        var list=yun.getDaYun();
+        var curDw=null;
+        list.forEach(function(dw,idx){
+          if(idx===0)return;
+          var age=dw.getStartAge();
+          if(age&&age>0&&age<=CURRENT_AGE) curDw=dw;
+        });
+        if(curDw){
+          var gz=curDw.getGanZhi();
+          s += (gz[0].charCodeAt(0)||0)*30 + (gz[1].charCodeAt(0)||0)*40;
+        }
+      }
+    } catch(e) {}
+    s += today.getFullYear() * 365 + (today.getMonth()+1) * 31 + today.getDate() * (counts[primary]||1) * 13;
+    try {
+      if(G_PILLARS){
+        var solarToday2 = Solar.fromYmdHms(today.getFullYear(), today.getMonth()+1, today.getDate(), 12, 0, 0);
+        var baziToday2 = solarToday2.getLunar().getEightChar();
+        var dGz = baziToday2.getDayGan() + baziToday2.getDayZhi();
+        var dEv = analyzeFortuneGZ(dGz, G_PILLARS, '일진');
+        s += (dEv.score || 50) * 7;
+      }
+    } catch(e) {}
+    /* 회차별 고유 시드 — 매번 다른 번호 생성 */
+    s += _lottoDrawCount * 77777;
+    s += Math.floor(Math.random() * 99999);
+    s += Date.now() % 100000;
+    return s;
+  }
+
+  var seed = buildSeed();
 
   function seededRand(s,max){
     var x=Math.sin(s+1)*99991;
     return Math.floor((x-Math.floor(x))*max);
   }
 
+  /* 중복 게임 확인 (이전에 뽑은 조합과 동일한지) */
+  function isDuplicate(nums){
+    var key=nums.join(',');
+    for(var i=0;i<_lottoHistory.length;i++){
+      if(_lottoHistory[i]===key) return true;
+    }
+    return false;
+  }
+
   function pickGame(gameIdx){
-    var all=[],chosen=[],used={};
-    var p1=pools[primary].slice();
-    for(var i=0;i<2;i++){
-      var idx=seededRand(seed+gameIdx*100+i*17,p1.length);
-      var n=p1.splice(idx%p1.length,1)[0];
-      if(!used[n]){used[n]=1;chosen.push(n);}
+    var maxTries=20;
+    for(var t=0;t<maxTries;t++){
+      var chosen=[],used={};
+      var localSeed=seed+gameIdx*100+t*3137;
+      var p1=pools[primary].slice();
+      for(var i=0;i<2;i++){
+        var idx=seededRand(localSeed+i*17,p1.length);
+        var n=p1.splice(idx%p1.length,1)[0];
+        if(!used[n]){used[n]=1;chosen.push(n);}
+      }
+      var p2=pools[secondary].slice().filter(function(n){return !used[n];});
+      for(var j=0;j<2&&p2.length>0;j++){
+        var idx2=seededRand(localSeed+j*23+50,p2.length);
+        var n2=p2.splice(idx2%p2.length,1)[0];
+        if(!used[n2]){used[n2]=1;chosen.push(n2);}
+      }
+      var allNums=[];
+      for(var k=1;k<=45;k++){if(!used[k])allNums.push(k);}
+      var remaining=6-chosen.length;
+      var p3=pools[tertiary].slice().filter(function(n){return !used[n];});
+      for(var m=0;m<remaining&&p3.length>0;m++){
+        var idx3=seededRand(localSeed+m*37+80,p3.length);
+        var n3=p3.splice(idx3%p3.length,1)[0];
+        if(!used[n3]){used[n3]=1;chosen.push(n3);remaining--;m--;}
+        if(chosen.length===6)break;
+      }
+      var leftover=allNums.filter(function(n){return !used[n];});
+      while(chosen.length<6&&leftover.length>0){
+        var li=seededRand(localSeed+chosen.length*71+gameIdx*13,leftover.length);
+        chosen.push(leftover.splice(li%leftover.length,1)[0]);
+      }
+      chosen.sort(function(a,b){return a-b;});
+      if(!isDuplicate(chosen)) return chosen;
     }
-    var p2=pools[secondary].slice().filter(function(n){return !used[n];});
-    for(var j=0;j<2&&p2.length>0;j++){
-      var idx2=seededRand(seed+gameIdx*100+j*23+50,p2.length);
-      var n2=p2.splice(idx2%p2.length,1)[0];
-      if(!used[n2]){used[n2]=1;chosen.push(n2);}
+    /* fallback: 완전 랜덤 */
+    var fb=[],fbUsed={};
+    while(fb.length<6){
+      var rn=Math.floor(Math.random()*45)+1;
+      if(!fbUsed[rn]){fbUsed[rn]=1;fb.push(rn);}
     }
-    var allNums=[];
-    for(var k=1;k<=45;k++){if(!used[k])allNums.push(k);}
-    var remaining=6-chosen.length;
-    var p3=pools[tertiary].slice().filter(function(n){return !used[n];});
-    for(var m=0;m<remaining&&p3.length>0;m++){
-      var idx3=seededRand(seed+gameIdx*100+m*37+80,p3.length);
-      var n3=p3.splice(idx3%p3.length,1)[0];
-      if(!used[n3]){used[n3]=1;chosen.push(n3);remaining--;m--;}
-      if(chosen.length===6)break;
-    }
-    var leftover=allNums.filter(function(n){return !used[n];});
-    while(chosen.length<6&&leftover.length>0){
-      var li=seededRand(seed+chosen.length*71+gameIdx*13,leftover.length);
-      chosen.push(leftover.splice(li%leftover.length,1)[0]);
-    }
-    return chosen.sort(function(a,b){return a-b;});
+    return fb.sort(function(a,b){return a-b;});
   }
 
   function ballColor(n){
@@ -12933,17 +13074,22 @@ function renderLottoNumbers(natal, bazi){
   var tag=LOTTO_EL_TAG[primary]||LOTTO_EL_TAG.water;
   var resonanceNums=LOTTO_POOL[primary]?LOTTO_POOL[primary].slice(0,5).join(', ')+' …':'1, 6, 11…';
 
-  // Store first game's numbers for the machine animation
+  var GAME_NAMES_EX=[
+    '⚡ 레조넌스 넘버 A','💎 공명 파동 B','🌀 에너지 서지 C','✨ 하도낙서 D','🔥 파이널 웨이브 E'
+  ];
+
+  /* 5게임 생성 & 기록 */
   var firstGameNums = [];
   var gamesHTML='';
   for(var gi=0;gi<5;gi++){
     var nums=pickGame(gi);
+    _lottoHistory.push(nums.join(','));
     if(gi === 0) firstGameNums = nums;
     gamesHTML+=
       '<div class="lc-game">'+
         '<div class="lc-game-top">'+
           '<span class="lc-game-num">GAME '+(gi+1)+'</span>'+
-          '<span class="lc-game-tag" style="background:'+tag.bg+';color:'+tag.color+';border-color:'+tag.color+'33">'+LOTTO_GAME_NAMES[gi]+'</span>'+
+          '<span class="lc-game-tag" style="background:'+tag.bg+';color:'+tag.color+';border-color:'+tag.color+'33">'+GAME_NAMES_EX[gi]+'</span>'+
         '</div>'+
         '<div class="lc-balls">'+nums.map(ballHTML).join('')+'</div>'+
       '</div>';
@@ -12951,13 +13097,15 @@ function renderLottoNumbers(natal, bazi){
 
   var reasons=LOTTO_REASON[primary]||LOTTO_REASON.water;
 
+  var drawCountLabel = _lottoDrawCount > 0 ? ' ('+(_lottoDrawCount+1)+'회차 — 새 에너지 파동)' : '';
+
   var html=
     '<div class="lc-wrap">'+
       '<div class="lc-header">'+
         '<span class="lc-icon">🎱</span>'+
         '<div class="lc-title-wrap">'+
           '<h3>수리 에너지 &times; 사주 명리 로또 번호 생성기</h3>'+
-          '<p>하도낙서 수리 공명 &times; 사주 용신 오행으로 도출한 이번 주기 번호</p>'+
+          '<p>하도낙서 수리 공명 &times; 사주 용신 오행으로 도출한 이번 주기 번호'+drawCountLabel+'</p>'+
         '</div>'+
       '</div>'+
       
@@ -12978,12 +13126,20 @@ function renderLottoNumbers(natal, bazi){
           '<div class="lc-reason-title">📝 수리적 근거 — 이 번호들이 당신과 동기화되는 이유</div>'+
           reasons.map(function(r){return '<div class="lc-reason-item">'+r+'</div>';}).join('')+
         '</div>'+
-        '<div class="lc-disclaimer">※ 본 번호는 명리학적 수리 에너지를 바탕으로 한 참고용입니다.<br>로또는 법적으로 확률에 의한 순수 게임임을 인지하세요. 🐷</div>'+
+        '<button id="lottoRedrawBtn" class="lotto-redraw-btn">🔄 다시 로또번호 뽑기 — 새로운 오행 에너지 공명</button>'+
+        '<div class="lotto-history-count" id="lottoHistCount"></div>'+
+        '<div class="lc-disclaimer">※ 본 번호는 명리학·수비학적 수리 에너지를 바탕으로 한 참고용입니다.<br>로또는 법적으로 확률에 의한 순수 게임임을 인지하세요. 🐷</div>'+
       '</div>'+ // end lottoResultArea
     '</div>';
 
   area.innerHTML=html;
   card.style.display='block';
+
+  /* 히스토리 카운트 표시 */
+  var histEl=document.getElementById('lottoHistCount');
+  if(histEl && _lottoHistory.length>0){
+    histEl.innerHTML='<span>🎲 총 '+Math.floor(_lottoHistory.length/5)+'회 뽑기 완료 · '+_lottoHistory.length+'게임 생성 (모두 중복 없는 고유 번호)</span>';
+  }
 
   // Animation Logic
   var drawBtn = document.getElementById('lottoDrawBtn');
@@ -12995,35 +13151,48 @@ function renderLottoNumbers(natal, bazi){
   drawBallsBox.innerHTML = '';
   resultArea.classList.remove('show');
   
-  if(drawBtn) {
-    drawBtn.onclick = function() {
-      drawBtn.disabled = true;
-      drawBtn.innerHTML = '에너지 동기화 중... 🌀';
-      machine.classList.add('active');
-      drawBallsBox.innerHTML = ''; // reset balls
-      resultArea.classList.remove('show');
+  function runDrawAnimation(){
+    drawBtn.disabled = true;
+    drawBtn.innerHTML = '에너지 동기화 중... 🌀';
+    machine.classList.add('active');
+    drawBallsBox.innerHTML = '';
+    resultArea.classList.remove('show');
 
-      var delay = 0;
-      // Drop balls one by one
-      firstGameNums.forEach(function(n, index) {
-        setTimeout(function() {
-          var ball = document.createElement('div');
-          ball.className = 'lotto-draw-ball ' + ballColor(n);
-          ball.innerText = n;
-          drawBallsBox.appendChild(ball);
-        }, delay);
-        delay += 600; // 0.6 seconds per ball
-      });
-
-      // Show full results after all balls have popped
+    var delay = 0;
+    firstGameNums.forEach(function(n, index) {
       setTimeout(function() {
-        drawBtn.style.display = 'none'; // hide button after draw
-        resultArea.classList.add('show');
-        // scroll slightly down to results
-        setTimeout(function() {
-          resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 300);
-      }, delay + 500);
+        var ball = document.createElement('div');
+        ball.className = 'lotto-draw-ball ' + ballColor(n);
+        ball.innerText = n;
+        drawBallsBox.appendChild(ball);
+      }, delay);
+      delay += 600;
+    });
+
+    setTimeout(function() {
+      drawBtn.style.display = 'none';
+      resultArea.classList.add('show');
+      setTimeout(function() {
+        resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 300);
+    }, delay + 500);
+  }
+
+  if(drawBtn) {
+    drawBtn.onclick = runDrawAnimation;
+  }
+
+  /* 다시 뽑기 버튼 */
+  var redrawBtn = document.getElementById('lottoRedrawBtn');
+  if(redrawBtn){
+    redrawBtn.onclick = function(){
+      _lottoDrawCount++;
+      renderLottoNumbers(natal, bazi);
+      /* 다시 뽑기 시에는 애니메이션 바로 실행 */
+      setTimeout(function(){
+        var newDrawBtn = document.getElementById('lottoDrawBtn');
+        if(newDrawBtn) newDrawBtn.click();
+      }, 100);
     };
   }
 }
@@ -14041,10 +14210,64 @@ function googleTranslateElementInit() {
   }, 'google_translate_element');
 }
 
+/* ── 언어 드롭다운 토글 ── */
+var _langCollapseTimer = null;
+function toggleLangDropdown() {
+  var wrap = document.getElementById('langWrap');
+  wrap.classList.toggle('open');
+  wrap.classList.remove('collapsed');
+  resetLangCollapseTimer();
+}
+function closeLangDropdown() {
+  var wrap = document.getElementById('langWrap');
+  wrap.classList.remove('open');
+}
+function resetLangCollapseTimer() {
+  clearTimeout(_langCollapseTimer);
+  var wrap = document.getElementById('langWrap');
+  wrap.classList.remove('collapsed');
+  _langCollapseTimer = setTimeout(function() {
+    if (!wrap.classList.contains('open')) {
+      wrap.classList.add('collapsed');
+    }
+  }, 4000);
+}
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('langWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    closeLangDropdown();
+  }
+});
+/* 마우스 호버 시 축소 해제 */
+document.addEventListener('DOMContentLoaded', function() {
+  var wrap = document.getElementById('langWrap');
+  if (wrap) {
+    wrap.addEventListener('mouseenter', function() {
+      wrap.classList.remove('collapsed');
+      clearTimeout(_langCollapseTimer);
+    });
+    wrap.addEventListener('mouseleave', function() {
+      resetLangCollapseTimer();
+    });
+  }
+  /* 초기 4초 후 자동 축소 */
+  resetLangCollapseTimer();
+});
+
+var _langLabelMap = { 'ko':'KR', 'en':'EN', 'ja':'JP', 'zh-CN':'CN', 'hi':'HI', 'es':'ES', 'fr':'FR' };
+
 function changeLanguage(langCode, btn) {
   var btns = document.querySelectorAll('.lang-btn');
   btns.forEach(function(b){ b.classList.remove('active'); });
   if(btn) btn.classList.add('active');
+
+  /* 트리거 라벨 업데이트 */
+  var label = document.getElementById('langLabel');
+  if (label) label.textContent = _langLabelMap[langCode] || langCode.toUpperCase();
+
+  /* 드롭다운 닫기 */
+  closeLangDropdown();
+  resetLangCollapseTimer();
 
   var selectField = document.querySelector(".goog-te-combo");
   if(selectField) {
@@ -14080,12 +14303,13 @@ window.addEventListener('load', function() {
       lang = googCookie[2].split('/').pop();
     }
     
-    var btnMap = {'ko': 0, 'en': 1, 'ja': 2, 'zh-CN': 3};
     var btns = document.querySelectorAll('.lang-btn');
-    if(btnMap[lang] !== undefined && btns[btnMap[lang]]) {
-      btns.forEach(function(b){ b.classList.remove('active'); });
-      btns[btnMap[lang]].classList.add('active');
-    }
+    btns.forEach(function(b){
+      b.classList.remove('active');
+      if (b.getAttribute('data-lang') === lang) b.classList.add('active');
+    });
+    var label = document.getElementById('langLabel');
+    if (label) label.textContent = _langLabelMap[lang] || 'KR';
   }, 1000);
 });
 </script>
