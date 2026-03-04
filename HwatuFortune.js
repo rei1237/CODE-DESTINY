@@ -105,10 +105,10 @@ const hwatuStyles = `
 
 .tazza-hero-bg {
     position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; opacity: 0.8; z-index: 0;
-    display: flex; justify-content: space-between; align-items: flex-end; overflow: hidden;
+    display: flex; justify-content: center; align-items: flex-end; overflow: hidden;
 }
 .tazza-hero-img { 
-    height: 75vh; width: auto; object-fit: contain; 
+    height: 75vh; width: auto; object-fit: contain; margin: 0 -20px;
     filter: brightness(0) drop-shadow(0 0 25px rgba(185, 28, 28, 0.5)); 
 }
 /* Overhead Flickering Lamp Effect */
@@ -181,8 +181,11 @@ function injectHwatuHTML() {
         <div class="tazza-hero-bg">
             <img src="sudda/goni.png" class="tazza-hero-img" style="transform: scaleX(-1);">
             <img src="sudda/madam.png" class="tazza-hero-img">
+            <img src="sudda/agui.png" class="tazza-hero-img">
+            <img src="sudda/gosu.png" class="tazza-hero-img">
+            <img src="sudda/master.png" class="tazza-hero-img">
         </div>
-        <div class="hwatu-table">
+        <div class="hwatu-table" style="position: relative; z-index: 2;">
             <h2 class="tazza-title" style="font-family: '궁서', cursive; font-size: 2.8rem; letter-spacing: -2px; color: #d4af37; text-shadow: 2px 2px 5px rgba(185,28,28,0.8);">화투 운세: 신의 손길</h2>
             <div class="tazza-sub">"원하는 운을 고르고, 패를 섞어보쇼."</div>
             
