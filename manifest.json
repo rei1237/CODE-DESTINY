@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "연이의 꿀꿀 만세력",
   "short_name": "꿀꿀 만세력",
   "description": "오늘의 운세, 사주, 관상 분석까지 — 연이의 신비로운 운명 해석 앱",
@@ -12,15 +12,15 @@
   "categories": ["lifestyle", "entertainment"],
   "icons": [
     {
-      "src": "icons/honeypig.png",
+      "src": "icons/honeypig.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/honeypig.png",
+      "src": "icons/honeypig.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
@@ -31,7 +31,7 @@
       "short_name": "운세",
       "description": "오늘의 일일 운세 바로 확인",
       "url": "/#today",
-      "icons": [{ "src": "icons/honeypig.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "icons/honeypig.svg", "sizes": "192x192", "type": "image/svg+xml" }]
     }
   ]
 }
