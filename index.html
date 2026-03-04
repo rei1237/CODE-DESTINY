@@ -2908,6 +2908,86 @@ body.neo-mode .feature-card__desc { color: #94a3b8; }
 body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1b3a, #0f172a); }
 
   </style>
+
+
+  <!-- 우주의 신비감 (Cosmic UI) 적용 -->
+  <style>
+    #acc-astro-body .astro-body.cosmic-theme {
+      background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+      color: #e2e8f0;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      box-shadow: 0 0 40px rgba(139, 92, 246, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.8);
+      border-radius: 20px;
+      padding: 25px;
+      position: relative;
+      overflow: hidden;
+      font-family: 'Pretendard', sans-serif;
+    }
+    #acc-astro-body .astro-body.cosmic-theme::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+      background-repeat: repeat;
+      background-size: 200px 200px;
+      opacity: 0.4;
+      pointer-events: none;
+      animation: twinkle 5s linear infinite;
+    }
+    @keyframes twinkle {
+      0% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+      100% { opacity: 0.3; }
+    }
+    #acc-astro-body .astro-section {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s ease;
+    }
+    #acc-astro-body .astro-section:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      border-color: rgba(167, 139, 250, 0.4);
+    }
+    #acc-astro-body .astro-subhead {
+      color: #d8b4fe;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(216, 180, 254, 0.3);
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+    }
+    #acc-astro-body .astro-tags .astro-tag {
+      background: rgba(139, 92, 246, 0.2);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #e9d5ff;
+    }
+    #acc-astro-body .astro-desc {
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    #acc-astro-body .astro-desc b {
+      color: #fca5a5;
+    }
+  </style>
+
 </head>
 <body>
 
@@ -5489,6 +5569,20 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div id="lottoSection"></div>
     </section>
 
+    
+    <!-- 이집트 점 -->
+    <section class="card" id="egyptCard" style="display:none" aria-labelledby="egyptTitle">
+      <h3 id="egyptTitle" class="sec-title" style="color: #D4AF37;">𓂀 고대 이집트 오라클 (Eye of Horus)</h3>
+      <div id="egyptSection"></div>
+    </section>
+
+    <!-- 6-4. 숙요점 & 퀀텀 명리 -->
+    <section class="card" id="sukuyoCard" style="display:none" aria-labelledby="sukuyoTitle">
+      <h3 id="sukuyoTitle" class="sec-title" style="color: #9333ea;">💫 숙요점 & 퀀텀 명리 대시보드</h3>
+      <div id="sukuyoSection"></div>
+    </section>
+
+
     <!-- ═══ 호르몬 관상: 테토 vs 에겐 ═══ -->
     <div class="ad-container" id="adMiddle8" style="margin-bottom:20px;">
       <div class="ad-sponsor-text">🧬 나의 호르몬 관상이 궁금하신가요? 광고 한 번 클릭은 저희가 유익한 콘텐츠를 끝없이 제작하는 원동력이 됩니다! 💪</div>
@@ -7649,7 +7743,9 @@ async function calculate(){
     renderHealthReport(p, natal, johu, G_POWER, G_JONG);
     renderTTest(p, natal, johu, G_POWER);
     renderLottoNumbers(natal, bazi);
+    renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null);
     renderQuantumStrategy(p, natal, bazi);
+    renderEgyptianOracle(year, month, day, natal);
     renderSpecialCharm(p, natal);
     renderDaewun(bazi);
     renderDailyMonthlyFortune(p);
@@ -8918,10 +9014,10 @@ var AstroEngine = (function(){
     // MC: tan(MC)=tan(RAMC)/cos(ε)
     var MC=rev(Math.atan2(Math.tan(ramcR),Math.cos(epsR))*R2D);
     if(Math.cos(ramcR)<0) MC=rev(MC+180);
-    // ASC: 구면삼각법
-    var numer=Math.cos(ramcR);
-    var denom=-Math.sin(epsR)*Math.tan(latR)-Math.cos(epsR)*Math.sin(ramcR);
-    var ASC=rev(Math.atan2(numer,denom)*R2D+180);
+    // ASC: 구면삼각법 (정밀 교정 - Meeus 사분면 보정)
+    var y = Math.cos(ramcR);
+    var x = -Math.sin(ramcR)*Math.cos(epsR) - Math.tan(latR)*Math.sin(epsR);
+    var ASC = rev(Math.atan2(y, x)*R2D);
     // 고위도 폴백 (|lat|≥65°)
     if(Math.abs(lat)>=65) ASC=rev(MC+90);
     // 11/12 커스프 반복법 (Placidus)
@@ -8944,7 +9040,10 @@ var AstroEngine = (function(){
   function toSign(lon){
     lon=rev(lon);
     var idx=Math.floor(lon/30);
-    return {sign:SIGNS[idx],idx:Math.min(idx,11),deg:Math.round((lon%30)*10)/10};
+    var degWhole = Math.floor(lon % 30);
+    var minWhole = Math.floor(((lon % 30) - degWhole) * 60);
+    var display = SIGNS[idx] + ' ' + degWhole + '° ' + minWhole + '\'';
+    return { sign: display, _baseSign: SIGNS[idx], idx: Math.min(idx, 11), deg: Math.round((lon % 30) * 10) / 10 };
   }
 
   /* ── 메인 계산 ── */
@@ -9278,9 +9377,8 @@ function renderAstroInsight() {
       </div>
     </div>`;
 
-    html += advancedAstrologyHtml;
 
-  var html = '<div class="astro-body">' + masterInsight
+  var html = '<div class="astro-body cosmic-theme">' + masterInsight
         +'<div class="astro-subhead">📌 1. 심층 페르소나 (천체역학 기반 · Jean Meeus 알고리즘)</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">☀ 태양</span> <span class="astro-planet">'+sunSign+'</span>'+sunDeg
@@ -9368,6 +9466,7 @@ function renderAstroInsight() {
 
         +'</div>';
 
+    html += advancedAstrologyHtml;
     document.getElementById('astroResult').innerHTML = html;
 }
 
@@ -14351,6 +14450,7 @@ function renderLottoNumbers(natal, bazi){
     redrawBtn.onclick = function(){
       _lottoDrawCount++;
       renderLottoNumbers(natal, bazi);
+    renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null);
       /* 다시 뽑기 시에는 애니메이션 바로 실행 */
       setTimeout(function(){
         var newDrawBtn = document.getElementById('lottoDrawBtn');
@@ -14358,6 +14458,387 @@ function renderLottoNumbers(natal, bazi){
       }, 100);
     };
   }
+}
+
+
+/* ─────────────────────────────────────────────────────────
+ * LUNAR-SOLAR HYBRID ENGINE: SUKUYO & QUANTUM SAJU
+ * ───────────────────────────────────────────────────────── */
+function QuantumFortuneEngine(lunarObj, bazi, natal, p) {
+    var LUNAR_MONTH_START_MANSION = [
+        0, // index 0 unused
+        22, // 1월: 실(室)
+        24, // 2월: 규(奎)
+        26, // 3월: 위(胃)
+        1,  // 4월: 묘(昴)
+        3,  // 5월: 자(觜)
+        5,  // 6월: 귀(鬼)
+        7,  // 7월: 성(星)
+        9,  // 8월: 익(翼)
+        11, // 9월: 각(角)
+        13, // 10월: 저(氐)
+        15, // 11월: 심(心)
+        17  // 12월: 두(斗)
+    ];
+
+    var MANSIONS = [
+        { name: "각(角)", jp: "Kaku", elem: "목", keyword: "사교성, 인기" },
+        { name: "항(亢)", jp: "Ko", elem: "금", keyword: "리더십, 저항" },
+        { name: "저(氐)", jp: "Tei", elem: "토", keyword: "의지, 배짱" },
+        { name: "방(房)", jp: "Bo", elem: "일", keyword: "카리스마, 재물" },
+        { name: "심(心)", jp: "Shin", elem: "월", keyword: "인애, 다정" },
+        { name: "미(尾)", jp: "Bi", elem: "화", keyword: "투쟁, 집념" },
+        { name: "기(箕)", jp: "Ki", elem: "수", keyword: "모험, 개척" },
+        { name: "두(斗)", jp: "To", elem: "목", keyword: "영적, 명예" },
+        // 우(牛) 제외 (27숙 체계)
+        { name: "여(女)", jp: "Jo", elem: "토", keyword: "학구, 지적" },
+        { name: "허(虛)", jp: "Kyo", elem: "일", keyword: "복잡, 비애" },
+        { name: "위(危)", jp: "Ki", elem: "월", keyword: "자유, 반항" },
+        { name: "실(室)", jp: "Shitsu", elem: "화", keyword: "자신감, 호탕" },
+        { name: "벽(壁)", jp: "Heki", elem: "수", keyword: "학문, 신뢰" },
+        { name: "규(奎)", jp: "Kei", elem: "목", keyword: "진정성, 가업" },
+        { name: "루(婁)", jp: "Ro", elem: "금", keyword: "순수, 봉사" },
+        { name: "위(胃)", jp: "I",  elem: "토", keyword: "야심, 돌파" },
+        { name: "묘(昴)", jp: "Bo", elem: "일", keyword: "재치, 유머" },
+        { name: "필(畢)", jp: "Hitsu", elem: "월", keyword: "안정, 우직" },
+        { name: "자(觜)", jp: "Shi", elem: "화", keyword: "언변, 설득" },
+        { name: "삼(參)", jp: "San", elem: "수", keyword: "지성, 호기심" },
+        { name: "정(井)", jp: "Sei", elem: "목", keyword: "감성, 감수성" },
+        { name: "귀(鬼)", jp: "Ki",  elem: "금", keyword: "변덕, 영감" },
+        { name: "류(柳)", jp: "Ryu", elem: "토", keyword: "열정, 집착" },
+        { name: "성(星)", jp: "Sei", elem: "일", keyword: "독립, 고고함" },
+        { name: "장(張)", jp: "Cho", elem: "월", keyword: "화려, 권위" },
+        { name: "익(翼)", jp: "Yoku", elem: "화", keyword: "온화, 조화" },
+        { name: "진(軫)", jp: "Shin", elem: "수", keyword: "이동, 신속" }
+    ];
+
+    // 1. Sukuyo Logic
+    var lm = lunarObj ? lunarObj.month : 1;
+    var ld = lunarObj ? lunarObj.day : 1;
+    var startIdx = LUNAR_MONTH_START_MANSION[lm] || 0;
+    var myMansionIdx = (startIdx + ld - 1) % 27;
+    var myMansion = MANSIONS[myMansionIdx];
+
+    // 2. Quantum Score Calculation
+    // Use Elements from natal
+    var quantumBase = 50; 
+    var _c = natal.counts || {wood:0,fire:0,earth:0,metal:0,water:0};
+    var maxElem = Math.max(_c.wood, _c.fire, _c.earth, _c.metal, _c.water);
+    var balanceBonus = maxElem <= 3 ? 20 : 0; // Better balance -> higher base
+    
+    // Day luck (Pseudo sync based on today's day)
+    var todayStr = new Date().toISOString().slice(0,10);
+    var pseudoHash = (myMansionIdx * 7 + parseInt(todayStr.slice(8,10)) * 13) % 30;
+    var finalSync = quantumBase + balanceBonus + pseudoHash;
+    if (finalSync > 100) finalSync = 100;
+
+    return {
+        mansion: myMansion,
+        sync: finalSync,
+        metadata: {
+            item: ["크리스탈 오브제", "은제 반지", "만년필", "딥우드 향수", "가죽 다이어리", "네이비 실크 타이"][pseudoHash % 6],
+            color: ['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa', '#f472b6'][myMansionIdx % 6]
+        }
+    };
+}
+
+
+/* ══════════════════════════════════════════
+   고대 이집트 오라클 (Eye of Horus) Engine
+══════════════════════════════════════════ */
+function EgyptianOracleCore(year, month, day, natal) {
+    var EGYPTIAN_DECANS = [
+        { deity: "아몬-라 (Amon-Ra)", desc: "태양과 창조의 근원. 강력한 자아실현의 의지와 무한한 잠재력." },
+        { deity: "오시리스 (Osiris)", desc: "부활과 영원. 끝없는 재생의 순환 속에서 피어나는 권능." },
+        { deity: "이시스 (Isis)", desc: "마법과 치유. 부드럽지만 절대 꺾이지 않는 신성한 포용력." },
+        { deity: "토트 (Thoth)", desc: "지혜와 진리. 차가운 이성과 운명의 도서관을 기록하는 수호자." },
+        { deity: "호루스 (Horus)", desc: "질서와 승리. 모든 위협을 꿰뚫어보는 매의 눈과 압도적 지배력." },
+        { deity: "아누비스 (Anubis)", desc: "죽음과 전이. 필멸의 경계를 넘나들며 진실을 이끄는 안내자." },
+        { deity: "세트 (Seth)", desc: "혼돈과 사막. 파괴적인 모험을 불사하는 절대적인 힘의 화신." },
+        { deity: "마아트 (Ma'at)", desc: "진실과 정의. 어떠한 편견에도 흔들리지 않는 우주적 균형과 질서." },
+        { deity: "하토르 (Hathor)", desc: "아름다움과 사랑. 삶의 기쁨을 증폭시키는 풍요로운 생명력." },
+        { deity: "바스트 (Bastet)", desc: "음악과 환희. 관능적이고 직관적인 에너지 속의 맹렬한 수호." },
+        { deity: "세크메트 (Sekhmet)", desc: "전쟁과 수호. 타오르는 태양의 불꽃처럼 압도적인 돌파력." },
+        { deity: "프타 (Ptah)", desc: "건축과 창조. 고도의 영감으로 현실의 뼈대를 주조하는 장인정신." }
+    ];
+
+    var EGYPTIAN_HIEROGLYPHS = [
+        { symbol: "𓋹", name: "Ankh (앙크)", meaning: "영원한 생명력의 숨결이 당신의 궤도를 휘감고 있습니다." },
+        { symbol: "𓊽", name: "Djed (제드)", meaning: "흔들리지 않는 척추 메타포, 절대적인 심리적 안정감이 구축될 시점입니다." },
+        { symbol: "𓌀", name: "Was (와스)", meaning: "통제력과 절대적 권능. 당신의 뚜렷한 의지가 현실의 형태를 규정합니다." },
+        { symbol: "𓂀", name: "Udjat (우자트)", meaning: "모든 것을 꿰뚫어보는 혜안. 불확실성의 안개 속에서 명확한 활로를 발견합니다." },
+        { symbol: "𓆣", name: "Scarab (스카라브)", meaning: "아침의 태양을 밀어올리는 재생. 창조적 파괴 이후 위대한 부활의 모멘텀입니다." },
+        { symbol: "𓍶", name: "Shen (셴)", meaning: "무한한 보호의 궤도. 인간적 한계를 초월하여 뻗어나가는 영적 에너지입니다." }
+    ];
+
+    var bd = new Date(year, Math.max(0, month-1), day);
+    var startOfYear = new Date(year, 0, 0);
+    var diffMs = bd - startOfYear;
+    var dayOfYear = Math.floor(diffMs / 86400000) || 1;
+    var decanIndex = Math.floor(dayOfYear / 10) % 36;
+    var deityIndex = decanIndex % 12;
+    var patronDeity = EGYPTIAN_DECANS[deityIndex];
+
+    var now = new Date();
+    var currentDayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000) || 1;
+    var currentDecan = Math.floor(currentDayOfYear / 10) % 36;
+    var interference = Math.abs(decanIndex - currentDecan);
+
+    var counts = natal.counts || {wood:0,fire:0,earth:0,metal:0,water:0};
+    var maxElem = Math.max(counts.wood, counts.fire, counts.earth, counts.metal, counts.water);
+    
+    var balanceSync = (5 - maxElem) * 12; 
+    if(balanceSync < 0) balanceSync = 0;
+    var timeSync = 40 - (interference % 18) * 2;
+    var pseudoRandom = (year * 7 + month * 13 + day * 17) % 20;
+
+    var maatScore = balanceSync + timeSync + pseudoRandom;
+    if (maatScore > 99) maatScore = 99;
+    if (maatScore < 33) maatScore = 33;
+
+    var hIndex = (maatScore + dayOfYear) % EGYPTIAN_HIEROGLYPHS.length;
+    var hieroglyph = EGYPTIAN_HIEROGLYPHS[hIndex];
+
+    var insight = "우주의 질서 마아트(Ma'at)가 당신의 시공간을 비추고 있습니다. 수호신 <b style='color:#F3E5AB'>" + patronDeity.deity + "</b>의 강력한 파동이 현재 태양계의 정렬과 <b>" + maatScore + "%</b>의 고밀도로 공명하고 있습니다.";
+
+    return {
+        PatronDeity: patronDeity,
+        MaatSyncRate: maatScore,
+        DailyHieroglyph: hieroglyph,
+        QuantumInsight: insight
+    };
+}
+
+function renderEgyptianOracle(year, month, day, natal) {
+    var area = document.getElementById('egyptSection');
+    var card = document.getElementById('egyptCard');
+    if (!area || !card) return;
+
+    var res = EgyptianOracleCore(year, month, day, natal);
+    var d = res.PatronDeity;
+    var h = res.DailyHieroglyph;
+    var score = res.MaatSyncRate;
+
+    var tilt = (100 - score) * -0.25; 
+
+    var html = `
+    <style>
+      .egypt-wrap {
+        background: radial-gradient(circle at center, #003366 0%, #001122 100%);
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        border-radius: 16px; padding: 24px;
+        color: #F3E5AB; font-family: 'Pretendard', sans-serif;
+        position: relative; overflow: hidden;
+      }
+      .egypt-wrap::before {
+        content: ""; position: absolute; top:0; left:0; right:0; bottom:0;
+        background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="rgba(212,175,55,0.15)"/></svg>') repeat;
+        opacity: 0.8; pointer-events: none;
+      }
+      .maat-scale {
+        display: inline-block; font-size: 3.5rem;
+        transform: rotate(${tilt}deg);
+        transition: transform 2.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        color: #D4AF37; text-shadow: 0 0 25px rgba(212, 175, 55, 0.8);
+      }
+      .egypt-glass-card {
+        background: rgba(0, 20, 50, 0.5); backdrop-filter: blur(12px);
+        border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 12px;
+        padding: 18px; margin-bottom: 16px; text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); position: relative; z-index: 10;
+      }
+      .egypt-deity { font-size: 1.5rem; color: #D4AF37; font-weight: bold; margin-bottom: 6px; letter-spacing: 1px; }
+      .egypt-hiero { font-size: 4.5rem; cursor: pointer; color: #D4AF37; transition: all 0.4s; padding:10px; }
+      .egypt-hiero:hover { text-shadow: 0 0 35px #D4AF37; transform: scale(1.15); }
+      .egypt-insight { line-height: 1.7; font-size: 0.98rem; color: #e2e8f0; margin-top: 12px; word-break: keep-all; font-weight: 300;}
+      .btn-reveal {
+        background: linear-gradient(135deg, #D4AF37 0%, #8c7324 100%); color: #011;
+        border: none; padding: 12px 24px; border-radius: 30px; font-weight: 800;
+        cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+      }
+      .btn-reveal:hover { filter: brightness(1.2); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6); transform: translateY(-2px); }
+    </style>
+    
+    <div class="egypt-wrap">
+      <div style="text-align: center; margin-bottom: 24px; z-index: 10; position:relative;">
+        <div style="font-size: 0.8rem; color: rgba(243, 229, 171, 0.6); letter-spacing: 3px;">THE BALANCE OF MA'AT</div>
+        <div class="maat-scale">⚖️</div>
+        <div style="margin-top: 5px; font-size: 1.3rem; color: #fff;">영혼의 무게 동기화: <b style="color:#D4AF37;">${score}%</b></div>
+      </div>
+
+      <div class="egypt-glass-card">
+        <div style="font-size:0.8rem; color: rgba(255,255,255,0.5); letter-spacing: 2px; margin-bottom: 4px;">PATRON DEITY</div>
+        <div class="egypt-deity">${d.deity}</div>
+        <div style="font-size:0.9rem; color:#ccc;">${d.desc}</div>
+      </div>
+
+      <div class="egypt-glass-card" id="hieroBox">
+        <div style="font-size:0.8rem; color: rgba(255,255,255,0.5); letter-spacing: 2px; margin-bottom: 10px;">DIVINE REVELATION</div>
+        <div class="egypt-hiero" id="hieroSym" onclick="document.getElementById('hieroMeans').style.display='block';">✧</div>
+        <div style="margin-top: 5px;">
+          <button class="btn-reveal" id="btnR" onclick="document.getElementById('hieroMeans').style.display='block'; this.style.display='none'; document.getElementById('hieroSym').innerText='${h.symbol}';">상징 문자 해독하기</button>
+        </div>
+        <div id="hieroMeans" style="display:none; margin-top:20px; animation: fadeIn 1s ease-in-out;">
+          <div style="font-size: 1.4rem; color: #D4AF37; margin-bottom:10px; font-weight:bold;">${h.name}</div>
+          <div class="egypt-insight">${h.meaning}</div>
+        </div>
+      </div>
+
+      <div class="egypt-insight" style="text-align:center; margin-top:20px; font-style: italic; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 16px;">
+        "${res.QuantumInsight}"
+      </div>
+    </div>
+    `;
+
+    area.innerHTML = html;
+    card.style.display = 'block';
+}
+
+
+function renderSukuyo(p, natal, bazi, lunarObj) {
+    var area = document.getElementById('sukuyoSection');
+    var card = document.getElementById('sukuyoCard');
+    if (!area || !card || !lunarObj) return;
+
+    var result = QuantumFortuneEngine(lunarObj, bazi, natal, p);
+    var m = result.mansion;
+
+    var html = `
+    <style>
+      .sukuyo-container {
+        font-family: 'Pretendard', sans-serif;
+        background: rgba(20, 10, 30, 0.6);
+        border: 1px solid rgba(147, 51, 234, 0.4);
+        border-radius: 16px;
+        padding: 20px;
+        color: #fff;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(147, 51, 234, 0.1);
+        text-align: center;
+        overflow: hidden;
+        position: relative;
+      }
+      .sy-gauge-wrap {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        margin: 10px auto 20px;
+      }
+      .sy-gauge-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.1);
+        stroke-width: 8;
+      }
+      .sy-gauge-fg {
+        fill: none;
+        stroke: url(#sy-grad);
+        stroke-width: 8;
+        stroke-linecap: round;
+        stroke-dasharray: 400;
+        stroke-dashoffset: ${400 - (400 * result.sync / 100)};
+        transition: stroke-dashoffset 1.5s ease-in-out;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+      }
+      .sy-gauge-text {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #e9d5ff;
+        text-shadow: 0 0 10px rgba(147, 51, 234, 0.6);
+      }
+      .sy-sub-text {
+        font-size: 0.7rem;
+        color: #cbd5e1;
+        margin-top: 4px;
+        display: block;
+      }
+      .sy-mansion-box {
+        background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2));
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      .sy-mansion-title {
+        font-size: 1.4rem;
+        color: #fca5a5;
+        font-weight: 700;
+        margin-bottom: 8px;
+        letter-spacing: 2px;
+      }
+      .sy-mansion-keyword {
+        background: #4c1d95;
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        display: inline-block;
+        margin-bottom: 15px;
+      }
+      .sy-mansion-desc {
+        font-size: 0.9rem;
+        color: #cbd5e1;
+        line-height: 1.5;
+        word-break: keep-all;
+      }
+      .sy-item-box {
+        display: flex;
+        justify-content: space-around;
+        background: rgba(0,0,0,0.3);
+        padding: 12px;
+        border-radius: 10px;
+      }
+      .sy-item {
+        font-size: 0.85rem;
+      }
+      .sy-item span {
+        display: block;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+      }
+    </style>
+
+    <div class="sukuyo-container">
+      <svg width="0" height="0">
+        <defs>
+          <linearGradient id="sy-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f472b6" />
+            <stop offset="100%" stop-color="#9333ea" />
+          </linearGradient>
+        </defs>
+      </svg>
+      
+      <div style="font-size: 1rem; color: #a78bfa; font-weight: 600; margin-bottom: 5px;">오늘의 퀀텀 싱크로율</div>
+      <div class="sy-gauge-wrap">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle class="sy-gauge-bg" cx="70" cy="70" r="63"></circle>
+          <circle class="sy-gauge-fg" cx="70" cy="70" r="63"></circle>
+        </svg>
+        <div class="sy-gauge-text">${result.sync}%</div>
+      </div>
+
+      <div class="sy-mansion-box">
+        <div class="sy-mansion-title">본명숙: ${m.name}</div>
+        <div class="sy-mansion-keyword">핵심 키워드 • ${m.keyword}</div>
+        <div class="sy-mansion-desc">
+          태어난 음력일을 기준으로 도출된 당신의 별자리는 <b>${m.name}</b>입니다. 
+          이 별자리는 일본 고전 숙요점 체계에서 <b>${m.elem}</b>의 기운을 담고 있으며, 깊은 무의식 안에 <b>[${m.keyword}]</b>의 에너지가 내재되어 있음을 의미합니다.
+          사주 원국의 오행과 결합된 퀀텀 점수에 따르면, 오늘은 당신만의 독특한 매력을 발산하기에 최적화된 우주적 타이밍입니다.
+        </div>
+      </div>
+
+      <div class="sy-item-box">
+        <div class="sy-item"><span>✨</span>행운의 아이템<br><b>${result.metadata.item}</b></div>
+        <div class="sy-item"><span>🎨</span>오러(Aura) 컬러<br><b style="color:${result.metadata.color}">${result.metadata.color.toUpperCase()}</b></div>
+      </div>
+    </div>
+    `;
+
+    area.innerHTML = html;
+    card.style.display = 'block';
 }
 
 /* ══════════════════════════════════════════
@@ -16026,6 +16507,7 @@ window.addEventListener('load', function() {
    * bg     = 라이트 모드 헤더 배경 틴트
    */
   var GROUPS = [
+    { id:'acc-sukuyo', emoji:'💫', title:'숙요점 & 퀀텀 명리', open:false, color:'#c084fc', lite:'#9333ea', bg:'rgba(250,245,255,1)' },
     { id:'acc-core',   emoji:'\uD83D\uDD2E', title:'\uc0ac\uc8fc \uba85\ub9ac\ud559\uc758 \uc7a5',       open:true,  color:'#f9a8d4', lite:'#be185d', bg:'rgba(253,242,248,1)'  },
     { id:'acc-fun',    emoji:'\uD83C\uDFAA', title:'\uc7ac\ubc0c\ub294 \uc0ac\uc8fc \ucf58\ud150\uce20',  open:false, color:'#fda4af', lite:'#e11d48', bg:'rgba(255,241,242,1)'  },
     { id:'acc-ai',     emoji:'\uD83E\uDD16', title:'AI \uc0ac\uc8fc \ud504\ub86c\ud504\ud2b8 \ubaa8\uc74c',open:false, color:'#7dd3fc', lite:'#0369a1', bg:'rgba(240,249,255,1)'  },
@@ -16038,6 +16520,8 @@ window.addEventListener('load', function() {
   var CORE_IDS  = ['sajuCard','adMiddle1','iljuCard','tenshinCard','johuCard','ukbuCard','adMiddle2','dailyMonthlyCard','summaryCard','adMiddle3','daewunCard','quantumCard','adMiddle4','compatCard','adMiddle5','similarCelebCard'];
   var FUN_IDS   = ['villainCard','skillTreeCard','energyCoordCard','healthReportCard','hormone-vibe-section','tTestCard'];
   var LOTTO_IDS = ['lottoCard'];
+  var SUKUYO_IDS = ['sukuyoCard'];
+  var EGYPT_IDS = ['egyptCard'];
 
   function toRgba(hex, a) {
     var r = parseInt(hex.slice(1,3),16);
@@ -16212,6 +16696,8 @@ window.addEventListener('load', function() {
     }
 
     LOTTO_IDS.forEach(function(id) { moveCard(id, 'acc-lotto'); });
+    SUKUYO_IDS.forEach(function(id) { moveCard(id, 'acc-sukuyo'); });
+    EGYPT_IDS.forEach(function(id) { moveCard(id, 'acc-egypt'); });
 
     var tabZiwei  = document.getElementById('tabZiwei');
     var tabIching = document.getElementById('tabIching');
