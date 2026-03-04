@@ -2548,6 +2548,112 @@ body.neo-mode .monthly-label { color: #64748b; }
 .gaeun-prescript { padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
 .gaeun-title { font-size: 0.95rem; color: #c4b5fd; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
+/* ═══ Feature Card Grid (부가 기능 카드) ═══ */
+.feature-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 18px;
+}
+@media (max-width: 380px) {
+  .feature-card-grid { grid-template-columns: 1fr; }
+}
+.feature-card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.feature-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 28px rgba(0,0,0,0.15); }
+.feature-card:active { transform: scale(0.97); }
+
+.feature-card__img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+}
+.feature-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.feature-card:hover .feature-card__img { transform: scale(1.08); }
+
+.feature-card__badge {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+}
+
+.feature-card__body {
+  padding: 12px 14px 14px;
+}
+.feature-card__title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+.feature-card__desc {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin: 0 0 10px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.feature-card__cta {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s;
+}
+.feature-card:hover .feature-card__cta { opacity: 0.85; }
+
+/* Card accent colors */
+.feature-card--face .feature-card__cta { background: linear-gradient(135deg, #10b981, #059669); }
+.feature-card--face { border-bottom: 3px solid #10b981; }
+.feature-card--animal .feature-card__cta { background: linear-gradient(135deg, #eab308, #d97706); }
+.feature-card--animal { border-bottom: 3px solid #eab308; }
+.feature-card--tarot .feature-card__cta { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.feature-card--tarot { border-bottom: 3px solid #8b5cf6; }
+.feature-card--tazza .feature-card__cta { background: linear-gradient(135deg, #16a34a, #15803d); }
+.feature-card--tazza { border-bottom: 3px solid #16a34a; }
+
+/* NEO (사자) mode overrides */
+body.neo-mode .feature-card {
+  background: rgba(20, 18, 40, 0.9);
+  border-color: rgba(197, 160, 89, 0.25);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+body.neo-mode .feature-card:hover { box-shadow: 0 8px 30px rgba(197, 160, 89, 0.3); }
+body.neo-mode .feature-card__title { color: #f1f5f9; }
+body.neo-mode .feature-card__desc { color: #94a3b8; }
+body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1b3a, #0f172a); }
+
   </style>
 </head>
 <body>
@@ -2726,25 +2832,60 @@ body.neo-mode .monthly-label { color: #64748b; }
       </div>
       <button class="btn-main" id="run-btn" onclick="checkPrivacyAndCalculate()" disabled>🔄 라이브러리 로딩 중...</button>
       
-      <!-- 관상 분석 기능을 위한 버튼 추가 -->
-      <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="openPhysiognomyApp()">
-        🎭 AI 동물 관상 (beta)
-      </button>
+      <!-- ═══ 부가 기능 카드 그리드 ═══ -->
+      <div class="feature-card-grid">
 
-      <!-- 타로 카드 버튼 (Universal Oracle) -->
-      <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);" onclick="openTarotModal()">
-        🔮 신비의 타로 (Universal Oracle)
-      </button>
+        <!-- 1. AI 동물 관상 -->
+        <div class="feature-card feature-card--face" onclick="openPhysiognomyApp()">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/ai%20face.png" alt="AI 동물 관상" class="feature-card__img" loading="lazy">
+            <span class="feature-card__badge">BETA</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">🎭 AI 동물 관상</h3>
+            <p class="feature-card__desc">셀카 한 장으로 나와 닮은 동물을 AI가 분석! 얼굴형·이목구비로 보는 관상 운세</p>
+            <span class="feature-card__cta">분석 시작 →</span>
+          </div>
+        </div>
 
-      <!-- MBTI 토템 버튼 (Astral Totem) -->
-      <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border:1px solid rgba(255,215,0,0.3); color:#FFD700; box-shadow: 0 4px 15px rgba(0,0,0,0.4);" onclick="openMbtiModal()">
-        🦉 MBTI 궁합 
-      </button>
+        <!-- 2. MBTI 동물 궁합 -->
+        <div class="feature-card feature-card--animal" onclick="openMbtiModal()">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/ai%20animal.png" alt="MBTI 동물 궁합" class="feature-card__img" loading="lazy">
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">🦁 MBTI 동물 궁합</h3>
+            <p class="feature-card__desc">16가지 동물 토템으로 보는 나와 상대의 케미 — 최고의 짝꿍은 누구?</p>
+            <span class="feature-card__cta">궁합 보기 →</span>
+          </div>
+        </div>
 
-      <!-- 타짜 화투점 버튼 -->
-      <button class="btn-main" style="margin-top:10px; background: linear-gradient(135deg, #0f5132 0%, #14532d 100%); color:#eab308; border:1px solid #ca8a04; box-shadow: 0 4px 15px rgba(20, 83, 45, 0.5); font-family: 'Noto Serif KR', serif;" onclick="openHwatuModal()">
-        🎴 타짜 화투점 (The Tazza fortune)
-      </button>
+        <!-- 3. 신비의 타로 -->
+        <div class="feature-card feature-card--tarot" onclick="openTarotModal()">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/ai%20tarrot.png" alt="AI 타로" class="feature-card__img" loading="lazy">
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">🔮 신비의 타로</h3>
+            <p class="feature-card__desc">78장의 카드가 당신의 과거·현재·미래를 비춥니다 — Universal Oracle</p>
+            <span class="feature-card__cta">카드 뽑기 →</span>
+          </div>
+        </div>
+
+        <!-- 4. 타짜 화투점 -->
+        <div class="feature-card feature-card--tazza" onclick="openHwatuModal()">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/tazza.png" alt="타짜 화투점" class="feature-card__img" loading="lazy">
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">🎴 타짜 화투점</h3>
+            <p class="feature-card__desc">12달의 화투패로 점치는 오늘의 운세 — The Tazza Fortune</p>
+            <span class="feature-card__cta">패 뒤집기 →</span>
+          </div>
+        </div>
+
+      </div>
+      <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
 
 
 
