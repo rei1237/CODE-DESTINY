@@ -253,7 +253,6 @@ function playClackSound(freq=150) {
         osc.start(audioCtx.currentTime);
         osc.stop(audioCtx.currentTime + 0.04);
     } catch(e) {}
-} catch(e) {}
 }
 
 const getTodayDateStr = () => {
