@@ -3,11 +3,11 @@
 
 const TAZZA_SYSTEM = {
     CHARACTERS: {
-        master: { name: '평경장', image: 'sudda/master.png', tone: 'advice', catchphrase: '"기술 쓰지 마라. 운명은 속이는 게 아니야."' },
-        goni: { name: '고니', image: 'sudda/goni.png', tone: 'fortune', catchphrase: '"이게 내 운명인가 보지. 한 판 제대로 벌여볼까?"' },
-        madam: { name: '정마담', image: 'sudda/madam.png', tone: 'love', catchphrase: '"나 이대 나온 여자야. 품격 있는 결과만 보여줄게."' },
-        agui: { name: '아귀', image: 'sudda/agui.png', tone: 'warning', catchphrase: '"구라치다 걸리면 피 보는 거 안 배웠냐? 정직하게 봐준다."' },
-        gosu: { name: '짝귀', image: 'sudda/gosu.png', tone: 'insight', catchphrase: '"기술이 아니야, 사람 마음을 읽는 거지. 네 속마음 다 보인다."' }
+        master: { name: '편경장', image: 'sudda/master.png', tone: 'advice', catchphrase: '"기술 부리지 마라. 운명이란 건… 속여서 되는 게 아니여."' },
+        goni: { name: '꼬니', image: 'sudda/goni.png', tone: 'fortune', catchphrase: '"이게 내 팔자인가 보지. 한 판 화끈하게 뒤집어볼까?"' },
+        madam: { name: '천마담', image: 'sudda/madam.png', tone: 'love', catchphrase: '"나 서울대 나온 여자야. 격조 있는 운세만 내놓을게."' },
+        agui: { name: '아구', image: 'sudda/agui.png', tone: 'warning', catchphrase: '"뻥치다 걸리면 코피 나는 거 안 배웠어? 솔직하게 봐줄게."' },
+        gosu: { name: '짝꿍', image: 'sudda/gosu.png', tone: 'insight', catchphrase: '"기술이 아니라 심리전이야. 니 속마음… 다 들여다보인다."' }
     },
     // 화투패 1~10월 데이터 (섯다용) 배열은 각각 [특수/광, 피/일반] 2장씩       
     DECK: [
@@ -338,10 +338,10 @@ window.setHwatuCategory = function(cat, btnParam) {
     }
 
     let quote = "";
-    if(cat === 'wealth') quote = '정마담: "나 이대 나온 여자야. 아무 판에나 돈 안 걸어. 확실한 곳을 골라줄게."';
-    else if(cat === 'love') quote = '고니: "사랑도 도박이야. 내 모든 걸 걸 때가 있는 법이지."';
-    else if(cat === 'contact') quote = '짝귀: "구라치지 마라. 네 속마음, 내 연락 기다리고 있잖아?"';
-    else if(cat === 'success') quote = '평경장: "기억해라. 진정한 실력은 기술이 아니라 평상심에서 나오는 거다."';
+    if(cat === 'wealth') quote = '천마담: "나 서울대 나온 여자야. 아무 판에나 돈 안 걸어. 확실한 데만 골라줄게."';
+    else if(cat === 'love') quote = '꼬니: "사랑도 승부야. 내 전부를 걸 때가 오는 법이지."';
+    else if(cat === 'contact') quote = '짝꿍: "뻥치지 마라. 니 속마음, 연락 기다리고 있는 거 다 보여."';
+    else if(cat === 'success') quote = '편경장: "기억해라. 진짜 실력은 기술이 아니라 흔들리지 않는 배짱에서 나온다."';
     
     const sub = document.querySelector('.tazza-sub');
     if(sub) {
