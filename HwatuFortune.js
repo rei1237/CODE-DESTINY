@@ -1,9 +1,9 @@
-﻿// HwatuFortune.js - 타짜 화투점 (The Tazza Vibe)
+﻿// HwatuFortune.js - 화투점 (The Tazza Vibe)
 // 배경: 어두운 네이비와 금색 포인트, 은은한 연기 피어오르는 탁자 느낌
 
 const TAZZA_SYSTEM = {
     CHARACTERS: {
-        master: { name: '편경장', image: 'sudda/master.png', tone: 'advice', catchphrase: '"기술 부리지 마라. 운명이란 건… 속여서 되는 게 아니여."' },
+        master: { name: '퐁퐁장', image: 'sudda/master.png', tone: 'advice', catchphrase: '"기술 부리지 마라. 운명이란 건… 속여서 되는 게 아니여."' },
         goni: { name: '꼬니', image: 'sudda/goni.png', tone: 'fortune', catchphrase: '"이게 내 팔자인가 보지. 한 판 화끈하게 뒤집어볼까?"' },
         madam: { name: '천마담', image: 'sudda/madam.png', tone: 'love', catchphrase: '"나 서울대 나온 여자야. 격조 있는 운세만 내놓을게."' },
         agui: { name: '아구', image: 'sudda/agui.png', tone: 'warning', catchphrase: '"뻥치다 걸리면 코피 나는 거 안 배웠어? 솔직하게 봐줄게."' },
@@ -183,7 +183,7 @@ function injectHwatuHTML() {
             <img src="sudda/madam.png" class="tazza-hero-img">
         </div>
         <div class="hwatu-table">
-            <h2 class="tazza-title" style="font-family: '궁서', cursive; font-size: 2.8rem; letter-spacing: -2px; color: #d4af37; text-shadow: 2px 2px 5px rgba(185,28,28,0.8);">타짜: 신의 손길</h2>
+            <h2 class="tazza-title" style="font-family: '궁서', cursive; font-size: 2.8rem; letter-spacing: -2px; color: #d4af37; text-shadow: 2px 2px 5px rgba(185,28,28,0.8);">화투 운세: 신의 손길</h2>
             <div class="tazza-sub">"원하는 운을 고르고, 패를 섞어보쇼."</div>
             
             <div class="hwatu-category-container" id="hwatuCategoryBox">
@@ -341,7 +341,7 @@ window.setHwatuCategory = function(cat, btnParam) {
     if(cat === 'wealth') quote = '천마담: "나 서울대 나온 여자야. 아무 판에나 돈 안 걸어. 확실한 데만 골라줄게."';
     else if(cat === 'love') quote = '꼬니: "사랑도 승부야. 내 전부를 걸 때가 오는 법이지."';
     else if(cat === 'contact') quote = '짝꿍: "뻥치지 마라. 니 속마음, 연락 기다리고 있는 거 다 보여."';
-    else if(cat === 'success') quote = '편경장: "기억해라. 진짜 실력은 기술이 아니라 흔들리지 않는 배짱에서 나온다."';
+    else if(cat === 'success') quote = '퐁퐁장: "기억해라. 진짜 실력은 기술이 아니라 흔들리지 않는 배짱에서 나온다."';
     
     const sub = document.querySelector('.tazza-sub');
     if(sub) {
@@ -612,8 +612,8 @@ function showReveal() {
 }
 
 window.shareHwatu = function() {
-    const text = "[🎴 타짜 화투점 결과]\n나의 패: " + document.getElementById('jokboName').innerText + "\n👉 내 타짜 운세 확인하기: " + window.location.href;
-    if (navigator.share) { navigator.share({ title: '타짜 화투점', text: text }).catch(console.error); } 
+    const text = "[🎴 화투점 결과]\n나의 패: " + document.getElementById('jokboName').innerText + "\n👉 내 타짜 운세 확인하기: " + window.location.href;
+    if (navigator.share) { navigator.share({ title: '화투점', text: text }).catch(console.error); } 
     else { alert("클립보드에 복사되었습니다.\n\n" + text); }
 };
 
