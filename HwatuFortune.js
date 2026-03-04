@@ -231,18 +231,29 @@ function injectHwatuHTML() {
 function playClackSound(freq=150) {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if(audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
-        osc.connect(gainNode);
+        const filter = audioCtx.createBiquadFilter();
+        
+        osc.connect(filter);
+        filter.connect(gainNode);
         gainNode.connect(audioCtx.destination);
+        
         osc.type = 'square';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.05);
-        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.04);
+        
+        filter.type = 'highpass';
+        filter.frequency.value = 800;
+        
+        gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+        
         osc.start(audioCtx.currentTime);
-        osc.stop(audioCtx.currentTime + 0.05);
+        osc.stop(audioCtx.currentTime + 0.04);
     } catch(e) {}
+} catch(e) {}
 }
 
 const getTodayDateStr = () => {
@@ -313,48 +324,64 @@ window.setHwatuCategory = function(cat, btnParam) {
     window.currentHwatuCategory = cat;
     document.querySelectorAll('#hwatuCategoryBox .ctg-btn').forEach(b => b.classList.remove('active'));
     if(btnParam) btnParam.classList.add('active');
+    
+    // 카테고리 클릭 시 사운드
+    playClackSound(200); 
+    setTimeout(() => playClackSound(250), 100);
+
+    let quote = "";
+    if(cat === 'wealth') quote = '정마담: "나 이대 나온 여자야. 아무 판에나 돈 안 걸어. 확실한 곳을 골라줄게."';
+    else if(cat === 'love') quote = '고니: "사랑도 도박이야. 내 모든 걸 걸 때가 있는 법이지."';
+    else if(cat === 'contact') quote = '짝귀: "구라치지 마라. 네 속마음, 내 연락 기다리고 있잖아?"';
+    else if(cat === 'success') quote = '평경장: "기억해라. 진정한 실력은 기술이 아니라 평상심에서 나오는 거다."';
+    
+    const sub = document.querySelector('.tazza-sub');
+    if(sub) {
+        sub.innerText = quote;
+        sub.style.color = "#d4af37";
+        if(window.gsap) gsap.fromTo(sub, { scale: 1.05, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5 });
+    }
 };
 
 function getFortuneAndCharacter(score) {
     let charKey, reading;
     const cat = window.currentHwatuCategory;
     
-    // 타짜 캐릭터 특징 기반 선정 (점수에 따라 분위기 결정)
-    if(score >= 98) charKey = 'goni'; // 최고 운 (고니)
-    else if(cat === 'love' && score >= 75) charKey = 'madam'; // 애정운은 마담
-    else if(score >= 91) charKey = 'madam'; // 고득점 (정마담)
-    else if(score === 10) charKey = 'agui'; // 최악/위기 (아귀)
-    else if(cat === 'contact' || cat === 'success') charKey = 'gosu'; // 연락/합격은 짝귀
-    else charKey = 'master'; // 기본 조언 (평경장)
+    if(score === 100) charKey = 'goni'; 
+    else if(cat === 'love' && score >= 75) charKey = 'madam';
+    else if(cat === 'wealth' && score >= 90) charKey = 'madam';
+    else if(score >= 90) charKey = 'goni'; 
+    else if(score === 10 || score === 0) charKey = 'agui'; 
+    else if(cat === 'contact' || cat === 'success') charKey = 'gosu'; 
+    else charKey = 'master'; 
 
-    // 카테고리별 맞춤 풀이 (섯다 방식의 화투점)
     if (cat === 'wealth') {
-        if(score >= 98) reading = "인생 역전의 기회! 오늘 당신의 금전운은 천하무적입니다. 어디서 돈벼락이 떨어질지 모르니 큰 판을 벌여도 좋은 날입니다.";
-        else if(score >= 90) reading = "자금이 원활하게 도는 날. 주식이나 투자, 계약에서 쏠쏠한 수익이 기대됩니다. 자신 있게 밀어붙이세요.";
-        else if(score >= 70) reading = "소소한 재물운이 있습니다. 큰 돈은 아니어도 뜻밖의 꽁돈이 생기거나 맛있는 걸 대접받을 수 있겠습니다.";
-        else if(score === 10) reading = "싸늘하다... 가슴에 비수가 날아와 꽂힌다. 밑장 빼다 걸릴 수 있는 최악의 금전운. 지갑을 꼭 닫고 몸을 사리쇼.";
-        else reading = "큰 욕심을 부리면 오히려 잃기 쉬운 날입니다. 바람이 불 때는 납작 엎드리고, 기술을 아끼며 현상 유지를 목표로 하세요.";
+        if(score === 100) reading = "묻고 더블로 가! 오늘 당신의 금전운은 천하무적. 판돈을 전부 끌어모아 판을 키워도 좋은 날이다.";
+        else if(score >= 90) reading = "패가 아주 좋게 떨어졌군. 예상치 못한 거래처에서 연락이 오거나 투자한 곳에서 쏠쏠한 수익이 떨어질 거다.";
+        else if(score >= 70) reading = "평타는 치는 패야. 큰 욕심만 안 부리면 길가다가 지폐 한 장 줍거나, 점심값 굳는 쏠쏠한 재미를 볼 수 있다.";
+        else if(score === 10 || score === 0) reading = "싸늘하다... 가슴에 비수가 날아와 꽂힌다. 밑장 빼다 걸릴 수 있는 최악의 금전운. 지갑을 꼭 닫고 몸을 사리쇼.";
+        else reading = "큰 판을 벌이기엔 아직 무리다. 바람이 불 때는 납작 엎드리고, 기술을 아끼며 지금 있는 돈부터 지키는 게 순리야.";
     } 
     else if (cat === 'love') {
-        if(score >= 98) reading = "천생연분, 찰떡궁합! 오늘 마음에 둔 사람에게 고백한다면 100% 성공입니다. 솔로라면 운명적인 만남이 기다립니다.";
-        else if(score >= 90) reading = "당신의 매력이 절정에 달해 주변 사람들이 전부 당신에게 홀릴 것입니다. 연애 전선에 강력한 청신호가 켜졌습니다.";
-        else if(score >= 70) reading = "무난하고 달콤한 애정운. 서로의 마음을 확인하며 잔잔하게 관계가 발전합니다. 진심 어린 대화가 포인트!";
-        else if(score === 10) reading = "싸늘하다... 가슴에 비수가 날아와 꽂힌다. 애정 전선에 구라가 섞여있소. 거짓말에 속지 않도록 상대를 똑바로 보쇼.";
-        else reading = "당장 큰 진전을 기대하기보다는 현재의 관계를 유지하며 내실을 다져야 할 때입니다. 밀당보다는 진정성으로 승부하세요.";
+        if(score === 100) reading = "마음에 쏙 드는 인연을 만날 찰떡궁합의 패. 고백을 망설이고 있다면 오늘이 바로 승부수를 던질 타이밍이다.";
+        else if(score >= 90) reading = "당신의 매력이 절정에 달해 주변 사람들이 전부 당신에게 홀리는 날. 눈빛 하나로 마음을 흔들 수 있다.";
+        else if(score >= 70) reading = "잔잔하게 마음이 통하는 무난한 흐름. 오늘은 억지로 상황을 만들려 하지 말고 진심을 담은 한 마디면 족하다.";
+        else if(score === 10 || score === 0) reading = "싸늘하다... 애정 전선에 구라가 섞여있소. 괜한 헛소문이나 어장관리에 당할 수 있으니 상대를 똑바로 보쇼.";
+        else reading = "지금은 밀당을 할 때가 아니다. 패가 말렸을 땐 포커페이스를 유지하며 마음을 숨기는 게 오히려 낫다.";
     }
     else if (cat === 'contact') {
-        if(score >= 98) reading = "기다리던 그 사람에게서 깜짝 연락이 오거나, 평소 끊겼던 소중한 인연이 기적처럼 다시 이어지는 날입니다.";
-        else if(score >= 90) reading = "상대방도 당신을 생각하고 있습니다. 먼저 가벼운 안부 문자라도 던져보세요. 아주 긍정적인 답장이 올 것입니다.";
-        else if(score >= 70) reading = "연락의 흐름이 나쁘지 않습니다. 사람들의 마음을 읽고 공감해 주면, 끈끈한 네트워크가 자연스럽게 형성될 것입니다.";
-        else if(score === 10) reading = "구라치다 걸리면 피 보는 거 안 배웠냐? 섣부른 연락은 돌이킬 수 없는 강을 건너게 하니 오늘 핸드폰은 꺼두는 게 상책이오.";
-        else reading = "무소식이 희소식입니다. 억지로 이끌어내려 하지 말고, 때가 올 때까지 여유롭게 기다리는 지혜가 필요합니다.";
+        if(score === 100) reading = "아주 반가운 소식! 인연이 끊길 뻔했던 귀인에게서 깜짝 연락이 오거나 기다리던 답장을 받게 된다.";
+        else if(score >= 90) reading = "상대방도 당신 패를 읽으려 눈치를 보고 있다. 가볍게 찔러보는 선톡 하나가 꽉 막힌 물꼬를 터줄 거다.";
+        else if(score >= 70) reading = "사람들의 마음이 당신에게 열려 있는 날. 안부를 묻고 대화를 들어주기만 해도 관계가 한층 끈끈해진다.";
+        else if(score === 10 || score === 0) reading = "구라치다 걸리면 피 보는 거 안 배웠냐? 섣부른 연락은 돌이킬 수 없는 강을 건너게 하니 오늘 핸드폰은 꺼두는 게 상책이오.";
+        else reading = "무소식이 희소식이라 했다. 억지로 타선을 이어붙이려다 오히려 역풍을 맞으니 여유롭게 기다리는 지혜를 가져라.";
     }
-    else { // success
-        if(score >= 98) reading = "완벽한 합격, 성공의 운! 면접이든 시험이든 당신의 실력을 120% 발휘하여 단번에 좋은 소식을 거머쥘 것입니다.";
-        else if(score >= 90) reading = "노력한 만큼 훌륭한 성과를 거두는 날. 승진이나 이직, 자격증 시험 등에 있어 강력한 합격의 기운이 따릅니다.";
-        else if(score >= 70) reading = "순조로운 진행이 예상됩니다. 다만 방심은 금물입니다. 마지막까지 디테일(사람의 마음, 면접관의 의도 등)을 놓치지 마세요.";
-        else if(score === 10) reading = "구라치다 걸리면 피 보는 거 안 배웠냐? 요행을 바라거나 꼼수로 합격을 노리면 크게 당하게 되어 있소. 정공법을 택하쇼.";
-        else reading = "지금은 잠시 인내하고 실력을 더 다져야 할 시기입니다. 평범함 속에 길이 있으니 조급해하지 말고 기본기에 충실하세요.";
+    else { 
+        if(score === 100) reading = "완벽한 타점. 면접이든 시험이든 당신의 실력이 100% 발휘되어 경쟁자들을 압도하고 당당히 승리를 거머쥔다.";
+        else if(score >= 90) reading = "준비한 만큼 훌륭한 성과를 거두는 기운. 심사관이나 윗선의 눈에 띄어 단숨에 입지를 굳히게 될 거다.";
+        else if(score >= 70) reading = "순조로운 전개. 다만 방심은 금물이다. 디테일한 부분에서 승패가 갈리니 마지막까지 집중의 끈을 놓지 마라.";
+        else if(score === 10 || score === 0) reading = "구라치다 걸리면 피 보는 거 안 배웠냐? 요행을 바라거나 꼼수로 합격을 노리면 크게 당하게 되어 있소. 정공법을 택하쇼.";
+        else reading = "아직은 칼을 더 갈아야 할 시기. 평범함 속에 지혜가 있으니 조급함을 버리고 기본기로 승부해라.";
     }
     
     return { character: TAZZA_SYSTEM.CHARACTERS[charKey], reading };
