@@ -326,8 +326,10 @@ window.setHwatuCategory = function(cat, btnParam) {
     if(btnParam) btnParam.classList.add('active');
     
     // 카테고리 클릭 시 사운드
-    playClackSound(200); 
-    setTimeout(() => playClackSound(250), 100);
+    if(typeof playClackSound === 'function') {
+        playClackSound(200); 
+        setTimeout(() => playClackSound(250), 100);
+    }
 
     let quote = "";
     if(cat === 'wealth') quote = '정마담: "나 이대 나온 여자야. 아무 판에나 돈 안 걸어. 확실한 곳을 골라줄게."';
@@ -341,6 +343,7 @@ window.setHwatuCategory = function(cat, btnParam) {
         sub.style.color = "#d4af37";
         if(window.gsap) gsap.fromTo(sub, { scale: 1.05, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5 });
     }
+}
 };
 
 function getFortuneAndCharacter(score) {
