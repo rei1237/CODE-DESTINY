@@ -2665,18 +2665,22 @@ body.neo-mode .monthly-label { color: #64748b; }
 .feature-card__img-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
-  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .feature-card__img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+  padding: 8px;
   transition: transform 0.4s ease;
 }
-.feature-card:hover .feature-card__img { transform: scale(1.08); }
+.feature-card:hover .feature-card__img { transform: scale(1.06); }
 
 .feature-card__badge {
   position: absolute;
