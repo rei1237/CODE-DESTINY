@@ -108,8 +108,8 @@ const hwatuStyles = `
     display: flex; justify-content: space-between; align-items: flex-end; overflow: hidden;
 }
 .tazza-hero-img { 
-    height: 70vh; width: auto; object-fit: contain; 
-    filter: brightness(0) drop-shadow(0 0 20px rgba(185, 28, 28, 0.4)); 
+    height: 75vh; width: auto; object-fit: contain; 
+    filter: brightness(0) drop-shadow(0 0 25px rgba(185, 28, 28, 0.5)); 
 }
 /* Overhead Flickering Lamp Effect */
 .flickering-lamp {
@@ -124,7 +124,14 @@ const hwatuStyles = `
     70% { opacity: 0.8; }
     80% { opacity: 0.4; }
 }
-@media(max-width: 480px) { .tazza-hero-img { width: 100px; } }
+@media(max-width: 480px) { 
+    .tazza-hero-img { 
+        height: 55vh; 
+        width: auto; 
+        filter: brightness(0) drop-shadow(0 0 30px rgba(185, 28, 28, 0.6)); 
+    }
+    .tazza-hero-bg { opacity: 0.65; }
+}
 
 #tcTop { top: -100px; left: 50%; transform: translateX(-50%); }
 #tcBottom { bottom: -100px; left: 50%; transform: translateX(-50%); }
