@@ -589,9 +589,7 @@ function showReveal() {
             </div>
         `;
         let finalHwatuHTML = charHTML + reading;
-          if(window.BokchaeAdComponent) { finalHwatuHTML += window.BokchaeAdComponent.createHtml('Saju'); }
           document.getElementById('fortuneDetails').innerHTML = finalHwatuHTML;
-          if(window.BokchaeAdComponent) setTimeout(() => window.BokchaeAdComponent.injectScript(), 100);
         document.getElementById('hwatuResultBox').style.display = 'block';
         
         // 다시 뽑기 위한 리셋
@@ -611,4 +609,5 @@ window.shareHwatu = function() {
     if (navigator.share) { navigator.share({ title: '타짜 화투점', text: text }).catch(console.error); } 
     else { alert("클립보드에 복사되었습니다.\n\n" + text); }
 };
+
 

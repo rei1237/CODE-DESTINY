@@ -7251,9 +7251,7 @@ function renderAstroInsight() {
 
         +'</div>';
 
-    if(window.BokchaeAdComponent) { html += window.BokchaeAdComponent.createHtml('Zodiac'); }
     document.getElementById('astroResult').innerHTML = html;
-    if(window.BokchaeAdComponent) setTimeout(() => window.BokchaeAdComponent.injectScript(), 100);
 }
 
 /* ─────── 자미두수 12궁 심층 분석 요약 ─────── */
@@ -10840,9 +10838,7 @@ function startTarotReading() {
          ? `<div style="font-weight:bold;color:#FFD700;margin-bottom:5px">⚡ 마스터 오라클</div><span style="font-style:italic">"${masterLine}"</span>`
          : '';
        var oracleEl = document.getElementById('tarotOracleText');
-       if(window.BokchaeAdComponent) { oracleHtml += window.BokchaeAdComponent.createHtml('Tarot'); }
        oracleEl.innerHTML = oracleHtml;
-       if(window.BokchaeAdComponent) setTimeout(() => window.BokchaeAdComponent.injectScript(), 100);
        if(oracleHtml) oracleEl.classList.add('show');
        isReading = false;
        
@@ -12863,9 +12859,7 @@ window._drawIching = function() {
         </div>
       </div>
     `;
-    if(window.BokchaeAdComponent) { html += window.BokchaeAdComponent.createHtml('Saju'); }
     wrap.innerHTML = html;
-    if(window.BokchaeAdComponent) setTimeout(() => window.BokchaeAdComponent.injectScript(), 100);
   }, 2200);
 }
 </script>
@@ -13677,7 +13671,37 @@ window.addEventListener('load', function() {
     if (tabAstro  && abody && !tabAstro.dataset.iaMoved)  { tabAstro.dataset.iaMoved='1';  tabAstro.style.display='block';  abody.appendChild(tabAstro); }
 
     var mw = document.querySelector('.mystic-tabs-wrapper');
+    
     if (mw) mw.style.display = 'none';
+
+    // ✄ Main Accordion Body Ads 
+    if (window.BokchaeAdComponent && !window._iaAdsInjected) {
+      window._iaAdsInjected = true;
+      var catMap = {
+        'acc-core': 'Saju',
+        'acc-fun': 'Saju',
+        'acc-ai': 'Saju',
+        'acc-lotto': 'Saju',
+        'acc-ziwei': 'Saju',
+        'acc-iching': 'Saju',
+        'acc-astro': 'Zodiac'
+      };
+      
+      GROUPS.forEach(function(g, idx) {
+        // 2,4,6 th accordions get ads
+        if (idx % 2 !== 0) {
+          var body = document.getElementById(g.id + '-body');
+          if (body) {
+            var cat = catMap[g.id] || 'Saju';
+            var adWrapper = document.createElement('view');
+            adWrapper.innerHTML = window.BokchaeAdComponent.createHtml(cat);
+            body.appendChild(adWrapper);
+            setTimeout(function() { window.BokchaeAdComponent.injectScript(); }, 150);
+          }
+        }
+      });
+    }
+
   }
 
   function watchMode() {
@@ -15069,3 +15093,4 @@ function getSynergyText(t1, t2) {
 
 </body>
 </html>
+
