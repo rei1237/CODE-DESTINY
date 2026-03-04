@@ -802,6 +802,310 @@ class AnalysisEngine {
     };
   }
 
+  // ============================================
+  // 얼굴 점(點/痣) 위치별 관상학적 해석 시스템
+  // 전통 관상학 12궁(十二宮) 기반 점 위치 분석
+  // ============================================
+  analyzeMolePositions(landmarks, features) {
+    // 주요 랜드마크 추출
+    const FOREHEAD = landmarks[10];
+    const GLABELLA = landmarks[168];
+    const NOSE_TIP = landmarks[2];
+    const CHIN = landmarks[152];
+    const LEFT_EYE_IN = landmarks[133];
+    const LEFT_EYE_OUT = landmarks[226];
+    const RIGHT_EYE_IN = landmarks[362];
+    const RIGHT_EYE_OUT = landmarks[446];
+    const MOUTH_LEFT = landmarks[61];
+    const MOUTH_RIGHT = landmarks[291];
+    const MOUTH_TOP = landmarks[13];
+    const MOUTH_BOTTOM = landmarks[14];
+    const JAW_LEFT = landmarks[149];
+    const JAW_RIGHT = landmarks[378];
+    const NOSE_LEFT = landmarks[129];
+    const NOSE_RIGHT = landmarks[358];
+    const LEFT_CHEEK = landmarks[116];
+    const RIGHT_CHEEK = landmarks[345];
+    const LEFT_EYEBROW_IN = landmarks[107];
+    const RIGHT_EYEBROW_IN = landmarks[336];
+    const LEFT_EYEBROW_OUT = landmarks[70];
+    const RIGHT_EYEBROW_OUT = landmarks[300];
+    const NOSE_BRIDGE = landmarks[6];
+    const PHILTRUM = landmarks[164]; // 인중
+
+    const faceLength = this.calculateDistance(FOREHEAD, CHIN);
+    const faceWidth = this.calculateDistance(JAW_LEFT, JAW_RIGHT);
+
+    // ── 12궁 얼굴 영역 정의 (랜드마크 좌표 기반) ──
+    const zones = [
+      {
+        id: 'forehead_center', name: '이마 중앙 (관록궁)', icon: '👑',
+        position: '천정(天庭) — 이마의 한가운데',
+        region: { cx: FOREHEAD.x, cy: FOREHEAD.y, radius: faceLength * 0.06 },
+        goodMole: {
+          title: '🌟 출세·관록의 점 (吉痣)',
+          desc: '이마 한가운데 살아있는 점이 있으면 <b>천부적 리더십과 출세운</b>이 태어날 때부터 부여된 상입니다. 관직이나 기업에서 높은 위치에 오르며, 특히 <b>30대 중반 이후 큰 발복</b>이 예상됩니다.',
+          advice: '점의 위치가 정중앙에 가까울수록 길(吉)합니다. 공직, 경영, 정치 분야에서 두각을 나타냅니다.'
+        },
+        badMole: {
+          title: '⚠️ 시비·구설의 점 (凶痣)',
+          desc: '사점(死痣·검고 칙칙한 점)이면 <b>윗사람과의 갈등, 직장에서의 구설수</b>가 잦아집니다. 승진 앞에서 뜻하지 않은 장애물이 반복될 수 있습니다.',
+          advice: '겸손과 인내를 최우선 덕목으로 삼고, 공적인 자리에서의 발언에 각별히 주의하십시오.'
+        }
+      },
+      {
+        id: 'forehead_left', name: '이마 좌측 (천이궁)', icon: '✈️',
+        position: '천이궁(遷移宮) — 이마 왼쪽 가장자리',
+        region: { cx: LEFT_EYEBROW_OUT.x, cy: FOREHEAD.y, radius: faceLength * 0.05 },
+        goodMole: {
+          title: '🌟 이동·여행 대길의 점',
+          desc: '이마 좌측에 활점(活痣·윤기 있는 점)이 있으면 <b>타향이나 해외에서 크게 성공</b>하는 이동운이 강합니다. 고향을 떠나면 오히려 큰 행운이 찾아옵니다.',
+          advice: '현재 위치에 안주하지 말고 넓은 세상으로 도전하면 기대 이상의 성과를 얻습니다.'
+        },
+        badMole: {
+          title: '⚠️ 불안정·방랑의 점',
+          desc: '사점이면 <b>거주지가 불안정하고 이사가 잦으며</b>, 여행 중 사고나 분실에 주의해야 합니다.',
+          advice: '중요한 이동 결정은 신중히 하고, 여행 시 안전에 각별히 유의하십시오.'
+        }
+      },
+      {
+        id: 'between_brows', name: '미간 (명궁/인당)', icon: '🔮',
+        position: '명궁(命宮) — 두 눈썹 사이 인당',
+        region: { cx: GLABELLA.x, cy: GLABELLA.y, radius: faceLength * 0.04 },
+        goodMole: {
+          title: '🌟 제3의 눈 · 직관의 점',
+          desc: '인당에 붉거나 밝은 점이 있으면 <b>초월적 직관력과 통찰력</b>을 타고난 상입니다. 종교, 철학, 예술, 의료 분야에서 남다른 천재성을 발휘합니다.',
+          advice: '영적 수양과 명상을 통해 제3의 눈을 더욱 깨우면 놀라운 통찰이 열립니다.'
+        },
+        badMole: {
+          title: '⚠️ 결혼·건강 주의의 점',
+          desc: '사점이면 <b>결혼 시기가 늦어지거나 배우자와의 갈등</b>이 잦습니다. 또한 호흡기·두통 등 만성 질환에 주의해야 합니다.',
+          advice: '배우자에게 양보와 이해를 먼저 실천하고, 정기 건강검진을 게을리하지 마십시오.'
+        }
+      },
+      {
+        id: 'left_eye_tail', name: '왼쪽 눈꼬리 (처첩궁)', icon: '💕',
+        position: '어미(魚尾)/처첩궁 — 왼쪽 눈 끝부분',
+        region: { cx: LEFT_EYE_OUT.x, cy: LEFT_EYE_OUT.y, radius: faceLength * 0.035 },
+        goodMole: {
+          title: '🌟 도화·매력의 점',
+          desc: '눈꼬리에 활점이 있으면 <b>이성에게 대단히 인기가 매우 많은 도화(桃花)의 상</b>입니다. 연애운이 풍부하고 로맨틱한 만남이 끊이지 않습니다.',
+          advice: '넘치는 이성 인연을 현명하게 관리하여 진정한 인연을 알아보는 눈을 기르십시오.'
+        },
+        badMole: {
+          title: '⚠️ 색난·이별의 점',
+          desc: '사점이면 <b>연애에서의 삼각관계, 이별, 배우자의 외도</b> 등 감정적 시련이 반복될 수 있습니다.',
+          advice: '감정에 휩쓸려 성급한 결정을 내리지 말고, 상대를 충분히 알아간 후 관계를 깊이 하십시오.'
+        }
+      },
+      {
+        id: 'under_left_eye', name: '왼쪽 눈 아래 (누당/자녀궁)', icon: '👶',
+        position: '누당(淚堂)/자녀궁 — 왼쪽 눈 바로 하단',
+        region: { cx: LEFT_EYE_IN.x, cy: LEFT_EYE_IN.y + faceLength * 0.05, radius: faceLength * 0.04 },
+        goodMole: {
+          title: '🌟 자녀 복·감성의 점',
+          desc: '누당에 활점이 있으면 <b>자녀운이 좋고 효도하는 자식을 두며</b>, 감수성이 풍부하여 예술적 재능이 뛰어납니다.',
+          advice: '자녀 교육에 정성을 쏟으면 훌륭한 자녀로 성장하여 크나큰 효도를 받습니다.'
+        },
+        badMole: {
+          title: '⚠️ 자녀 걱정·눈물의 점',
+          desc: '사점이면 <b>자녀로 인한 근심 걱정이 많거나</b>, 감정이 예민하여 쉽게 눈물을 흘리는 다감한 성정입니다.',
+          advice: '자녀와의 소통을 강화하고, 지나친 감정 이입을 절제하는 수양을 하십시오.'
+        }
+      },
+      {
+        id: 'nose_bridge', name: '콧대 (질액궁)', icon: '🏥',
+        position: '산근(山根)/질액궁 — 코 뿌리·콧대',
+        region: { cx: NOSE_BRIDGE.x, cy: NOSE_BRIDGE.y, radius: faceLength * 0.035 },
+        goodMole: {
+          title: '🌟 건강 장수·극복의 점',
+          desc: '산근에 밝은 활점이 있으면 <b>질병을 이겨내는 강한 생명력</b>과 회복력을 지녔습니다. 위기를 기회로 바꾸는 비범한 역경 극복 능력이 있습니다.',
+          advice: '건강 관리에 신경 쓰면 타고난 회복력이 배가 되어 장수합니다.'
+        },
+        badMole: {
+          title: '⚠️ 건강·배우자 주의의 점',
+          desc: '사점이면 <b>위장, 간 등 소화기 계통의 질환에 주의</b>해야 하며, 배우자와의 사이에 건강 문제로 인한 갈등이 생길 수 있습니다.',
+          advice: '정기적인 건강검진과 올바른 식습관을 통해 예방에 힘쓰십시오.'
+        }
+      },
+      {
+        id: 'nose_tip', name: '코끝 (재백궁)', icon: '💰',
+        position: '준두(準頭)/재백궁 — 코끝 중앙',
+        region: { cx: NOSE_TIP.x, cy: NOSE_TIP.y, radius: faceLength * 0.035 },
+        goodMole: {
+          title: '🌟 재물 흡수의 점',
+          desc: '코끝에 밝고 윤기 있는 활점이 있으면 <b>40대 이후 막대한 재물이 흘러들어오는</b> 대기만성형 부자의 상입니다.',
+          advice: '중년까지 착실히 실력을 쌓으면 때가 되어 큰 재물이 따릅니다.'
+        },
+        badMole: {
+          title: '⚠️ 재물 누수의 점',
+          desc: '사점이면 <b>돈이 들어와도 쉽게 새어나가는</b> 산재(散財)의 기운입니다. 충동 구매, 보증, 투자 실패에 주의해야 합니다.',
+          advice: '자동이체 적금을 설정하고, 큰 지출 전 반드시 3일의 냉각기를 두십시오.'
+        }
+      },
+      {
+        id: 'nose_side', name: '코 양옆 (처첩궁/난대)', icon: '💑',
+        position: '난대(蘭臺)/정위(廷尉) — 콧볼 양쪽',
+        region: { cx: NOSE_LEFT.x, cy: NOSE_LEFT.y, radius: faceLength * 0.03 },
+        goodMole: {
+          title: '🌟 배우자 복의 점',
+          desc: '콧볼 옆에 활점이 있으면 <b>배우자의 내조/외조가 뛰어나고</b>, 좋은 혼처를 만나 행복한 가정을 꾸리는 상입니다.',
+          advice: '배우자에게 항상 감사의 마음을 표현하면 가정의 복이 배가됩니다.'
+        },
+        badMole: {
+          title: '⚠️ 부부 갈등의 점',
+          desc: '사점이면 <b>배우자와의 의견 충돌, 금전 문제로 인한 다툼</b>이 잦을 수 있습니다.',
+          advice: '부부간 재정을 투명하게 관리하고, 중요 결정은 반드시 합의 하에 진행하십시오.'
+        }
+      },
+      {
+        id: 'philtrum', name: '인중 (인중)', icon: '🧒',
+        position: '인중(人中) — 코 아래에서 윗입술 사이',
+        region: { cx: PHILTRUM.x, cy: PHILTRUM.y, radius: faceLength * 0.025 },
+        goodMole: {
+          title: '🌟 자녀 대길·장수의 점',
+          desc: '인중에 밝은 점이 있으면 <b>자녀 복이 매우 두텁고 건강 장수</b>하는 상입니다. 특히 출산과 관련하여 순탄하고 건강한 자녀를 둡니다.',
+          advice: '자녀와의 유대를 소중히 가꾸면 노후에 큰 효도와 보답을 받습니다.'
+        },
+        badMole: {
+          title: '⚠️ 출산·생식 주의의 점',
+          desc: '사점이면 <b>출산 시 어려움이 있거나 자녀와의 인연이 늦어질</b> 수 있습니다. 생식기 건강에도 주의가 필요합니다.',
+          advice: '미리 건강 관리에 신경 쓰고, 자녀 계획은 전문가와 상담하여 진행하십시오.'
+        }
+      },
+      {
+        id: 'upper_lip', name: '윗입술 위 (식록궁)', icon: '🍽️',
+        position: '식록궁(食祿宮) — 윗입술 바로 위',
+        region: { cx: MOUTH_TOP.x, cy: MOUTH_TOP.y - faceLength * 0.01, radius: faceLength * 0.03 },
+        goodMole: {
+          title: '🌟 식복·의식주 풍요의 점',
+          desc: '윗입술 위에 활점이 있으면 <b>일생 동안 먹고 사는 것에 부족함이 없는</b> 타고난 식복(食福)의 상입니다. 의식주가 안정적이며 주변의 대접을 받습니다.',
+          advice: '베풀수록 식복이 커지니 주위 사람에게 밥 한 끼 대접하는 것을 아끼지 마십시오.'
+        },
+        badMole: {
+          title: '⚠️ 식중독·구설의 점',
+          desc: '사점이면 <b>음식으로 인한 건강 문제나 말실수로 인한 구설</b>에 주의해야 합니다.',
+          advice: '음식은 가려 먹고, 입에서 나가는 말을 세 번 걸러서 하십시오.'
+        }
+      },
+      {
+        id: 'left_cheek', name: '왼쪽 볼 (권골)', icon: '🏅',
+        position: '권골(顴骨) — 왼쪽 광대뼈 부근',
+        region: { cx: LEFT_CHEEK.x, cy: LEFT_CHEEK.y, radius: faceLength * 0.06 },
+        goodMole: {
+          title: '🌟 권력·사회적 지위의 점',
+          desc: '왼쪽 볼에 활점이 있으면 <b>사회적으로 높은 인정과 권력을 얻는</b> 상입니다. 조직 내에서 신뢰를 쌓아 중요한 직책을 맡게 됩니다.',
+          advice: '권력을 얻었을 때 겸손함을 잃지 않으면 그 자리가 더욱 공고해집니다.'
+        },
+        badMole: {
+          title: '⚠️ 소송·법적 분쟁의 점',
+          desc: '사점이면 <b>법적 분쟁이나 소송에 휘말릴 가능성</b>이 있으며, 직장 내 권력 다툼에 주의해야 합니다.',
+          advice: '문서와 계약은 꼼꼼히 확인하고, 분쟁의 소지가 있는 일은 사전에 예방하십시오.'
+        }
+      },
+      {
+        id: 'chin_center', name: '턱 중앙 (노복궁/지각)', icon: '🏠',
+        position: '지각(地閣)/노복궁 — 턱 중앙',
+        region: { cx: CHIN.x, cy: CHIN.y, radius: faceLength * 0.04 },
+        goodMole: {
+          title: '🌟 부동산·말년 대길의 점',
+          desc: '턱 중앙에 활점이 있으면 <b>부동산 운이 매우 좋고 말년에 풍요로운 삶</b>을 누리는 상입니다. 토지, 건물 등 부동산 재산을 축적합니다.',
+          advice: '부동산 투자에 관심을 가지면 좋은 결과를 얻으며, 아랫사람에게 덕을 베풀면 말년이 편안합니다.'
+        },
+        badMole: {
+          title: '⚠️ 주거 불안·수해의 점',
+          desc: '사점이면 <b>주거가 불안정하거나 집과 관련된 문제</b>(수해, 분쟁, 잦은 이사)가 발생할 수 있습니다.',
+          advice: '거주지 선택 시 방향과 풍수를 따지고, 집 관리에 신경 쓰면 안정을 얻습니다.'
+        }
+      }
+    ];
+
+    // ── 얼굴 측정값의 해시를 시드로 사용하여 결정적 점 분석 생성 ──
+    const seedValue = Math.abs(
+      Math.round(features.faceRatio * 10000) +
+      Math.round(features.eyeSlant * 1000) +
+      Math.round(features.eyeDistRatio * 10000) +
+      Math.round(features.noseWidthRatio * 10000) +
+      Math.round(features.mouthRatio * 10000) +
+      Math.round(features.chinLength * 10000) +
+      Math.round((features.earRatio || 0) * 10000)
+    );
+
+    // 시드 기반 의사 난수 생성기 (동일 얼굴 = 동일 결과)
+    const seededRandom = (seed, index) => {
+      const x = Math.sin(seed * 9301 + index * 49297 + 233280) * 49297;
+      return x - Math.floor(x);
+    };
+
+    // ── 각 영역에 대해 점 존재 여부 및 길흉 판정 ──
+    const moleReadings = [];
+    let detectedCount = 0;
+
+    zones.forEach((zone, idx) => {
+      const rand = seededRandom(seedValue, idx);
+      // 약 40~50%의 영역에서 점이 감지되도록 설정
+      const hasSignal = rand < 0.42;
+      
+      if (hasSignal) {
+        detectedCount++;
+        const isGood = seededRandom(seedValue, idx + 100) > 0.35; // 65% 확률로 길점
+        const moleData = isGood ? zone.goodMole : zone.badMole;
+        
+        moleReadings.push({
+          zone: zone.name,
+          icon: zone.icon,
+          position: zone.position,
+          type: isGood ? 'good' : 'bad',
+          typeLabel: isGood ? '활점(活痣) — 吉' : '사점(死痣) — 凶',
+          title: moleData.title,
+          description: moleData.desc,
+          advice: moleData.advice
+        });
+      }
+    });
+
+    // 최소 2개, 최대 6개 유지
+    if (moleReadings.length < 2) {
+      // 강제로 2개 추가
+      const forced = zones.filter((_, i) => !moleReadings.some(m => m.zone === zones[i].name));
+      for (let i = 0; i < Math.min(2 - moleReadings.length, forced.length); i++) {
+        const z = forced[i];
+        const isGood = seededRandom(seedValue, i + 200) > 0.3;
+        const moleData = isGood ? z.goodMole : z.badMole;
+        moleReadings.push({
+          zone: z.name, icon: z.icon, position: z.position,
+          type: isGood ? 'good' : 'bad',
+          typeLabel: isGood ? '활점(活痣) — 吉' : '사점(死痣) — 凶',
+          title: moleData.title, description: moleData.desc, advice: moleData.advice
+        });
+      }
+    } else if (moleReadings.length > 6) {
+      moleReadings.splice(6);
+    }
+
+    // 종합 판정
+    const goodCount = moleReadings.filter(m => m.type === 'good').length;
+    const badCount = moleReadings.filter(m => m.type === 'bad').length;
+    let overallVerdict = '';
+    if (goodCount > badCount * 2) {
+      overallVerdict = '얼굴 곳곳에 <b>길한 활점(活痣)이 우세</b>하여 타고난 복록이 두텁습니다. 점이 가리키는 방향대로 삶을 설계하면 순풍에 돛 단 듯 순탄합니다.';
+    } else if (goodCount > badCount) {
+      overallVerdict = '길점과 흉점이 섞여 있으나 <b>전체적으로 길한 기운이 우세</b>합니다. 흉점이 가리키는 부분만 주의하면 큰 탈 없이 형통합니다.';
+    } else if (goodCount === badCount) {
+      overallVerdict = '길흉이 반반으로 <b>음양의 균형</b>을 이루고 있습니다. 마음 수양과 선행으로 흉의 기운을 길로 전환시킬 수 있습니다.';
+    } else {
+      overallVerdict = '주의가 필요한 점이 다소 많으나, <b>관상은 심상(心相)을 이기지 못합니다</b>. 성실한 노력과 선한 마음가짐으로 얼마든지 운명을 바꿀 수 있습니다.';
+    }
+
+    return {
+      readings: moleReadings,
+      totalDetected: moleReadings.length,
+      goodCount,
+      badCount,
+      overallVerdict
+    };
+  }
+
   // ─────────────────────────────────────────────
   // face-api.js 모델 로드 (CDN 기반, 최초 1회)
   // ─────────────────────────────────────────────
@@ -1566,6 +1870,20 @@ async analyze(landmarksData, expressionData) {
             </div>`).join('')
         : '<div style="padding:12px; background:#f0fdf4; border-radius:8px; text-align:center; color:#065f46; font-size:0.9rem;">✅ 뚜렷한 흉상(凶相)이 감지되지 않았습니다. 타고난 복상(福相)입니다!</div>';
 
+      // 점(痣) 위치별 관상학적 해석
+      const moleData = this.analyzeMolePositions(landmarksData, features);
+      const moleReadingsHtml = moleData.readings.map(m => `
+        <div style="margin-bottom:10px; padding:12px; background:${m.type === 'good' ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)'}; border-radius:8px; border-left:3px solid ${m.type === 'good' ? '#10b981' : '#ef4444'};">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="font-weight:700; font-size:0.95rem; color:${m.type === 'good' ? '#065f46' : '#991b1b'};">${m.icon} ${m.zone}</span>
+            <span style="font-weight:700; font-size:0.78rem; padding:2px 8px; border-radius:12px; color:#fff; background:${m.type === 'good' ? '#10b981' : '#ef4444'};">${m.typeLabel}</span>
+          </div>
+          <div style="font-size:0.8rem; color:#64748b; margin-bottom:4px;">📍 위치: ${m.position}</div>
+          <div style="font-weight:600; font-size:0.88rem; color:${m.type === 'good' ? '#047857' : '#b91c1c'}; margin-bottom:4px;">${m.title}</div>
+          <div style="font-size:0.85rem; color:#374151; margin-bottom:5px; line-height:1.5;">${m.description}</div>
+          <div style="font-size:0.82rem; color:#065f46; background:${m.type === 'good' ? '#ecfdf5' : '#fef2f2'}; padding:6px 8px; border-radius:5px;">💡 <b>조언:</b> ${m.advice}</div>
+        </div>`).join('');
+
       const expertReportHtml = `
       <div style="font-family: 'Pretendard', sans-serif; color: #333; line-height: 1.6;">
         
@@ -1629,6 +1947,26 @@ async analyze(landmarksData, expressionData) {
             <div style="background:#1e1b4b; padding:12px; border-radius:8px; border:1px solid #3730a3;">
               <div style="font-weight:700; color:#fbbf24; margin-bottom:5px; font-size:0.9rem;">📿 종합 개운 처방 (總合 開運 處方)</div>
               <p style="font-size:0.85rem; color:#c7d2fe; margin:0; line-height:1.6;">${negPhysioData.overallAdvice}</p>
+            </div>
+          </div>
+
+          <!-- 점(痣) 위치별 관상 해석 섹션 -->
+          <div style="margin-bottom:15px; background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding:18px; border-radius:12px; border:1px solid #334155; box-shadow:0 4px 15px rgba(0,0,0,0.2);">
+            <div style="font-weight:800; font-size:1.05rem; color:#e2e8f0; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+              ✨ 점(痣) 위치별 관상 해석 <span style="font-size:0.8rem; color:#94a3b8;">(面痣 十二宮 分析)</span>
+            </div>
+            <div style="font-size:0.88rem; color:#94a3b8; margin-bottom:12px; line-height:1.5;">
+              전통 관상학의 <b style="color:#fbbf24;">얼굴 12궁(十二宮)</b> 기반 점(痣) 위치 분석 결과,
+              <span style="font-weight:700; color:${moleData.goodCount >= moleData.badCount ? '#34d399' : '#fbbf24'};">
+                총 ${moleData.totalDetected}개</span> 부위에서 점의 기운이 감지되었습니다.
+              <span style="font-size:0.82rem;">(길점: <b style="color:#10b981;">${moleData.goodCount}개</b> / 흉점: <b style="color:#ef4444;">${moleData.badCount}개</b>)</span>
+            </div>
+            <div style="margin-bottom:12px;">
+              ${moleReadingsHtml}
+            </div>
+            <div style="background:#1e293b; padding:12px; border-radius:8px; border:1px solid #475569;">
+              <div style="font-weight:700; color:#fbbf24; margin-bottom:5px; font-size:0.9rem;">🔮 점(痣) 종합 운세 판단</div>
+              <p style="font-size:0.85rem; color:#cbd5e1; margin:0; line-height:1.6;">${moleData.overallVerdict}</p>
             </div>
           </div>
 

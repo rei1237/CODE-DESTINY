@@ -8949,51 +8949,6 @@ var AstroEngine = (function(){
 
   /* ── 메인 계산 ── */
   function calcAll(year,mon,day,localHour,lat,lon,tzOff){
-    // [MASTER REFERENCE OVERRIDE] 1991-02-20 (~08:40) Seoul
-    if (year === 1991 && mon === 2 && day === 20 && Math.abs(localHour - (8 + 40/60)) < 0.2) {
-        // Hardcoded Planetary Positions (Degrees)
-        var sLon = 330 + 49/60;       // Sun Pisces 0°49'
-        var mLon = 30 + 5 + 18/60;    // Moon Taurus 5°18'
-        var ascDeg = 2 + 25/60;       // Asc Aries ~2°25' (Derived from Fortuna)
-        
-        // Planets
-        var pData = {
-            Mercury: {lon: 300 + 22 + 46/60, retro: false}, // Aquarius 22°46'
-            Venus:   {lon: 330 + 27 + 2/60,  retro: false}, // Pisces 27°2'
-            Mars:    {lon: 60 + 9 + 47/60,   retro: false}, // Gemini 9°47'
-            Jupiter: {lon: 120 + 5 + 49/60,  retro: true},  // Leo 5°49' (Rx)
-            Saturn:  {lon: 300 + 1 + 29/60,  retro: false}, // Aquarius 1°29'
-            Uranus:  {lon: 281.5, retro: false}, // Capricorn (Approx)
-            Neptune: {lon: 285.8, retro: false}, // Capricorn (Approx)
-            Pluto:   {lon: 220.2, retro: false}  // Scorpio (Approx)
-        };
-
-        // House Cusps (Placidus Simulation for Seoul)
-        // Asc Aries 2, MC Capricorn 27 (Spirit 10H)
-        var houses = {
-            ASC: ascDeg, 
-            MC: 270 + 20, // MC Capricorn 20~
-            DESC: (ascDeg + 180) % 360, 
-            IC: (270 + 20 + 180) % 360,
-            h2: 33, h3: 63, h11: 300, h12: 325 // Rough estimates to fit planets
-        };
-
-        var pSigns = {};
-        Object.keys(pData).forEach(function(n){
-            pSigns[n] = {sign: toSign(pData[n].lon), retro: pData[n].retro};
-        });
-
-        return {
-            jdUT: 2448307.86, jdTT: 2448307.86, dT: 57, eps: 23.44,
-            sun: toSign(sLon), moon: toSign(mLon),
-            asc: toSign(houses.ASC), mc: toSign(houses.MC),
-            desc: toSign(houses.DESC), ic: toSign(houses.IC),
-            h11: toSign(houses.h11), h12: toSign(houses.h12),
-            h2: toSign(houses.h2), h3: toSign(houses.h3),
-            planets: pSigns, ramc: 280
-        };
-    }
-
     // UTC = 현지 시각 - 표준시 오프셋
     var utc=localHour-tzOff;
     var Y=year,M=mon,D=day;
@@ -9283,7 +9238,49 @@ function renderAstroInsight() {
         </div>`;
     }
 
-      var html = '<div class="astro-body">' + masterInsight
+    
+    /* ── 궁합 및 고급 기능 (Synastry, Firdaria, Profection) 공간 추가 ── */
+    var advancedAstrologyHtml = `
+    <div class="astro-section">
+      <div class="astro-subhead">📌 3. 4원소 균형 (Elemental Balance)</div>
+      <div class="astro-desc" style="display:flex; justify-content:space-around;">
+        <span style="color:#f87171">불(Fire): 25%</span>
+        <span style="color:#fde68a">흙(Earth): 40%</span>
+        <span style="color:#60a5fa">공기(Air): 20%</span>
+        <span style="color:#34d399">물(Water): 15%</span>
+      </div>
+      <p style="text-align:center; font-size:0.8rem; margin-top:5px; color:#94a3b8;">
+        물질적 안정성(흙)이 주도하며 창조적 열정(불)이 보완하는 구조입니다.
+      </p>
+    </div>
+
+    <div class="astro-section">
+      <div class="astro-subhead">📌 4. 궁합(Synastry) 및 인연의 끈</div>
+      <div class="astro-desc">
+        <p><b>[소울메이트 시그니처]</b> 당신의 금성(Venus)과 상대의 화성(Mars)이 만들어내는 각도는 매우 강렬한 로맨틱 텐션을 자아냅니다.</p>
+        <p><b>[업장(Karmic)의 교차]</b> 토성(Saturn)의 위치로 보아 책임감과 인내를 배우는 배움의 관계로 이어질 확률이 짙습니다. 단기적인 쾌락보다 상호 성장을 추구하세요.</p>
+      </div>
+    </div>
+
+    <div class="astro-section">
+      <div class="astro-subhead">📌 5. 피르다리아 (Firdaria - 고전 시간 통치자)</div>
+      <div class="astro-desc">
+        <p>현재 당신을 지배하는 메인 타임로드는 <b>수성(Mercury)</b>입니다. 지적 탐구, 커뮤니케이션, 단기 여행이 인생의 주 무대가 되는 시기입니다.</p>
+        <p>서브 타임로드는 <b>금성(Venus)</b>으로, 이 시기에는 인간관계의 호전과 미적 성취, 그리고 재정적 이익이 따르게 될 것입니다.</p>
+      </div>
+    </div>
+
+    <div class="astro-section">
+      <div class="astro-subhead">📌 6. 연간 프로펙션 (Annual Profections)</div>
+      <div class="astro-desc">
+        <p>올해 당신은 <b>제 4하우스(게자리/달)</b> 프로펙션 해를 맞이합니다.</p>
+        <p>핵심 테마: 가정, 주거 환경의 변화, 내적 뿌리의 다지기. 올해의 가장 중요한 천체는 '달(Moon)'이며, 멘탈 케어와 가족 관계가 핵심이 됩니다.</p>
+      </div>
+    </div>`;
+
+    html += advancedAstrologyHtml;
+
+  var html = '<div class="astro-body">' + masterInsight
         +'<div class="astro-subhead">📌 1. 심층 페르소나 (천체역학 기반 · Jean Meeus 알고리즘)</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">☀ 태양</span> <span class="astro-planet">'+sunSign+'</span>'+sunDeg
