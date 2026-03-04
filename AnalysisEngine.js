@@ -567,7 +567,7 @@ class AnalysisEngine {
         faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
       ]);
       this.faceApiModelsLoaded = true;
-      console.log('[AnalysisEngine] face-api.js 모델 로드 완료');
+      
     } catch(e) {
       console.warn('[AnalysisEngine] face-api.js 로드 실패 (표정 분석 비활성화):', e);
     }

@@ -178,7 +178,7 @@ function injectHwatuHTML() {
         <div class="tazza-multi-popup" id="tcRight"><img id="tcRightImg" src=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcRightName"></span><span class="tazza-popup-quote" id="tcRightText"></span></div></div>
     `;
     document.body.appendChild(overlay);
-    loadGSAP(() => console.log('GSAP Loaded for Tazza Sequence'));
+    loadGSAP(() => {});
 }
 
 // 오디오 합성: 셔플 착착 소리
