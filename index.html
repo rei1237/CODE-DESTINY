@@ -2576,6 +2576,9 @@ body.neo-mode .monthly-label { color: #64748b; }
   <button class="lang-btn" onclick="changeLanguage('en', this)">EN</button>
   <button class="lang-btn" onclick="changeLanguage('ja', this)">JP</button>
   <button class="lang-btn" onclick="changeLanguage('zh-CN', this)">CN</button>
+  <button class="lang-btn" onclick="changeLanguage('hi', this)">HI</button>
+  <button class="lang-btn" onclick="changeLanguage('es', this)">ES</button>
+  <button class="lang-btn" onclick="changeLanguage('fr', this)">FR</button>
 </div>
 
 <!-- 글리치 전환 오버레이 -->
@@ -13794,7 +13797,7 @@ window._drawIching = function() {
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
     pageLanguage: 'ko',
-    includedLanguages: 'ko,en,ja,zh-CN',
+    includedLanguages: 'ko,en,ja,zh-CN,hi,es,fr',
     autoDisplay: false
   }, 'google_translate_element');
 }
@@ -16018,4 +16021,5 @@ function getSynergyText(t1, t2) {
 
 </body>
 </html>
+
 
