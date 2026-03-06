@@ -151,8 +151,8 @@ const hwatuStyles = `
     font-size: 3rem; border: 2px solid #d4af37;
 }
 .hwatu-back { background: repeating-linear-gradient(45deg, #b91c1c, #b91c1c 10px, #991b1b 10px, #991b1b 20px); border: 4px solid #fff; }
-.hwatu-front { background: #1a1a1b; color: #fff; transform: rotateY(180deg); flex-direction: column; padding: 0; overflow: hidden; }
-.hwatu-front .marker { font-size: 0.85rem; font-weight: bold; margin-top: 4px; color: #ffd700; text-shadow: 0 1px 3px #000; position: relative; z-index: 1; }
+.hwatu-front { background: #1a1a1b; color: #fff; transform: rotateY(180deg); flex-direction: column; padding: 0; overflow: hidden; position: relative; }
+.hwatu-front .marker { position: absolute; bottom: 0; left: 0; right: 0; font-size: 0.75rem; font-weight: bold; color: #ffd700; text-shadow: 0 1px 3px #000; background: rgba(0,0,0,0.65); padding: 3px 2px; text-align: center; z-index: 2; }
 
 /* 다중 캐릭터 팝업 (크기 확대) */
 .tazza-multi-popup {
@@ -278,7 +278,7 @@ function injectHwatuHTML() {
                 <div class="hwatu-card-wrapper" id="hCard1">
                     <div class="hwatu-card hwatu-back"></div>
                     <div class="hwatu-card hwatu-front">
-                        <img id="hCard1Img" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:none;">
+                        <img id="hCard1Img" src="" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:6px;display:none;">
                         <div id="hCard1Emoji" style="font-size:3rem;display:none;"></div>
                         <div id="hCard1Text" class="marker"></div>
                     </div>
@@ -286,7 +286,7 @@ function injectHwatuHTML() {
                 <div class="hwatu-card-wrapper" id="hCard2">
                     <div class="hwatu-card hwatu-back"></div>
                     <div class="hwatu-card hwatu-front">
-                        <img id="hCard2Img" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:none;">
+                        <img id="hCard2Img" src="" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:6px;display:none;">
                         <div id="hCard2Emoji" style="font-size:3rem;display:none;"></div>
                         <div id="hCard2Text" class="marker"></div>
                     </div>
@@ -367,41 +367,47 @@ function _deckPair(month) {
 function determineJokbo() {
     let rand = Math.random(); let card1, card2;
     
-    // 운세 밸런스 조정: 좋은 패 확률 대폭 축소, 광땡 10% 이하, 나머지 균등 배분
-    if(rand < 0.02) { 
-        // 2% 삼팔광땡 (가장 희귀함)
+    // 확률 배분: 삼팔광땡 0.3% / 일삼·일팔광땡 1.2% / 땡 8% / 특별족보 25% / 무작위 65.5%
+    if(rand < 0.003) { 
+        // 0.3% 삼팔광땡
         card1 = _deckCard(3, 1); 
         card2 = _deckCard(8, 1); 
     }
-    else if(rand < 0.10) { 
-        // 8% 일삼 또는 일팔광땡 (총 광땡 확률 10% 이내)
+    else if(rand < 0.015) { 
+        // 1.2% 일삼 또는 일팔광땡
         card1 = _deckCard(1, 1);
         card2 = Math.random() < 0.5 ? _deckCard(3, 1) : _deckCard(8, 1);
     }
-    else if(rand < 0.35) { 
-        // 25% 땡 (1~10땡)
+    else if(rand < 0.095) { 
+        // 8% 땡 (1~10땡)
         const d = Math.floor(Math.random() * 10) + 1;
         [card1, card2] = _deckPair(d);
     }
-    else if(rand < 0.65) {
-        // 30% 특별 족보 (알리, 독사, 구삥, 장삥, 장사, 세륙)
+    else if(rand < 0.345) {
+        // 25% 특별 족보 (알리, 독사, 구삥, 장삥, 장사, 세륙)
         const goodCombos = [[1,2], [1,4], [1,9], [1,10], [4,10], [4,6]];
         const cb = goodCombos[Math.floor(Math.random() * goodCombos.length)];
         card1 = _deckCard(cb[0], 3);
         card2 = _deckCard(cb[1], 3);
     }
     else {
-        // 35% 완전 무작위 (끗, 망통, 사구파투 등)
-        card1 = TAZZA_SYSTEM.DECK[Math.floor(Math.random() * TAZZA_SYSTEM.DECK.length)];
-        do { card2 = TAZZA_SYSTEM.DECK[Math.floor(Math.random() * TAZZA_SYSTEM.DECK.length)]; } while(card1 === card2);
+        // ~65.5% 완전 무작위 (끗, 망통, 사구파투 등)
+        // 단, 광 2장 조합이 나오면 무작위 재뽑기 (광땡 중복 방지)
+        let tries = 0;
+        do {
+            card1 = TAZZA_SYSTEM.DECK[Math.floor(Math.random() * TAZZA_SYSTEM.DECK.length)];
+            do { card2 = TAZZA_SYSTEM.DECK[Math.floor(Math.random() * TAZZA_SYSTEM.DECK.length)]; } while(card1 === card2);
+            tries++;
+        } while(tries < 5 && card1.type === 'kwang' && card2.type === 'kwang');
     }
     
     const m1 = card1.month, m2 = card2.month;
     let jokbo = "끗", score = (m1 + m2) % 10;
 
-    if(m1 === 3 && m2 === 8 || m1 === 8 && m2 === 3) { jokbo = "삼팔광땡"; score = 100; }
-    else if(m1 === 1 && m2 === 8 || m1 === 8 && m2 === 1) { jokbo = "일팔광땡"; score = 99; }
-    else if(m1 === 1 && m2 === 3 || m1 === 3 && m2 === 1) { jokbo = "일삼광땡"; score = 98; }
+    const isKwang1 = card1.type === 'kwang', isKwang2 = card2.type === 'kwang';
+    if(isKwang1 && isKwang2 && ((m1===3&&m2===8)||(m1===8&&m2===3))) { jokbo = "삼팔광땡"; score = 100; }
+    else if(isKwang1 && isKwang2 && ((m1===1&&m2===8)||(m1===8&&m2===1))) { jokbo = "일팔광땡"; score = 99; }
+    else if(isKwang1 && isKwang2 && ((m1===1&&m2===3)||(m1===3&&m2===1))) { jokbo = "일삼광땡"; score = 98; }
     else if(m1 === m2) { jokbo = m1 === 10 ? "장땡" : m1 + "땡"; score = 90 + m1; }
     else if(m1 === 1 && m2 === 2 || m1 === 2 && m2 === 1) { jokbo = "알리"; score = 80; }
     else if(m1 === 1 && m2 === 4 || m1 === 4 && m2 === 1) { jokbo = "독사"; score = 79; }
