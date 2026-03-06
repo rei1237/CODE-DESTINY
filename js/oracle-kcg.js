@@ -426,7 +426,7 @@ function closeKemetModal() {
   const m = document.getElementById('kemetOracleOverlay');
   if(m) {
     m.style.display = 'none';
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = ''; /* 'auto'는 body를 스크롤 컨테이너로 만들어 수직 스크롤 차단 */
   }
   resetKemetOracle();
 }

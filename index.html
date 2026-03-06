@@ -202,7 +202,9 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Gowun Dodum',sans-serif}
-html{scroll-behavior:smooth;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* overflow-x:hidden을 html에 설정하면 html+body 이중 스크롤 컨테이너 → iOS 수직 스크롤 차단
+   body의 overflow-x:hidden이 visible인 html을 통해 뷰포트로 전파되므로 html에는 설정 불필요 */
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
   min-height:100vh;min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
   overscroll-behavior-y:contain;

@@ -143,9 +143,10 @@
       hd.type = 'button';
       hd.className = 'ia-hd';
       hd.innerHTML = '<span class="ia-hd-left"><span class="ia-hd-emoji">' + g.emoji + '</span><span class="ia-hd-title">' + g.title + '</span></span><span class="ia-hd-arrow">&#9660;</span>';
+      /* touchend+passive:false+preventDefault는 iOS 스크롤 모멘텀을 방해함
+         button 요소는 click 이벤트만으로도 모바일 탭(300ms 딜레이 없음)이 정상 작동 */
       var _toggle = function(e) { e.preventDefault(); e.stopPropagation(); item.classList.toggle('ia-open'); };
       hd.addEventListener('click', _toggle);
-      hd.addEventListener('touchend', _toggle, {passive:false});
 
       var body = document.createElement('div');
       body.className = 'ia-body';
