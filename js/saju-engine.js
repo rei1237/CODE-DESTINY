@@ -7630,9 +7630,16 @@ function renderLifeGraph(bazi){
       },150);
     }
   };
-  // 모바일 터치 지원
+  // 모바일 터치 지원 (passive:true — 스크롤 차단 없음, tap 판별)
+  var _dwTouchStartX=0,_dwTouchStartY=0;
+  canvas.addEventListener('touchstart',function(e){
+    _dwTouchStartX=e.touches[0].clientX;
+    _dwTouchStartY=e.touches[0].clientY;
+  },{passive:true});
   canvas.addEventListener('touchend',function(e){
-    e.preventDefault();
+    var dx=Math.abs(e.changedTouches[0].clientX-_dwTouchStartX);
+    var dy=Math.abs(e.changedTouches[0].clientY-_dwTouchStartY);
+    if(dx>10||dy>10) return; // 스크롤 동작이면 무시
     var tip=document.getElementById('graphTooltip');if(tip)tip.style.display='none';
     var rect=canvas.getBoundingClientRect();
     var scaleX=canvas.width/rect.width;
@@ -7650,7 +7657,7 @@ function renderLifeGraph(bazi){
         if(dw)dw.scrollIntoView({behavior:'smooth',block:'nearest'});
       },150);
     }
-  },{passive:false});
+  },{passive:true});
 }
 
 /* ══════════════════════════════════════════
