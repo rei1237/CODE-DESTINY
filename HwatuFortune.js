@@ -1,6 +1,11 @@
 ﻿// HwatuFortune.js - 화투점 (The Tazza Vibe)
 // 배경: 어두운 네이비와 금색 포인트, 은은한 연기 피어오르는 탁자 느낌
 
+/* ── 화투 이미지 경로 헬퍼 ── */
+function hwatuImg(month, index) {
+    return 'sudda/hwatu/' + month + '_' + index + '.png';
+}
+
 const TAZZA_SYSTEM = {
     CHARACTERS: {
         master: { name: '퐁퐁장', image: 'sudda/master.png', tone: 'advice', catchphrase: '"기술 부리지 마라. 운명이란 건… 속여서 되는 게 아니여."' },
@@ -9,18 +14,86 @@ const TAZZA_SYSTEM = {
         agui: { name: '아구', image: 'sudda/agui.png', tone: 'warning', catchphrase: '"뻥치다 걸리면 코피 나는 거 안 배웠어? 솔직하게 봐줄게."' },
         gosu: { name: '짝꿍', image: 'sudda/gosu.png', tone: 'insight', catchphrase: '"기술이 아니라 심리전이야. 니 속마음… 다 들여다보인다."' }
     },
-    // 화투패 1~10월 데이터 (섯다용) 배열은 각각 [특수/광, 피/일반] 2장씩       
+
+    /*
+     * 표준 화투 48장 완전 덱
+     * type: kwang(광) / yul(열끗) / tti(띠) / pi(피) / dpi(쌍피)
+     * img: sudda/hwatu/${month}_${index}.png
+     *
+     * 1월(송학):  1_1광  1_2홍단  1_3피  1_4피
+     * 2월(매조):  2_1열  2_2홍단  2_3피  2_4피
+     * 3월(벚꽃):  3_1광  3_2홍단  3_3피  3_4피
+     * 4월(흑싸리):4_1열  4_2청단  4_3피  4_4피
+     * 5월(난초):  5_1열  5_2청단  5_3피  5_4피
+     * 6월(모란):  6_1열  6_2청단  6_3피  6_4피
+     * 7월(홍싸리):7_1열  7_2홍단  7_3피  7_4피
+     * 8월(공산):  8_1광  8_2열    8_3피  8_4피
+     * 9월(국화):  9_1열  9_2청단  9_3피  9_4피
+     * 10월(단풍): 10_1열 10_2청단 10_3피 10_4피
+     * 11월(오동): 11_1광 11_2피   11_3피 11_4쌍피
+     * 12월(비):   12_1비광 12_2열 12_3띠 12_4쌍피
+     */
     DECK: [
-        { month: 1, type: 'kwang', emoji: '☀️', name: '1광' }, { month: 1, type: 'pi', emoji: '🎴', name: '1피' },
-        { month: 2, type: 'tti', emoji: '🕊️', name: '2열' }, { month: 2, type: 'pi', emoji: '🎴', name: '2피' },
-        { month: 3, type: 'kwang', emoji: '🌸', name: '3광' }, { month: 3, type: 'pi', emoji: '🎴', name: '3피' },
-        { month: 4, type: 'tti', emoji: '🌿', name: '4열' }, { month: 4, type: 'pi', emoji: '🎴', name: '4피' },
-        { month: 5, type: 'tti', emoji: '🌾', name: '5띠' }, { month: 5, type: 'pi', emoji: '🎴', name: '5피' },
-        { month: 6, type: 'tti', emoji: '🌹', name: '6띠' }, { month: 6, type: 'pi', emoji: '🎴', name: '6피' },
-        { month: 7, type: 'tti', emoji: '🐗', name: '7띠' }, { month: 7, type: 'pi', emoji: '🎴', name: '7피' },
-        { month: 8, type: 'kwang', emoji: '🎑', name: '8광' }, { month: 8, type: 'pi', emoji: '🎴', name: '8피' },
-        { month: 9, type: 'tti', emoji: '🌼', name: '9열' }, { month: 9, type: 'pi', emoji: '🎴', name: '9피' },
-        { month: 10, type: 'tti', emoji: '🍁', name: '10띠'}, { month: 10, type: 'pi', emoji: '🎴', name: '10피' }
+        // 1월 송학
+        { month:1, idx:1, type:'kwang', name:'송학 광',   label:'1월 광',   img: hwatuImg(1,1) },
+        { month:1, idx:2, type:'tti',   name:'송학 홍단', label:'1월 홍단', img: hwatuImg(1,2) },
+        { month:1, idx:3, type:'pi',    name:'송학 피',   label:'1월 피',   img: hwatuImg(1,3) },
+        { month:1, idx:4, type:'pi',    name:'송학 피',   label:'1월 피',   img: hwatuImg(1,4) },
+        // 2월 매조
+        { month:2, idx:1, type:'yul',   name:'매조 열끗', label:'2월 열끗', img: hwatuImg(2,1) },
+        { month:2, idx:2, type:'tti',   name:'매조 홍단', label:'2월 홍단', img: hwatuImg(2,2) },
+        { month:2, idx:3, type:'pi',    name:'매조 피',   label:'2월 피',   img: hwatuImg(2,3) },
+        { month:2, idx:4, type:'pi',    name:'매조 피',   label:'2월 피',   img: hwatuImg(2,4) },
+        // 3월 벚꽃
+        { month:3, idx:1, type:'kwang', name:'벚꽃 광',   label:'3월 광',   img: hwatuImg(3,1) },
+        { month:3, idx:2, type:'tti',   name:'벚꽃 홍단', label:'3월 홍단', img: hwatuImg(3,2) },
+        { month:3, idx:3, type:'pi',    name:'벚꽃 피',   label:'3월 피',   img: hwatuImg(3,3) },
+        { month:3, idx:4, type:'pi',    name:'벚꽃 피',   label:'3월 피',   img: hwatuImg(3,4) },
+        // 4월 흑싸리
+        { month:4, idx:1, type:'yul',   name:'흑싸리 열끗', label:'4월 열끗', img: hwatuImg(4,1) },
+        { month:4, idx:2, type:'tti',   name:'흑싸리 청단', label:'4월 청단', img: hwatuImg(4,2) },
+        { month:4, idx:3, type:'pi',    name:'흑싸리 피',   label:'4월 피',   img: hwatuImg(4,3) },
+        { month:4, idx:4, type:'pi',    name:'흑싸리 피',   label:'4월 피',   img: hwatuImg(4,4) },
+        // 5월 난초
+        { month:5, idx:1, type:'yul',   name:'난초 열끗', label:'5월 열끗', img: hwatuImg(5,1) },
+        { month:5, idx:2, type:'tti',   name:'난초 청단', label:'5월 청단', img: hwatuImg(5,2) },
+        { month:5, idx:3, type:'pi',    name:'난초 피',   label:'5월 피',   img: hwatuImg(5,3) },
+        { month:5, idx:4, type:'pi',    name:'난초 피',   label:'5월 피',   img: hwatuImg(5,4) },
+        // 6월 모란
+        { month:6, idx:1, type:'yul',   name:'모란 열끗', label:'6월 열끗', img: hwatuImg(6,1) },
+        { month:6, idx:2, type:'tti',   name:'모란 청단', label:'6월 청단', img: hwatuImg(6,2) },
+        { month:6, idx:3, type:'pi',    name:'모란 피',   label:'6월 피',   img: hwatuImg(6,3) },
+        { month:6, idx:4, type:'pi',    name:'모란 피',   label:'6월 피',   img: hwatuImg(6,4) },
+        // 7월 홍싸리
+        { month:7, idx:1, type:'yul',   name:'홍싸리 열끗', label:'7월 열끗', img: hwatuImg(7,1) },
+        { month:7, idx:2, type:'tti',   name:'홍싸리 홍단', label:'7월 홍단', img: hwatuImg(7,2) },
+        { month:7, idx:3, type:'pi',    name:'홍싸리 피',   label:'7월 피',   img: hwatuImg(7,3) },
+        { month:7, idx:4, type:'pi',    name:'홍싸리 피',   label:'7월 피',   img: hwatuImg(7,4) },
+        // 8월 공산명월
+        { month:8, idx:1, type:'kwang', name:'공산 광',   label:'8월 광',   img: hwatuImg(8,1) },
+        { month:8, idx:2, type:'yul',   name:'공산 열끗', label:'8월 열끗', img: hwatuImg(8,2) },
+        { month:8, idx:3, type:'pi',    name:'공산 피',   label:'8월 피',   img: hwatuImg(8,3) },
+        { month:8, idx:4, type:'pi',    name:'공산 피',   label:'8월 피',   img: hwatuImg(8,4) },
+        // 9월 국화
+        { month:9, idx:1, type:'yul',   name:'국화 열끗', label:'9월 열끗', img: hwatuImg(9,1) },
+        { month:9, idx:2, type:'tti',   name:'국화 청단', label:'9월 청단', img: hwatuImg(9,2) },
+        { month:9, idx:3, type:'pi',    name:'국화 피',   label:'9월 피',   img: hwatuImg(9,3) },
+        { month:9, idx:4, type:'pi',    name:'국화 피',   label:'9월 피',   img: hwatuImg(9,4) },
+        // 10월 단풍
+        { month:10, idx:1, type:'yul',  name:'단풍 열끗', label:'10월 열끗', img: hwatuImg(10,1) },
+        { month:10, idx:2, type:'tti',  name:'단풍 청단', label:'10월 청단', img: hwatuImg(10,2) },
+        { month:10, idx:3, type:'pi',   name:'단풍 피',   label:'10월 피',   img: hwatuImg(10,3) },
+        { month:10, idx:4, type:'pi',   name:'단풍 피',   label:'10월 피',   img: hwatuImg(10,4) },
+        // 11월 오동
+        { month:11, idx:1, type:'kwang', name:'오동 광',   label:'11월 광',  img: hwatuImg(11,1) },
+        { month:11, idx:2, type:'pi',    name:'오동 피',   label:'11월 피',  img: hwatuImg(11,2) },
+        { month:11, idx:3, type:'pi',    name:'오동 피',   label:'11월 피',  img: hwatuImg(11,3) },
+        { month:11, idx:4, type:'dpi',   name:'오동 쌍피', label:'11월 쌍피', img: hwatuImg(11,4) },
+        // 12월 비
+        { month:12, idx:1, type:'kwang', name:'비 비광',   label:'12월 비광', img: hwatuImg(12,1) },
+        { month:12, idx:2, type:'yul',   name:'비 열끗',   label:'12월 열끗', img: hwatuImg(12,2) },
+        { month:12, idx:3, type:'tti',   name:'비 띠',     label:'12월 띠',   img: hwatuImg(12,3) },
+        { month:12, idx:4, type:'dpi',   name:'비 쌍피',   label:'12월 쌍피', img: hwatuImg(12,4) }
     ]
 };
 
@@ -78,8 +151,8 @@ const hwatuStyles = `
     font-size: 3rem; border: 2px solid #d4af37;
 }
 .hwatu-back { background: repeating-linear-gradient(45deg, #b91c1c, #b91c1c 10px, #991b1b 10px, #991b1b 20px); border: 4px solid #fff; }
-.hwatu-front { background: #fff; color: #000; transform: rotateY(180deg); flex-direction: column; }
-.hwatu-front .marker { font-size: 0.9rem; font-weight: bold; margin-top: 10px; color: #b91c1c; }
+.hwatu-front { background: #1a1a1b; color: #fff; transform: rotateY(180deg); flex-direction: column; padding: 0; overflow: hidden; }
+.hwatu-front .marker { font-size: 0.85rem; font-weight: bold; margin-top: 4px; color: #ffd700; text-shadow: 0 1px 3px #000; position: relative; z-index: 1; }
 
 /* 다중 캐릭터 팝업 (크기 확대) */
 .tazza-multi-popup {
@@ -205,14 +278,16 @@ function injectHwatuHTML() {
                 <div class="hwatu-card-wrapper" id="hCard1">
                     <div class="hwatu-card hwatu-back"></div>
                     <div class="hwatu-card hwatu-front">
-                        <div id="hCard1Emoji" style="font-size: 3rem;"></div>
+                        <img id="hCard1Img" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:none;">
+                        <div id="hCard1Emoji" style="font-size:3rem;display:none;"></div>
                         <div id="hCard1Text" class="marker"></div>
                     </div>
                 </div>
                 <div class="hwatu-card-wrapper" id="hCard2">
                     <div class="hwatu-card hwatu-back"></div>
                     <div class="hwatu-card hwatu-front">
-                        <div id="hCard2Emoji" style="font-size: 3rem;"></div>
+                        <img id="hCard2Img" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:none;">
+                        <div id="hCard2Emoji" style="font-size:3rem;display:none;"></div>
                         <div id="hCard2Text" class="marker"></div>
                     </div>
                 </div>
@@ -276,32 +351,44 @@ const checkDailyLimit = () => {
 };
 
 // 섯다 족보 판별
+// DECK에서 특정 월/인덱스 카드 찾기 헬퍼
+function _deckCard(month, idx) {
+    return TAZZA_SYSTEM.DECK.find(c => c.month === month && c.idx === idx) ||
+           TAZZA_SYSTEM.DECK.find(c => c.month === month) || 
+           { month, idx, type:'pi', name: month+'월', label: month+'월', img: hwatuImg(month, idx) };
+}
+// 땡 패 2장 (같은 월, 서로 다른 인덱스)
+function _deckPair(month) {
+    const cards = TAZZA_SYSTEM.DECK.filter(c => c.month === month);
+    if (cards.length >= 2) return [cards[0], cards[1]];
+    return [_deckCard(month,1), _deckCard(month,2)];
+}
+
 function determineJokbo() {
     let rand = Math.random(); let card1, card2;
     
     // 운세 밸런스 조정: 좋은 패 확률 대폭 축소, 광땡 10% 이하, 나머지 균등 배분
     if(rand < 0.02) { 
         // 2% 삼팔광땡 (가장 희귀함)
-        card1 = { month: 3, type: 'kwang', emoji: '🎴', name: '3광' }; 
-        card2 = { month: 8, type: 'kwang', emoji: '🎴', name: '8광' }; 
+        card1 = _deckCard(3, 1); 
+        card2 = _deckCard(8, 1); 
     }
     else if(rand < 0.10) { 
         // 8% 일삼 또는 일팔광땡 (총 광땡 확률 10% 이내)
-        card1 = { month: 1, type: 'kwang', emoji: '🎴', name: '1광' };
-        card2 = Math.random() < 0.5 ? { month: 3, type: 'kwang', emoji: '🎴', name: '3광' } : { month: 8, type: 'kwang', emoji: '🎴', name: '8광' };
+        card1 = _deckCard(1, 1);
+        card2 = Math.random() < 0.5 ? _deckCard(3, 1) : _deckCard(8, 1);
     }
     else if(rand < 0.35) { 
         // 25% 땡 (1~10땡)
-        const d = Math.floor(Math.random() * 10) + 1; 
-        card1 = { month: d, type: 'kwang', emoji: '🎴', name: d+'월' }; 
-        card2 = { month: d, type: 'pi', emoji: '🎴', name: d+'월' }; 
+        const d = Math.floor(Math.random() * 10) + 1;
+        [card1, card2] = _deckPair(d);
     }
     else if(rand < 0.65) {
         // 30% 특별 족보 (알리, 독사, 구삥, 장삥, 장사, 세륙)
         const goodCombos = [[1,2], [1,4], [1,9], [1,10], [4,10], [4,6]];
         const cb = goodCombos[Math.floor(Math.random() * goodCombos.length)];
-        card1 = { month: cb[0], type: 'pi', emoji: '🎴', name: cb[0]+'피' };
-        card2 = { month: cb[1], type: 'pi', emoji: '🎴', name: cb[1]+'피' };
+        card1 = _deckCard(cb[0], 3);
+        card2 = _deckCard(cb[1], 3);
     }
     else {
         // 35% 완전 무작위 (끗, 망통, 사구파투 등)
@@ -579,10 +666,26 @@ function showReveal() {
     const { character, reading } = getFortuneAndCharacter(score);
     
     document.getElementById('revealArea').style.display = 'flex';
-    document.getElementById('hCard1Emoji').innerText = card1.emoji;
-    document.getElementById('hCard1Text').innerText = card1.name;
-    document.getElementById('hCard2Emoji').innerText = card2.emoji;
-    document.getElementById('hCard2Text').innerText = card2.name;
+    // 카드 1 이미지 렌더링
+    const img1 = document.getElementById('hCard1Img');
+    const em1  = document.getElementById('hCard1Emoji');
+    if (card1.img) {
+        img1.src = card1.img; img1.alt = card1.name;
+        img1.style.display = 'block'; em1.style.display = 'none';
+    } else {
+        em1.innerText = card1.emoji || '🎴'; em1.style.display = 'block'; img1.style.display = 'none';
+    }
+    document.getElementById('hCard1Text').innerText = card1.label || card1.name;
+    // 카드 2 이미지 렌더링
+    const img2 = document.getElementById('hCard2Img');
+    const em2  = document.getElementById('hCard2Emoji');
+    if (card2.img) {
+        img2.src = card2.img; img2.alt = card2.name;
+        img2.style.display = 'block'; em2.style.display = 'none';
+    } else {
+        em2.innerText = card2.emoji || '🎴'; em2.style.display = 'block'; img2.style.display = 'none';
+    }
+    document.getElementById('hCard2Text').innerText = card2.label || card2.name;
 
     setTimeout(() => { document.getElementById('hCard1').classList.add('flipped'); playClackSound(); }, 200);
     setTimeout(() => { document.getElementById('hCard2').classList.add('flipped'); playClackSound(); }, 900);
