@@ -4046,6 +4046,166 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         <div class="kemet-progress-bar"><div id="kemetProgFill" class="kemet-progress-fill"></div></div>
       </div>
 
+      <!-- ══ 12주신 황금 카드 셔플 섀도우 오라클 ══ -->
+      <div id="kemetCardStage" style="display:none; padding:30px 16px 40px; position:relative; z-index:1;">
+        <style>
+          .kcg-wrap {
+            position:relative; width:100%; min-height:520px;
+            display:flex; flex-direction:column; align-items:center;
+          }
+          .kcg-title-row {
+            text-align:center; margin-bottom:18px;
+          }
+          .kcg-title-row h3 {
+            color:#e5c07b; font-size:1.3rem; letter-spacing:3px; font-weight:900; margin-bottom:4px;
+          }
+          .kcg-title-row p { color:#9e8260; font-size:.85rem; letter-spacing:1px; }
+
+          .kcg-action-btns {
+            display:flex; gap:12px; justify-content:center; margin-bottom:24px; flex-wrap:wrap;
+          }
+          .kcg-btn {
+            padding:11px 26px; border-radius:30px; font-weight:800;
+            font-size:.95rem; cursor:pointer; letter-spacing:1px; border:none;
+            transition:all .3s; position:relative; overflow:hidden;
+          }
+          .kcg-btn-shuffle {
+            background:linear-gradient(135deg,#6b4c11,#d4af37,#6b4c11);
+            background-size:200% auto; color:#000;
+            box-shadow:0 4px 20px rgba(212,175,55,.4);
+            border:1px solid #ffd700;
+          }
+          .kcg-btn-shuffle:hover { background-position:right center; box-shadow:0 6px 30px rgba(212,175,55,.7); transform:translateY(-2px); }
+          .kcg-btn-reset {
+            background:transparent; color:#9e8260;
+            border:1px solid rgba(158,130,96,.4);
+          }
+          .kcg-btn-reset:hover { border-color:#d4af37; color:#d4af37; }
+
+          /* 카드 아레나 */
+          .kcg-arena {
+            position:relative; width:340px; height:380px;
+            margin:0 auto;
+          }
+          .kcg-card {
+            position:absolute; width:70px; height:100px;
+            border-radius:10px; cursor:pointer;
+            transform-style:preserve-3d;
+            will-change:transform,opacity;
+            transition:box-shadow .25s;
+          }
+          .kcg-card-inner {
+            position:relative; width:100%; height:100%;
+            transform-style:preserve-3d;
+            border-radius:10px;
+          }
+          .kcg-card-back {
+            position:absolute; inset:0;
+            background: linear-gradient(145deg,#1a1200, #2d2000, #1a1200);
+            border:1px solid rgba(212,175,55,.5);
+            border-radius:10px;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            backface-visibility:hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,.6), inset 0 0 20px rgba(212,175,55,.08);
+            overflow:hidden;
+          }
+          .kcg-card-back::before {
+            content:'';
+            position:absolute; inset:4px;
+            border:1px solid rgba(212,175,55,.2);
+            border-radius:7px;
+            background-image:
+              radial-gradient(rgba(212,175,55,.12) 1px, transparent 1px);
+            background-size:8px 8px;
+          }
+          .kcg-card-symbol {
+            font-size:1.8rem; color:#d4af37; position:relative; z-index:1;
+            text-shadow: 0 0 12px rgba(212,175,55,.8);
+          }
+          .kcg-card-num {
+            font-size:.55rem; color:rgba(212,175,55,.5); position:relative; z-index:1; margin-top:2px; letter-spacing:1px;
+          }
+          /* 선택된 카드 강조 */
+          .kcg-card.selected .kcg-card-back {
+            border-color:#ffd700;
+            box-shadow:0 0 25px rgba(255,215,0,.7), 0 0 50px rgba(255,215,0,.3), 0 4px 15px rgba(0,0,0,.6);
+            background: linear-gradient(145deg,#2a1e00, #3d2d00, #2a1e00);
+          }
+          .kcg-card.selected .kcg-card-symbol {
+            text-shadow: 0 0 20px #ffd700, 0 0 40px rgba(255,215,0,.6);
+            animation: kcgOra 1.5s ease-in-out infinite alternate;
+          }
+          @keyframes kcgOra {
+            from { filter:brightness(1); }
+            to { filter:brightness(1.6) drop-shadow(0 0 8px #ffd700); }
+          }
+          /* hover ring */
+          .kcg-card:not(.selected):not(.dissolving):hover .kcg-card-back {
+            border-color:rgba(255,215,0,.6);
+            box-shadow:0 0 18px rgba(255,215,0,.4), 0 4px 15px rgba(0,0,0,.6);
+          }
+          /* 뽑힌 선택 레이블 */
+          .kcg-card .kcg-sel-badge {
+            display:none; position:absolute; top:-10px; left:50%; transform:translateX(-50%);
+            background:#ffd700; color:#000; font-weight:900; font-size:.6rem;
+            padding:2px 7px; border-radius:20px; white-space:nowrap; z-index:10; letter-spacing:1px;
+          }
+          .kcg-card.selected .kcg-sel-badge { display:block; }
+
+          /* 선택 카운터 */
+          .kcg-counter {
+            text-align:center; color:#9e8260; font-size:.9rem;
+            margin-bottom:14px; letter-spacing:1px; min-height:22px;
+            transition:color .3s;
+          }
+          .kcg-counter.ready { color:#ffd700; font-weight:900; animation:kcgPulse .6s ease; }
+          @keyframes kcgPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+          /* shake */
+          @keyframes kcgShake {
+            0%,100%{transform:translateX(0) rotate(0)} 20%{transform:translateX(-6px) rotate(-2deg)} 60%{transform:translateX(6px) rotate(2deg)}
+          }
+          .kcg-card.shaking {
+            animation: kcgShake .35s ease !important;
+          }
+
+          /* dissolve */
+          @keyframes kcgDissolve {
+            0% { opacity:1; transform:scale(1); filter:blur(0); }
+            60% { opacity:.3; transform:scale(.85) translateY(15px); filter:blur(3px); }
+            100% { opacity:0; transform:scale(.7) translateY(30px); filter:blur(8px); }
+          }
+          .kcg-card.dissolving {
+            pointer-events:none;
+            animation: kcgDissolve .9s forwards !important;
+          }
+
+          /* 지시 텍스트 */
+          .kcg-hint {
+            text-align:center; color:#9e8260; font-size:.82rem;
+            letter-spacing:.5px; margin-top:14px; min-height:18px;
+            transition:all .3s;
+          }
+        </style>
+
+        <div class="kcg-wrap">
+          <div class="kcg-title-row">
+            <h3>𓂀 십이 주신 황금 오라클</h3>
+            <p>카드를 셔플하고 마음이 이끄는 3장을 선택하십시오</p>
+          </div>
+
+          <div class="kcg-counter" id="kcgCounter">셔플 후 시작</div>
+
+          <div class="kcg-action-btns">
+            <button class="kcg-btn kcg-btn-shuffle" id="kcgShuffleBtn" onclick="kcgShuffle()">✦ GOLDEN SHUFFLE</button>
+            <button class="kcg-btn kcg-btn-reset" onclick="kcgInitCircle()">↺ 초기화</button>
+          </div>
+
+          <div class="kcg-arena" id="kcgArena"></div>
+          <div class="kcg-hint" id="kcgHint">▲ GOLDEN SHUFFLE 버튼을 눌러 카드를 섞으십시오</div>
+        </div>
+      </div>
+
       <div id="kemetResult" class="kemet-result-area">
         <!-- Content injected via JS -->
       </div>
@@ -4053,6 +4213,299 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
     <script>
       
+/* ==============================================================
+   ═══ 12주신 황금 카드 셔플 오라클 (KCG) ═══
+============================================================== */
+(function() {
+  // 상수
+  var KCG_SYMBOLS = ['𓇳','𓁹','𓆗','𓅃','𓃣','𓁟','𓃢','𓁷','𓃠','𓁦','𓆄','𓇋'];
+  var KCG_LABELS  = ['Ra','Osiris','Isis','Horus','Set','Thoth','Anubis','Hathor','Bastet','Sekhmet','Ma\'at','Amun'];
+  var KCG_TOTAL   = 12;
+  var KCG_PICK    = 3;
+
+  // 상태
+  var kcgPhase     = 'init';   // init | shuffled | done
+  var kcgSelected  = [];       // 선택된 god 인덱스
+  var kcgCards     = [];       // DOM 요소 배열
+  var kcgAnimating = false;
+
+  /* ── 아레나 초기화 ── */
+  window.kcgInitCircle = function() {
+    kcgPhase = 'init';
+    kcgSelected = [];
+    kcgAnimating = false;
+    var arena = document.getElementById('kcgArena');
+    if(!arena) return;
+    arena.innerHTML = '';
+    kcgCards = [];
+
+    var cx = 160, cy = 160, R = 130;
+    for(var i = 0; i < KCG_TOTAL; i++) {
+      var card = _kcgMakeCard(i);
+      arena.appendChild(card);
+      kcgCards.push(card);
+
+      // 원형 배치
+      var angle = (2 * Math.PI / KCG_TOTAL) * i - Math.PI / 2;
+      var x = cx + R * Math.cos(angle) - 35;
+      var y = cy + R * Math.sin(angle) - 50;
+      _kcgSetPos(card, x, y, 0, 1, 0);
+    }
+
+    _kcgSetCounter('3장의 카드를 선택하세요', false);
+    _kcgSetHint('✦ GOLDEN SHUFFLE 버튼을 눌러 카드를 섞으십시오');
+    var btn = document.getElementById('kcgShuffleBtn');
+    if(btn) { btn.textContent = '✦ GOLDEN SHUFFLE'; btn.disabled = false; }
+  };
+
+  window.kcgReset = function() {
+    kcgPhase = 'init'; kcgSelected = []; kcgAnimating = false; kcgCards = [];
+  };
+
+  /* ── 카드 DOM 생성 ── */
+  function _kcgMakeCard(idx) {
+    var card = document.createElement('div');
+    card.className = 'kcg-card';
+    card.dataset.idx = idx;
+    card.innerHTML =
+      '<div class="kcg-card-inner">' +
+        '<div class="kcg-card-back">' +
+          '<div class="kcg-sel-badge">✦ 선택</div>' +
+          '<div class="kcg-card-symbol">' + KCG_SYMBOLS[idx] + '</div>' +
+          '<div class="kcg-card-num">' + (idx + 1).toString().padStart(2,'0') + '</div>' +
+        '</div>' +
+      '</div>';
+
+    card.addEventListener('mouseenter', function() {
+      if(kcgPhase !== 'shuffled') return;
+      if(card.classList.contains('selected') || card.classList.contains('dissolving')) return;
+      _kcgTweenCard(card, null, null, null, 1.1, 'translateY(-24px)', 180);
+    });
+    card.addEventListener('mouseleave', function() {
+      if(kcgPhase !== 'shuffled') return;
+      if(card.classList.contains('selected') || card.classList.contains('dissolving')) return;
+      _kcgTweenCard(card, null, null, null, 1, '', 180);
+    });
+    card.addEventListener('click', function() {
+      _kcgOnCardClick(parseInt(card.dataset.idx));
+    });
+    return card;
+  }
+
+  /* ── 위치 세팅 (GPU 가속) ── */
+  function _kcgSetPos(el, x, y, rot, scale, extra) {
+    el.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) rotate(' + rot + 'deg) scale(' + scale + ') ' + (extra||'');
+    el.style.opacity = '1';
+    el.style.zIndex = Math.round((scale-1)*100) + '';
+  }
+
+  /* ── 간단 CSS tween (requestAnimationFrame 없이 transition으로) ── */
+  function _kcgTweenCard(el, x, y, rot, scale, extra, ms) {
+    el.style.transition = 'transform ' + (ms||400) + 'ms cubic-bezier(.34,1.56,.64,1), opacity 300ms, box-shadow 200ms';
+    var cx = x !== null ? x : _kcgGetTranslateXY(el).x;
+    var cy = y !== null ? y : _kcgGetTranslateXY(el).y;
+    var cr = rot !== null ? rot : _kcgGetRotate(el);
+    el.style.transform = 'translate3d(' + cx + 'px,' + cy + 'px,0) rotate(' + cr + 'deg) scale(' + scale + ') ' + (extra||'');
+  }
+
+  function _kcgGetTranslateXY(el) {
+    var t = el.style.transform || '';
+    var m = t.match(/translate3d\(([^,]+)px,\s*([^,]+)px/);
+    return m ? { x: parseFloat(m[1]), y: parseFloat(m[2]) } : { x:0, y:0 };
+  }
+  function _kcgGetRotate(el) {
+    var t = el.style.transform || '';
+    var m = t.match(/rotate\(([^)]+)deg\)/);
+    return m ? parseFloat(m[1]) : 0;
+  }
+
+  /* ── 셔플 ── */
+  window.kcgShuffle = function() {
+    if(kcgAnimating) return;
+    kcgAnimating = true;
+    kcgSelected = [];
+    kcgPhase = 'shuffling';
+
+    var btn = document.getElementById('kcgShuffleBtn');
+    if(btn) { btn.disabled = true; btn.textContent = '✦ SHUFFLING...'; }
+    _kcgSetCounter('섞는 중...', false);
+    _kcgSetHint('');
+
+    // 햅틱 — 짧은 진동 연속
+    if(navigator.vibrate) navigator.vibrate([30,50,30,50,30]);
+
+    // Phase B: 중앙으로 모음
+    var cx = 145, cy = 120;
+    kcgCards.forEach(function(card, i) {
+      var offX = (Math.random() - .5) * 14;
+      var offY = (Math.random() - .5) * 14;
+      var rot  = (Math.random() - .5) * 30;
+      card.style.transition = 'transform ' + (350 + i*20) + 'ms cubic-bezier(.4,0,.2,1), filter 300ms';
+      card.style.zIndex = i + '';
+      card.style.transform = 'translate3d(' + (cx + offX) + 'px,' + (cy + offY) + 'px,0) rotate(' + rot + 'deg) scale(1)';
+    });
+
+    // Phase: 셔플 모션 (더미 교차)
+    setTimeout(function() {
+      var shuffleCount = 0;
+      var maxShuffle = 4;
+      function doShuffle() {
+        if(shuffleCount >= maxShuffle) { afterShuffle(); return; }
+        if(navigator.vibrate) navigator.vibrate(20);
+        kcgCards.forEach(function(card) {
+          var px = cx + (Math.random() - .5) * 80;
+          var py = cy + (Math.random() - .5) * 60;
+          var rot = (Math.random() - .5) * 40;
+          card.style.transition = 'transform 120ms ease, filter 120ms';
+          card.style.filter = 'brightness(1.4) blur(' + (Math.random()*2) + 'px)';
+          card.style.transform = 'translate3d(' + px + 'px,' + py + 'px,0) rotate(' + rot + 'deg) scale(1.05)';
+        });
+        shuffleCount++;
+        setTimeout(doShuffle, 160);
+      }
+      doShuffle();
+    }, 500);
+
+    function afterShuffle() {
+      // 필터 제거
+      kcgCards.forEach(function(card) { card.style.filter = ''; });
+
+      // Phase C: 팬 배치 (부채꼴)
+      setTimeout(function() {
+        kcgPhase = 'shuffled';
+        var total = KCG_TOTAL;
+        var fanAngleRange = 180; // 도
+        var startAngle = -90;
+        var fanR = 170;
+        var originX = 165, originY = 360; // 화면 하단 중앙
+
+        kcgCards.forEach(function(card, i) {
+          var ratio = i / (total - 1);
+          var deg = startAngle + fanAngleRange * ratio;
+          var rad = deg * Math.PI / 180;
+          var x = originX + fanR * Math.cos(rad) - 35;
+          var y = originY + fanR * Math.sin(rad) - 50;
+          var cardRot = deg + 90; // 카드가 중앙을 향함
+          card.style.transition = 'transform ' + (400 + i * 35) + 'ms cubic-bezier(.34,1.3,.64,1)';
+          card.style.zIndex = i + '';
+          card.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) rotate(' + cardRot + 'deg) scale(1)';
+        });
+
+        setTimeout(function() {
+          kcgAnimating = false;
+          if(btn) { btn.textContent = '✦ RESHUFFLE'; btn.disabled = false; }
+          _kcgSetCounter('마음이 이끄는 3장을 선택하십시오 (0 / 3)', false);
+          _kcgSetHint('카드 위에 마우스를 올리거나 터치하여 선택하세요');
+        }, 700);
+      }, 300);
+    }
+  };
+
+  /* ── 카드 클릭 ── */
+  function _kcgOnCardClick(idx) {
+    if(kcgPhase !== 'shuffled') return;
+
+    var card = kcgCards[idx];
+    if(!card) return;
+
+    // 이미 선택된 카드 클릭: 선택 취소
+    var selPos = kcgSelected.indexOf(idx);
+    if(selPos !== -1) {
+      kcgSelected.splice(selPos, 1);
+      card.classList.remove('selected');
+      // 원래 팬 위치로 복귀
+      _kcgFanPosition(card, idx, KCG_TOTAL);
+      _kcgSetCounter('마음이 이끄는 3장을 선택하십시오 (' + kcgSelected.length + ' / 3)', false);
+      return;
+    }
+
+    // 3장 꽉 찬 상태면 흔들기
+    if(kcgSelected.length >= KCG_PICK) {
+      if(navigator.vibrate) navigator.vibrate([40,40,40]);
+      card.classList.add('shaking');
+      setTimeout(function() { card.classList.remove('shaking'); }, 400);
+      return;
+    }
+
+    // 선택
+    if(navigator.vibrate) navigator.vibrate(20);
+    kcgSelected.push(idx);
+    card.classList.add('selected');
+    card.style.transition = 'transform 350ms cubic-bezier(.34,1.56,.64,1), box-shadow .3s';
+    card.style.zIndex = '100';
+
+    // 팬 위치 기준에서 y를 -50px 올림
+    var total = KCG_TOTAL;
+    var fanAngleRange = 180, startAngle = -90;
+    var fanR = 170, originX = 165, originY = 360;
+    var ratio = idx / (total - 1);
+    var deg = startAngle + fanAngleRange * ratio;
+    var rad = deg * Math.PI / 180;
+    var x = originX + fanR * Math.cos(rad) - 35;
+    var y = originY + fanR * Math.sin(rad) - 50 - 50; // 50px 올림
+    var cardRot = deg + 90;
+    card.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) rotate(' + cardRot + 'deg) scale(1.1)';
+
+    var cnt = kcgSelected.length;
+    if(cnt < KCG_PICK) {
+      _kcgSetCounter('마음이 이끄는 3장을 선택하십시오 (' + cnt + ' / 3)', false);
+    } else {
+      // 3장 완료 → dissolve + 결과
+      _kcgSetCounter('✦ 신탁을 해석하는 중...', true);
+      _kcgSetHint('');
+      if(navigator.vibrate) navigator.vibrate([50,30,50,30,80]);
+      setTimeout(_kcgDissolveAndResult, 400);
+    }
+  }
+
+  function _kcgFanPosition(card, idx, total) {
+    var fanAngleRange = 180, startAngle = -90;
+    var fanR = 170, originX = 165, originY = 360;
+    var ratio = idx / (total - 1);
+    var deg = startAngle + fanAngleRange * ratio;
+    var rad = deg * Math.PI / 180;
+    var x = originX + fanR * Math.cos(rad) - 35;
+    var y = originY + fanR * Math.sin(rad) - 50;
+    var cardRot = deg + 90;
+    card.style.transition = 'transform 350ms cubic-bezier(.4,0,.2,1)';
+    card.style.zIndex = idx + '';
+    card.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) rotate(' + cardRot + 'deg) scale(1)';
+  }
+
+  /* ── 비선택 카드 모래처럼 사라짐 ── */
+  function _kcgDissolveAndResult() {
+    kcgPhase = 'done';
+    var delay = 0;
+    kcgCards.forEach(function(card, i) {
+      if(kcgSelected.indexOf(i) === -1) {
+        setTimeout(function() {
+          card.classList.add('dissolving');
+        }, delay);
+        delay += 60;
+      }
+    });
+
+    // 결과 표시
+    setTimeout(function() {
+      var stage = document.getElementById('kemetCardStage');
+      var qStr = (stage && stage.dataset.question) ? stage.dataset.question : '';
+      showKemetSpread(qStr, kcgSelected.slice());
+    }, delay + 800);
+  }
+
+  /* ── 카운터/힌트 헬퍼 ── */
+  function _kcgSetCounter(text, ready) {
+    var el = document.getElementById('kcgCounter');
+    if(!el) return;
+    el.textContent = text;
+    el.classList.toggle('ready', !!ready);
+  }
+  function _kcgSetHint(text) {
+    var el = document.getElementById('kcgHint');
+    if(el) el.textContent = text;
+  }
+})(); // end KCG IIFE
+
 /* ==============================================================
    이집트 신탁 (Kemet Oracle) - 그랜드 히에로판트 3카드 스프레드
 ============================================================== */
@@ -4078,11 +4531,14 @@ function resetKemetOracle() {
   const worryInput = document.getElementById('kemetWorry');
   const searchBox = document.getElementById('kemetSearchBox');
   const loader = document.getElementById('kemetLoader');
+  const cardStage = document.getElementById('kemetCardStage');
 
-  if(resultDiv) resultDiv.style.display = 'none';
+  if(resultDiv) { resultDiv.style.display = 'none'; resultDiv.innerHTML = ''; }
   if(worryInput) worryInput.value = '';
   if(searchBox) searchBox.style.display = 'block';
   if(loader) loader.style.display = 'none';
+  if(cardStage) cardStage.style.display = 'none';
+  kcgReset();
 }
 
 function openKemetModal() {
@@ -4114,16 +4570,17 @@ function startKemetOracle() {
 
   const searchBox = document.getElementById('kemetSearchBox');
   const loader = document.getElementById('kemetLoader');
-  const resultDiv = document.getElementById('kemetResult');
+  const cardStage = document.getElementById('kemetCardStage');
 
   if(searchBox) searchBox.style.display = 'none';
-  if(resultDiv) resultDiv.style.display = 'none';
-  if(loader) loader.style.display = 'flex';
-
-  setTimeout(() => {
-    if(loader) loader.style.display = 'none';
-    showKemetSpread(qStr);
-  }, 1800);
+  if(loader) loader.style.display = 'none';
+  if(cardStage) {
+    cardStage.style.display = 'block';
+    // 질문을 카드 단계에 저장
+    cardStage.dataset.question = qStr;
+  }
+  // 초기 원형 배치
+  kcgInitCircle();
 }
 
 function getRandomGods(count) {
@@ -4131,16 +4588,27 @@ function getRandomGods(count) {
   return shuffled.slice(0, count);
 }
 
-function showKemetSpread(userInput) {
-  const resultDiv = document.getElementById('kemetResult');
+function showKemetSpread(userInput, selectedIndices) {
+  var cardStage = document.getElementById('kemetCardStage');
+  var resultDiv = document.getElementById('kemetResult');
   if(!resultDiv) return;
-  
+
+  // 카드 단계 숨기기
+  if(cardStage) cardStage.style.display = 'none';
+
   resultDiv.style.display = 'block';
-  
-  const selectedGods = getRandomGods(3);
-  const pastGod = selectedGods[0];
-  const presentGod = selectedGods[1];
-  const futureGod = selectedGods[2];
+  resultDiv.style.animation = 'kemetFadeIn 0.8s forwards';
+
+  // 선택된 카드 인덱스 기반으로 신 선택, 없으면 랜덤
+  var gods;
+  if(selectedIndices && selectedIndices.length >= 3) {
+    gods = selectedIndices.slice(0, 3).map(function(i) { return KEMET_GODS[i]; });
+  } else {
+    gods = getRandomGods(3);
+  }
+  var pastGod = gods[0];
+  var presentGod = gods[1];
+  var futureGod = gods[2];
 
   resultDiv.innerHTML = `
     <div style="text-align:center; padding: 20px 0; border-bottom: 2px solid #d4af37; margin-bottom: 25px;">
@@ -4190,10 +4658,12 @@ function showKemetSpread(userInput) {
   `;
 
   // Scroll into view
-  const sec = document.getElementById('kemetOracleSection');
-  if(sec) {
-    const y = sec.getBoundingClientRect().top + window.scrollY - 30;      
-    document.getElementById('kemetOracleOverlay').scrollTo({top: y, behavior: 'smooth'});
+  var secEl = document.getElementById('kemetOracleSection');
+  var overlayEl = document.getElementById('kemetOracleOverlay');
+  if(secEl && overlayEl) {
+    setTimeout(function() {
+      overlayEl.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   }
 }
 
