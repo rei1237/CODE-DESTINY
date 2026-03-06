@@ -9653,35 +9653,6 @@ function buildZwSummaryTableHtml(palace) {
     +'</table></div>';
 }
 
-function renderZwSummary(palace, sec) {
-  if(!palace||!sec) return;
-  var innerHtml = buildZwSummaryTableHtml(palace);
-  var summaryHtml='<div id="zwSummaryWrap" style="margin-top:20px;background:#0f0f1a;border:1px solid rgba(139,92,246,0.4);border-radius:14px;overflow:hidden;font-family:\'Gowun Dodum\',sans-serif">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:linear-gradient(135deg,rgba(88,28,220,0.5),rgba(30,12,60,0.8));cursor:pointer" onclick="toggleZwSummary()">'
-    +'<span style="color:#c084fc;font-weight:900;font-size:1rem;letter-spacing:0.5px">📊 자미두수 12궁 심층 분석 요약</span>'
-    +'<span id="zwSummaryToggle" style="color:#a78bfa;font-size:0.85rem">펼치기 ▼</span>'
-    +'</div>'
-    +'<div id="zwSummaryBody" style="max-height:0;overflow:hidden;transition:max-height 0.45s ease-out">'
-    +innerHtml
-    +'</div>'
-    +'</div>';
-  sec.insertAdjacentHTML('beforeend', summaryHtml);
-}
-
-window.toggleZwSummary=function(){
-  var body=document.getElementById('zwSummaryBody');
-  var toggle=document.getElementById('zwSummaryToggle');
-  if(!body) return;
-  if(body.style.maxHeight===''||body.style.maxHeight==='0px'){
-    body.style.maxHeight='4000px';
-    if(toggle) toggle.textContent='접기 ▲';
-  } else {
-    body.style.maxHeight='0px';
-    if(toggle) toggle.textContent='펼치기 ▼';
-  }
-};
-/* ─────── end 자미두수 12궁 심층 분석 요약 ─────── */
-
 function renderZiwei(p, natal) {
   var mj=p.m.j;
   var pw=G_POWER,jg=G_JONG;
@@ -10196,12 +10167,6 @@ function renderZiwei(p, natal) {
             well: '<b>[타인의 에너지를 직통으로 맞는 고감도 흡수체질]</b> 신체 체질 자체가 탁한 공기나 흉기 가득한 스트레스 분위기 등 주변 에너지를 필터 없이 빨아들이는 약점이 생깁니다. 따라서 가장 맑은 자연 환경, 좋은 사람들 속에서의 생활이 건강 백신입니다.',
             time: '<b>[제약의 선을 아예 증발시키는 무한의 무대 확장]</b> 이동과 이직의 모든 제약이 처음부터 의미가 없는 열려있는 무한 빈 공간입니다. 어디론가 이주해도 자신이 소속될 문화에 완벽히 적응 진화하고 전혀 새로운 스펙트럼의 색채를 찬란하게 구가합니다.'
         };
-
-        function compileText(mains, field) {
-            if(!mains || !mains.length) return emptyDesc[field];
-            var res = mains.map(m => msRef[m] ? "<b>[" + m + "]</b> " + msRef[m][field] : "").filter(x=>x).join('<br><br>');
-            return res ? res : emptyDesc[field];
-        }
 
         var theme = 'psy';
         var themeTitle = ' [타고난 심리/성향] 코어 엔진 브리핑';
@@ -16299,8 +16264,6 @@ window.addEventListener('load', function() {
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <!-- 관상 분석 스크립트 추가 -->
-<script src="SukuyoDB.js"></script>
-<script src="SukuyoData.js"></script>
 <script src="AnalysisEngine.js"></script>
 <script src="PhysiognomyUI.js"></script>
 
@@ -18103,60 +18066,6 @@ function resetSelection() {
     document.querySelector('.astral-header').style.display = 'block';
     document.getElementById('astralRitualStage').style.display = 'none';
     document.getElementById('astralResult').style.display = 'none';
-}
-
-function showTokenResult(code) {
-    const item = ASTRAL_DATA[code];
-    const resLayer = document.getElementById('astralResult');
-    
-    // Reset Back Button
-    const backBtn = resLayer.querySelector('.back-btn');
-    backBtn.onclick = closeResultLayer;
-    backBtn.innerHTML = "← 다시 선택하기";
-
-    const resContent = document.getElementById('astralResultContent');
-    
-    // Check if already selected
-    const isSelected = selectedTotems.includes(code);
-    const actionBtn = isSelected 
-        ? `<button class="ritual-btn" style="width:100%; margin-top:20px;" onclick="closeResultLayer()">이미 선택됨 (닫기)</button>`
-        : `<button class="ritual-btn" style="width:100%; margin-top:20px;" onclick="confirmSelection('${code}')">이 영혼 선택하기</button>`;
-
-    // We need to distinguish between "Just Viewing" and "Synergy Result".
-    // This function is for "Individual Reading".
-    
-    resContent.innerHTML = `
-        <header class="res-header">
-            <span class="res-icon" style="text-shadow: 0 0 30px ${getMbtiColor(code)}">${item.animal}</span>
-            <h2 class="res-title">${item.title}</h2>
-            <div class="res-mbti">${item.code}</div>
-        </header>
-        
-        <div class="res-section">
-            <div class="res-label">Layer 1. The Soul (성격)</div>
-            <div class="res-text">${item.layer1}</div>
-        </div>
-        
-        <div class="res-section">
-            <div class="res-label">Layer 2. The Path (적성)</div>
-            <div class="res-text">${item.layer2}</div>
-        </div>
-        
-        <div class="res-section">
-            <div class="res-label">Layer 3. The Heart (연애)</div>
-            <div class="res-text">${item.layer3}</div>
-        </div>
-        
-        ${actionBtn}
-        
-        <div style="height:50px;"></div>
-    `;
-    
-    resLayer.style.display = 'block';
-    
-    // Theme Color Transition
-    // Note: This is inside the modal, so we change modal background? 
-    // Or just a subtle glow. The text says "Cross-fade".
 }
 
 function confirmSelection(code) {
