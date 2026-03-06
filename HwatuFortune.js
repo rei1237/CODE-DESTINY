@@ -228,6 +228,90 @@ const hwatuStyles = `
 }
 .jokbo-name { font-size: 2rem; color: #ef4444; font-weight: bold; text-align: center; margin: 10px 0 20px; text-shadow: 0 2px 5px #000; letter-spacing: 2px; }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+/* 정통 화투점 스택 그리드 */
+#tradStackGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 4px;
+}
+.trad-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.trad-stack-label {
+    font-size: 0.65rem;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+.trad-card {
+    width: 100%;
+    aspect-ratio: 2/3;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+    background: repeating-linear-gradient(45deg,#b91c1c,#b91c1c 6px,#991b1b 6px,#991b1b 12px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.trad-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 4px;
+    background: #fff;
+}
+.trad-card.hidden-card { cursor: default; opacity: 0.45; }
+.trad-card.removed-card { opacity: 0; pointer-events: none; min-height: 0; height: 0; margin: 0; padding: 0; border: none; }
+.trad-card.selected-card { border-color: #d4af37; box-shadow: 0 0 14px rgba(212,175,55,0.9); transform: scale(1.07); }
+.trad-card.match-flash { animation: matchFlash 0.4s ease; }
+@keyframes matchFlash { 0%,100%{box-shadow:0 0 0 transparent;} 50%{box-shadow:0 0 20px #4ade80, 0 0 40px #22c55e;} }
+/* 스와이프 그룹 (모바일 portrait) */
+@media(max-width:480px) {
+    #tradStackGrid { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+    .trad-card { border-radius: 4px; }
+}
+
+/* 모드 토글 hover */
+#modeBtnSeotda:hover, #modeBtnTraditional:hover { opacity: 0.85; }
+
+/* 결과 강조 */
+.trad-result-badge {
+    display: inline-block; padding: 4px 14px; border-radius: 20px;
+    font-size: 0.85rem; font-weight: bold; margin: 0 3px 6px;
+}
+.badge-month { background: rgba(212,175,55,0.2); color: #fbbf24; border: 1px solid #d4af37; }
+.badge-good { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid #22c55e; }
+.badge-bad  { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid #ef4444; }
+
+/* 결과 섹션 구분선 */
+.trad-section { margin: 18px 0 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(212,175,55,0.3); }
+.trad-section-title { color: #d4af37; font-size: 1rem; font-weight: bold; margin-bottom: 8px; }
+
+/* 운수 카드 요약 행 */
+.trad-remaining-row {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.trad-remaining-chip {
+    padding: 3px 10px; border-radius: 12px; font-size: 0.78rem;
+    background: rgba(185,28,28,0.3); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4);
+}
+
+/* 결과 캐릭터 박스 */
+.trad-char-box {
+    display: flex; align-items: center; margin-bottom: 18px;
+    background: rgba(0,0,0,0.45); padding: 14px 16px; border-radius: 12px;
+    border-left: 4px solid #d4af37; gap: 14px;
+}
+.trad-char-box img { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #d4af37; object-fit: cover; flex-shrink:0; }
+
 `;
 
 function loadGSAP(callback) {
@@ -262,6 +346,14 @@ function injectHwatuHTML() {
             <h2 class="tazza-title" style="font-family: '궁서', cursive; font-size: 2.8rem; letter-spacing: -2px; color: #d4af37; text-shadow: 2px 2px 5px rgba(185,28,28,0.8);">화투 운세: 신의 손길</h2>
             <div class="tazza-sub">"원하는 운을 고르고, 패를 섞어보쇼."</div>
             
+            <!-- 모드 토글 -->
+            <div id="hwatuModeToggle" style="display:flex;justify-content:center;gap:0;margin-bottom:22px;border-radius:30px;overflow:hidden;border:2px solid #d4af37;width:fit-content;margin-left:auto;margin-right:auto;">
+                <button id="modeBtnSeotda" onclick="switchHwatuMode('seotda')" style="padding:10px 22px;background:#d4af37;color:#1a202c;font-weight:bold;font-family:inherit;font-size:0.95rem;border:none;cursor:pointer;transition:0.3s;">🃏 섯다 운세</button>
+                <button id="modeBtnTraditional" onclick="switchHwatuMode('traditional')" style="padding:10px 22px;background:transparent;color:#d4af37;font-weight:bold;font-family:inherit;font-size:0.95rem;border:none;cursor:pointer;transition:0.3s;">🎴 운수 떼기</button>
+            </div>
+
+            <!-- 섯다 모드 -->
+            <div id="seotdaModeContainer">
             <div class="hwatu-category-container" id="hwatuCategoryBox">
                 <button class="ctg-btn active" onclick="setHwatuCategory('wealth', this)"> 재물운</button>
                 <button class="ctg-btn" onclick="setHwatuCategory('love', this)"> 애정운</button>
@@ -292,6 +384,37 @@ function injectHwatuHTML() {
                     </div>
                 </div>
             </div>
+
+            </div><!-- /seotdaModeContainer -->
+
+            <!-- 정통 화투점(운수 떼기) 모드 -->
+            <div id="traditionalModeContainer" style="display:none;">
+                <div style="text-align:center;margin-bottom:18px;">
+                    <div style="color:#94a3b8;font-size:0.9rem;margin-bottom:10px;letter-spacing:1px;">같은 월의 패를 두 장씩 맞춰 모두 없애면 대길!</div>
+                    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                        <button class="ctg-btn active" id="tradCat_wealth" onclick="setTradCategory('wealth',this)">재물운</button>
+                        <button class="ctg-btn" id="tradCat_love" onclick="setTradCategory('love',this)">애정운</button>
+                        <button class="ctg-btn" id="tradCat_success" onclick="setTradCategory('success',this)">합격운</button>
+                    </div>
+                    <button class="btn-hwatu" id="tradStartBtn" onclick="startTraditionalGame()" style="font-size:1.1rem;">운수 떼기 시작</button>
+                </div>
+                <!-- 운수 떼기 게임판 -->
+                <div id="tradGameBoard" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <span style="color:#94a3b8;font-size:0.85rem;">남은 패: <strong id="tradRemaining" style="color:#d4af37;">48</strong>장</span>
+                        <span style="color:#94a3b8;font-size:0.85rem;">제거: <strong id="tradRemoved" style="color:#4ade80;">0</strong>장</span>
+                        <button onclick="endTraditionalGame()" style="background:rgba(185,28,28,0.7);border:1px solid #ef4444;color:#fca5a5;padding:5px 12px;border-radius:15px;cursor:pointer;font-family:inherit;font-size:0.8rem;">그만 보기</button>
+                    </div>
+                    <div id="tradStackGrid"></div>
+                    <div id="tradSelectionHint" style="color:#d4af37;text-align:center;margin-top:10px;font-size:0.9rem;min-height:20px;"></div>
+                </div>
+                <!-- 정통 화투점 결과 -->
+                <div class="result-box" id="tradResultBox" style="display:none;">
+                    <div class="jokbo-name" id="tradResultTitle"></div>
+                    <div id="tradResultContent" style="font-size:1.05rem;line-height:1.8;color:#e5e7eb;"></div>
+                    <button class="btn-hwatu" style="width:100%;margin-top:16px;font-size:1.05rem;" onclick="startTraditionalGame()">다시 운수 보기</button>
+                </div>
+            </div><!-- /traditionalModeContainer -->
 
             <div id="hwatuWarnMsg" style="color:#d4af37; margin-top:20px; font-weight:bold; display:none; font-size:1.1rem; text-shadow: 0 2px 4px #000;"></div>
 
@@ -498,6 +621,14 @@ window.openHwatuModal = function() {
     document.getElementById('hwatuResultBox').style.display = 'none';
     document.getElementById('hwatuWarnMsg').style.display = 'none';
     document.getElementById('revealArea').style.display = 'none';
+    // 정통 화투점 초기화
+    if(document.getElementById('tradGameBoard'))  document.getElementById('tradGameBoard').style.display  = 'none';
+    if(document.getElementById('tradResultBox'))  document.getElementById('tradResultBox').style.display  = 'none';
+    if(document.getElementById('tradStartBtn'))   document.getElementById('tradStartBtn').style.display   = 'block';
+    _tradState = null;
+    // 모드 초기화 (섯다로)
+    window._hwatuMode = 'seotda';
+    if(document.getElementById('seotdaModeContainer')) switchHwatuMode('seotda');
     document.getElementById('hCard1').classList.remove('flipped');
     document.getElementById('hCard2').classList.remove('flipped');
     document.getElementById('shuffleArea').style.display = 'block';
@@ -728,5 +859,453 @@ window.shareHwatu = function() {
     if (navigator.share) { navigator.share({ title: '화투점', text: text }).catch(console.error); } 
     else { alert("클립보드에 복사되었습니다.\n\n" + text); }
 };
+
+// ═══════════════════════════════════════════════════════════════
+//  모드 토글
+// ═══════════════════════════════════════════════════════════════
+window._hwatuMode = 'seotda'; // 'seotda' | 'traditional'
+
+window.switchHwatuMode = function(mode) {
+    window._hwatuMode = mode;
+    const isSeotda = mode === 'seotda';
+    document.getElementById('seotdaModeContainer').style.display   = isSeotda ? '' : 'none';
+    document.getElementById('traditionalModeContainer').style.display = isSeotda ? 'none' : '';
+    // 섯다 고유 요소들
+    document.getElementById('shuffleArea').style.display    = isSeotda ? 'block' : 'none';
+    document.getElementById('revealArea').style.display     = isSeotda ? (document.getElementById('revealArea').dataset.vis||'none') : 'none';
+    document.getElementById('hwatuResultBox').style.display = isSeotda ? (document.getElementById('hwatuResultBox').dataset.vis||'none') : 'none';
+    // 토글 버튼 스타일
+    document.getElementById('modeBtnSeotda').style.background      = isSeotda ? '#d4af37' : 'transparent';
+    document.getElementById('modeBtnSeotda').style.color           = isSeotda ? '#1a202c'  : '#d4af37';
+    document.getElementById('modeBtnTraditional').style.background = isSeotda ? 'transparent' : '#d4af37';
+    document.getElementById('modeBtnTraditional').style.color      = isSeotda ? '#d4af37'  : '#1a202c';
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  정통 화투점 (운수 떼기) — TraditionalDivinationService
+// ═══════════════════════════════════════════════════════════════
+
+// 월별 상징 데이터
+const MONTH_SYMBOLS = {
+    1:  { name:'송학(松鶴)', keywords:['장수','새 출발','귀인 만남'],    lucky:'흰색·파랑', animal:'두루미' },
+    2:  { name:'매조(梅鳥)', keywords:['희망','인내','연애 첫 신호'],    lucky:'분홍·노랑', animal:'꾀꼬리' },
+    3:  { name:'벚꽃(花見)', keywords:['화려한 전성기','인기','설레임'], lucky:'분홍·금색', animal:'나비'   },
+    4:  { name:'흑싸리',     keywords:['돌발 행운','뜻밖의 인연'],       lucky:'검정·초록', animal:'두꺼비' },
+    5:  { name:'난초(蘭)',   keywords:['품위','재능 발휘','은밀한 행운'],  lucky:'보라·금색', animal:'나비'   },
+    6:  { name:'모란(牧丹)', keywords:['부(富)','풍요','사업 번창'],      lucky:'빨강·금색', animal:'나비'   },
+    7:  { name:'홍싸리',     keywords:['우정','협력','팀워크 강화'],      lucky:'빨강·흰색', animal:'멧돼지' },
+    8:  { name:'공산명월',   keywords:['명예','성취','대운 도래'],        lucky:'은색·흰색', animal:'기러기' },
+    9:  { name:'국화(菊)',   keywords:['절개','완성','목표 달성'],        lucky:'노랑·흰색', animal:'기러기' },
+    10: { name:'단풍(楓)',   keywords:['결실','마무리','보상'],           lucky:'주황·빨강', animal:'사슴'   },
+    11: { name:'오동(梧桐)', keywords:['변화','전환점','잠재력 개화'],    lucky:'보라·금색', animal:'봉황'   },
+    12: { name:'비(雨)',     keywords:['시련','정화','재기'],             lucky:'검정·파랑', animal:'개구리' }
+};
+
+// 정통 화투점 카테고리
+window._tradCategory = 'wealth';
+window.setTradCategory = function(cat, btn) {
+    window._tradCategory = cat;
+    document.querySelectorAll('[id^="tradCat_"]').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+};
+
+// 이미지 캐시
+const _imgCache = {};
+function _getImg(month, idx) {
+    const key = month + '_' + idx;
+    if(!_imgCache[key]) { _imgCache[key] = hwatuImg(month, idx); }
+    return _imgCache[key];
+}
+
+// 게임 상태
+let _tradState = null;
+
+function _shuffle(arr) {
+    const a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+// 48장 카드 객체 생성 (id 고유)
+function _buildFullDeck() {
+    const cards = [];
+    TAZZA_SYSTEM.DECK.forEach((base, i) => {
+        cards.push({
+            id: i,
+            month: base.month,
+            idx: base.idx,
+            type: base.type,
+            name: base.name,
+            label: base.label,
+            img: base.img,
+            status: 'hidden', // hidden | visible | removed
+            stackIndex: 0,
+            order: 0          // 0=bottom … 3=top
+        });
+    });
+    return cards;
+}
+
+window.startTraditionalGame = function() {
+    // 일일 한도 체크
+    const stats = checkDailyLimit();
+    if(stats.count >= 10) {
+        alert('오늘 횟수를 다 썼어요! 내일 다시 오쇼.'); return;
+    }
+
+    const rawDeck = _buildFullDeck();    // 48장
+    const shuffled = _shuffle(rawDeck);  // 셔플
+
+    // 12 스택에 4장씩 배분
+    const stacks = Array.from({length:12}, () => []);
+    shuffled.forEach((card, i) => {
+        const si = i % 12;
+        card.stackIndex = si;
+        card.order = stacks[si].length; // 0~3
+        stacks[si].push(card);
+    });
+
+    // 각 스택 최상단(order===3)만 visible
+    stacks.forEach(stack => {
+        stack.forEach((card, o) => {
+            card.status = o === 3 ? 'visible' : 'hidden';
+        });
+    });
+
+    _tradState = {
+        stacks,
+        selected: null,        // 선택된 카드 id (null | id)
+        removedCount: 0,
+        category: window._tradCategory
+    };
+
+    // 한도 차감
+    stats.count++;
+    localStorage.setItem('hwatuStats', JSON.stringify(stats));
+    document.getElementById('hwatuLimitText').innerText = 10 - stats.count;
+
+    document.getElementById('tradStartBtn').style.display = 'none';
+    document.getElementById('tradResultBox').style.display = 'none';
+    document.getElementById('tradGameBoard').style.display = 'block';
+    _renderTradBoard();
+};
+
+function _renderTradBoard() {
+    if(!_tradState) return;
+    const { stacks, removedCount } = _tradState;
+    const totalVisible = stacks.flat().filter(c => c.status !== 'removed').length;
+    document.getElementById('tradRemaining').innerText = totalVisible;
+    document.getElementById('tradRemoved').innerText = removedCount;
+
+    const grid = document.getElementById('tradStackGrid');
+    grid.innerHTML = '';
+
+    stacks.forEach((stack, si) => {
+        const stackEl = document.createElement('div');
+        stackEl.className = 'trad-stack';
+
+        const sym = MONTH_SYMBOLS[si+1];
+        const lbl = document.createElement('div');
+        lbl.className = 'trad-stack-label';
+        lbl.textContent = (si+1) + '월';
+        stackEl.appendChild(lbl);
+
+        // 아직 제거 안 된 카드들 (바닥→위 순, 아래서 위로 쌓인 느낌)
+        const alive = stack.filter(c => c.status !== 'removed');
+        if(alive.length === 0) {
+            const empty = document.createElement('div');
+            empty.style.cssText = 'width:100%;aspect-ratio:2/3;border:1px dashed rgba(212,175,55,0.2);border-radius:6px;';
+            stackEl.appendChild(empty);
+        } else {
+            alive.forEach(card => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'trad-card';
+                cardEl.dataset.cardId = card.id;
+
+                if(card.status === 'hidden') {
+                    cardEl.classList.add('hidden-card');
+                    cardEl.title = '아직 열리지 않은 패';
+                } else {
+                    // visible
+                    const img = document.createElement('img');
+                    img.src = _getImg(card.month, card.idx);
+                    img.alt = card.name;
+                    img.loading = 'lazy';
+                    cardEl.appendChild(img);
+
+                    if(_tradState.selected === card.id) {
+                        cardEl.classList.add('selected-card');
+                    }
+                    cardEl.onclick = () => _onTradCardClick(card.id);
+                }
+                stackEl.appendChild(cardEl);
+            });
+        }
+        grid.appendChild(stackEl);
+    });
+}
+
+function _onTradCardClick(cardId) {
+    if(!_tradState) return;
+    const allCards = _tradState.stacks.flat();
+    const card = allCards.find(c => c.id === cardId);
+    if(!card || card.status !== 'visible') return;
+
+    playClackSound(220);
+
+    if(_tradState.selected === null) {
+        // 첫 번째 선택
+        _tradState.selected = cardId;
+        document.getElementById('tradSelectionHint').textContent = card.label + ' 선택! 같은 월의 패를 하나 더 고르쇼.';
+        _renderTradBoard();
+    } else if(_tradState.selected === cardId) {
+        // 선택 취소
+        _tradState.selected = null;
+        document.getElementById('tradSelectionHint').textContent = '';
+        _renderTradBoard();
+    } else {
+        // 두 번째 선택 → 매칭 체크
+        const prevCard = allCards.find(c => c.id === _tradState.selected);
+        if(prevCard.month === card.month) {
+            // 매칭!
+            prevCard.status = 'removed';
+            card.status = 'removed';
+            _tradState.removedCount += 2;
+            _tradState.selected = null;
+            document.getElementById('tradSelectionHint').textContent = '✨ 맞췄소! +2장 제거';
+
+            // 플래시 효과 후 Auto-Flip
+            setTimeout(() => {
+                _autoFlip();
+                _renderTradBoard();
+                // 클리어 체크
+                if(_tradState.removedCount >= 48) {
+                    setTimeout(_showTradResult, 500);
+                } else {
+                    document.getElementById('tradSelectionHint').textContent = '같은 월의 패를 맞춰 모두 제거하시오!';
+                }
+            }, 420);
+        } else {
+            // 불일치
+            playClackSound(80);
+            document.getElementById('tradSelectionHint').textContent = '월이 다르오. 다시 맞춰보쇼.';
+            _tradState.selected = cardId; // 새 카드로 교체 선택
+            _renderTradBoard();
+        }
+    }
+}
+
+// Auto-Flip: 카드 제거 후 각 스택 최상단을 visible로
+function _autoFlip() {
+    _tradState.stacks.forEach(stack => {
+        const alive = stack.filter(c => c.status !== 'removed');
+        if(alive.length > 0) {
+            // 최상단 = order가 가장 높은 살아있는 카드
+            const top = alive[alive.length - 1];
+            if(top.status === 'hidden') top.status = 'visible';
+        }
+    });
+}
+
+window.endTraditionalGame = function() {
+    if(!_tradState) return;
+    _showTradResult();
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  풍성한 결과 서술 시스템
+// ═══════════════════════════════════════════════════════════════
+
+// 남은 카드 중 가장 많이 남은 월 찾기
+function _calcDominantMonths(stacks) {
+    const freq = {};
+    stacks.flat().forEach(c => {
+        if(c.status !== 'removed') freq[c.month] = (freq[c.month]||0)+1;
+    });
+    const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]);
+    return sorted.map(([month, count]) => ({ month: parseInt(month), count }));
+}
+
+// 제거된 카드로 '운의 흐름' 계산
+function _calcRemovedPattern(stacks) {
+    const removed = stacks.flat().filter(c=>c.status==='removed');
+    const removedMonths = [...new Set(removed.map(c=>c.month))];
+    const hasKwang = removed.some(c=>c.type==='kwang');
+    const hasYul   = removed.some(c=>c.type==='yul');
+    return { removedMonths, hasKwang, hasYul, total: removed.length };
+}
+
+const TRAD_RESULT_TEXTS = {
+    DAEGIL: {
+        title: '🎊 대길(大吉) — 완전 운수 떼기!',
+        char: 'goni',
+        wealth:  `<p>패를 전부 떼었소! 이런 운은 백 번에 한 번 나올까 말까 한 기회요. 오늘의 재물 흐름은 거칠 것이 없다. 묵혀 두었던 투자나 사업 제안을 과감히 꺼내도 좋은 타이밍이며, 예상치 못한 곳에서 목돈이 들어oui 것이다. 황금빛 기운이 사방에서 모여들고 있소.</p>
+                  <p>하지만 욕심을 부려 한 번에 전부 가져가려 하면 패가 뒤집히는 법. 크게 벌되 씀씀이도 크게 하라.</p>`,
+        love:    `<p>완전한 인연의 조화! 48장의 패가 모두 맞아 떨어졌다는 것은 당신의 감정선과 상대의 마음이 완벽히 공명하고 있음을 뜻한다. 고백, 프러포즈, 화해 어느 것이든 오늘 건네는 말은 상대의 심장에 정확히 꽂힐 것이오.</p>
+                  <p>인연이 없다 여겼던 사람도 오늘 우연한 마주침 하나로 전부 바뀔 수 있다. 눈을 크게 뜨고 주변을 살피쇼.</p>`,
+        success: `<p>천하무적의 합격·취업 기운! 패를 전부 걷어냈다는 것은 막혀 있던 길이 일시에 뚫리는 대통(大通)의 상징이오. 면접관의 마음도, 채점관의 손도 당신의 손을 들어주게 되어 있다.</p>
+                  <p>오늘 결과를 기다리고 있다면 좋은 소식을 기대하라. 준비 중이라면 이 기운을 만학의 발판으로 삼아라.</p>`
+    },
+    GOOD: {
+        title: '✨ 길(吉) — 운이 따르는 날',
+        char: 'madam',
+        wealth:  '{dominant} 기운이 강하게 남아 있어오. {keywords}의 흐름이 재물운을 견인하고 있소. 큰 투자보다는 꾸준한 수익에 집중하라. {lucky}을 몸에 지니면 금전 기운을 더욱 끌어당길 수 있다.',
+        love:    '{dominant} 기운이 애정선을 밝히고 있소. {keywords} 속에서 진심이 통하는 시간이 찾아올 것이다. {lucky}이 당신의 매력을 배가시켜 줄 것이오.',
+        success: '{dominant}의 기운이 성취를 향해 밀어주고 있소. {keywords}를 믿고 정공법으로 임하면 좋은 결과가 따라올 것이다. {lucky}을 책상 위에 놓아 보쇼.'
+    },
+    MIDDLE: {
+        title: '🌀 평범(平) — 순리대로',
+        char: 'master',
+        wealth:  `남은 패 중 {blockMonth}의 기운이 장벽으로 작용하고 있소. 서두르지 말고 때를 기다리쇼. 지금 가진 것을 지키는 것이 최선의 재물 전략이오.`,
+        love:    `남은 패 중 {blockMonth}의 기운이 관계를 늦추고 있소. 강물은 바위를 피해 흘러가는 법. 억지로 밀어붙이지 말고 상대에게 공간을 내어 주쇼.`,
+        success: `남은 패 중 {blockMonth}의 기운이 당신의 전진을 잠시 멈추게 하고 있소. 실력을 더 갈고 닦을 기간이니 조급함을 내려놓쇼.`
+    },
+    BAD: {
+        title: '⚠️ 흉(凶) — 조심이 상책',
+        char: 'agui',
+        wealth:  `패가 잘 맞지 않았소. {blockMonth} 기운이 재물의 흐름을 막고 있다. 오늘은 큰돈이 오가는 결정을 피하고, 남에게 보증이나 대출을 서지 마시오. 손실이 생기더라도 판을 더 키우려 하지 말 것.`,
+        love:    `패가 맞서 있소. {blockMonth} 기운이 오해와 엇갈림을 만들고 있다. 지금 전하는 고백이나 연락은 역효과를 낼 수 있으니 타이밍을 재쇼. 분노를 삼키고 일단 하루를 쉬어가라.`,
+        success: `패가 꼬여 있소. {blockMonth} 기운이 발목을 잡고 있다. 무리한 도전보다 현재 위치를 지키는 것이 현명하오. 서류 제출이나 결정 일정을 잠시 미루는 것도 방법이오.`
+    }
+};
+
+// 결과 타입 판별
+function _judgeResultType(removedCount) {
+    if(removedCount >= 48) return 'DAEGIL';
+    if(removedCount >= 36) return 'GOOD';
+    if(removedCount >= 20) return 'MIDDLE';
+    return 'BAD';
+}
+
+// 풍성한 결과 HTML 생성
+function _buildTradResultHTML(resultType, dominant, blocked, pattern, category) {
+    const tmpl = TRAD_RESULT_TEXTS[resultType];
+    const char = TAZZA_SYSTEM.CHARACTERS[tmpl.char];
+    const cat = category || 'wealth';
+
+    let narrative = '';
+
+    // DAEGIL은 완성된 텍스트, 나머지는 템플릿 치환
+    if(resultType === 'DAEGIL') {
+        narrative = tmpl[cat] || tmpl.wealth;
+    } else {
+        const dominantSym = MONTH_SYMBOLS[dominant.month];
+        const blockSym    = blocked ? MONTH_SYMBOLS[blocked.month] : null;
+        narrative = (tmpl[cat] || tmpl.wealth)
+            .replace('{dominant}',   `<span class="trad-result-badge badge-month">${dominantSym.name}</span>`)
+            .replace('{keywords}',   dominantSym.keywords.map(k=>`<span class="trad-result-badge badge-good">${k}</span>`).join(''))
+            .replace('{lucky}',      `<span class="trad-result-badge badge-month">${dominantSym.lucky}</span>`)
+            .replace('{blockMonth}', blockSym ? `<span class="trad-result-badge badge-bad">${blockSym.name}</span>` : '미상');
+    }
+
+    // ① 캐릭터 코멘트
+    const charHTML = `
+        <div class="trad-char-box">
+            <img src="${char.image}" alt="${char.name}">
+            <div style="flex:1;">
+                <div style="color:#94a3b8;font-size:0.85rem;margin-bottom:4px;">${char.name}의 한 마디</div>
+                <div style="color:#facc15;font-weight:bold;font-style:italic;line-height:1.5;">${char.catchphrase}</div>
+            </div>
+        </div>`;
+
+    // ② 제거 통계 요약
+    const totalPct = Math.round((pattern.total / 48) * 100);
+    const statsHTML = `
+        <div class="trad-section">
+            <div class="trad-section-title">📊 운의 흐름 분석</div>
+            <div style="margin-bottom:8px;color:#cbd5e1;font-size:0.9rem;">
+                총 <strong style="color:#4ade80;">${pattern.total}장</strong> 제거 
+                (<strong style="color:#d4af37;">${totalPct}%</strong> 완성)
+                ${pattern.hasKwang ? ' · <span style="color:#fbbf24">광(光) 제거 ✓</span>' : ''}
+                ${pattern.hasYul   ? ' · <span style="color:#a78bfa">열끗 제거 ✓</span>' : ''}
+            </div>
+        </div>`;
+
+    // ③ 주도 월 심볼 해석
+    let monthSectionHTML = '';
+    if(resultType !== 'DAEGIL' && dominant) {
+        const sym = MONTH_SYMBOLS[dominant.month];
+        monthSectionHTML = `
+            <div class="trad-section">
+                <div class="trad-section-title">🌸 핵심 운의 기운: ${sym.name}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+                    ${sym.keywords.map(k=>`<span class="trad-result-badge badge-good">${k}</span>`).join('')}
+                    <span class="trad-result-badge badge-month">행운색 ${sym.lucky}</span>
+                    <span class="trad-result-badge badge-month">영물 ${sym.animal}</span>
+                </div>
+            </div>`;
+    }
+
+    // ④ 남은 패 장애 분석
+    let blockedHTML = '';
+    if(blocked && resultType !== 'DAEGIL') {
+        const sym = MONTH_SYMBOLS[blocked.month];
+        blockedHTML = `
+            <div class="trad-section">
+                <div class="trad-section-title">🔴 막힌 기운: ${sym.name} (${blocked.count}장 잔류)</div>
+                <div style="color:#fca5a5;font-size:0.9rem;line-height:1.6;">
+                    ${sym.name}의 기운이 완전히 흩어지지 못했다. 
+                    <br>${sym.keywords.join(', ')} 방면에서 미완성의 과제가 남아 있으니 서두르지 마시오.
+                    ${sym.animal}이 나타나는 꿈을 꾸거나 ${sym.lucky} 색이 눈에 띄면 조심하시오.
+                </div>
+            </div>`;
+    }
+
+    // ⑤ 본문 서술
+    const narrativeHTML = `
+        <div class="trad-section">
+            <div class="trad-section-title">📜 타짜의 풀이</div>
+            <div style="color:#e5e7eb;font-size:1rem;line-height:1.8;">${narrative}</div>
+        </div>`;
+
+    // ⑥ 오늘의 행동 지침
+    const actionMap = {
+        DAEGIL: ['지금 바로 행동에 옮기시오', '주변에 기쁜 소식을 알리쇼', '감사의 마음을 전하쇼'],
+        GOOD:   ['작은 행운도 놓치지 마쇼',  '인연에게 먼저 손을 내밀쇼', '계획을 구체화할 때요'],
+        MIDDLE: ['지금은 때를 기다리쇼',     '주변 정리와 준비에 집중하쇼', '과욕을 부리지 마쇼'],
+        BAD:    ['결단을 미루쇼',           '계약·서명 류는 피하쇼',      '몸을 낮추고 실력을 쌓쇼']
+    };
+    const actions = actionMap[resultType];
+    const actionHTML = `
+        <div class="trad-section">
+            <div class="trad-section-title">🎯 오늘의 행동 지침</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                ${actions.map((a,i)=>`<div style="display:flex;align-items:center;gap:8px;color:#cbd5e1;font-size:0.9rem;"><span style="color:#d4af37;font-weight:bold;">${i+1}.</span>${a}</div>`).join('')}
+            </div>
+        </div>`;
+
+    return charHTML + statsHTML + monthSectionHTML + blockedHTML + narrativeHTML + actionHTML;
+}
+
+function _showTradResult() {
+    if(!_tradState) return;
+    const { stacks, removedCount, category } = _tradState;
+
+    const resultType = _judgeResultType(removedCount);
+    const dominantList = _calcDominantMonths(stacks);
+    const pattern      = _calcRemovedPattern(stacks);
+
+    const dominant = dominantList[0] || null;
+    // 막힌 기운: 남은 카드가 가장 많은 달 (단, 전부 제거된 경우 null)
+    const blocked  = resultType !== 'DAEGIL' ? (dominantList[0] || null) : null;
+
+    const tmpl = TRAD_RESULT_TEXTS[resultType];
+    document.getElementById('tradResultTitle').textContent = tmpl.title;
+    document.getElementById('tradResultContent').innerHTML = _buildTradResultHTML(resultType, dominant, blocked, pattern, category);
+
+    document.getElementById('tradGameBoard').style.display = 'none';
+    document.getElementById('tradResultBox').style.display = 'block';
+
+    // 완료 사운드
+    playClackSound(300);
+    setTimeout(()=>playClackSound(400), 150);
+    setTimeout(()=>playClackSound(500), 300);
+
+    _tradState = null;
+}
+
 
 
