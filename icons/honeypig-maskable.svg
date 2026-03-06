@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <!-- maskable safe zone: 전체 배경 원 (플랫폼이 이 원으로 클리핑) -->
-  <circle cx="512" cy="512" r="512" fill="#FFF0F5"/>
-  <!-- 허니 피그 이미지: safe zone 80% 영역(102~922px)에 배치 -->
-  <image href="honeypig.svg" x="102" y="102" width="820" height="820" preserveAspectRatio="xMidYMid meet"/>
-</svg>
