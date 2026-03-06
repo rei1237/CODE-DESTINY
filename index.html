@@ -3477,21 +3477,103 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div class="form-group" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:15px; margin-top:15px;">
         <label class="form-label" style="color:#0f172a;">출생 국가 (장소) <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">*서머타임 및 경도 보정 자동 적용</span></label>
         <select class="inp" id="birthCountry" onchange="updateCorrectedTimePreview()" style="margin-bottom:10px; background:#fff;">
-          <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected>대한민국 (서울) - 기본</option>
-          <option value="Asia/Seoul" data-long="129.0" data-lat="35.1" data-tz="9">대한민국 (부산/경상/강원)</option>
-          <option value="Asia/Seoul" data-long="126.5" data-lat="35.2" data-tz="9">대한민국 (광주/전라/제주)</option>
-          <option value="Asia/Tokyo" data-long="139.7" data-lat="35.7" data-tz="9">일본 (도쿄)</option>
-          <option value="Asia/Tokyo" data-long="135.5" data-lat="34.7" data-tz="9">일본 (오사카)</option>
-          <option value="Asia/Shanghai" data-long="121.5" data-lat="31.2" data-tz="8">중국 (상하이)</option>
-          <option value="Asia/Shanghai" data-long="116.4" data-lat="39.9" data-tz="8">중국 (베이징)</option>
-          <option value="America/New_York" data-long="-74.0" data-lat="40.7" data-tz="-5">미국 (뉴욕)</option>
-          <option value="America/Los_Angeles" data-long="-118.2" data-lat="34.1" data-tz="-8">미국 (로스앤젤레스)</option>
-          <option value="America/Chicago" data-long="-87.6" data-lat="41.9" data-tz="-6">미국 (시카고)</option>
-          <option value="Europe/London" data-long="-0.1" data-lat="51.5" data-tz="0">영국 (런던)</option>
-          <option value="Europe/Paris" data-long="2.3" data-lat="48.9" data-tz="1">프랑스 (파리)</option>
-          <option value="Australia/Sydney" data-long="151.2" data-lat="-33.9" data-tz="10">호주 (시드니)</option>
-          <option value="America/Toronto" data-long="-79.4" data-lat="43.7" data-tz="-5">캐나다 (토론토)</option>
-          <!-- 필요시 국가 추가 -->
+          <!-- ── 대한민국 ── -->
+          <optgroup label="🇰🇷 대한민국">
+            <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected>대한민국 (서울) - 기본</option>
+            <option value="Asia/Seoul" data-long="129.0" data-lat="35.1" data-tz="9">대한민국 (부산/경상/강원)</option>
+            <option value="Asia/Seoul" data-long="126.5" data-lat="35.2" data-tz="9">대한민국 (광주/전라/제주)</option>
+          </optgroup>
+          <!-- ── 동아시아 ── -->
+          <optgroup label="🌏 동아시아">
+            <option value="Asia/Tokyo" data-long="139.7" data-lat="35.7" data-tz="9">🇯🇵 일본 (도쿄)</option>
+            <option value="Asia/Tokyo" data-long="135.5" data-lat="34.7" data-tz="9">🇯🇵 일본 (오사카)</option>
+            <option value="Asia/Shanghai" data-long="116.4" data-lat="39.9" data-tz="8">🇨🇳 중국 (베이징)</option>
+            <option value="Asia/Shanghai" data-long="121.5" data-lat="31.2" data-tz="8">🇨🇳 중국 (상하이)</option>
+            <option value="Asia/Shanghai" data-long="113.3" data-lat="23.1" data-tz="8">🇨🇳 중국 (광저우/선전)</option>
+            <option value="Asia/Taipei" data-long="121.5" data-lat="25.0" data-tz="8">🇹🇼 대만 (타이베이)</option>
+            <option value="Asia/Hong_Kong" data-long="114.2" data-lat="22.3" data-tz="8">🇭🇰 홍콩</option>
+            <option value="Asia/Macau" data-long="113.5" data-lat="22.2" data-tz="8">🇲🇴 마카오</option>
+          </optgroup>
+          <!-- ── 동남아시아 ── -->
+          <optgroup label="🌴 동남아시아">
+            <option value="Asia/Singapore" data-long="103.8" data-lat="1.3" data-tz="8">🇸🇬 싱가포르</option>
+            <option value="Asia/Kuala_Lumpur" data-long="101.7" data-lat="3.1" data-tz="8">🇲🇾 말레이시아 (쿠알라룸푸르)</option>
+            <option value="Asia/Manila" data-long="121.0" data-lat="14.6" data-tz="8">🇵🇭 필리핀 (마닐라)</option>
+            <option value="Asia/Bangkok" data-long="100.5" data-lat="13.8" data-tz="7">🇹🇭 태국 (방콕)</option>
+            <option value="Asia/Ho_Chi_Minh" data-long="106.7" data-lat="10.8" data-tz="7">🇻🇳 베트남 (호찌민/사이공)</option>
+            <option value="Asia/Ho_Chi_Minh" data-long="105.8" data-lat="21.0" data-tz="7">🇻🇳 베트남 (하노이)</option>
+            <option value="Asia/Jakarta" data-long="106.8" data-lat="-6.2" data-tz="7">🇮🇩 인도네시아 (자카르타)</option>
+            <option value="Asia/Makassar" data-long="119.4" data-lat="-5.1" data-tz="8">🇮🇩 인도네시아 (발리/마카사르)</option>
+            <option value="Asia/Phnom_Penh" data-long="104.9" data-lat="11.6" data-tz="7">🇰🇭 캄보디아 (프놈펜)</option>
+            <option value="Asia/Vientiane" data-long="102.6" data-lat="17.9" data-tz="7">🇱🇦 라오스 (비엔티안)</option>
+            <option value="Asia/Rangoon" data-long="96.2" data-lat="16.8" data-tz="6.5">🇲🇲 미얀마 (양곤)</option>
+            <option value="Asia/Yangon" data-long="96.2" data-lat="16.8" data-tz="6.5">🇲🇲 미얀마 (만달레이)</option>
+            <option value="Asia/Brunei" data-long="114.9" data-lat="4.9" data-tz="8">🇧🇳 브루나이 (반다르스리브가완)</option>
+            <option value="Asia/Dili" data-long="125.6" data-lat="-8.6" data-tz="9">🇹🇱 동티모르 (딜리)</option>
+          </optgroup>
+          <!-- ── 남아시아 ── -->
+          <optgroup label="🕌 남아시아">
+            <option value="Asia/Kolkata" data-long="77.2" data-lat="28.6" data-tz="5.5">🇮🇳 인도 (뉴델리)</option>
+            <option value="Asia/Kolkata" data-long="72.9" data-lat="19.1" data-tz="5.5">🇮🇳 인도 (뭄바이)</option>
+            <option value="Asia/Kolkata" data-long="80.3" data-lat="13.1" data-tz="5.5">🇮🇳 인도 (첸나이/방갈로르)</option>
+            <option value="Asia/Kolkata" data-long="88.4" data-lat="22.6" data-tz="5.5">🇮🇳 인도 (콜카타)</option>
+            <option value="Asia/Dhaka" data-long="90.4" data-lat="23.7" data-tz="6">🇧🇩 방글라데시 (다카)</option>
+            <option value="Asia/Karachi" data-long="67.0" data-lat="24.9" data-tz="5">🇵🇰 파키스탄 (카라치)</option>
+            <option value="Asia/Colombo" data-long="79.9" data-lat="6.9" data-tz="5.5">🇱🇰 스리랑카 (콜롬보)</option>
+            <option value="Asia/Kathmandu" data-long="85.3" data-lat="27.7" data-tz="5.75">🇳🇵 네팔 (카트만두)</option>
+          </optgroup>
+          <!-- ── 중앙아시아·중동 ── -->
+          <optgroup label="🏜️ 중앙아시아·중동">
+            <option value="Asia/Dubai" data-long="55.3" data-lat="25.2" data-tz="4">🇦🇪 아랍에미리트 (두바이)</option>
+            <option value="Asia/Riyadh" data-long="46.7" data-lat="24.7" data-tz="3">🇸🇦 사우디아라비아 (리야드)</option>
+            <option value="Asia/Tehran" data-long="51.4" data-lat="35.7" data-tz="3.5">🇮🇷 이란 (테헤란)</option>
+            <option value="Asia/Istanbul" data-long="29.0" data-lat="41.0" data-tz="3">🇹🇷 터키 (이스탄불)</option>
+            <option value="Asia/Jerusalem" data-long="35.2" data-lat="31.8" data-tz="2">🇮🇱 이스라엘 (예루살렘)</option>
+            <option value="Asia/Almaty" data-long="76.9" data-lat="43.3" data-tz="6">🇰🇿 카자흐스탄 (알마티)</option>
+          </optgroup>
+          <!-- ── 북미 ── -->
+          <optgroup label="🌎 북미">
+            <option value="America/New_York" data-long="-74.0" data-lat="40.7" data-tz="-5">🇺🇸 미국 (뉴욕)</option>
+            <option value="America/Los_Angeles" data-long="-118.2" data-lat="34.1" data-tz="-8">🇺🇸 미국 (로스앤젤레스)</option>
+            <option value="America/Chicago" data-long="-87.6" data-lat="41.9" data-tz="-6">🇺🇸 미국 (시카고)</option>
+            <option value="America/Denver" data-long="-104.9" data-lat="39.7" data-tz="-7">🇺🇸 미국 (덴버)</option>
+            <option value="Pacific/Honolulu" data-long="-157.8" data-lat="21.3" data-tz="-10">🇺🇸 미국 (하와이)</option>
+            <option value="America/Anchorage" data-long="-149.9" data-lat="61.2" data-tz="-9">🇺🇸 미국 (알래스카)</option>
+            <option value="America/Toronto" data-long="-79.4" data-lat="43.7" data-tz="-5">🇨🇦 캐나다 (토론토)</option>
+            <option value="America/Vancouver" data-long="-123.1" data-lat="49.3" data-tz="-8">🇨🇦 캐나다 (밴쿠버)</option>
+            <option value="America/Edmonton" data-long="-113.5" data-lat="53.5" data-tz="-7">🇨🇦 캐나다 (캘거리/에드먼턴)</option>
+            <option value="America/Montreal" data-long="-73.6" data-lat="45.5" data-tz="-5">🇨🇦 캐나다 (몬트리올)</option>
+            <option value="America/Mexico_City" data-long="-99.1" data-lat="19.4" data-tz="-6">🇲🇽 멕시코 (멕시코시티)</option>
+          </optgroup>
+          <!-- ── 유럽 ── -->
+          <optgroup label="🏰 유럽">
+            <option value="Europe/London" data-long="-0.1" data-lat="51.5" data-tz="0">🇬🇧 영국 (런던)</option>
+            <option value="Europe/Paris" data-long="2.3" data-lat="48.9" data-tz="1">🇫🇷 프랑스 (파리)</option>
+            <option value="Europe/Berlin" data-long="13.4" data-lat="52.5" data-tz="1">🇩🇪 독일 (베를린)</option>
+            <option value="Europe/Rome" data-long="12.5" data-lat="41.9" data-tz="1">🇮🇹 이탈리아 (로마)</option>
+            <option value="Europe/Madrid" data-long="-3.7" data-lat="40.4" data-tz="1">🇪🇸 스페인 (마드리드)</option>
+            <option value="Europe/Amsterdam" data-long="4.9" data-lat="52.4" data-tz="1">🇳🇱 네덜란드 (암스테르담)</option>
+            <option value="Europe/Moscow" data-long="37.6" data-lat="55.8" data-tz="3">🇷🇺 러시아 (모스크바)</option>
+            <option value="Europe/Stockholm" data-long="18.1" data-lat="59.3" data-tz="1">🇸🇪 스웨덴 (스톡홀름)</option>
+            <option value="Europe/Warsaw" data-long="21.0" data-lat="52.2" data-tz="1">🇵🇱 폴란드 (바르샤바)</option>
+            <option value="Europe/Zurich" data-long="8.5" data-lat="47.4" data-tz="1">🇨🇭 스위스 (취리히)</option>
+          </optgroup>
+          <!-- ── 오세아니아 ── -->
+          <optgroup label="🦘 오세아니아">
+            <option value="Australia/Sydney" data-long="151.2" data-lat="-33.9" data-tz="10">🇦🇺 호주 (시드니/멜버른)</option>
+            <option value="Australia/Brisbane" data-long="153.0" data-lat="-27.5" data-tz="10">🇦🇺 호주 (브리즈번)</option>
+            <option value="Australia/Perth" data-long="115.9" data-lat="-31.9" data-tz="8">🇦🇺 호주 (퍼스)</option>
+            <option value="Pacific/Auckland" data-long="174.8" data-lat="-37.0" data-tz="12">🇳🇿 뉴질랜드 (오클랜드)</option>
+          </optgroup>
+          <!-- ── 남미·아프리카 ── -->
+          <optgroup label="🌍 남미·아프리카">
+            <option value="America/Sao_Paulo" data-long="-46.6" data-lat="-23.5" data-tz="-3">🇧🇷 브라질 (상파울루)</option>
+            <option value="America/Argentina/Buenos_Aires" data-long="-58.4" data-lat="-34.6" data-tz="-3">🇦🇷 아르헨티나 (부에노스아이레스)</option>
+            <option value="America/Lima" data-long="-77.0" data-lat="-12.0" data-tz="-5">🇵🇪 페루 (리마)</option>
+            <option value="Africa/Cairo" data-long="31.2" data-lat="30.1" data-tz="2">🇪🇬 이집트 (카이로)</option>
+            <option value="Africa/Johannesburg" data-long="28.0" data-lat="-26.2" data-tz="2">🇿🇦 남아프리카 (요하네스버그)</option>
+            <option value="Africa/Lagos" data-long="3.4" data-lat="6.5" data-tz="1">🇳🇬 나이지리아 (라고스)</option>
+          </optgroup>
         </select>
         
         <div id="timeCorrectionInfo" style="font-size:0.85rem; color:#475569; line-height:1.4; display:none;">
@@ -10579,13 +10661,28 @@ function renderAstroInsight() {
         +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">표준시 (UTC+)</label>'
         +'<select id="asDirect_tz" '
         +'style="padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
-        +'<option value="9">+9 한국/일본</option>'
-        +'<option value="8">+8 중국/싱가포르</option>'
-        +'<option value="5.5">+5.5 인도</option>'
-        +'<option value="1">+1 유럽(CET)</option>'
-        +'<option value="0">+0 영국/UTC</option>'
-        +'<option value="-5">-5 미국(ET)</option>'
-        +'<option value="-8">-8 미국(PT)</option>'
+        +'<option value="9">+9 한국 / 일본</option>'
+        +'<option value="8">+8 중국 / 대만 / 홍콩 / 싱가포르 / 말레이시아 / 필리핀</option>'
+        +'<option value="7">+7 태국 / 베트남 / 인도네시아(자카르타) / 캄보디아 / 라오스</option>'
+        +'<option value="6.5">+6.5 미얀마</option>'
+        +'<option value="6">+6 방글라데시</option>'
+        +'<option value="5.75">+5.75 네팔</option>'
+        +'<option value="5.5">+5.5 인도 / 스리랑카</option>'
+        +'<option value="5">+5 파키스탄</option>'
+        +'<option value="4">+4 UAE(두바이)</option>'
+        +'<option value="3.5">+3.5 이란</option>'
+        +'<option value="3">+3 사우디 / 터키 / 러시아(모스크바)</option>'
+        +'<option value="2">+2 이집트 / 동유럽</option>'
+        +'<option value="1">+1 유럽(CET) — 독일·프랑스·이탈리아·스페인</option>'
+        +'<option value="0">+0 영국 / UTC</option>'
+        +'<option value="-3">-3 브라질 / 아르헨티나</option>'
+        +'<option value="-5">-5 미국(ET) / 캐나다(토론토)</option>'
+        +'<option value="-6">-6 미국(CT)</option>'
+        +'<option value="-7">-7 미국(MT) / 캐나다(캘거리)</option>'
+        +'<option value="-8">-8 미국(PT) / 캐나다(밴쿠버)</option>'
+        +'<option value="-10">-10 미국(하와이)</option>'
+        +'<option value="10">+10 호주(시드니)</option>'
+        +'<option value="12">+12 뉴질랜드</option>'
         +'</select>'
         +'</div>'
         +'</div>'
