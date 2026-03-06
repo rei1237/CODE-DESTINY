@@ -6361,6 +6361,18 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     '癸': { '파군': '화록', '거문': '화권', '태음': '화과', '탐랑': '화기' }
   };
   var curSihua = sihuaMap[lunar.getYearGan()];
+  // 화사(四化) 독립 데이터 추출 — HTML 임베드 전에 stars 원본에서 계산
+  var sihuaData = {};
+  if (curSihua) {
+    for (var sName in curSihua) {
+      for (var si = 0; si < 12; si++) {
+        if (stars[si].main.indexOf(sName) >= 0 || stars[si].aux.indexOf(sName) >= 0) {
+          sihuaData[sName] = { type: curSihua[sName], palaceIdx: si, palaceName: palacesByIndex[si] || '' };
+          break;
+        }
+      }
+    }
+  }
   if (curSihua) {
     for (var i = 0; i < 12; i++) {
         for (var j = 0; j < stars[i].main.length; j++) {
@@ -6401,11 +6413,20 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   var isMale = typeof GENDER !== 'undefined' ? (GENDER === 'M') : true;
   var direction = (isYangYear === isMale) ? 1 : -1;
   var daHan = {};
+  var daHanList = [];
   for(var k=0; k<12; k++) {
     var currBIdx = (mengIdx + k * direction + 120) % 12;
     var startAge = ju + k * 10;
     var endAge = startAge + 9;
     daHan[currBIdx] = startAge + '~' + endAge;
+    daHanList.push({
+      order: k,
+      idx: currBIdx,
+      palaceName: palacesByIndex[currBIdx] || ('제'+(k+1)+'대한'),
+      startAge: startAge,
+      endAge: endAge,
+      zhi: ZHI_LIST[currBIdx]
+    });
   }
 
   return {
@@ -6415,7 +6436,11 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     palacesByIndex: palacesByIndex,
     stars: stars,
     juInfo: juNames[ju] || juNames[4],
-    daHan: daHan
+    daHan: daHan,
+    daHanList: daHanList,
+    sihuaData: sihuaData,
+    direction: direction,
+    ju: ju
   };
 }
 
@@ -10297,13 +10322,165 @@ var mainSt = extractMains(getPStars(pName));
             daHanDesc = "현재 들어온 대운은 주재하는 별이 없는 공궁(空宮)의 시기입니다. 고정된 틀이 없으므로 주변 상황과 대궁의 에너지에 따라 유연하게 카멜레온처럼 변신할 수 있는 무한한 가능성의 시기입니다. 뚜렷한 목표보다는 상황에 흐름을 맡기는 것이 유리할 수 있습니다.";
         }
 
-        var sec3 = '<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 25px;">' +
-          '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">🌊 [대운(大運)의 흐름과 파도]</h2>' +
+        var sec3 = '<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">' +
+          '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">🌊 [클릭한 궁의 대운 운기]</h2>' +
           '<p style="line-height: 1.7; margin: 0; font-size: 0.95rem;">' +
             '<b>해당 궁의 대운 나이:</b> ' + curDaHan + '세 (' + pName + ' 운기)<br><br>' +
             daHanDesc +
           '</p>' +
         '</div>';
+
+        // ── Module 1: 생애 총론 ──
+        var STAR_DAHAN_KW = {
+          '자미':'제왕의 기상으로 명예를 향해 나아가는 구조',
+          '천기':'두뇌와 기획으로 쉼없이 진화하는 구조',
+          '태양':'빛을 발하며 대중과 함께 성장하는 구조',
+          '무곡':'강인한 실행력으로 재물을 구축하는 구조',
+          '천동':'여유와 포용으로 안정 속에 행복을 쌓는 구조',
+          '염정':'열정과 감각으로 화려한 무대를 지배하는 구조',
+          '천부':'안정과 보수로 자산을 지키며 성장하는 구조',
+          '태음':'섬세한 심미안으로 은밀히 부를 쌓는 구조',
+          '탐랑':'다재다능과 사교력으로 기회를 창출하는 구조',
+          '거문':'날카로운 통찰로 지식 자본을 쌓는 구조',
+          '천상':'공정과 조화로 조직을 이끄는 구조',
+          '천량':'포용과 解難으로 귀인 복덕을 쌓는 구조',
+          '칠살':'독립과 돌파력으로 경계를 부수는 구조',
+          '파군':'혁신과 변환으로 전혀 새로운 판을 여는 구조'
+        };
+        var mengStars = extractMains(getPStars('명궁'));
+        var mengStarMain = mengStars[0] || '';
+        var dirText = (pd.direction === 1) ? '순행(順行)' : '역행(逆行)';
+        var juVal = pd.ju || 4;
+        var lifeSentence = STAR_DAHAN_KW[mengStarMain] || '고유의 운명 패턴이 온화하게 전개되는 구조';
+        var sihuaColors = {'화록':'#4ade80','화권':'#60a5fa','화과':'#c084fc','화기':'#f87171'};
+        var sihuaSummary = [];
+        if (pd.sihuaData) {
+          for (var shStar in pd.sihuaData) {
+            var shInfo = pd.sihuaData[shStar];
+            var sc = sihuaColors[shInfo.type] || '#fff';
+            sihuaSummary.push('<span style="color:'+sc+';font-weight:700;">'+shInfo.type+'</span> '+shStar+' ('+shInfo.palaceName+')');
+          }
+        }
+        var sec_grand = '<div style="background:linear-gradient(135deg,rgba(88,28,220,0.15),rgba(20,10,50,0.8));padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.3);">'
+          +'<h2 style="color:#F9A8D4;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(249,168,212,0.3);padding-bottom:8px;">🌟 [Module 1] 생애 총론(生涯 總論)</h2>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.88rem;margin-bottom:12px;">'
+            +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">⚡ 오행국</div><div style="color:#fbbf24;font-weight:700;">'+(pd.juInfo||'-')+'</div></div>'
+            +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">🔄 대한 진행</div><div style="color:#a78bfa;font-weight:700;">'+dirText+'</div></div>'
+            +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">🎭 명궁(命宮)</div><div style="color:#ffd700;font-weight:700;">'+(pd.meng||'-')+' · '+(mengStarMain||'공궁')+'</div></div>'
+            +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">✨ 신궁(身宮)</div><div style="color:#6ee7b7;font-weight:700;">'+(pd.shen||'-')+'</div></div>'
+          +'</div>'
+          +'<div style="font-size:0.9rem;line-height:1.75;color:#e2e8f0;">'
+            +'<b style="color:#f9a8d4;">생애 기질:</b> '+lifeSentence+'<br>'
+            +'<b style="color:#f9a8d4;">起運 나이:</b> <span style="color:#fbbf24;">'+juVal+'세</span>부터 대한이 '+dirText+'으로 펼쳐집니다.<br>'
+            +(sihuaSummary.length>0?'<b style="color:#f9a8d4;">사화(四化) 배치:</b> '+sihuaSummary.join(' &nbsp;·&nbsp; '):'')
+          +'</div>'
+        +'</div>';
+
+        // ── Module 2: 12대한 타임라인 ──
+        var PALACE_DAHAN_THEME = {
+          '명궁':{icon:'🎭',kw:'자아 확립·독립 의지의 전성기'},
+          '형제궁':{icon:'🤝',kw:'동료·협력자의 조력이 운명을 바꾸는 시기'},
+          '부처궁':{icon:'💑',kw:'결혼·동반자·주요 파트너십의 핵심 분기점'},
+          '자녀궁':{icon:'🌱',kw:'창의적 성취와 후계·자녀 인연이 집중'},
+          '재백궁':{icon:'💰',kw:'수입·투자·자산 변동이 집약되는 국면'},
+          '질액궁':{icon:'⚕️',kw:'건강과 내면 시련을 직면하며 다지는 시기'},
+          '천이궁':{icon:'✈️',kw:'이직·이사·해외 확장의 큰 이동 개운 구간'},
+          '노복궁':{icon:'👥',kw:'부하·조직·핵심 인맥 관리가 성패를 가름'},
+          '관록궁':{icon:'💼',kw:'커리어·사업·사회적 명성이 집중 형성'},
+          '전택궁':{icon:'🏠',kw:'부동산·고정자산·저축 여력의 확충 구간'},
+          '복덕궁':{icon:'🍀',kw:'정신적 풍요·행복감·내면 성장의 시기'},
+          '부모궁':{icon:'👪',kw:'부모 덕·윗사람 후원·문서 운이 집중'}
+        };
+        var dahanTimelineHtml = '';
+        if (pd.daHanList && pd.daHanList.length > 0) {
+          pd.daHanList.forEach(function(dh) {
+            var dhRawStars = pd.stars[dh.idx];
+            var dhMain = extractMains(dhRawStars);
+            var dhBad  = extractBad(dhRawStars);
+            var dhTheme = PALACE_DAHAN_THEME[dh.palaceName] || {icon:'🔮',kw:'고유한 운명 흐름의 구간'};
+            var starKw = dhMain.length > 0 ? (STAR_DAHAN_KW[dhMain[0]] ? dhMain[0]+' — '+STAR_DAHAN_KW[dhMain[0]].split(' ')[0]+' 운' : dhMain[0]) : '공궁(유연한 변화)';
+            var dhSihua = [];
+            if (pd.sihuaData) {
+              for (var shS in pd.sihuaData) {
+                if (pd.sihuaData[shS].palaceIdx === dh.idx) dhSihua.push({star:shS, info:pd.sihuaData[shS]});
+              }
+            }
+            var hasHwagi  = dhSihua.some(function(s){return s.info.type==='화기';});
+            var hasHwaroc = dhSihua.some(function(s){return s.info.type==='화록';});
+            var borderCol = hasHwagi ? 'rgba(248,113,113,0.6)' : (hasHwaroc ? 'rgba(74,222,128,0.6)' : 'rgba(139,92,246,0.25)');
+            var bgCol     = hasHwagi ? 'rgba(248,113,113,0.07)' : (hasHwaroc ? 'rgba(74,222,128,0.07)' : 'rgba(255,255,255,0.02)');
+            var badges = dhSihua.map(function(s){
+              var bc = sihuaColors[s.info.type]||'#fff';
+              return '<span style="background:'+bc+'22;color:'+bc+';border:1px solid '+bc+'55;padding:1px 5px;border-radius:4px;font-size:0.68rem;font-weight:700;margin-left:4px;">'+s.info.type+'</span>';
+            }).join('');
+            dahanTimelineHtml +=
+              '<div style="padding:9px 12px;border-left:3px solid '+borderCol+';background:'+bgCol+';border-radius:0 6px 6px 0;margin-bottom:5px;">'
+                +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+                  +'<div><span style="color:#fbbf24;font-size:0.82rem;font-weight:700;">'+dh.startAge+'~'+dh.endAge+'세</span>'
+                  +'<span style="color:#a78bfa;font-size:0.82rem;margin-left:8px;">│ '+dhTheme.icon+' '+dh.palaceName+'</span>'+badges+'</div>'
+                  +'<span style="color:#94a3b8;font-size:0.73rem;">'+dh.zhi+'</span>'
+                +'</div>'
+                +'<div style="font-size:0.8rem;color:#cbd5e1;margin-top:3px;"><span style="color:#6ee7b7;">'+starKw+'</span> · '+dhTheme.kw+'</div>'
+              +'</div>';
+          });
+        }
+        var sec_dahan = '<div style="background:rgba(15,15,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.25);">'
+          +'<h2 style="color:#6EE7B7;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(110,231,183,0.3);padding-bottom:8px;">⏳ [Module 2] 대한(大限) 12단계 타임라인</h2>'
+          +'<p style="font-size:0.78rem;color:#94a3b8;margin:0 0 10px;">각 대한은 약 10년 주기. <span style="color:#4ade80;">■</span>=화록(길기), <span style="color:#f87171;">■</span>=화기(흉기) 시기.</p>'
+          +dahanTimelineHtml
+        +'</div>';
+
+        // ── Module 3: 인생의 3대 변곡점 ──
+        var pivots = [];
+        if (pd.daHanList && pd.sihuaData) {
+          pd.daHanList.forEach(function(dh) {
+            var dhSihua2 = [];
+            for (var shS2 in pd.sihuaData) {
+              if (pd.sihuaData[shS2].palaceIdx === dh.idx) dhSihua2.push({star:shS2, info:pd.sihuaData[shS2]});
+            }
+            var hwagiList  = dhSihua2.filter(function(s){return s.info.type==='화기';});
+            var hwarocList = dhSihua2.filter(function(s){return s.info.type==='화록';});
+            if (hwagiList.length>0 && ['재백궁','관록궁','부처궁','명궁','천이궁'].indexOf(dh.palaceName)>=0) {
+              pivots.push({age:dh.startAge+'~'+dh.endAge,type:'crisis',icon:'⚠️',
+                title:dh.startAge+'세 대한: '+dh.palaceName+' — 화기(忌) 진입',
+                desc:hwagiList[0].star+' 화기(忌)가 <b>'+dh.palaceName+'</b>에 진입합니다. 재물·커리어·파트너십 등 핵심 영역에서 균열과 변동이 집약됩니다. 신중한 의사결정과 리스크 최소화가 필수입니다.'});
+            }
+            if (hwarocList.length>0 && ['재백궁','관록궁','명궁'].indexOf(dh.palaceName)>=0) {
+              pivots.push({age:dh.startAge+'~'+dh.endAge,type:'chance',icon:'⭐',
+                title:dh.startAge+'세 대한: '+dh.palaceName+' — 화록(祿) 활성',
+                desc:hwarocList[0].star+' 화록(祿)이 <b>'+dh.palaceName+'</b>에 활성화됩니다. 수입·기회·귀인의 흐름이 집중되는 전성기입니다. 이 10년을 가장 적극적으로 행동해야 합니다.'});
+            }
+          });
+        }
+        if (pivots.length < 2 && pd.daHanList) {
+          var strongSt = ['자미','칠살','파군','태양','무곡'];
+          pd.daHanList.forEach(function(dh2) {
+            var dhM2 = extractMains(pd.stars[dh2.idx]);
+            if (dhM2.some(function(s){return strongSt.indexOf(s)>=0;}) && dh2.palaceName==='명궁') {
+              pivots.push({age:dh2.startAge+'~'+dh2.endAge,type:'turn',icon:'🔀',
+                title:dh2.startAge+'세 대한: 명궁 강성(强星) 대한',
+                desc:'<b>'+dhM2[0]+'</b>이 명궁에 진입하는 자아 전환 대한입니다. 정체성 재정립 또는 생애 방향의 대전환이 발생하기 쉬운 핵심 10년입니다.'});
+            }
+          });
+        }
+        var pivotHtml = '';
+        var shownPivots = pivots.slice(0,3);
+        if (shownPivots.length>0) {
+          shownPivots.forEach(function(p){
+            var bc = p.type==='crisis'?'#f87171':(p.type==='chance'?'#4ade80':'#a78bfa');
+            pivotHtml += '<div style="border-left:4px solid '+bc+';padding:12px 14px;background:'+bc+'11;border-radius:0 8px 8px 0;margin-bottom:10px;">'
+              +'<div style="color:'+bc+';font-weight:800;font-size:0.92rem;margin-bottom:4px;">'+p.icon+' '+p.title+'</div>'
+              +'<div style="color:#e2e8f0;font-size:0.84rem;line-height:1.6;">'+p.desc+'</div>'
+            +'</div>';
+          });
+        } else {
+          pivotHtml = '<div style="color:#94a3b8;font-size:0.88rem;text-align:center;padding:12px;">전체 대한에서 특별한 화사(四化) 충돌이 감지되지 않았습니다. 균형 잡힌 대한 흐름이 예상됩니다.</div>';
+        }
+        var sec_pivot = '<div style="background:rgba(15,10,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(248,113,113,0.2);">'
+          +'<h2 style="color:#FCA5A5;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(252,165,165,0.3);padding-bottom:8px;">🔱 [Module 3] 인생의 3대 변곡점</h2>'
+          +'<p style="font-size:0.78rem;color:#94a3b8;margin:0 0 10px;">화사(四化) 충돌과 주성 배치를 기반으로 산출된 핵심 전환점입니다.</p>'
+          +pivotHtml
+        +'</div>';
 
         var neoMsg = "";
         var pigMsg = "";
@@ -10341,7 +10518,7 @@ var mainSt = extractMains(getPStars(pName));
           '<h1 style="text-align:center; color:#C084FC; font-size:1.5rem; border-bottom:2px solid #8B5CF6; padding-bottom:15px; margin-bottom:20px;">' +
             '자미두수 천명(天命) 종합 리포트' +
           '</h1>' +
-          sec1 + sec2 + sec3 + sec4 +
+          sec1 + sec2 + sec_grand + sec3 + sec_dahan + sec_pivot + sec4 +
         '</div>';
 
         var radarBaseLabels = {psy:['잠재력','리더십','회복탄력성','창의성','스트레스'],rel:['인복','결속력','이성매력','관계확장','마찰도'],fin:['수익창출','자산보존','직업안정','돌파력','파재손실'],time:['활동력','적응력','명예운','변화지수','돌발변수'],well:['신체강건','멘탈케어','면역력','행복지수','불안도']};   
