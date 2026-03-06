@@ -244,9 +244,18 @@ const hwatuStyles = `
     gap: 4px;
 }
 .trad-stack-label {
-    font-size: 0.65rem;
-    color: #64748b;
-    margin-bottom: 2px;
+    order: 99;
+    font-size: 0.78rem;
+    font-weight: bold;
+    color: #d4af37;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+    text-align: center;
+    width: 100%;
+    background: rgba(0,0,0,0.55);
+    border-radius: 4px;
+    padding: 2px 0;
+    border: 1px solid rgba(212,175,55,0.3);
 }
 .trad-card {
     width: 100%;
@@ -396,7 +405,7 @@ function injectHwatuHTML() {
                         <button class="ctg-btn" id="tradCat_love" onclick="setTradCategory('love',this)">애정운</button>
                         <button class="ctg-btn" id="tradCat_success" onclick="setTradCategory('success',this)">합격운</button>
                     </div>
-                    <button class="btn-hwatu" id="tradStartBtn" onclick="startTraditionalGame()" style="font-size:1.1rem;">운수 떼기 시작</button>
+                    <button class="btn-hwatu" id="tradStartBtn" onclick="startTraditionalGame()" style="font-size:1.1rem;display:block;margin:0 auto;">운수 떼기 시작</button>
                 </div>
                 <!-- 운수 떼기 게임판 -->
                 <div id="tradGameBoard" style="display:none;">
