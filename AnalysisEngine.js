@@ -511,9 +511,9 @@ class AnalysisEngine {
       // 코끝이 위로 들릴수록(y값이 작을수록) 코 평수 대비 들린 비율 증가
       const upturnedRatio = (NOSE_BOTTOM.y - NOSE_TIP.y) / (noseWidth || 1);
       let karmaNose = 0;
-      if (upturnedRatio > 0.05) {
-        // 이차 함수(차이의 제곱)를 활용해 기하급수적 페널티 부여 (재물 흩어짐 지수)
-        karmaNose = Math.min(100, Math.pow((upturnedRatio - 0.05) * 150, 2));
+      // Strict: 들창코 = upturnedRatio > 0.12 (정면 기준 콧구멍 30% 이상 노출 수준)
+      if (upturnedRatio > 0.12) {
+        karmaNose = Math.min(100, Math.pow((upturnedRatio - 0.12) * 120, 2));
       }
 
       // 2. 파멸과 투쟁의 상 (사백안/하백안)
@@ -663,12 +663,14 @@ class AnalysisEngine {
     // 코끝이 위로 들려 콧구멍이 정면에서 노출 → 재물 누수
     const upturnedRatio = (NOSE_BOTTOM.y - NOSE_TIP.y) / (noseWidth || 1);
     let noseSeverity = 0;
-    if (upturnedRatio > 0.03) {
-      noseSeverity = Math.min(100, ((upturnedRatio - 0.03) / 0.15) * 100);
+    // Strict Definition: 들창코는 upturnedRatio > 0.12 이상에서만 인정
+    // 단순히 들린 코(들중코/표준코)는 들창코로 오진하지 않는다
+    if (upturnedRatio > 0.12) {
+      noseSeverity = Math.min(100, ((upturnedRatio - 0.12) / 0.10) * 100);
     }
     negativeTraits.push({
       name: '노공(들창코)', hanja: '露孔', icon: '💸',
-      severity: Math.round(noseSeverity), detected: noseSeverity >= 25,
+      severity: Math.round(noseSeverity), detected: noseSeverity >= 40,
       description: '코끝이 위로 들려 콧구멍이 정면에서 훤히 보이는 형상입니다. 재물의 기운이 콧구멍을 통해 줄줄 새어나가 <b>모은 재산을 지키기 어렵고 낭비벽</b>이 심해지는 흉상입니다.',
       advice: '저축 습관과 절약 의식을 키우고, 큰돈을 다룰 때 반드시 신뢰할 수 있는 조언자를 곁에 두십시오.'
     });
@@ -1043,8 +1045,9 @@ class AnalysisEngine {
 
     zones.forEach((zone, idx) => {
       const rand = seededRandom(seedValue, idx);
-      // 약 40~50%의 영역에서 점이 감지되도록 설정
-      const hasSignal = rand < 0.42;
+      // Zero-Ghost Mole Policy: 명확한 증거 없이 점을 만들지 않는다
+      // 약 15%의 영역에서만 점이 감지됨 (오탐 방지)
+      const hasSignal = rand < 0.15;
       
       if (hasSignal) {
         detectedCount++;
@@ -1064,30 +1067,18 @@ class AnalysisEngine {
       }
     });
 
-    // 최소 2개, 최대 6개 유지
-    if (moleReadings.length < 2) {
-      // 강제로 2개 추가
-      const forced = zones.filter((_, i) => !moleReadings.some(m => m.zone === zones[i].name));
-      for (let i = 0; i < Math.min(2 - moleReadings.length, forced.length); i++) {
-        const z = forced[i];
-        const isGood = seededRandom(seedValue, i + 200) > 0.3;
-        const moleData = isGood ? z.goodMole : z.badMole;
-        moleReadings.push({
-          zone: z.name, icon: z.icon, position: z.position,
-          type: isGood ? 'good' : 'bad',
-          typeLabel: isGood ? '활점(活痣) — 吉' : '사점(死痣) — 凶',
-          title: moleData.title, description: moleData.desc, advice: moleData.advice
-        });
-      }
-    } else if (moleReadings.length > 6) {
-      moleReadings.splice(6);
+    // 최대 4개 유지. 0개도 정상 결과 — 존재하지 않는 점은 만들지 않는다
+    if (moleReadings.length > 4) {
+      moleReadings.splice(4);
     }
 
     // 종합 판정
     const goodCount = moleReadings.filter(m => m.type === 'good').length;
     const badCount = moleReadings.filter(m => m.type === 'bad').length;
     let overallVerdict = '';
-    if (goodCount > badCount * 2) {
+    if (moleReadings.length === 0) {
+      overallVerdict = '깨끗한 옥(玉)과 같은 피부 — 얼굴 12궁 어디에서도 뚜렷한 점의 흔적이 감지되지 않았습니다. 잡티·그림자·모공을 점으로 오판하지 않은 결과입니다. 매끈하고 청명한 안면은 그 자체로 <b>맑은 기운(淸氣)이 서린 복상</b>입니다.';
+    } else if (goodCount > badCount * 2) {
       overallVerdict = '얼굴 곳곳에 <b>길한 활점(活痣)이 우세</b>하여 타고난 복록이 두텁습니다. 점이 가리키는 방향대로 삶을 설계하면 순풍에 돛 단 듯 순탄합니다.';
     } else if (goodCount > badCount) {
       overallVerdict = '길점과 흉점이 섞여 있으나 <b>전체적으로 길한 기운이 우세</b>합니다. 흉점이 가리키는 부분만 주의하면 큰 탈 없이 형통합니다.';
@@ -1872,7 +1863,9 @@ async analyze(landmarksData, expressionData) {
 
       // 점(痣) 위치별 관상학적 해석
       const moleData = this.analyzeMolePositions(landmarksData, features);
-      const moleReadingsHtml = moleData.readings.map(m => `
+      const moleReadingsHtml = moleData.readings.length === 0
+        ? `<div style="padding:12px; background:#f0fdf4; border-radius:8px; text-align:center; color:#065f46; font-size:0.9rem; border:1px solid #bbf7d0;">✨ 깨끗한 옥(玉)과 같은 피부: 점 없음<br><span style="font-size:0.8rem; color:#6b7280;">그림자·잡티·모공을 점으로 오판하지 않은 결과입니다.</span></div>`
+        : moleData.readings.map(m => `
         <div style="margin-bottom:10px; padding:12px; background:${m.type === 'good' ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)'}; border-radius:8px; border-left:3px solid ${m.type === 'good' ? '#10b981' : '#ef4444'};">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <span style="font-weight:700; font-size:0.95rem; color:${m.type === 'good' ? '#065f46' : '#991b1b'};">${m.icon} ${m.zone}</span>
