@@ -7073,9 +7073,11 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
-/* 3. 저사양 기기 — 모션 최소화 */
+/* 3. 저사양 기기 — 모션 최소화 (사주 로더는 제외: 로딩 체감에 필수) */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *:not(#sajuLoaderOverlay):not(#sajuLoaderOverlay *),
+  *:not(#sajuLoaderOverlay)::before,
+  *:not(#sajuLoaderOverlay)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

@@ -1769,16 +1769,18 @@ function startSajuCalculationFlow() {
     }, 95);
 
     // 계산 + 애니메이션 완료 시간을 병렬 실행
-    // 최장 애니메이션: page3 turnPage(2.2s + 0.9s delay = 3.1s) + vortex(2.5s+0.5s=3.0s)
-    // → 3300ms 대기로 모든 애니메이션이 완전히 끝난 후 결과 표시
+    // 최장 애니메이션: page3 turnPage(2.2s + 0.9s delay = 3.1s)
+    // 800ms 딜레이: CSS 애니메이션이 컴포지터 스레드에 올라간 후 계산 시작
+    // → 메인 스레드 블로킹이 초반 애니메이션 프레임을 방해하지 않음
+    // → 총 최소 체감 시간: 800 + 2600 = 3400ms (이전 자연스러운 흐름 복원)
     setTimeout(async () => {
       await Promise.all([
         calculate(),
-        new Promise(resolve => setTimeout(resolve, 3300))
+        new Promise(resolve => setTimeout(resolve, 2600))
       ]);
       var _lo = document.getElementById('sajuLoaderOverlay');
-      if (_lo) { _lo.classList.remove('show'); setTimeout(function(){ _lo.style.display='none'; }, 500); }
-    }, 80);
+      if (_lo) { _lo.classList.remove('show'); setTimeout(function(){ _lo.style.display='none'; }, 600); }
+    }, 800);
   });
 }
 
