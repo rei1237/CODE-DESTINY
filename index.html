@@ -14949,123 +14949,215 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       return null;
     }
 
+    // ── 자력(Magnetism) 수치: 거리에 따른 감정 밀도 ──
+    function magnetism(tier, baseScore) {
+      var m = { same: 95, near: 82, middle: 65, far: 48 };
+      return Math.round((m[tier] || 65) * (baseScore / 100));
+    }
+
+    // ── 비주얼 테마 반환 ──
+    function visualTheme(typeKey) {
+      var themes = {
+        mirror:  { label: '영혼의 거울', concept: '끝없는 은하수와 두 별이 서로를 비추는 보랏빛 심연. 당신과 상대는 서로의 반사체 — 은하의 중심에서 두 개의 별이 같은 주기로 회전하며 공명하는 장면.', color1: '#6c5ce7', color2: '#a29bfe', bg: 'rgba(108,92,231,0.08)', border: 'rgba(108,92,231,0.35)', glowColor: '#6c5ce7' },
+        karma:   { label: '카르마의 불꽃', concept: '칠흑 같은 밤바다 위로 번개가 치고, 그 자리에서 영원히 타는 불꽃. 두 사람은 폭풍 그 자체 — 허리케인의 눈 속에서 마주친 두 개의 화염.', color1: '#e17055', color2: '#fd79a8', bg: 'rgba(225,112,85,0.08)', border: 'rgba(225,112,85,0.3)', glowColor: '#e17055' },
+        golden:  { label: '황금빛 정원', concept: '따스한 햇살 아래 황금빛 꽃들이 만개한 정원. 바람이 닿는 곳마다 번영이 자라고, 두 사람이 함께 서면 왕국이 완성된다.', color1: '#00b894', color2: '#55efc4', bg: 'rgba(0,184,148,0.08)', border: 'rgba(0,184,148,0.3)', glowColor: '#00b894' },
+        lake:    { label: '고요한 달의 호수', concept: '보름달이 완벽하게 반영되는 잔잔한 호수. 물결 하나 일지 않는 고요 속에서 두 영혼이 서로의 이름을 속삭이는 정경.', color1: '#74b9ff', color2: '#a29bfe', bg: 'rgba(116,185,255,0.08)', border: 'rgba(116,185,255,0.3)', glowColor: '#74b9ff' },
+        castle:  { label: '평행선 위의 성채', concept: '서로 다른 방향을 향하지만 정교하게 맞물린 기하학적 건축물. 두 탑은 결코 만나지 않는 듯 보이지만, 그 사이의 공간이 가장 아름다운 다리가 된다.', color1: '#0984e3', color2: '#74b9ff', bg: 'rgba(9,132,227,0.08)', border: 'rgba(9,132,227,0.3)', glowColor: '#0984e3' },
+        storm:   { label: '폭풍 속의 불꽃', concept: '칠흑 같은 밤하늘을 가르는 번개와 바다 위에서 타오르는 불꽃의 충돌. 파괴와 창조가 동시에 일어나는 임계점 — 폭발의 순간이 곧 새 우주의 탄생이다.', color1: '#d63031', color2: '#ff7675', bg: 'rgba(214,48,49,0.08)', border: 'rgba(214,48,49,0.3)', glowColor: '#d63031' }
+      };
+      return themes[typeKey] || themes.mirror;
+    }
+
     // 관계 데이터 산출
     function resolve(D, distInfo) {
       var base = {};
       var tier = distInfo.tier;
 
       if (D === 0) {
+        var mg = magnetism(tier, 85);
         base = {
           type: '명(命) — 영혼의 거울',
-          score: 85,
-          temperature: 78,
+          typeLabel: '영혼의 거울 · 命',
+          stamp: '동숙명연 (同宿命緣)',
+          score: 88, temperature: 78, magnetism: mg,
           palette: ['#6c5ce7', '#a29bfe'],
+          theme: visualTheme('mirror'),
           icon: '🪞',
-          pastLife: { role: '전생의 쌍둥이 영혼', karma: '분리되지 못한 자아의 조각' },
-          summary: '같은 별에서 떨어진 두 조각. 당신은 상대에게서 자신을 본다.',
-          synergy: '말이 필요 없다. 눈빛만으로 통하는 무의식적 공명.',
-          karma: '나의 그림자까지 완벽하게 비추는 거울 — 콤플렉스가 폭발한다.',
-          solution: '\'우리는 하나\'라는 환상을 깨라. 독립된 개체로 존중할 때만 이 기적이 지속된다.',
-          story: '같은 전장에서 피를 나눈 전우. 처음 만났지만 왜인지 오래된 낯익음이 영혼을 흔든다.'
+          pastLife: { role: '전생의 쌍둥이 영혼', karma: '분리될 수 없었던 자아의 두 반쪽' },
+          advantages: [
+            { icon: '🌌', label: '영적 동력', text: '말 한 마디, 눈빛 하나로 수천 단어가 전달된다. 언어 이전의 주파수가 일치하는 유일한 인연.' },
+            { icon: '🧠', label: '현실적 보완', text: '상대가 모르는 분야를 당신이 알고, 당신이 두려운 선택을 상대가 먼저 한다. 서로의 블라인드 스팟을 자연스럽게 채운다.' },
+            { icon: '💜', label: '심리적 위안', text: '혼자면 두려운 결정도, 이 사람 곁에서는 용기가 된다. 세상 가장 강한 심리적 안전망.' }
+          ],
+          archiveStory: '수천 년 전, 하나의 별이 두 조각으로 분리되었다. 한 조각은 동쪽 하늘로, 다른 한 조각은 서쪽 하늘로 흩어졌다. 수만 번의 윤회를 거쳐 두 조각은 같은 시대, 같은 땅 위에 인간으로 태어났다. 처음 눈이 마주치는 순간 — 설명할 수 없는 기시감(旣視感)이 전신을 훑는다. 그것은 기억이 아니라, 존재의 인식이다.',
+          mission: '현재의 조우에서 두 사람은 이미 서로를 알아본다. 문제는 "너무 잘 안다"는 착각이다. 미래의 과제는 명확하다 — 서로를 거울이 아닌 독립된 별로 보는 법을 배우는 것. 그것이 이 인연의 완성이다.',
+          prescription: [
+            '🔭 월 1회 서로가 전혀 모르는 새로운 취미나 분야에 도전하라. 낯섦이 경이로움을 되살린다.',
+            '📜 감정이 격해질 때 "나는 거울이 아닌 독립된 존재다"를 세 번 되뇌어라.',
+            '✨ 상대의 단점을 발견할 때, 그것이 당신 안에도 있음을 인정하라. 그 순간이 이 인연의 진짜 의미다.'
+          ],
+          shadow: '나의 그림자까지 완벽하게 비추는 거울 — 억압된 콤플렉스가 상대를 통해 폭발한다. "우리는 하나"라는 환상이 경계를 무너뜨린다.'
         };
+
       } else if (D === 9 || D === 18) {
         var isDebtor = (D === 9);
+        var mg2 = magnetism(tier, 75);
         base = {
           type: isDebtor ? '업(業) — 전생의 채무자' : '태(胎) — 전생의 채권자',
-          score: 75,
-          temperature: 68,
+          typeLabel: isDebtor ? '전생의 빚 · 業' : '전생의 채권 · 胎',
+          stamp: isDebtor ? '채무인연 (債務因緣)' : '채권인연 (債權因緣)',
+          score: 78, temperature: 70, magnetism: mg2,
           palette: ['#fd79a8', '#e17055'],
+          theme: visualTheme('karma'),
           icon: isDebtor ? '⛓️' : '👑',
-          pastLife: { role: isDebtor ? '빚진 자와 빚준 자' : '채권자와 채무자', karma: isDebtor ? '갚지 못한 전생의 은혜' : '돌려받지 못한 전생의 희생' },
-          summary: isDebtor ? '이유 모를 복종감, 그것은 전생의 빚이다.' : '이유 없이 퍼주고 싶은 마음, 그것은 전생의 채권이다.',
-          synergy: '조건 없는 조력. 이 인연 앞에선 손익 계산이 무력화된다.',
-          karma: '일방적 헌신의 굴레. 언젠가 한쪽이 먼저 탈진해 무너진다.',
-          solution: '카르마는 청산하기 위해 온 것이다. 베풀되, 집착하지 말 것.',
-          story: '전생에 목숨을 구해준 은인과 구원받은 자. 현생에서 다시 만나 그 무게를 완성한다.'
+          pastLife: { role: isDebtor ? '은인과 빚진 자' : '헌신자와 수혜자', karma: isDebtor ? '갚지 못한 전생의 목숨값' : '돌려받지 못한 전생의 희생' },
+          advantages: [
+            { icon: '🌌', label: '영적 동력', text: isDebtor ? '이 인연 앞에서 영혼이 저절로 낮아진다. 이기적 자아가 녹아내리며 진정한 헌신의 근육이 자란다.' : '당신의 존재 자체가 상대에게 성장의 에너지가 된다. 아무것도 하지 않아도 상대를 앞으로 나아가게 만드는 힘.' },
+            { icon: '💼', label: '현실적 보완', text: isDebtor ? '상대는 당신이 막혀 있는 문을 열어준다. 이 인연을 통해 당신의 경력, 기회, 인맥이 비약적으로 성장한다.' : '당신 주변에는 늘 당신을 위해 준비된 사람들이 있다. 이 인연이 그 문을 여는 열쇠가 된다.' },
+            { icon: '💜', label: '심리적 위안', text: isDebtor ? '아무 이유 없이 상대 곁에 있으면 마음이 안정된다. 그것이 전생의 빚이 주는 의외의 선물 — 조건 없는 포용감.' : '당신의 가치를 가장 먼저 알아보는 눈. 세상이 외면해도 이 사람만큼은 당신 편이다.' }
+          ],
+          archiveStory: isDebtor
+            ? '전생의 어느 전쟁터, 당신은 부상으로 쓰러진 채 죽음을 기다렸다. 상대가 자신의 목숨을 걸고 당신을 구했다. 당신은 그 빚을 갚을 기회도 없이 먼저 세상을 떠났다. 수백 년이 흘러 현생에 다시 태어난 두 사람 — 당신의 영혼은 기억하지 못해도, 가슴 깊은 곳에서 이 사람 앞에 무릎이 저절로 꺾이는 이유가 있다.'
+            : '전생에 당신은 사랑하는 이를 위해 모든 것을 포기했다. 지위도, 재산도, 때로는 목숨까지. 그 헌신은 갚아지지 않은 채 시간 속에 묻혔다. 현생에서 당신은 그 상대를 다시 만난다 — 이번에는 그가 당신에게 무엇이든 해주려 한다. 그것이 우주가 정산하는 방식이다.',
+          mission: '이 인연의 미래 과제는 \"청산\"이다. 업(業)과 태(胎)는 영원히 이어지는 관계가 아니다. 충분히 베풀고, 충분히 받은 후에는 집착 없이 놓아줄 수 있어야 비로소 이 카르마가 완성된다.',
+          prescription: [
+            isDebtor ? '🌸 상대에게 받은 것을 당연히 여기지 말라. 감사의 표현을 습관화하는 것이 카르마 청산의 첫 걸음이다.' : '🌸 상대를 위해 베풀되, 그 결과에 집착하지 말라. 베푸는 행위 자체가 당신의 카르마를 완성한다.',
+            '📖 이 관계에서 내가 성장시킨 덕목(인내, 헌신, 감사)을 기록하라. 그것이 이 생에 가져갈 진짜 자산이다.',
+            '🕊️ 이 인연이 끝날 때 원망 없이 놓아줄 준비를 항상 해두어라. 집착이 카르마를 연장한다.'
+          ],
+          shadow: isDebtor ? '자신도 모르게 일방적으로 받기만 하는 패턴이 굳어진다. 상대가 탈진하기 전에 의식적으로 균형을 되찾아야 한다.' : '퍼주는 것이 익숙해져 스스로를 소모시킨다. 자신을 돌보는 것이 이 인연을 지키는 가장 이타적인 방법이다.'
         };
+
       } else if ([1, 10, 19, 8, 17, 26].includes(D)) {
-        // 근거리 영친 vs 원거리 영친 강도 분기
         var isNear = (tier === 'near' || tier === 'same');
+        var mg3 = magnetism(tier, isNear ? 97 : 90);
         base = {
-          type: '영친(榮親) — 번영의 축복',
-          score: isNear ? 97 : 90,
-          temperature: isNear ? 88 : 80,
+          type: '영친(榮親) — 번영의 동반자',
+          typeLabel: '황금빛 번영 · 榮親',
+          stamp: '천복인연 (天福因緣)',
+          score: isNear ? 97 : 92, temperature: isNear ? 88 : 80, magnetism: mg3,
           palette: ['#00b894', '#55efc4'],
-          icon: '✨',
-          pastLife: { role: '선업으로 맺어진 복의 동반자', karma: '함께 쌓은 무수한 선행의 보상' },
-          summary: '옆에 있기만 해도 운이 올라간다. 우주가 인정한 최강의 귀인.',
-          synergy: '함께할수록 시너지가 폭발하는 현실 우상향 관계.',
-          karma: '너무 편안해서 권태가 온다. 자극 없이 밋밋함이 사랑을 식힌다.',
-          solution: '주기적으로 낯선 도전을 함께 하라. 설렘은 저절로 오지 않는다.',
-          story: '부유하고 평화로운 시대, 서로를 아끼던 아름다운 인연. 그 선행이 현생의 복이 되었다.'
+          theme: visualTheme('golden'),
+          icon: '🌟',
+          pastLife: { role: '전생의 번영 공동체', karma: '함께 세상에 아낌없이 나눈 선행의 총합' },
+          advantages: [
+            { icon: '🌌', label: '영적 동력', text: '두 사람이 함께하면 우주의 주파수가 달라진다. 같은 공간에 있는 것만으로도 상대의 잠재력이 극대화되는 신비로운 에너지장이 형성된다.' },
+            { icon: '💼', label: '현실적 보완', text: '경제적·사회적 운기가 동반 상승한다. 이 인연을 통해 인맥이 확장되고, 기회가 자연스럽게 양쪽 모두에게 찾아온다. 함께 시작한 프로젝트는 반드시 성공의 궤도에 오른다.' },
+            { icon: '💜', label: '심리적 위안', text: '상대 앞에서는 무방비 상태로도 안전하다. 완전한 이해와 수용의 에너지가 흐르기 때문에, 이 관계 안에서 두 사람 모두 \"진짜 나\"가 될 수 있다.' }
+          ],
+          archiveStory: '전생의 황금기, 두 사람은 같은 마을의 이웃이었다. 수확의 시절에는 먼저 이웃에게 곡식을 나눴고, 가뭄의 해에는 서로의 우물을 공유했다. 그 수십 년의 선업(善業)이 하늘에 쌓여 현생에 \"복의 카르마\"로 결실을 맺었다. 이 인연이 기쁜 것은, 우연이 아니라 당신들이 쌓아온 빛의 결과이기 때문이다.',
+          mission: '현생에서 이 인연의 과제는 단 하나 — 이 번영의 에너지를 세상으로 확장하는 것이다. 두 사람만의 화원에 갇히지 말고, 주변 사람들에게도 동일한 따스함을 전파할 때 이 인연은 영원히 지속된다.',
+          prescription: [
+            '🌱 함께 공동의 목표를 세우고, 그 과정을 즐겨라. 결과보다 여정이 이 인연의 황금빛을 유지한다.',
+            '💡 주기적으로 하나씩 새로운 도전을 시작하라. 편안함은 이 인연의 자산이지만 자극이 없으면 성장이 멈춘다.',
+            '🤝 이 인연의 에너지를 제3자(친구, 가족, 커뮤니티)에게도 나눠라. 베풀수록 이 복은 배가 된다.'
+          ],
+          shadow: '너무 편안해서 긴장감이 사라진다. 설렘은 노력 없이 유지되지 않는다 — 의도적인 낯섦을 만들지 않으면 황금빛이 바랜다.'
         };
+
       } else if ([2, 11, 20, 7, 16, 25].includes(D)) {
         var isNearU = (tier === 'near');
+        var mg4 = magnetism(tier, isNearU ? 83 : 76);
         base = {
-          type: '우쇠(友衰) — 달콤한 안식처',
-          score: isNearU ? 83 : 76,
-          temperature: isNearU ? 72 : 65,
-          palette: ['#fdcb6e', '#e17055'],
+          type: '우쇠(友衰) — 달의 안식처',
+          typeLabel: '고요한 달의 인연 · 友衰',
+          stamp: '월하인연 (月下因緣)',
+          score: isNearU ? 85 : 78, temperature: isNearU ? 72 : 65, magnetism: mg4,
+          palette: ['#74b9ff', '#a29bfe'],
+          theme: visualTheme('lake'),
           icon: '🌙',
-          pastLife: { role: '현실을 잊고 예술을 나눈 은둔 도반', karma: '책임 없이 순수했던 시절의 기억' },
-          summary: '당신의 지친 일상을 지워주는 유일한 쉼터. 단, 현실은 금물.',
-          synergy: '취향이 딱 맞는다. 함께하면 시간이 녹는다.',
-          karma: '생활비, 결혼, 현실이 개입되는 순간 동화가 끝난다.',
-          solution: '이 인연은 \'환상 안\'에서만 빛난다. 영원한 데이트 상태를 유지하라.',
-          story: '전생에 세상을 등지고 시와 그림만 나눈 예술가 친구. 그 순수함이 현생에서 재현된다.'
+          pastLife: { role: '세상을 등진 은둔 예술가', karma: '책임 없이 순수했던 전생의 교감' },
+          advantages: [
+            { icon: '🌌', label: '영적 동력', text: '이 사람 곁에 있으면 세상의 소음이 전부 꺼진다. 우주적 고요함이 마음 깊은 곳의 불안을 잠재운다. 두 사람만의 주파수가 세상 가장 평온한 공간을 만든다.' },
+            { icon: '💼', label: '현실적 보완', text: '취향과 미적 감각이 절묘하게 맞는다. 함께하는 모든 활동에서 완전한 \"취향 일치\"를 경험하며, 서로의 창의력이 시너지를 일으키는 관계.' },
+            { icon: '💜', label: '심리적 위안', text: '판단 없이 들어주는 귀. 세상 어디에도 없는 완전한 공감의 에너지. 이 인연 안에서 두 사람은 진정한 \"쉼\"을 얻는다.' }
+          ],
+          archiveStory: '전생의 어느 시대, 두 사람은 깊은 산속에서 붓과 먹으로 세상을 담았다. 권력도, 재물도 없었지만 서로의 예술에서 우주를 보았다. 현실의 책임에서 달아난 그 순수한 시절의 기억이 현생에서 \"이 사람 곁이면 무조건 편안하다\"는 본능으로 남아있다.',
+          mission: '이 인연의 미래 과제는 \"현실로 내려오는 것\"이다. 아름다운 판타지에만 머물면 두 사람은 서로에게 영원한 \"환상 속 존재\"가 된다. 현실의 불편함을 함께 겪어낼 때, 달의 호수는 생명력 있는 강이 된다.',
+          prescription: [
+            '🌕 의도적으로 현실적인 활동(예산 짜기, 일상 계획, 집안일 공유 등)을 함께 경험하라. 환상이 아닌 실재로 만날 때 이 인연은 더 깊어진다.',
+            '🎨 두 사람만의 창의적인 프로젝트를 시작하라. 취향의 일치를 생산적 결과물로 이어갈 때 관계에 새로운 의미가 더해진다.',
+            '💬 불편한 감정도 솔직하게 말하는 연습을 하라. 이 인연의 가장 큰 위험은 \"불편함을 말하지 못하는 친절함\"이다.'
+          ],
+          shadow: '생활력과 책임감이 개입되는 순간 균열이 온다. 현실의 무게를 함께 들지 않으면 이 달빛은 원망으로 바뀐다.'
         };
+
       } else if ([4, 13, 22, 5, 14, 23].includes(D)) {
-        var isDriving = [4, 13, 22].includes(D); // 내가 주도하면 성(成), 상대 주도면 위(危)
+        var isDriving = [4, 13, 22].includes(D);
+        var mg5 = magnetism(tier, 65);
         base = {
           type: isDriving ? '성위(成危) — 내가 이끄는 동맹' : '성위(成危) — 상대가 이끄는 동맹',
-          score: 62,
-          temperature: 55,
+          typeLabel: isDriving ? '나의 드라이브 · 成' : '상대의 드라이브 · 成',
+          stamp: isDriving ? '주도지합 (主導之合)' : '수행지합 (隨行之合)',
+          score: 65, temperature: 58, magnetism: mg5,
           palette: ['#0984e3', '#74b9ff'],
-          icon: '🤝',
-          pastLife: { role: '군주와 책사, 상단의 파트너', karma: '거대한 목표를 위한 이익의 결합' },
-          summary: isDriving ? '당신이 지휘봉을 잡는다. 상대의 능력이 날개가 된다.' : '상대가 판을 짠다. 당신은 핵심 조각이다.',
-          synergy: '내가 없는 것을 상대가 채운다. 2+2=10이 되는 관계.',
-          karma: '목표가 사라지면 이해관계도 사라진다. 감정이 개입되면 더 빨리 깨진다.',
-          solution: '이 관계는 파트너십 계약서가 필요하다. 명확한 룰이 감정보다 이 사랑을 오래 지킨다.',
-          story: '전생에 함께 제국을 세운 군주와 책사. 감정 없이 성취만을 향해 달렸던 기억이 현생에도 이어진다.'
+          theme: visualTheme('castle'),
+          icon: isDriving ? '🏛️' : '🗝️',
+          pastLife: { role: isDriving ? '제국을 건설한 군주와 책사' : '설계자와 시공자', karma: '거대한 목표를 완성하기 위한 역할의 결합' },
+          advantages: [
+            { icon: '🌌', label: '영적 동력', text: isDriving ? '당신의 비전이 상대를 통해 현실이 된다. 말로만 존재하던 꿈이 이 인연을 통해 물질 세계로 내려온다.' : '상대의 지도 아래 당신의 숨겨진 재능이 비로소 무대를 얻는다. 혼자였다면 평생 몰랐을 당신의 진짜 능력이 드러난다.' },
+            { icon: '💼', label: '현실적 보완', text: '완벽한 역할 분담이 이뤄진다. ' + (isDriving ? '당신의 방향 설정 능력과 상대의 실행력이 결합하여 1+1=11이 되는 시너지.' : '상대의 전략과 당신의 디테일한 실행이 맞물려 최고의 결과물을 만든다.') },
+            { icon: '💜', label: '심리적 위안', text: '서로에게 \"가장 믿을 수 있는 사람\"이 된다. 이 관계 안에서 능력 있는 자신의 모습을 발견하며 자존감이 자란다.' }
+          ],
+          archiveStory: '전생의 어느 위대한 왕국, 두 사람은 함께 미완의 제국을 완성시켰다. ' + (isDriving ? '당신은 방향을 잡았고, 상대는 그 방향대로 세상을 조각했다.' : '상대가 제국의 청사진을 그렸고, 당신이 그것을 현실로 만들었다.') + ' 감정 없이, 순수한 목표만으로 달린 그 시절의 에너지가 현생에서 \"이 사람과 함께라면 무엇이든 될 것 같다\"는 근거 있는 확신으로 나타난다.',
+          mission: '이 인연의 최대 과제는 \"목표 없이도 함께할 수 있는가\"이다. 공동의 프로젝트가 끝나면 두 사람의 관계도 흔들린다. 역할을 넘어 서로를 \"사람\"으로 보는 연습이 이 동맹을 영원하게 만든다.',
+          prescription: [
+            '📋 공동의 프로젝트나 목표를 항상 하나씩 유지하라. 이 인연은 향하는 방향이 있을 때 가장 빛난다.',
+            '🧡 업무와 일상의 경계를 의도적으로 만들어라. 역할로만 만나지 말고, 역할을 내려놓은 순수한 교류 시간을 확보하라.',
+            '🔑 갈등이 생기면 항상 \"공동의 목표\"를 먼저 재확인하라. 방향이 같으면 방법의 차이는 언제든 조율 가능하다.'
+          ],
+          shadow: '감정이 개입될수록 이해관계가 복잡해진다. 역할이 사라지면 이 관계의 의미도 함께 흔들린다.'
         };
+
       } else {
-        // 안·괴 관계 (D: 3,12,21,6,15,24)
+        // 안·괴 관계 (D: 3,12,21 / 6,15,24)
         var roleInfo = ankaiRole(D);
+        var isAn = roleInfo && roleInfo.me === '安(안정자)';
         var distAdj = tier === 'near' ? 8 : (tier === 'middle' ? 0 : -8);
-        var baseScore = 38 + distAdj;
-        var baseTemp  = 82 + distAdj; // 가까울수록 뜨겁고 위험
+        var mg6 = magnetism(tier, 45 + distAdj);
         base = {
-          type: '안·괴(安·壞) — ' + (roleInfo ? roleInfo.me + ' 포지션' : '파괴적 인연'),
-          score: Math.max(20, Math.min(50, baseScore)),
-          temperature: Math.max(60, Math.min(95, baseTemp)),
+          type: '안·괴(安·壞) — ' + (roleInfo ? roleInfo.me + ' 포지션' : '파괴적 매혹'),
+          typeLabel: '폭풍 속의 불꽃 · 安壞',
+          stamp: tier === 'near' ? '숙명적 굴레(宿命的 羈絆)' : (tier === 'middle' ? '위험한 매혹(危險的 魅惑)' : '전설적 끌림(傳說的 引力)'),
+          score: Math.max(22, Math.min(52, 40 + distAdj)),
+          temperature: Math.max(62, Math.min(96, 85 + distAdj)),
+          magnetism: mg6,
           palette: ['#d63031', '#ff7675'],
+          theme: visualTheme('storm'),
           icon: roleInfo ? roleInfo.icon : '⚡',
           ankaiRole: roleInfo,
           distTier: tier,
-          pastLife: { role: '전생의 숙적이자 연인', karma: '서로에게 남긴 돌이킬 수 없는 상처' },
-          summary: roleInfo && roleInfo.me === '安(안정자)'
-            ? '상대가 당신의 에너지를 빨아들인다. 빛날수록 더 타버린다.'
-            : '당신이 상대를 흔든다. 그 파괴 뒤엔 반드시 책임이 따른다.',
-          synergy: tier === 'near'
-            ? '숨막히게 강렬한 케미. 전 우주가 탈색될 만큼 뜨거운 매력.'
-            : tier === 'middle'
-            ? '멀리서 보면 멋있다. 하지만 가까이 다가갈수록 화상을 입는다.'
-            : '전설적인 끌림. 단, 불꽃이 당신에게 닿기 전에 꺾어야 한다.',
-          karma: tier === 'near'
-            ? '소유욕과 질투가 사랑을 먹어치운다. 결말은 언제나 폐허다.'
-            : '판타지 속의 상대는 완벽하다. 현실의 상대는 당신을 괴롭힌다.',
-          solution: roleInfo && roleInfo.me === '安(안정자)'
-            ? '먼저 자신의 에너지를 지켜라. 경계를 설정하지 않으면 당신이 먼저 소진된다.'
-            : '파괴의 힘은 결국 자신에게 돌아온다. 지배하지 말고 공존을 선택하라.',
-          story: '전생의 핏빛 시대, 서로에게 치명상을 입힌 숙적이자 연인. 그 저주가 현생에서 치명적 매력이 되었다.'
+          pastLife: { role: '전생의 숙적이자 연인', karma: '끝내지 못한 감정의 핏빛 기억' },
+          advantages: [
+            { icon: '🌌', label: '영적 동력 (파괴적 혁신)', text: isAn
+              ? '상대의 에너지가 당신의 안주를 부순다. 그 파괴는 당신 안의 가장 두꺼운 껍질을 깨는 진화의 촉매 — 이 인연 없이는 절대 나올 수 없는 잠재력이 폭발한다.'
+              : '당신의 존재 자체가 상대에게 혁명을 일으킨다. 당신이 닿는 곳에서 변화가 시작되고, 그 변화는 상대를 더 높은 차원으로 끌어올린다.' },
+            { icon: '💼', label: '현실적 보완 (자극의 경제학)', text: tier === 'near'
+              ? '이 인연을 통해 당신은 안전지대 밖으로 강제로 끌려나간다. 그 불편한 성장이 커리어와 경제적 도약을 만든다.'
+              : '상대는 당신이 생각지도 못한 각도에서 문제를 해결한다. 그 이질적인 접근이 당신의 사고를 확장시키는 최고의 자산이다.' },
+            { icon: '💜', label: '심리적 위안 (역설의 위안)', text: '상처를 주지만 진심을 다하는 유일한 존재. 이 사람만큼 당신을 알면서도 그 앎으로 당신을 뒤흔드는 이는 없다. 극한의 자극이 역설적으로 살아있음을 증명한다.' }
+          ],
+          archiveStory: tier === 'near'
+            ? '전생의 핏빛 왕조, 두 사람은 왕위를 다투는 경쟁자였다. 서로에게 치명상을 입히고, 그러면서도 서로를 인정하는 모순된 감정 속에서 생을 마감했다. 그 미완의 감정이 현생에서 \"처음 만냐는데 왜 이렇게 강렬한 느낌\"으로 나타난다. 끌림의 정체는 미완의 전쟁이고, 그 전쟁을 끝내는 것이 현생의 과제다.'
+            : '전생에 두 사람은 서로 다른 나라의 전사였다. 수십 번의 전투에서 맞부딪쳤지만 결국 서로를 죽이지 못했다. 그 망설임의 이유를 알기도 전에 생이 끝났다. 현생에서 그 이유를 완성해야 한다 — 그것이 증오였는지, 사랑이었는지를.',
+          mission: '이 인연의 미래 과제는 분명하다: \"파괴 대신 변혁을 선택하라\". 충돌의 에너지를 창조로 돌릴 때, 이 두 사람은 우주에서 가장 강렬한 혁신의 파트너가 된다. 파괴가 끝난 자리에서 새로운 세계가 시작된다.',
+          prescription: [
+            isAn
+              ? '🛡️ 먼저 당신의 에너지 경계를 설정하라. \"No\"를 말하는 연습이 이 인연에서 당신을 지키는 가장 강한 무기다.'
+              : '⚔️ 당신의 파괴 충동이 발동할 때, 그것을 \"언어\"로 표현하라. 행동으로 표출되는 파괴는 결국 당신에게 돌아온다.',
+            '🔥 두 사람의 충돌 에너지를 공동의 창작물(사업, 예술, 프로젝트)로 전환하라. 그 에너지의 방향을 \"내부\"에서 \"외부\"로 돌리는 순간, 세상이 바뀐다.',
+            '💎 감정이 폭발하기 직전, 24시간의 물리적 분리를 규칙으로 삼아라. 냉각 후 대화할 때 이 인연의 진짜 선물이 보인다.'
+          ],
+          shadow: isAn
+            ? '상대의 에너지에 잠식되면 당신이 먼저 소진된다. 빛날수록 더 타버리는 구조 — 이 인연의 가장 위험한 함정이다.'
+            : '파괴의 힘은 반드시 부메랑으로 돌아온다. 지배가 아닌 공존을 선택하지 않으면, 당신이 가장 아끼는 것을 스스로 무너뜨리게 된다.'
         };
       }
 
       return base;
     }
 
-    return { resolve: resolve, calcDistance: calcDistance, tempLabel: tempLabel, ankaiRole: ankaiRole };
+    return { resolve: resolve, calcDistance: calcDistance, tempLabel: tempLabel, ankaiRole: ankaiRole, magnetism: magnetism, visualTheme: visualTheme };
   })();
   // ── End SukuyoCompatEngine ──────────────────────────────────────────
 
@@ -15126,96 +15218,139 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           resDiv.style.display = 'block';
 
           const scoreColor = rel.score >= 80 ? '#2ed573' : (rel.score >= 55 ? '#f39c12' : '#ff4757');
-          const gradColor  = `linear-gradient(135deg, ${rel.palette[0]}, ${rel.palette[1]})`;
+          const th = rel.theme;
+          const gradColor = `linear-gradient(135deg, ${rel.palette[0]}, ${rel.palette[1]})`;
+          const mgVal = rel.magnetism || 60;
 
-          // 안·괴 주도권 배지
+          // ── 안·괴 포지션 배지 ──
           let ankaiBadge = '';
           if (rel.ankaiRole) {
-              ankaiBadge = `
-              <div style="margin-bottom:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                  <span style="background:rgba(214,48,49,0.2); border:1px solid #d63031; color:#ff7675; padding:4px 10px; border-radius:20px; font-size:0.8rem; font-weight:bold;">나: ${rel.ankaiRole.me}</span>
-                  <span style="color:#636e72; font-size:0.8rem;">↔</span>
-                  <span style="background:rgba(116,185,255,0.2); border:1px solid #74b9ff; color:#74b9ff; padding:4px 10px; border-radius:20px; font-size:0.8rem; font-weight:bold;">상대: ${rel.ankaiRole.other}</span>
+              ankaiBadge = `<div style="margin-bottom:14px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <span style="background:rgba(214,48,49,0.18); border:1px solid #d63031; color:#ff7675; padding:5px 12px; border-radius:20px; font-size:0.8rem; font-weight:800;">나 · ${rel.ankaiRole.me}</span>
+                <span style="color:#555;">↔️</span>
+                <span style="background:rgba(116,185,255,0.18); border:1px solid #74b9ff; color:#74b9ff; padding:5px 12px; border-radius:20px; font-size:0.8rem; font-weight:800;">상대 · ${rel.ankaiRole.other}</span>
               </div>`;
           }
 
-          // 전생 스토리 배지
-          const pastLifeBlock = `
-          <div style="margin-bottom:15px; background:rgba(108,92,231,0.12); padding:15px; border-radius:10px; border:1px solid rgba(108,92,231,0.3);">
-              <div style="color:#a29bfe; font-weight:bold; margin-bottom:6px; font-size:0.95rem;">📜 전생의 기록 (Past Life)</div>
-              <div style="font-size:0.9rem; color:#dfe6e9;">
-                  <span style="background:rgba(162,155,254,0.2); padding:2px 8px; border-radius:10px; margin-right:6px; font-size:0.8rem;">${rel.pastLife.role}</span>
-                  <span style="color:#b2bec3;">${rel.pastLife.karma}</span>
-              </div>
-              <p style="font-size:0.88rem; margin:8px 0 0 0; line-height:1.55; color:#ccc; font-style:italic;">"${rel.story}"</p>
-          </div>`;
+          // ── 장점 카드 3개 ──
+          const advantageCards = (rel.advantages || []).map(a => `
+            <div style="background:${th.bg}; border:1px solid ${th.border}; border-radius:11px; padding:13px 14px; margin-bottom:10px;">
+              <div style="font-size:0.78rem; font-weight:800; color:${th.color1}; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.8px;">${a.icon} ${a.label}</div>
+              <div style="font-size:0.9rem; color:#dfe6e9; line-height:1.65;">${a.text}</div>
+            </div>`).join('');
+
+          // ── 처방전 항목 ──
+          const rxItems = (rel.prescription || []).map(p => `
+            <div style="display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;">
+              <div style="font-size:0.9rem; line-height:1.65; color:#dfe6e9;">${p}</div>
+            </div>`).join('');
 
           resDiv.innerHTML = `
           <style>
-            @keyframes fadeUp { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
-            .sy-compat-card { animation: fadeUp 0.5s ease; }
-            .sy-compat-section { margin-bottom:13px; padding:14px; border-radius:9px; font-size:0.93rem; line-height:1.6; }
+            @keyframes fadeUpSy { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+            @keyframes glowPulse { 0%,100%{box-shadow:0 0 14px ${th.glowColor}44;} 50%{box-shadow:0 0 28px ${th.glowColor}88;} }
+            .sy-report { animation: fadeUpSy 0.55s ease; }
+            .sy-sec { margin-bottom:14px; padding:15px 16px; border-radius:12px; font-size:0.92rem; line-height:1.65; }
+            .sy-sec-title { font-weight:800; font-size:0.82rem; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:8px; }
           </style>
-          <div class="sy-compat-card" style="background:rgba(10,12,20,0.92); border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); box-shadow:0 8px 32px rgba(0,0,0,0.5);">
 
-            <!-- 헤더 그라디언트 배너 -->
-            <div style="background:${gradColor}; padding:20px 22px 18px; position:relative; overflow:hidden;">
-              <div style="position:absolute; right:-10px; top:-10px; font-size:6rem; opacity:0.12; line-height:1;">${rel.icon}</div>
-              <div style="font-size:0.78rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,0.75); margin-bottom:4px;">Karmic Bond Analysis</div>
-              <div style="font-size:1.25rem; font-weight:900; color:#fff; margin-bottom:2px;">${rel.type}</div>
-              <div style="font-size:0.88rem; color:rgba(255,255,255,0.85);">상대방의 별: <strong>${tData.mansion}</strong> &nbsp;|&nbsp; 거리: <strong>${distInfo.label}</strong></div>
+          <div class="sy-report" style="background:rgba(8,10,18,0.95); border-radius:18px; overflow:hidden; border:1px solid ${th.border}; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family:'Gowun Dodum',sans-serif;">
+
+            <!-- ══ HEADER ══ -->
+            <div style="background:${gradColor}; padding:22px 20px 20px; position:relative; overflow:hidden;">
+              <div style="position:absolute; right:-15px; top:-15px; font-size:7rem; opacity:0.1; line-height:1; pointer-events:none;">${rel.icon}</div>
+              <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:2.5px; color:rgba(255,255,255,0.65); margin-bottom:4px;">27宿 인연 深層 리포트</div>
+              <div style="font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:3px; line-height:1.2;">${rel.typeLabel || rel.type}</div>
+              <div style="font-size:0.82rem; color:rgba(255,255,255,0.8); margin-bottom:10px;">인연의 낙인: <strong>${rel.stamp || rel.type}</strong></div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:0.78rem;">
+                <span style="background:rgba(0,0,0,0.25); padding:3px 10px; border-radius:20px; color:rgba(255,255,255,0.85);">상대방 별: <strong>${tData.mansion}</strong></span>
+                <span style="background:rgba(0,0,0,0.25); padding:3px 10px; border-radius:20px; color:rgba(255,255,255,0.85);">거리: <strong>${distInfo.label}</strong></span>
+              </div>
             </div>
 
-            <div style="padding:20px 18px;">
+            <div style="padding:20px 16px;">
 
-              <!-- 인연의 온도 + 카르마 점수 -->
-              <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:140px; background:rgba(255,255,255,0.04); border-radius:10px; padding:14px; text-align:center; border:1px solid rgba(255,255,255,0.07);">
-                  <div style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Karmic Score</div>
-                  <div style="font-size:2.6rem; font-weight:900; color:${scoreColor}; line-height:1;">${rel.score}</div>
-                  <div style="font-size:0.7rem; color:#636e72; margin-top:3px;">/ 100점</div>
+              <!-- ── 3종 수치 대시보드 ── -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
+                <div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 8px; text-align:center; border:1px solid rgba(255,255,255,0.07);">
+                  <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">카르마 점수</div>
+                  <div style="font-size:2.2rem; font-weight:900; color:${scoreColor}; line-height:1;">${rel.score}</div>
+                  <div style="font-size:0.62rem; color:#555; margin-top:2px;">/ 100</div>
                 </div>
-                <div style="flex:2; min-width:160px; background:rgba(255,255,255,0.04); border-radius:10px; padding:14px; border:1px solid rgba(255,255,255,0.07);">
-                  <div style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">인연의 온도</div>
-                  <div style="font-size:1.0rem; font-weight:700; color:${tempInfo.color};">${tempInfo.text}</div>
-                  <div style="height:5px; background:#222; border-radius:3px; margin-top:8px; overflow:hidden;">
-                    <div style="height:100%; width:${rel.temperature}%; background:${gradColor}; border-radius:3px; transition:width 1.5s ease;"></div>
-                  </div>
+                <div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 8px; text-align:center; border:1px solid rgba(255,255,255,0.07);">
+                  <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">인연 온도</div>
+                  <div style="font-size:2.2rem; font-weight:900; color:${tempInfo.color}; line-height:1;">${rel.temperature}</div>
+                  <div style="font-size:0.62rem; color:#555; margin-top:2px;">° / 100</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 8px; text-align:center; border:1px solid rgba(255,255,255,0.07); animation: glowPulse 3s infinite;">
+                  <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">자력(磁力)</div>
+                  <div style="font-size:2.2rem; font-weight:900; color:${th.color1}; line-height:1;">${mgVal}</div>
+                  <div style="font-size:0.62rem; color:#555; margin-top:2px;">Magnetism</div>
                 </div>
               </div>
 
-              <!-- 안·괴 포지션 배지 -->
+              <!-- 온도 바 -->
+              <div style="margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                  <span style="font-size:0.75rem; color:#888;">인연의 온도 · ${tempInfo.text}</span>
+                  <span style="font-size:0.75rem; color:${tempInfo.color}; font-weight:700;">${rel.temperature}°</span>
+                </div>
+                <div style="height:6px; background:rgba(255,255,255,0.07); border-radius:6px; overflow:hidden;">
+                  <div style="height:100%; width:0%; background:${gradColor}; border-radius:6px; transition:width 1.8s cubic-bezier(0.4,0,0.2,1);"></div>
+                </div>
+              </div>
+
+              <!-- 안·괴 배지 -->
               ${ankaiBadge}
 
-              <!-- 핵심 요약 -->
-              <div style="text-align:center; padding:14px; background:rgba(255,255,255,0.04); border-radius:10px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.07);">
-                <div style="font-size:1.05rem; color:#fff; font-weight:600; line-height:1.5;">"${rel.summary}"</div>
+              <!-- ══ SECTION 1: 영혼의 결속 (Visual Image) ══ -->
+              <div class="sy-sec" style="background:${th.bg}; border:1px solid ${th.border}; position:relative; overflow:hidden;">
+                <div style="position:absolute; right:-8px; bottom:-8px; font-size:5rem; opacity:0.06; pointer-events:none;">${rel.icon}</div>
+                <div class="sy-sec-title" style="color:${th.color1};">🎨 Section 1 · 영혼의 결속 (Visual Image)</div>
+                <div style="font-size:0.78rem; font-weight:700; color:${th.color2}; margin-bottom:8px; letter-spacing:0.5px;">[ ${th.label} ]</div>
+                <div style="font-size:0.9rem; color:#d0d8e8; line-height:1.7; font-style:italic;">&ldquo;${th.concept}&rdquo;</div>
               </div>
 
-              <!-- 전생 스토리 -->
-              ${pastLifeBlock}
-
-              <!-- 시너지 -->
-              <div class="sy-compat-section" style="background:rgba(0,184,148,0.1); border-left:3px solid #00b894;">
-                <div style="color:#00b894; font-weight:bold; margin-bottom:5px;">✨ 우주가 허락한 시너지</div>
-                <p style="margin:0; color:#dfe6e9;">${rel.synergy}</p>
+              <!-- ══ SECTION 2: 인연의 빛 (Advantages) ══ -->
+              <div style="margin-bottom:14px;">
+                <div style="font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#ffd700; margin-bottom:10px; display:flex; align-items:center; gap:6px;">✨ Section 2 · 인연의 빛 — 3가지 영혼 시너지</div>
+                ${advantageCards}
               </div>
 
-              <!-- 카르마 리스크 -->
-              <div class="sy-compat-section" style="background:rgba(255,71,87,0.1); border-left:3px solid #ff4757;">
-                <div style="color:#ff4757; font-weight:bold; margin-bottom:5px;">⚡ 카르마의 그림자</div>
-                <p style="margin:0; color:#dfe6e9;">${rel.karma}</p>
+              <!-- ══ SECTION 3: 전생의 아카이브 ══ -->
+              <div class="sy-sec" style="background:rgba(108,92,231,0.1); border:1px solid rgba(108,92,231,0.28);">
+                <div class="sy-sec-title" style="color:#a29bfe;">📜 Section 3 · 전생의 아카이브</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+                  <span style="background:rgba(162,155,254,0.2); color:#a29bfe; padding:3px 9px; border-radius:20px; font-size:0.75rem; font-weight:700;">${rel.pastLife.role}</span>
+                  <span style="background:rgba(162,155,254,0.1); color:#b2bec3; padding:3px 9px; border-radius:20px; font-size:0.75rem;">${rel.pastLife.karma}</span>
+                </div>
+                <div style="font-size:0.88rem; color:#cdd3e0; line-height:1.75; margin-bottom:12px; font-style:italic; border-left:2px solid rgba(162,155,254,0.5); padding-left:12px;">&ldquo;${rel.archiveStory || ''}&rdquo;</div>
+                <div style="background:rgba(0,0,0,0.2); border-radius:8px; padding:11px 13px; font-size:0.85rem; color:#b2bec3; line-height:1.65;">
+                  <span style="color:#a29bfe; font-weight:700;">🌠 현생의 과제: </span>${rel.mission || ''}
+                </div>
               </div>
 
-              <!-- 해결책 -->
-              <div class="sy-compat-section" style="background:rgba(116,185,255,0.1); border-left:3px solid #74b9ff;">
-                <div style="color:#74b9ff; font-weight:bold; margin-bottom:5px;">🌌 이 카르마를 푸는 열쇠</div>
-                <p style="margin:0; color:#dfe6e9;">${rel.solution}</p>
+              <!-- ═══ 카르마의 그림자 ══ -->
+              <div class="sy-sec" style="background:rgba(255,71,87,0.07); border:1px solid rgba(255,71,87,0.25);">
+                <div class="sy-sec-title" style="color:#ff4757;">⚡ 카르마의 그림자</div>
+                <div style="font-size:0.9rem; color:#dfe6e9;">${rel.shadow || ''}</div>
+              </div>
+
+              <!-- ══ SECTION 4: 개운의 처방전 ══ -->
+              <div class="sy-sec" style="background:rgba(116,185,255,0.07); border:1px solid rgba(116,185,255,0.25);">
+                <div class="sy-sec-title" style="color:#74b9ff;">💊 Section 4 · 개운(開運)의 처방전 — 신의 한 수</div>
+                ${rxItems}
               </div>
 
             </div>
-          </div>
-          `;
+          </div>`;
+
+          // 온도 바 애니메이션 재실행
+          setTimeout(() => {
+            const bar = resDiv.querySelector('[style*="transition:width"]');
+            if(bar) bar.style.width = rel.temperature + '%';
+          }, 80);
+
       }, 1000);
   }
 
