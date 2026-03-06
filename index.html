@@ -3409,45 +3409,77 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
 
 
-      <!-- 주역(周易) 64괘 모달 -->
+      <!-- 주역(周易) 64괘 모달 — 거북점 UI -->
       <div id="juyukModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(5,3,10,0.96); backdrop-filter:blur(10px); overflow-y:auto;">
         <!-- 닫기 버튼 -->
         <div style="position:absolute; top:16px; right:16px; z-index:100000;">
-          <button onclick="closeJuyukModal()" aria-label="닫기" style="background:rgba(255,215,0,0.12); border:1px solid rgba(255,215,0,0.3); color:#FFD700; font-size:1.4rem; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">&times;</button>
+          <button onclick="closeJuyukModal()" aria-label="닫기" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:1.4rem; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">&times;</button>
         </div>
 
-        <div class="juyuk-modal-inner" style="max-width:440px; margin:56px auto 60px; padding:0 16px; position:relative;">
-          <div class="juyuk-modal-card" style="background:linear-gradient(135deg,#101018 0%,#1a1a24 100%); border:1px solid rgba(255,215,0,0.4); border-radius:22px; padding:28px 24px; box-shadow:0 8px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,215,0,0.07); color:#e0e0e0; font-family:'Gowun Dodum',sans-serif; position:relative; overflow:hidden;">
-            <!-- 배경 패턴 -->
-            <div style="position:absolute;inset:0;opacity:0.04;background-image:radial-gradient(circle at 50% 50%,#FFD700 2px,transparent 2px);background-size:28px 28px;pointer-events:none;"></div>
-            <div style="position:absolute;top:-28px;right:-28px;font-size:13rem;color:#FFD700;opacity:0.03;pointer-events:none;transform:rotate(12deg);">☯</div>
+        <!-- 거북점 메인 컨테이너 -->
+        <div class="tc-wrap" id="tcWrap">
+          <!-- 촛불 광원 -->
+          <div class="tc-candle tc-candle-l"></div>
+          <div class="tc-candle tc-candle-r"></div>
+          <div class="tc-candle tc-candle-bot"></div>
 
-            <!-- 헤더 -->
-            <div style="text-align:center;margin-bottom:22px;position:relative;z-index:2;">
-              <div style="font-size:3.2rem;line-height:1;margin-bottom:8px; animation: floatHex 4s ease-in-out infinite;">☯️</div>
-              <h2 style="color:#FFD700;font-size:1.2rem;font-weight:900;margin:0 0 6px;letter-spacing:2px;text-shadow:0 0 12px rgba(255,215,0,0.5);">무극신탁 (無極神託)</h2>
-              <p style="color:#A0AABF;font-size:0.82rem;line-height:1.6;margin:0;">
-                주역(I Ching)의 64괘로 길흉을 점칩니다.<br>
-                마음속 고민을 담아 신탁을 구해보세요.
-              </p>
-            </div>
-
-            <!-- 입력 폼 -->
-            <div style="display:flex;flex-direction:column;gap:12px;position:relative;z-index:2;">
-              <input type="text" id="juyukQuestion" placeholder="예: 앞으로 나의 연애운은 어떻게 흘러갈까?" autocomplete="off"
-                style="background:rgba(0,0,0,0.45);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:15px 16px;border-radius:10px;font-size:0.93rem;width:100%;box-sizing:border-box;outline:none;transition:border-color 0.3s;"
-                onfocus="this.style.borderColor='#FFD700';this.style.boxShadow='0 0 10px rgba(255,215,0,0.2)';"
-                onblur="this.style.borderColor='rgba(255,215,0,0.3)';this.style.boxShadow='none';">
-              <button onclick="renderJuyukMain()"
-                style="background:linear-gradient(135deg,#24243e,#302b63,#0f0c29);color:#FFD700;font-weight:900;border:1px solid rgba(255,215,0,0.6);padding:16px;border-radius:10px;font-size:1rem;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.4),inset 0 0 10px rgba(255,215,0,0.08);letter-spacing:1px;"
-                onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(255,215,0,0.2)';" 
-                onmouseout="this.style.transform='';this.style.boxShadow='0 4px 15px rgba(0,0,0,0.4)';">거북딱지에 점괘 새기기 (신탁 받기) 🔮</button>
-            </div>
-
-            <!-- 결과 영역 -->
-            <div id="juyukResultWrap" style="display:none; margin-top:24px; background:rgba(0,0,0,0.35); border:1px solid rgba(255,215,0,0.18); border-radius:14px; padding:18px; position:relative; z-index:2;"></div>
+          <!-- 헤더 -->
+          <div class="tc-header">
+            <div class="tc-header-badge">龜趺神占 · Tortoise Shell Divination</div>
+            <h2>거북점 — 천기(天機) 신탁</h2>
+            <p>"등껍질의 균열이 하늘의 뜻을 말한다"<br>
+            <span style="font-size:.72rem;color:rgba(180,140,60,.5);">※ 고대 귀복(龜卜) 의식을 현대적으로 재해석한 가상의 점술입니다.</span></p>
           </div>
-        </div>
+
+          <!-- 질문 입력 -->
+          <div class="tc-question-row">
+            <div class="tc-question-label">問 — 마음속 깊은 물음을 적으십시오</div>
+            <input type="text" id="ichingQuestion" class="tc-question-inp"
+              placeholder="예: 이번 사업을 지금 시작해도 괜찮을까?">
+          </div>
+
+          <!-- 열기 프로그레스 바 -->
+          <div class="tc-heat-bar-wrap" id="tcHeatBarWrap">
+            <div class="tc-heat-bar" id="tcHeatBar"></div>
+          </div>
+
+          <!-- 상태 메시지 -->
+          <div class="tc-status-msg" id="tcStatusMsg">거북 등껍질을 길게 누르고 있으면 열기가 전해집니다</div>
+
+          <!-- 거북 껍질 버튼 -->
+          <div class="tc-shell-area">
+            <button class="tc-shell-btn" id="tcShellBtn" aria-label="거북 껍질 점치기"
+              onmousedown="tcStartPress(event)"
+              onmouseup="tcEndPress(event)"
+              onmouseleave="tcCancelPress(event)"
+              ontouchstart="tcStartPress(event)"
+              ontouchend="tcEndPress(event)"
+              ontouchcancel="tcCancelPress(event)">
+              <!-- 육각형 패턴 -->
+              <svg class="tc-shell-pattern" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <pattern id="hexPat" x="0" y="0" width="28" height="32" patternUnits="userSpaceOnUse">
+                    <polygon points="14,2 26,8 26,24 14,30 2,24 2,8" fill="none" stroke="rgba(200,160,60,.6)" stroke-width="1"/>
+                  </pattern>
+                </defs>
+                <circle cx="90" cy="90" r="88" fill="url(#hexPat)"/>
+              </svg>
+              <!-- 균열 캔버스 -->
+              <canvas class="tc-shell-canvas" id="tcCrackCanvas" width="180" height="180"></canvas>
+              <!-- 롱프레스 링 -->
+              <div class="tc-press-ring" id="tcPressRing"></div>
+              <!-- 레이블 -->
+              <div class="tc-shell-label">
+                <div style="font-size:1.6rem;margin-bottom:2px;opacity:.7;">🐢</div>
+                <div>길게 눌러</div>
+                <div>불을 지피세요</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- 결과 패널 -->
+          <div class="tc-result" id="tcResult"></div>
+        </div> <!-- /.tc-wrap -->
       </div>
       <!-- / 주역(周易) 64괘 모달 -->
 
@@ -5273,162 +5305,6 @@ function showKemetSpread(userInput) {
         </defs>
       </svg>
 
-      <!-- 거북점 메인 컨테이너 -->
-      <div class="tc-wrap" id="tcWrap">
-        <!-- 촛불 광원 -->
-        <div class="tc-candle tc-candle-l"></div>
-        <div class="tc-candle tc-candle-r"></div>
-        <div class="tc-candle tc-candle-bot"></div>
-
-        <!-- 헤더 -->
-        <div class="tc-header">
-          <div class="tc-header-badge">龜趺神占 · Tortoise Shell Divination</div>
-          <h2>거북점 — 천기(天機) 신탁</h2>
-          <p>"등껍질의 균열이 하늘의 뜻을 말한다"<br>
-          <span style="font-size:.72rem;color:rgba(180,140,60,.5);">※ 고대 귀복(龜卜) 의식을 현대적으로 재해석한 가상의 점술입니다.</span></p>
-        </div>
-
-        <!-- 질문 입력 -->
-        <div class="tc-question-row">
-          <div class="tc-question-label">問 — 마음속 깊은 물음을 적으십시오</div>
-          <input type="text" id="ichingQuestion" class="tc-question-inp"
-            placeholder="예: 이번 사업을 지금 시작해도 괜찮을까?">
-        </div>
-
-        <!-- 열기 프로그레스 바 -->
-        <div class="tc-heat-bar-wrap" id="tcHeatBarWrap">
-          <div class="tc-heat-bar" id="tcHeatBar"></div>
-        </div>
-
-        <!-- 상태 메시지 -->
-        <div class="tc-status-msg" id="tcStatusMsg">거북 등껍질을 길게 누르고 있으면 열기가 전해집니다</div>
-
-        <!-- 거북 껍질 버튼 -->
-        <div class="tc-shell-area">
-          <button class="tc-shell-btn" id="tcShellBtn" aria-label="거북 껍질 점치기"
-            onmousedown="tcStartPress(event)"
-            onmouseup="tcEndPress(event)"
-            onmouseleave="tcCancelPress(event)"
-            ontouchstart="tcStartPress(event)"
-            ontouchend="tcEndPress(event)"
-            ontouchcancel="tcCancelPress(event)">
-            <!-- 육각형 패턴 -->
-            <svg class="tc-shell-pattern" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="hexPat" x="0" y="0" width="28" height="32" patternUnits="userSpaceOnUse">
-                  <polygon points="14,2 26,8 26,24 14,30 2,24 2,8" fill="none" stroke="rgba(200,160,60,.6)" stroke-width="1"/>
-                </pattern>
-              </defs>
-              <circle cx="90" cy="90" r="88" fill="url(#hexPat)"/>
-            </svg>
-            <!-- 균열 캔버스 -->
-            <canvas class="tc-shell-canvas" id="tcCrackCanvas" width="180" height="180"></canvas>
-            <!-- 롱프레스 링 -->
-            <div class="tc-press-ring" id="tcPressRing"></div>
-            <!-- 레이블 -->
-            <div class="tc-shell-label">
-              <div style="font-size:1.6rem;margin-bottom:2px;opacity:.7;">🐢</div>
-              <div>길게 눌러</div>
-              <div>불을 지피세요</div>
-            </div>
-          </button>
-        </div>
-
-        <!-- 결과 패널 -->
-        <div class="tc-result" id="tcResult"></div>
-      </div> <!-- /.tc-wrap -->
-  padding: 35px 25px;
-  background: linear-gradient(145deg, rgba(20,25,45,0.85), rgba(30,35,65,0.95));
-  border-radius: 28px;
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 25px 50px rgba(0,0,0,0.6), inset 0 0 20px rgba(255,255,255,0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: #f8fafc;
-  margin-bottom: 35px;
-  position: relative;
-  overflow: visible;
-  text-align: center;
-  font-family: 'Pretendard', sans-serif;
-}
-.quantum-title { 
-  font-size: 1.6rem; 
-  font-weight: 900; 
-  letter-spacing: 4px; 
-  background: linear-gradient(to right, #e2e8f0, #a78bfa, #f472b6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 10px; 
-  text-transform: uppercase; 
-  text-shadow: 0 2px 10px rgba(167,139,250,0.2);
-}
-.quantum-subtitle { font-size: 0.95rem; color: #cbd5e1; font-weight: 400; margin-bottom: 35px; letter-spacing: 0.5px; opacity: 0.9; }
-
-/* 3D Card */
-.quantum-card-scene { width: 190px; height: 280px; margin: 0 auto; perspective: 1200px; z-index: 2; position: relative; }
-.quantum-card { width: 100%; height: 100%; position: relative; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; cursor: pointer; }
-.quantum-card.flip-it { transform: rotateY(180deg) scale(1.08); box-shadow: 0 0 45px rgba(139, 92, 246, 0.5); animation: q-glow 3s infinite alternate; }
-@keyframes q-glow { 
-  0% { box-shadow: 0 0 35px rgba(167, 139, 250, 0.4), 0 0 15px rgba(167, 139, 250, 0.2) inset; } 
-  100% { box-shadow: 0 0 55px rgba(236, 72, 153, 0.6), 0 0 25px rgba(236, 72, 153, 0.3) inset; } 
-}
-.quantum-card-inner { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; }
-.quantum-card-front, .quantum-card-back { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.quantum-card-front { 
-  background: linear-gradient(135deg, #0f172a, #2e1065); 
-  border: 1px solid rgba(255,255,255,0.2); 
-  overflow: hidden; 
-  box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
-}
-.quantum-card-back { 
-  background: linear-gradient(135deg, rgba(30,41,59,0.95), rgba(15,23,42,0.95)); 
-  border: 1px solid rgba(167,139,250,0.4); 
-  transform: rotateY(180deg); 
-  padding: 24px; 
-  text-align: center; 
-  backdrop-filter: blur(12px); 
-}
-.q-stars { position: absolute; top:0; left:0; right:0; bottom:0; background-image: radial-gradient(rgba(255,255,255,0.9) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.2; }
-.q-logo { font-size: 56px; font-weight: 900; color: #fff; text-shadow: 0 0 20px rgba(167, 139, 250, 1), 0 0 40px rgba(167, 139, 250, 0.6); z-index: 1; margin-bottom: 12px; }
-.q-tap-text { z-index: 1; font-size: 0.85rem; color: #e2e8f0; text-transform: uppercase; letter-spacing: 4px; font-weight: 600; background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 20px; }
-
-/* Expanded Dashboard */
-.q-dashboard { margin-top: -30px; padding-top: 50px; opacity: 0; transform: translateY(20px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); display: none; }
-.q-dashboard.show { opacity: 1; transform: translateY(0); }
-
-/* Daily Pillars */
-.q-pillars-wrap { display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; }
-.q-pillar { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 15px 20px; width: 100px; backdrop-filter: blur(5px); transition: transform 0.3s ease, background 0.3s ease; }
-.q-pillar:hover { transform: translateY(-3px); background: rgba(255,255,255,0.08); }
-.q-p-label { font-size: 0.7rem; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-.q-p-char { font-size: 2rem; font-weight: 700; color: #f8fafc; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-.q-p-desc { font-size: 0.75rem; color: #cbd5e1; margin-top: 5px; }
-
-/* Explanation Core */
-.q-explanation { font-size: 0.9rem; line-height: 1.6; color: #e2e8f0; font-weight: 300; margin: 0 auto 30px auto; max-width: 90%; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px; border-left: 2px solid #a78bfa; text-align: left; }
-.q-explanation strong { color: #fff; font-weight: 600; }
-
-/* Elemental Balance Chips */
-.q-elements-title { font-size: 0.8rem; color: #94a3b8; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
-.q-elements-row { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; flex-wrap: wrap; }
-.q-chip { position: relative; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 600; color: #fff; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2); }
-.q-chip:hover { transform: scale(1.15); z-index: 10; }
-.q-chip.wood { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
-.q-chip.fire { background: linear-gradient(135deg, #f43f5e, #be123c); box-shadow: 0 0 15px rgba(244, 63, 94, 0.4); }
-.q-chip.earth { background: linear-gradient(135deg, #eab308, #a16207); box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); }
-.q-chip.metal { background: linear-gradient(135deg, #94a3b8, #475569); box-shadow: 0 0 15px rgba(148, 163, 184, 0.4); }
-.q-chip.water { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
-.q-chip.active { border: 2px solid #fff; box-shadow: 0 0 25px currentColor; }
-
-/* Tooltip */
-.q-chip .q-tooltip { visibility: hidden; width: 140px; background: rgba(15,23,42,0.95); color: #f8fafc; text-align: center; border-radius: 8px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%) translateY(10px); opacity: 0; transition: opacity 0.3s, transform 0.3s; border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 400; line-height: 1.4; pointer-events: none; }
-.q-chip .q-tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: rgba(15,23,42,0.95) transparent transparent transparent; }
-.q-chip:hover .q-tooltip { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* Gaeun Prescript */
-.gaeun-prescript { padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
-.gaeun-title { font-size: 0.95rem; color: #c4b5fd; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
       </section>
 
@@ -17224,10 +17100,7 @@ function subscribeEmail() {
 function openJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (!overlay) return;
-  var res = document.getElementById('juyukResultWrap');
-  if (res) { res.style.display = 'none'; res.innerHTML = ''; }
-  var inp = document.getElementById('juyukQuestion');
-  if (inp) inp.value = '';
+  if (typeof tcReset === 'function') tcReset();
   overlay.style.display = 'block';
   overlay.style.animation = 'fadeIn 0.3s ease-out';
   document.body.style.overflow = 'hidden';
@@ -18004,7 +17877,6 @@ window.addEventListener('load', function() {
     { id:'acc-ai',     emoji:'\uD83E\uDD16', title:'AI \uc0ac\uc8fc \ud504\ub86c\ud504\ud2b8 \ubaa8\uc74c',open:false, color:'#7dd3fc', lite:'#0369a1', bg:'rgba(240,249,255,1)'  },
     { id:'acc-lotto',  emoji:'\uD83C\uDFB1', title:'\ud589\uc6b4\uc758 \ub85c\ub610',                     open:false, color:'#86efac', lite:'#15803d', bg:'rgba(240,253,244,1)'  },
     { id:'acc-ziwei',  emoji:'\uD83C\uDF0C', title:'\uc790\ubbf8\ub450\uc218',                             open:false, color:'#c4b5fd', lite:'#6d28d9', bg:'rgba(245,243,255,1)'  },
-    { id:'acc-iching', emoji:'\u262F\uFE0F', title:'\uc8fc\uc5ed\uc810',                                   open:false, color:'#fcd34d', lite:'#b45309', bg:'rgba(255,251,235,1)'  },
     { id:'acc-astro',  emoji:'\u2728',        title:'\uc810\uc131\uc220',                                   open:false, color:'#a5b4fc', lite:'#4338ca', bg:'rgba(238,242,255,1)'  },
     { id:'acc-sukuyo', emoji:'💫', title:'숙요점', open:false, color:'#c084fc', lite:'#9333ea', bg:'rgba(250,245,255,1)' }
   ];
@@ -18192,14 +18064,11 @@ window.addEventListener('load', function() {
     EGYPT_IDS.forEach(function(id) { moveCard(id, 'acc-egypt'); });
 
     var tabZiwei  = document.getElementById('tabZiwei');
-    var tabIching = document.getElementById('tabIching');
     var tabAstro  = document.getElementById('tabAstro');
     var zbody = document.getElementById('acc-ziwei-body');
-    var ibody = document.getElementById('acc-iching-body');
     var abody = document.getElementById('acc-astro-body');
 
     if (tabZiwei  && zbody && !tabZiwei.dataset.iaMoved)  { tabZiwei.dataset.iaMoved='1';  tabZiwei.style.display='block';  zbody.appendChild(tabZiwei); }
-    if (tabIching && ibody && !tabIching.dataset.iaMoved) { tabIching.dataset.iaMoved='1'; tabIching.style.display='block'; ibody.appendChild(tabIching); }
     if (tabAstro  && abody && !tabAstro.dataset.iaMoved)  { tabAstro.dataset.iaMoved='1';  tabAstro.style.display='block';  abody.appendChild(tabAstro); }
 
     var mw = document.querySelector('.mystic-tabs-wrapper');
@@ -18215,7 +18084,6 @@ window.addEventListener('load', function() {
         'acc-ai': 'Saju',
         'acc-lotto': 'Saju',
         'acc-ziwei': 'Saju',
-        'acc-iching': 'Saju',
         'acc-astro': 'Zodiac'
       };
       
