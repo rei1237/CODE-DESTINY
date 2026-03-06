@@ -8550,9 +8550,15 @@ function startSajuCalculationFlow() {
     txtEl.offsetHeight;
     txtEl.style.animation = 'sajuTyping 0.8s steps(20, end), sajuBlink .75s step-end infinite';
 
-    // 실제 계산을 바로 실행 (오버레이는 calculate() 내부에서 닫힘)
+    // 계산 + 최소 애니메이션 시간(800ms)을 병렬 실행
+    // 둘 다 끝난 시점에 오버레이를 닫아 애니메이션이 반드시 보이도록 함
     setTimeout(async () => {
-      await calculate();
+      await Promise.all([
+        calculate(),
+        new Promise(resolve => setTimeout(resolve, 800))
+      ]);
+      var _lo = document.getElementById('sajuLoaderOverlay');
+      if (_lo) { _lo.classList.remove('show'); setTimeout(function(){ _lo.style.display='none'; }, 250); }
     }, 80);
   });
 }
@@ -8669,9 +8675,7 @@ async function calculate(){
 
     document.getElementById('inputPage').style.display='none';
     document.getElementById('resultPage').style.display='block';
-    // 로딩 오버레이 즉시 닫기
-    var _lo = document.getElementById('sajuLoaderOverlay');
-    if (_lo) { _lo.classList.remove('show'); setTimeout(function(){ _lo.style.display='none'; }, 250); }
+    // 오버레이 닫기는 startSajuCalculationFlow의 Promise.all에서 처리
       document.getElementById('letterBox').style.display='block';
       document.getElementById('emailSubBox').style.display='block';
       document.getElementById('btnNewSaju').style.display='block';
