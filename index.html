@@ -10376,6 +10376,71 @@ function renderAstroInsight() {
         +'</div>'
         +'</div>'
 
+        /* ── ★ 점성술 유명인 시나스트리 궁합 (신규) ── */
+        +'<div class="astro-section" id="astroSynastrySection" style="border-left:4px solid #818cf8; background:linear-gradient(to right, rgba(129,140,248,0.07), transparent);">'
+        +'<div class="astro-subhead" style="color:#818cf8;">🌌 유명인 시나스트리 (Celebrity Synastry)</div>'
+        +'<div class="astro-desc">'
+
+        /* ── [✨ 천상의 지도: 당신의 성좌] ── */
+        +'<div style="background:rgba(129,140,248,0.09);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid rgba(129,140,248,0.25);">'
+        +'<div style="font-size:0.78rem;color:#818cf8;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">✨ 천상의 지도: 당신의 성좌</div>'
+        +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;">'
+        +'<div style="background:rgba(251,191,36,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(251,191,36,0.25);">'
+        +'<div style="font-size:0.65rem;color:#fbbf24;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☀ 태양</div>'
+        +'<div style="font-size:0.85rem;font-weight:800;color:#fde68a;line-height:1.2;">'+sunSign+'</div>'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">핵심 자아</div>'
+        +'</div>'
+        +'<div style="background:rgba(148,163,184,0.12);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(148,163,184,0.2);">'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☽ 달</div>'
+        +'<div style="font-size:0.85rem;font-weight:800;color:#e2e8f0;line-height:1.2;">'+moonSign+'</div>'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">감정 패턴</div>'
+        +'</div>'
+        +'<div style="background:rgba(244,114,182,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(244,114,182,0.2);">'
+        +'<div style="font-size:0.65rem;color:#f472b6;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♀ 금성</div>'
+        +'<div style="font-size:0.85rem;font-weight:800;color:#fbcfe8;line-height:1.2;">'+venusSign+'</div>'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">사랑의 언어</div>'
+        +'</div>'
+        +'<div style="background:rgba(239,68,68,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(239,68,68,0.2);">'
+        +'<div style="font-size:0.65rem;color:#f87171;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♂ 화성</div>'
+        +'<div style="font-size:0.85rem;font-weight:800;color:#fca5a5;line-height:1.2;">'+marsSign+'</div>'
+        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">욕망의 동력</div>'
+        +'</div>'
+        +'</div>'
+        +'</div>'
+
+        /* ── [🎭 영혼의 쌍둥이: 나와 닮은 별의 인물] — 동적 렌더 컨테이너 ── */
+        +'<div style="background:rgba(52,211,153,0.07);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid rgba(52,211,153,0.2);">'
+        +'<div style="font-size:0.78rem;color:#34d399;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🎭 영혼의 쌍둥이: 나와 같은 별의 인물</div>'
+        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">사주 <b>CelebrityDB</b>에서 <b>'+sunSign+'</b> 태양 또는 <b>'+venusSign+'</b> 금성과 같은 기운을 가진 유명인을 자동으로 찾아드립니다.</p>'
+        +'<div id="astroCosmicTwins" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;">'
+        +'<span style="color:#666;font-size:0.8rem;">✦ 분석 중...</span>'
+        +'</div>'
+        +'</div>'
+
+        /* ── [💍 운명의 시나스트리] — 유명인 선택 UI ── */
+        +'<div style="background:rgba(244,114,182,0.06);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid rgba(244,114,182,0.2);">'
+        +'<div style="font-size:0.78rem;color:#f472b6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💍 운명의 시나스트리: 유명인 궁합 분석</div>'
+        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">유명인을 선택하면 나탈 차트를 비교하여 연애·동료·영적 궁합을 분석합니다. 생시 미상 인물은 정오(12:00) 기준이며 달·상승궁 오차가 있을 수 있습니다.</p>'
+        /* 국가 탭 */
+        +'<div id="astroCtryTabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>'
+        /* 카테고리 탭 */
+        +'<div id="astroCatTabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>'
+        /* 검색 */
+        +'<div style="position:relative;margin-bottom:8px;">'
+        +'<input type="text" id="astroSyQ" placeholder="이름 검색 (예: 테일러 스위프트, 아이유...)" autocomplete="off" '
+        +'style="width:100%;box-sizing:border-box;padding:7px 34px 7px 10px;border-radius:6px;background:rgba(20,25,35,0.8);color:#fff;border:1px solid rgba(244,114,182,0.4);font-size:0.83rem;">'
+        +'<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;font-size:0.9rem;">🔍</span>'
+        +'</div>'
+        /* 유명인 버튼 목록 */
+        +'<div id="astroSyCelebs" style="display:flex;flex-wrap:wrap;gap:5px;max-height:130px;overflow-y:auto;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:8px;background:rgba(0,0,0,0.15);min-height:44px;"></div>'
+        +'</div>'
+
+        /* ── [시나스트리 결과판] ── */
+        +'<div id="astroSyResult" style="display:none;"></div>'
+
+        +'</div>'
+        +'</div>'
+
         /* ── 4원소 균형 (실시간) ── */
         +'<div class="astro-section">'
         +'<div class="astro-subhead">🜂 4원소 균형 (Elemental Balance)</div>'
@@ -10501,6 +10566,357 @@ function renderAstroInsight() {
         +'</div>';
 
     document.getElementById('astroResult').innerHTML = html;
+
+    /* ── 시나스트리 시스템 초기화 (DOM 삽입 후) ── */
+    setTimeout(function() {
+        /* userSunIdx: 내 태양 별자리 인덱스 (12궁) */
+        var _mySunIdx   = sunIndex;
+        var _myVenusIdx = chart.planets.Venus ? chart.planets.Venus.sign.idx : 0;
+        var _signs12    = typeof astrologer !== 'undefined' ? astrologer.signs : [];
+
+        /* ── 내 태양 기준 별자리 인덱스 0-11 추출 헬퍼 ─── */
+        function _syGetSunIdx(birth, hour) {
+            try {
+                var p = birth.split('-');
+                var c = AstroEngine.calcAll(+p[0], +p[1], +p[2], hour || 12, 37.6, 127.0, 0); // 유명인은 UTC 기준 (tz=0)
+                return { sunIdx: c.sun.idx, venusIdx: c.planets.Venus ? c.planets.Venus.sign.idx : -1,
+                         moonIdx: c.moon.idx, marsIdx: c.planets.Mars ? c.planets.Mars.sign.idx : -1,
+                         sunSign: c.sun.sign, moonSign: c.moon.sign,
+                         venusSign: c.planets.Venus ? c.planets.Venus.sign.sign : '?',
+                         marsSign: c.planets.Mars ? c.planets.Mars.sign.sign : '?',
+                         sunLon: (c.sun.idx * 30 + (c.sun.deg || 0)),
+                         venusLon: c.planets.Venus ? (c.planets.Venus.sign.idx * 30 + (c.planets.Venus.sign.deg || 0)) : -1 };
+            } catch(e) { return null; }
+        }
+
+        /* ── [🎭 Cosmic Twins] 같은 태양 or 금성 별자리 유명인 ── */
+        var twinsDiv = document.getElementById('astroCosmicTwins');
+        if (twinsDiv && typeof CELEBS !== 'undefined') {
+            var twins = [];
+            CELEBS.forEach(function(c) {
+                if (twins.length >= 18) return;
+                var r = _syGetSunIdx(c.birth, c.hour || 12);
+                if (!r) return;
+                var matchSun = (r.sunIdx === _mySunIdx);
+                var matchVenus = (r.venusIdx === _myVenusIdx && _myVenusIdx >= 0);
+                if (!matchSun && !matchVenus) return;
+                var flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[c.nationality]) ? COUNTRY_CONFIG[c.nationality].flag : '';
+                twins.push({ c: c, r: r, matchSun: matchSun, flag: flag });
+            });
+            if (twins.length === 0) {
+                twinsDiv.innerHTML = '<span style="color:#666;font-size:0.8rem;">DB에서 같은 기운의 유명인을 찾지 못했습니다.</span>';
+            } else {
+                twinsDiv.innerHTML = twins.map(function(t) {
+                    var tag = t.matchSun ? '☀ 같은 태양' : '♀ 같은 금성';
+                    var tagClr = t.matchSun ? '#fbbf24' : '#f472b6';
+                    return '<div onclick="window._astroPickCeleb('+JSON.stringify(t.c.name)+','+JSON.stringify(t.c.birth)+','+(t.c.hour||12)+')" '
+                        +'style="cursor:pointer;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:5px 11px;font-size:0.75rem;color:#a7f3d0;transition:all 0.2s;" '
+                        +'onmouseenter="this.style.background=\'rgba(52,211,153,0.2)\'" onmouseleave="this.style.background=\'rgba(52,211,153,0.08)\'">'
+                        + t.flag + ' ' + t.c.name
+                        +'<span style="font-size:0.6rem;color:'+tagClr+';margin-left:4px;font-weight:700;">'+tag+'</span>'
+                        +'</div>';
+                }).join('');
+            }
+        }
+
+        /* ── [💍 시나스트리] 국가·카테고리·검색 탭 구성 ── */
+        var _astroActiveCtry = '';
+        var _astroActiveCat  = '';
+
+        function _astroRenderCelebList() {
+            if (typeof CELEBS === 'undefined') return;
+            var listDiv = document.getElementById('astroSyCelebs');
+            if (!listDiv) return;
+            var q = (document.getElementById('astroSyQ') || {}).value || '';
+            q = q.trim().toLowerCase();
+            var filtered = CELEBS.filter(function(c) {
+                var ctOk  = !_astroActiveCtry || (c.nationality || 'KR') === _astroActiveCtry;
+                var catOk = !_astroActiveCat  || c.cat === _astroActiveCat;
+                var nameOk= !q || c.name.toLowerCase().indexOf(q) > -1;
+                return ctOk && catOk && nameOk;
+            });
+            listDiv.innerHTML = '';
+            if (filtered.length === 0) {
+                listDiv.innerHTML = '<span style="color:#666;font-size:0.8rem;padding:4px;">검색 결과가 없습니다.</span>';
+                return;
+            }
+            filtered.slice(0, 80).forEach(function(c) {
+                var flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[c.nationality]) ? COUNTRY_CONFIG[c.nationality].flag + ' ' : '';
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = flag + c.name;
+                btn.style.cssText = 'padding:4px 10px;border-radius:20px;font-size:0.75rem;border:1px solid rgba(244,114,182,0.3);background:rgba(20,25,35,0.8);color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;';
+                btn.onmouseenter = function() { this.style.background='rgba(244,114,182,0.18)'; };
+                btn.onmouseleave = function() { this.style.background='rgba(20,25,35,0.8)'; };
+                btn.onclick = function() {
+                    listDiv.querySelectorAll('button').forEach(function(b) { b.style.background='rgba(20,25,35,0.8)'; });
+                    this.style.background = 'rgba(244,114,182,0.25)';
+                    window._astroPickCeleb(c.name, c.birth, c.hour || 12);
+                };
+                listDiv.appendChild(btn);
+            });
+            if (filtered.length > 80) {
+                var note = document.createElement('span');
+                note.style.cssText = 'color:#666;font-size:0.73rem;padding:4px 6px;align-self:center;';
+                note.textContent = '외 ' + (filtered.length - 80) + '명';
+                listDiv.appendChild(note);
+            }
+        }
+
+        /* 국가 탭 */
+        var ctryDiv = document.getElementById('astroCtryTabs');
+        if (ctryDiv && typeof COUNTRY_CONFIG !== 'undefined') {
+            function _mkCtryBtn(code, label) {
+                var b = document.createElement('button'); b.type = 'button';
+                b.textContent = label; b.dataset.c = code;
+                var isA = code === '';
+                b.style.cssText = 'padding:3px 9px;border-radius:20px;font-size:0.7rem;border:1px solid rgba(129,140,248,'+(isA?'0.7':'0.3')+');background:rgba(129,140,248,'+(isA?'0.18':'0.04')+');color:'+(isA?'#a5b4fc':'#7f8c8d')+';cursor:pointer;white-space:nowrap;';
+                b.onclick = function() {
+                    ctryDiv.querySelectorAll('button').forEach(function(x){
+                        x.style.background='rgba(129,140,248,0.04)'; x.style.borderColor='rgba(129,140,248,0.3)'; x.style.color='#7f8c8d';
+                    });
+                    this.style.background='rgba(129,140,248,0.18)'; this.style.borderColor='rgba(129,140,248,0.7)'; this.style.color='#a5b4fc';
+                    _astroActiveCtry = this.dataset.c; _astroRenderCelebList();
+                };
+                return b;
+            }
+            ctryDiv.appendChild(_mkCtryBtn('', '🌐 전체'));
+            Object.entries(COUNTRY_CONFIG).sort(function(a,b){return a[1].order-b[1].order;}).forEach(function(e){
+                ctryDiv.appendChild(_mkCtryBtn(e[0], e[1].flag + ' ' + e[1].label));
+            });
+        }
+
+        /* 카테고리 탭 */
+        var catDiv = document.getElementById('astroCatTabs');
+        if (catDiv && typeof CELEB_CATS !== 'undefined') {
+            var ic = typeof CELEB_CAT_ICONS !== 'undefined' ? CELEB_CAT_ICONS : {};
+            ['전체'].concat(CELEB_CATS).forEach(function(c, i) {
+                var b = document.createElement('button'); b.type='button'; b.dataset.cat = i===0?'':c;
+                b.textContent = (ic[c]||'✨') + ' ' + c;
+                b.style.cssText = 'padding:3px 9px;border-radius:20px;font-size:0.7rem;border:1px solid rgba(244,114,182,'+(i===0?'0.6':'0.25')+');background:rgba(244,114,182,'+(i===0?'0.15':'0.04')+');color:'+(i===0?'#f9a8d4':'#94a3b8')+';cursor:pointer;white-space:nowrap;';
+                b.onclick = function() {
+                    catDiv.querySelectorAll('button').forEach(function(x){
+                        x.style.background='rgba(244,114,182,0.04)'; x.style.borderColor='rgba(244,114,182,0.25)'; x.style.color='#94a3b8';
+                    });
+                    this.style.background='rgba(244,114,182,0.15)'; this.style.borderColor='rgba(244,114,182,0.6)'; this.style.color='#f9a8d4';
+                    _astroActiveCat = this.dataset.cat; _astroRenderCelebList();
+                };
+                catDiv.appendChild(b);
+            });
+        }
+
+        /* 검색 입력 */
+        var qEl = document.getElementById('astroSyQ');
+        if (qEl) qEl.addEventListener('input', _astroRenderCelebList);
+
+        /* 초기 목록 */
+        _astroRenderCelebList();
+    }, 200);
+
+    /* ── 유명인 선택 → 시나스트리 결과 계산 ── */
+    window._astroPickCeleb = function(name, birth, hour) {
+        var resultDiv = document.getElementById('astroSyResult');
+        if (!resultDiv) return;
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div style="color:#818cf8;font-size:0.85rem;padding:10px;text-align:center;">✦ 천체 계산 중...</div>';
+
+        setTimeout(function() {
+            try {
+                var p = birth.split('-');
+                /* 유명인은 시차 미상 → UTC 정오 기준 (tz=0 설정, 오차 명시) */
+                var celebChart = AstroEngine.calcAll(+p[0], +p[1], +p[2], hour, 37.6, 127.0, 0);
+                var celebSunIdx   = celebChart.sun.idx;
+                var celebMoonIdx  = celebChart.moon.idx;
+                var celebVenusIdx = celebChart.planets.Venus ? celebChart.planets.Venus.sign.idx : 0;
+                var celebMarsIdx  = celebChart.planets.Mars  ? celebChart.planets.Mars.sign.idx  : 0;
+                var celebSunSign  = celebChart.sun.sign;
+                var celebMoonSign = celebChart.moon.sign;
+                var celebVSign    = celebChart.planets.Venus ? celebChart.planets.Venus.sign.sign : '?';
+                var celebMSign    = celebChart.planets.Mars  ? celebChart.planets.Mars.sign.sign  : '?';
+
+                var _signs = typeof astrologer !== 'undefined' ? astrologer.signs : [];
+
+                /* ── 각도(Aspect) 계산: 두 경도 차이 → 주요 각도 판별 ── */
+                function _aspect(a, b) {
+                    var diff = Math.abs((a - b + 360) % 360);
+                    if (diff > 180) diff = 360 - diff;
+                    if (diff <= 8)  return { name:'합(Conjunction)', symbol:'☌', nature:'강렬', score:10, color:'#fbbf24' };
+                    if (diff >= 52  && diff <= 68)  return { name:'섹스타일(Sextile)', symbol:'⚹', nature:'조화', score:6, color:'#34d399' };
+                    if (diff >= 82  && diff <= 98)  return { name:'스퀘어(Square)',   symbol:'□', nature:'도전', score:-5, color:'#f87171' };
+                    if (diff >= 112 && diff <= 128) return { name:'트라인(Trine)',    symbol:'△', nature:'완벽조화', score:10, color:'#818cf8' };
+                    if (diff >= 172 && diff <= 188) return { name:'어포지션(Opposition)', symbol:'☍', nature:'극단긴장', score:-3, color:'#fb923c' };
+                    return null;
+                }
+
+                /* ── 주요 시나스트리 각도 쌍 ── */
+                var _myLons  = {
+                    '내 ☀ 태양':  sunIndex * 30 + (chart.sun.deg  || 0),
+                    '내 ☽ 달':    moonIndex * 30+ (chart.moon.deg || 0),
+                    '내 ♀ 금성':  (chart.planets.Venus ? chart.planets.Venus.sign.idx * 30 + (chart.planets.Venus.sign.deg || 0) : sunIndex * 30),
+                    '내 ♂ 화성':  (chart.planets.Mars  ? chart.planets.Mars.sign.idx  * 30 + (chart.planets.Mars.sign.deg  || 0) : sunIndex * 30)
+                };
+                var _theirLons = {
+                    '상대 ☀ 태양':  celebSunIdx   * 30 + (celebChart.sun.deg || 0),
+                    '상대 ☽ 달':    celebMoonIdx  * 30 + (celebChart.moon.deg || 0),
+                    '상대 ♀ 금성':  celebVenusIdx * 30 + (celebChart.planets.Venus ? celebChart.planets.Venus.sign.deg || 0 : 0),
+                    '상대 ♂ 화성':  celebMarsIdx  * 30 + (celebChart.planets.Mars  ? celebChart.planets.Mars.sign.deg  || 0 : 0)
+                };
+
+                var aspectRows = [];
+                var totalScore = 0;
+                var myKeys  = Object.keys(_myLons);
+                var thKeys  = Object.keys(_theirLons);
+                for (var mi = 0; mi < myKeys.length; mi++) {
+                    for (var ti = 0; ti < thKeys.length; ti++) {
+                        var asp = _aspect(_myLons[myKeys[mi]], _theirLons[thKeys[ti]]);
+                        if (asp) {
+                            aspectRows.push({ pair: myKeys[mi] + ' × ' + thKeys[ti], asp: asp });
+                            totalScore += asp.score;
+                        }
+                    }
+                }
+                /* 0–100 스코어 정규화 */
+                var rawMax = 10 * myKeys.length; // 최대 이론치
+                var synScore = Math.min(100, Math.max(0, Math.round(50 + (totalScore / rawMax) * 50)));
+                var scoreColor = synScore >= 80 ? '#2ed573' : synScore >= 55 ? '#f39c12' : '#ff4757';
+
+                /* ── 관계 유형 판정 ── */
+                var sunDelta = Math.abs((celebSunIdx - sunIndex + 12) % 12);
+                if (sunDelta > 6) sunDelta = 12 - sunDelta;
+                var relType = sunDelta === 0 ? '영혼의 거울 — 자신을 보는 듯한 완벽한 공명' :
+                              sunDelta <= 2 ? '불꽃의 동행 — 에너지가 유사해 폭발적 시너지 발휘' :
+                              sunDelta === 3 ? '자극의 파트너 — 서로를 단련시키는 균형의 긴장감' :
+                              sunDelta === 4 ? '안정의 동반자 — 성격 결이 달라 서로를 보완하는 최고 궁합' :
+                              sunDelta === 5 ? '우주적 반전 — 초반 마찰 후 깊은 교감에 이르는 성장형 인연' :
+                              '운명의 대극 — 강렬한 끌림과 충돌이 공존하는 카르마 인연';
+
+                /* ── 섹션별 궁합 해석 ── */
+                var LOVE_TABLE = [
+                    '마음의 주파수가 완벽히 일치합니다. 처음 만나도 오래된 연인처럼 편안합니다.',
+                    '서로의 감정을 직관적으로 이해하며 강한 끌림이 빠르게 형성됩니다.',
+                    '불꽃 같은 로맨스. 열정적이지만 충돌이 관계를 더욱 깊게 만듭니다.',
+                    '서로의 차이가 오히려 성장의 자극이 되는 강렬한 연애입니다.',
+                    '이성적 연결보다 감정적 교감이 더 깊어지는 영적 파트너십입니다.',
+                    '처음은 낯설어도 시간이 갈수록 단단해지는 카르마 인연입니다.'
+                ];
+                var BUSI_TABLE = [
+                    '완벽한 협업 — 둘이 함께하면 1+1이 3이 됩니다.',
+                    '강한 추진력으로 프로젝트를 이끄는 최적의 파트너.',
+                    '창의성과 실행력의 균형, 서로의 약점을 보완합니다.',
+                    '논쟁이 있어도 그것이 더 나은 결과를 낳는 생산적 긴장.',
+                    '신뢰 기반의 장기 파트너십, 안정적 성장에 적합.',
+                    '극복해야 할 과제가 있지만 그것이 더 큰 성과를 만듭니다.'
+                ];
+                var SPIRIT_TABLE = [
+                    '전생에서 이어온 듯한 영혼의 결합, 깊은 직관적 연결.',
+                    '서로에게 중요한 영적 교훈을 주는 스승과 제자 같은 관계.',
+                    '함께할 때 우주에너지가 정화되는 힐링 파트너.',
+                    '영적 성장을 위해 시련을 함께 극복해야 하는 카르마 인연.',
+                    '내면의 그림자를 서로에게 투영하며 성장하는 관계.',
+                    '만나야 할 이유가 있는, 우주가 안배한 특별한 인연.'
+                ];
+                var tabIdx = Math.min(5, sunDelta);
+                var loveDesc   = LOVE_TABLE[tabIdx];
+                var busDesc    = BUSI_TABLE[tabIdx];
+                var spiritDesc = SPIRIT_TABLE[tabIdx];
+
+                /* ── 빛과 그림자 키워드 ── */
+                var ELEM_MAP = { 0:'불', 1:'불', 2:'흙', 3:'흙', 4:'공기', 5:'공기', 6:'물', 7:'물', 8:'불', 9:'불', 10:'흙', 11:'흙' };
+                var myElem = ELEM_MAP[sunIndex % 12] || '균형';
+                var theirElem = ELEM_MAP[celebSunIdx % 12] || '균형';
+                var SHADOW = {
+                    '불-불': { light:'✧ 불꽃 같은 열정과 에너지가 증폭', shadow:'✦ 둘 다 리더 기질, 주도권 충돌 주의', remedy:'서로의 에너지를 경쟁이 아닌 창조로 승화시키세요' },
+                    '불-흙': { light:'✧ 열정+현실감각의 이상적 조합',    shadow:'✦ 속도 차이 — 불은 빠르고 흙은 느립니다', remedy:'페이스 조율: 행동 전 충분한 논의가 신뢰를 만듭니다' },
+                    '불-공기':{ light:'✧ 창의적 영감이 폭발하는 관계',   shadow:'✦ 감정보다 언어, 피상적 교류에 머물 수 있음', remedy:'진심을 담은 깊은 대화 시간을 의도적으로 만드세요' },
+                    '불-물': { light:'✧ 열정과 감성의 조화, 강렬한 끌림',shadow:'✦ 기질 충돌 — 불은 이성적, 물은 감성적', remedy:'감정 언어를 배우세요. 공감 표현이 모든 갈등을 녹입니다' },
+                    '흙-흙': { light:'✧ 안정·신뢰·현실적 성취의 최강 조합',shadow:'✦ 변화를 두려워해 정체될 수 있음',      remedy:'새로운 경험을 함께 도전하며 관계에 신선함을 부어주세요' },
+                    '흙-공기':{ light:'✧ 실행력과 아이디어의 완벽 균형', shadow:'✦ 가치관 차이, 물질 vs 이상',            remedy:'서로의 세계관을 존중하며 다름 속에서 시너지를 찾으세요' },
+                    '흙-물': { light:'✧ 포용과 안정의 따뜻한 울타리',    shadow:'✦ 물이 흙을 무겁게 만들 수 있음',       remedy:'감정을 실용적으로 표현하면 관계가 훨씬 원활해집니다' },
+                    '공기-공기':{ light:'✧ 지적 교류와 자유의 완벽 공명', shadow:'✦ 감정적 깊이 부족, 표면에 머물 수 있음', remedy:'서로의 취약함을 드러내는 용기가 진정한 연결을 만듭니다' },
+                    '공기-물': { light:'✧ 이성과 감성의 상호 보완',       shadow:'✦ 감정 표현 방식의 차이',               remedy:'공기는 더 많이 표현하고, 물은 더 많이 이해하는 연습이 필요합니다' },
+                    '물-물': { light:'✧ 영적·감정적 완벽 공명',           shadow:'✦ 감정 소용돌이에 빠질 수 있음',        remedy:'현실적 구조와 경계를 함께 만들어 감정을 조율하세요' }
+                };
+                var shadowKey = [myElem, theirElem].sort().join('-');
+                var shadowInfo = SHADOW[shadowKey] || { light:'✧ 두 에너지가 독특한 조화를 이룹니다', shadow:'✦ 서로의 다름을 이해하는 과정이 필요합니다', remedy:'공통 관심사를 늘리며 천천히 신뢰를 쌓아가세요' };
+
+                var isUnknownTime = (!birth || true); // 유명인은 항상 생시 미상 처리
+                var flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[(CELEBS.find(function(x){return x.name===name;})||{}).nationality]) ? COUNTRY_CONFIG[(CELEBS.find(function(x){return x.name===name;})||{}).nationality].flag + ' ' : '';
+
+                /* ── HTML 렌더 ── */
+                var html2 = '<div style="border-top:1px solid rgba(129,140,248,0.3);margin-top:10px;padding-top:12px;">';
+
+                /* 헤더 */
+                html2 += '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'
+                    +'<div style="font-size:1rem;font-weight:900;color:#e0d0ff;">' + flag + name + '</div>'
+                    +'<div style="background:rgba(129,140,248,0.15);border:1px solid rgba(129,140,248,0.4);padding:2px 10px;border-radius:20px;font-size:0.72rem;color:#a5b4fc;">'
+                    + celebSunSign + ' ☀</div>'
+                    + (isUnknownTime ? '<div style="font-size:0.65rem;color:#64748b;border:1px dashed #334155;padding:2px 8px;border-radius:10px;">⚠ 생시미상 — 달·상승궁 오차 있음</div>' : '')
+                    +'</div>';
+
+                /* 스코어 + 상대 나탈 */
+                html2 += '<div style="display:grid;grid-template-columns:auto 1fr;gap:10px;margin-bottom:12px;align-items:start;">'
+                    +'<div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:14px;text-align:center;min-width:80px;">'
+                    +'<div style="font-size:0.65rem;color:#818cf8;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px;">시나스트리</div>'
+                    +'<div style="font-size:2.2rem;font-weight:900;color:'+scoreColor+';line-height:1;">'+synScore+'</div>'
+                    +'<div style="font-size:0.6rem;color:#64748b;margin-top:2px;">/100</div>'
+                    +'</div>'
+                    +'<div style="display:flex;flex-direction:column;gap:5px;">'
+                    +'<div style="font-size:0.75rem;color:#e2e8f0;line-height:1.4;font-weight:700;word-break:keep-all;">'+relType+'</div>'
+                    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px;">'
+                    +'<div style="background:rgba(251,191,36,0.08);padding:5px 7px;border-radius:6px;font-size:0.68rem;color:#fde68a;"><span style="color:#94a3b8;">☀</span> '+celebSunSign+'</div>'
+                    +'<div style="background:rgba(148,163,184,0.08);padding:5px 7px;border-radius:6px;font-size:0.68rem;color:#e2e8f0;"><span style="color:#94a3b8;">☽</span> '+celebMoonSign+'</div>'
+                    +'<div style="background:rgba(244,114,182,0.08);padding:5px 7px;border-radius:6px;font-size:0.68rem;color:#fbcfe8;"><span style="color:#94a3b8;">♀</span> '+celebVSign+'</div>'
+                    +'<div style="background:rgba(239,68,68,0.08);padding:5px 7px;border-radius:6px;font-size:0.68rem;color:#fca5a5;"><span style="color:#94a3b8;">♂</span> '+celebMSign+'</div>'
+                    +'</div>'
+                    +'</div>'
+                    +'</div>';
+
+                /* 관계 분석 3종 */
+                html2 += '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:12px;">'
+                    +'<div style="background:rgba(244,114,182,0.08);border-radius:10px;padding:10px 12px;border:1px solid rgba(244,114,182,0.2);">'
+                    +'<div style="font-size:0.72rem;color:#f472b6;font-weight:700;margin-bottom:4px;">💕 연애 궁합</div>'
+                    +'<p style="font-size:0.82rem;color:#e2e8f0;margin:0;line-height:1.6;word-break:keep-all;">'+loveDesc+'</p></div>'
+                    +'<div style="background:rgba(251,191,36,0.07);border-radius:10px;padding:10px 12px;border:1px solid rgba(251,191,36,0.18);">'
+                    +'<div style="font-size:0.72rem;color:#fbbf24;font-weight:700;margin-bottom:4px;">🤝 비즈니스 궁합</div>'
+                    +'<p style="font-size:0.82rem;color:#e2e8f0;margin:0;line-height:1.6;word-break:keep-all;">'+busDesc+'</p></div>'
+                    +'<div style="background:rgba(129,140,248,0.07);border-radius:10px;padding:10px 12px;border:1px solid rgba(129,140,248,0.18);">'
+                    +'<div style="font-size:0.72rem;color:#818cf8;font-weight:700;margin-bottom:4px;">✨ 영적 궁합</div>'
+                    +'<p style="font-size:0.82rem;color:#e2e8f0;margin:0;line-height:1.6;word-break:keep-all;">'+spiritDesc+'</p></div>'
+                    +'</div>';
+
+                /* 결정적 각도 테이블 */
+                if (aspectRows.length > 0) {
+                    html2 += '<div style="margin-bottom:12px;">'
+                        +'<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">⚡ 결정적 각도 (Major Aspects)</div>'
+                        +'<div style="display:flex;flex-direction:column;gap:4px;">';
+                    aspectRows.slice(0, 8).forEach(function(r) {
+                        html2 += '<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.03);border-radius:7px;padding:6px 10px;">'
+                            +'<span style="font-size:1rem;color:'+r.asp.color+';">'+r.asp.symbol+'</span>'
+                            +'<span style="font-size:0.72rem;color:#e2e8f0;flex:1;">'+r.pair+'</span>'
+                            +'<span style="font-size:0.68rem;background:rgba('+( r.asp.score>0?'52,211,153':'239,68,68' )+',0.15);color:'+r.asp.color+';padding:2px 7px;border-radius:10px;">'+r.asp.name+'</span>'
+                            +'</div>';
+                    });
+                    html2 += '</div></div>';
+                }
+
+                /* 빛과 그림자 */
+                html2 += '<div style="background:rgba(15,23,42,0.6);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,0.07);">'
+                    +'<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">⚖️ 빛과 그림자</div>'
+                    +'<div style="font-size:0.8rem;color:#86efac;margin-bottom:5px;line-height:1.5;">'+shadowInfo.light+'</div>'
+                    +'<div style="font-size:0.8rem;color:#fca5a5;margin-bottom:8px;line-height:1.5;">'+shadowInfo.shadow+'</div>'
+                    +'<div style="font-size:0.78rem;background:rgba(129,140,248,0.1);border-left:3px solid #818cf8;padding:8px 10px;border-radius:0 8px 8px 0;color:#c7d2fe;line-height:1.6;word-break:keep-all;">'
+                    +'🌿 <b>개선의 길</b>: '+shadowInfo.remedy
+                    +'</div>'
+                    +'</div>'
+                    +'</div>';
+
+                resultDiv.innerHTML = html2;
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch(e) {
+                resultDiv.innerHTML = '<p style="color:#f87171;font-size:0.85rem;">시나스트리 계산 중 오류가 발생했습니다: ' + (e.message || e) + '</p>';
+            }
+        }, 50);
+    };
 
     /* ── Falling Stars CSS + 별 요소 주입 (딥 스페이스 테마) ── */
     if(!document.getElementById('falling-stars-style')){
