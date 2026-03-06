@@ -5,7 +5,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>🐷 연이의 꿀꿀 만세력 | 무료사주 타로 운세 궁합 점성술 자미두수 MBTI — Free Saju Tarot Horoscope</title>
 <!-- LCP 최적화: 주요 이미지 프리로드 -->
 <link rel="preload" as="image" href="https://raw.githubusercontent.com/Toss/tossface/main/dist/svg/u1F338.svg">
@@ -202,9 +202,12 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Gowun Dodum',sans-serif}
-html{scroll-behavior:smooth;overflow-x:hidden}
+html{scroll-behavior:smooth;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
-  min-height:100vh;min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;}
+  min-height:100vh;min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+}
 body::before{
   content:'';
   position:fixed;
@@ -236,6 +239,7 @@ body::after{
   position: relative;
   overflow-x: hidden;
   padding:0 10px calc(22px + env(safe-area-inset-bottom));
+  padding-bottom:max(22px, calc(22px + env(safe-area-inset-bottom)));
   display:flex;
   flex-direction:column;
   z-index:1;
@@ -573,8 +577,13 @@ input:checked + .slider .paw-pad {
 .form-group{margin-bottom:18px}
 .form-label{display:block;font-weight:700;font-size:.9rem;color:#555;margin-bottom:8px}
 .inp{width:100%;padding:13px 15px;border:2px solid #F0EEF0;border-radius:12px;
-  font-size:.97rem;background:#FAFAFA;transition:all .25s;font-family:inherit}
+  font-size:1rem;font-size:max(1rem, 16px);background:#FAFAFA;transition:all .25s;font-family:inherit;
+  -webkit-appearance:none;appearance:none;min-height:48px;}
 .inp:focus{outline:none;border-color:var(--pink-l);background:#fff;box-shadow:0 0 0 4px rgba(255,183,178,.15)}
+/* iOS 줌 방지: 모든 input/select/textarea 16px 이상 유지 */
+@media (max-width:768px){
+  input,select,textarea{font-size:max(1rem,16px)!important;}
+}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .toggle-wrap{display:flex;background:#F4F2F4;padding:5px;border-radius:13px;gap:5px}
 .tog-btn{flex:1;border:none;padding:12px;border-radius:10px;background:transparent;
@@ -582,10 +591,11 @@ input:checked + .slider .paw-pad {
 .tog-btn.on{background:#fff;color:var(--pink);box-shadow:0 2px 8px rgba(255,183,178,.25)}
 .tog-btn:active{transform:scale(.96);opacity:.8}
 .btn-main{width:100%;padding:17px;background:linear-gradient(135deg,var(--pink-l),var(--pink));
-  color:#fff;border:none;border-radius:14px;font-size:1.08rem;font-weight:700;
-  cursor:pointer;box-shadow:0 5px 18px rgba(255,139,167,.35);transition:all .25s;font-family:inherit}
+  color:#fff;border:none;border-radius:14px;font-size:clamp(1rem,4vw,1.08rem);font-weight:700;
+  cursor:pointer;box-shadow:0 5px 18px rgba(255,139,167,.35);transition:transform .15s,box-shadow .15s;font-family:inherit;
+  min-height:52px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .btn-main:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(255,139,167,.45)}
-.btn-main:active{transform:scale(.97);box-shadow:0 2px 10px rgba(255,139,167,.3)}
+.btn-main:active{transform:scale(.96);box-shadow:0 2px 10px rgba(255,139,167,.3);opacity:.9}
 .btn-main:disabled{opacity:.55;cursor:not-allowed;transform:none}
 .btn-sub{width:100%;padding:15px;background:#fff;color:var(--pink);border:2px solid var(--pink-l);
   border-radius:14px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .25s;font-family:inherit}
@@ -772,6 +782,10 @@ input:checked + .slider .paw-pad {
 .dw-jong-badge.ga-str{background:#EDE7F6;color:#6A1B9A;border:1px dashed #9C27B0}
 /* ── 모바일/웹 클릭·터치 전역 최적화 ── */
 button,.dw-item,.year-row,.fortune-tab,.mystic-tab-btn,.lang-btn,.tog-btn,.oracle-cat-btn-m,.oracle-card-m,.iching-btn,.celeb-tab-btn,.celeb-btn,.feature-card,.tarot-cat-btn,.btn-kakao,.btn-insta{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button,.tog-btn,.btn-main,.btn-sub,.feature-card{min-height:44px;}
+/* 모든 인터랙티브 요소 active 피드백 */
+button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.97)!important;}
+@media(hover:none){button:hover,.feature-card:hover{transform:none!important;}}
 .dw-item,.year-row,.fortune-tab,.mystic-tab-btn,.oracle-cat-btn-m{user-select:none}
 /* ── 대운 카드 요약 라벨 ── */
 .dw-eval-label{font-size:.58rem;color:#888;margin-top:3px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -3453,11 +3467,13 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
     <section class="card input-section" aria-label="사주 정보 입력">
       <div class="form-group">
         <label class="form-label">이름</label>
-        <input class="inp" type="text" id="nameInput" placeholder="이름을 입력하세요">
+        <input class="inp" type="text" id="nameInput" placeholder="이름을 입력하세요"
+          autocomplete="name" inputmode="text" enterkeyhint="next">
       </div>
       <div class="form-group">
         <label class="form-label">생년월일</label>
-        <input class="inp" type="date" id="birthDate" onchange="updateLunarPreview('birthDate', 'calType', 'lunarPreview')">
+        <input class="inp" type="date" id="birthDate" onchange="updateLunarPreview('birthDate', 'calType', 'lunarPreview')"
+          autocomplete="bday" inputmode="numeric">
         <div style="display:flex; gap:10px; margin-top:8px; font-size:0.9rem;">
           <label><input type="radio" name="calType" value="solar" checked onchange="updateLunarPreview('birthDate', 'calType', 'lunarPreview')"> 양력</label>
           <label><input type="radio" name="calType" value="lunar" onchange="updateLunarPreview('birthDate', 'calType', 'lunarPreview')"> 음력(평달)</label>
@@ -21751,6 +21767,125 @@ function getSynergyText(t1, t2) {
       }
   };
   </script>
+
+<style>
+/* ═══ 모바일 마스터 최적화 추가 CSS ═══ */
+
+/* 1. 가로 모드(Landscape) 대응 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .wrap { padding-top: 8px; }
+  .card { padding: 12px 14px; margin-bottom: 10px; }
+  .saju-book-wrapper { margin-bottom: 20px; transform: scale(0.7); transform-origin: top center; }
+  #sajuLoaderOverlay .saju-txt-wrap { margin-top: -20px; }
+}
+
+/* 2. 다크모드 시스템 연동 (theme-pig 수동 모드 없을 때) */
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-pig) {
+    color-scheme: dark;
+  }
+}
+
+/* 3. 저사양 기기 — 모션 최소화 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 4. 스켈레톤 UI */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+body.neo-mode .skeleton {
+  background: linear-gradient(90deg, #2a2a2d 25%, #3a3a3d 50%, #2a2a2d 75%);
+  background-size: 200% 100%;
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-card {
+  height: 72px; border-radius: 14px; margin-bottom: 12px;
+}
+
+/* 5. Safe-area 강화 — 하단 고정 요소 */
+.fixed-bottom-safe {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+/* 6. 터치 영역 최소 44px 강제 */
+.form-label { min-height: 24px; }
+.tog-btn { min-height: 48px; }
+select.inp { min-height: 48px; cursor: pointer; }
+
+/* 7. feature-card 가로모드/소형기기 */
+@media (max-width: 380px) {
+  .feature-card-grid { gap: 10px; }
+  .feature-card__title { font-size: 0.9rem; }
+  .feature-card__desc { font-size: 0.75rem; }
+}
+
+/* 8. 라디오 버튼 터치 영역 확장 */
+.form-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.form-group label:active { background: rgba(255,139,167,.1); }
+
+/* 9. 포커스 가시성 (키보드 사용자 접근성) */
+:focus-visible {
+  outline: 3px solid var(--pink, #FF8BA7);
+  outline-offset: 2px;
+}
+</style>
+
+<script>
+/* ═══ 모바일 300ms 클릭 지연 완전 제거 ═══ */
+(function() {
+  // FastClick 패턴 — passive touchstart로 300ms 지연 없애기
+  if ('ontouchstart' in window) {
+    document.addEventListener('touchstart', function(){}, {passive: true});
+  }
+
+  /* ═══ Lazy Loading — Intersection Observer ═══ */
+  if ('IntersectionObserver' in window) {
+    var lazyImages = document.querySelectorAll('img[loading="lazy"]');
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          var img = entry.target;
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+          }
+          observer.unobserve(img);
+        }
+      });
+    }, { rootMargin: '200px 0px' });
+    lazyImages.forEach(function(img) { observer.observe(img); });
+  }
+
+  /* ═══ 버튼 햅틱 피드백 (지원 기기) ═══ */
+  document.addEventListener('touchstart', function(e) {
+    var el = e.target.closest('button, .btn-main, .btn-sub, .feature-card, .tog-btn, .ctg-btn');
+    if (el && navigator.vibrate) {
+      navigator.vibrate(8);
+    }
+  }, { passive: true });
+})();
+</script>
 
 </body>
 </html>
