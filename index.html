@@ -5576,12 +5576,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div id="egyptSection"></div>
     </section>
 
-    <!-- 6-4. 숙요점 & 퀀텀 명리 -->
-    <section class="card" id="sukuyoCard" style="display:none" aria-labelledby="sukuyoTitle">
-      <h3 id="sukuyoTitle" class="sec-title" style="color: #9333ea;">💫 숙요점 & 퀀텀 명리 대시보드</h3>
-      <div id="sukuyoSection"></div>
-    </section>
-
 
     <!-- ═══ 호르몬 관상: 테토 vs 에겐 ═══ -->
     <div class="ad-container" id="adMiddle8" style="margin-bottom:20px;">
@@ -5748,6 +5742,11 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
                   <div class="g-type" style="text-align:left; color:#cbd5e1; font-weight:700;">개운법 (컬러/액션)</div>
                   <div class="g-desc" id="gAction" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
                 </div>
+
+                 <!-- 6-4. 숙요점 & 퀀텀 명리 -->
+    <section class="card" id="sukuyoCard" style="display:none" aria-labelledby="sukuyoTitle">
+      <h3 id="sukuyoTitle" class="sec-title" style="color: #9333ea;">💫 숙요점 대시보드</h3>
+      <div id="sukuyoSection"></div>
               </div>
             </div>
           </div>
@@ -5755,6 +5754,11 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       </div>
     </div>
 
+
+    
+
+   
+    </section>
     <!-- 9. 연이의 편지 / 쌈바의 팩폭 -->
     <section class="letter-box" id="letterBox" style="margin-bottom:16px; display:none;" aria-labelledby="letterTitle">
       <h3 id="letterTitle">💖 연이의 편지</h3>
@@ -5840,8 +5844,12 @@ var tried=0;
 const KasiEngine = {
     solarToLunar: function(date) {
         if (!date) return null;
-        var y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
-        var h = date.getHours(), min = date.getMinutes(), s = date.getSeconds();
+        let tDate = new Date(date.getTime());
+        if (tDate.getHours() >= 23) {
+            tDate.setDate(tDate.getDate() + 1); // 명리학 자시 경계일 보정
+        }
+        var y = tDate.getFullYear(), m = tDate.getMonth() + 1, d = tDate.getDate();
+        var h = tDate.getHours(), min = tDate.getMinutes(), s = tDate.getSeconds();
         var solar = Solar.fromYmdHms(y, m, d, h, min, s);
         var lunar = solar.getLunar();
         return {
@@ -7730,30 +7738,29 @@ async function calculate(){
       (GENDER==='M'?'남성':'여성')+' · '+animal+'띠 · 일지 '+dz+'('+dayAnimal+') · 만 '+(CURRENT_AGE-1)+'세'+
       timeCorrectionStr;
 
-    renderManse(p);
-    renderIlju(p);
-    renderTenshin(p);
-    renderJohu(johu);
-    renderUkbu(p);
-    renderZiwei(p,natal);
-    renderAstroInsight();
-    renderSkillTree(p,natal);
-    renderSummary(p,johu,natal);
-    renderEnergyCoord(natal);
-    renderHealthReport(p, natal, johu, G_POWER, G_JONG);
-    renderTTest(p, natal, johu, G_POWER);
-    renderLottoNumbers(natal, bazi);
-    renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null);
-    renderQuantumStrategy(p, natal, bazi);
-    renderEgyptianOracle(year, month, day, natal);
-    renderSpecialCharm(p, natal);
-    renderDaewun(bazi);
-    renderDailyMonthlyFortune(p);
-    renderLetter(p);
-    renderTodayDestinyCard(p);
+    try { renderManse(p); } catch(e) { console.error('Manse 에러:', e); }
+    try { renderIlju(p); } catch(e) { console.error('Ilju 에러:', e); }
+    try { renderTenshin(p); } catch(e) { console.error('Tenshin 에러:', e); }
+    try { renderJohu(johu); } catch(e) { console.error('Johu 에러:', e); }
+    try { renderUkbu(p); } catch(e) { console.error('Ukbu 에러:', e); }
+    try { renderZiwei(p,natal); } catch(e) { console.error('Ziwei 에러:', e); }
+    try { renderAstroInsight(); } catch(e) { console.error('AstroInsight 에러:', e); }
+    try { renderSkillTree(p,natal); } catch(e) { console.error('SkillTree 에러:', e); }
+    try { renderSummary(p,johu,natal); } catch(e) { console.error('Summary 에러:', e); }
+    try { renderEnergyCoord(natal); } catch(e) { console.error('EnergyCoord 에러:', e); }
+    try { renderHealthReport(p, natal, johu, G_POWER, G_JONG); } catch(e) { console.error('HealthReport 에러:', e); }
+    try { renderTTest(p, natal, johu, G_POWER); } catch(e) { console.error('TTest 에러:', e, e.stack); }
+    try { renderLottoNumbers(natal, bazi); } catch(e) { console.error('LottoNumbers 에러:', e); }
+    try { renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null); } catch(e) { console.error('Sukuyo 에러:', e); }
+    try { renderQuantumStrategy(p, natal, bazi); } catch(e) { console.error('QuantumStrategy 에러:', e); }
+    try { renderSpecialCharm(p, natal); } catch(e) { console.error('SpecialCharm 에러:', e); }
+    try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); }
+    try { renderDailyMonthlyFortune(p); } catch(e) { console.error('DailyMonthlyFortune 에러:', e, e.stack); }
+    try { renderLetter(p); } catch(e) { console.error('Letter 에러:', e); }
+    try { renderTodayDestinyCard(p); } catch(e) { console.error('TodayDestinyCard 에러:', e); }
     findSimilarCelebs(p);
-    renderVillain(p, G_POWER);
-    renderHormoneVibe(p, G_POWER);
+    try { renderVillain(p, G_POWER); } catch(e) { console.error('Villain 에러:', e); }
+    try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); }
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
     document.getElementById('dwDetail').innerHTML='';
     document.getElementById('dwDetail').classList.remove('show');
@@ -11736,6 +11743,8 @@ function buildDwQmSection(g,j){
 }
 
 function renderDaewun(bazi){
+  var card = document.getElementById('daewunCard');
+  if(card) card.style.display = 'block';
   var jg=G_JONG,pw=G_POWER;
   var jongTag = jg&&jg.isJong ? (jg.isGaJong ? '가종격(假從格)' : '진종격(眞從格)') : '';
   var legendItems=['<span style="background:#E8F5E9;color:#2E7D32;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌟 조후/<span class="notranslate">용신운</span> = 길</span>',
@@ -11990,7 +11999,7 @@ function renderLifeGraph(bazi){
   var canvas=document.getElementById('lifeGraphCanvas');
   if(!canvas)return;
   var wrap=document.getElementById('lifeGraphWrap');
-  var W=wrap?wrap.clientWidth-20:340;
+  var W=wrap?Math.max(wrap.clientWidth-20, 320):340;
   canvas.width=W;canvas.height=180;
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,W,180);
@@ -12580,10 +12589,11 @@ function renderHormoneVibe(p, power) {
   var section = document.getElementById('hormone-vibe-section');
   var target  = document.getElementById('hormoneVibeResult');
   if (!section || !target) return;
+  section.style.display = 'block';
+  section.style.visibility = 'visible';
 
   var vibe = calculateHormoneVibe(p, power);
-  section.style.display = 'block';
-
+  
   var tPct = Math.round(Math.min(100, vibe.tetoScore * 1.2));
   var ePct = Math.round(Math.min(100, vibe.egenScore * 1.2));
 
@@ -13691,6 +13701,7 @@ function elColor(e){
 function renderDailyMonthlyFortune(p){
   var card=document.getElementById('dailyMonthlyCard');
   if(!card)return;
+  card.style.display='block';
   var today=new Date();
   var ty=today.getFullYear(),tm=today.getMonth()+1,td=today.getDate(),th=today.getHours();
 
@@ -13927,6 +13938,7 @@ function renderTTest(p, natal, johu, pw) {
   var area = document.getElementById('tTestResult');
   var card = document.getElementById('tTestCard');
   if(!area || !card) return;
+  card.style.display = 'block';
 
   var tScore = 0;
   var counts = natal.counts || {wood:0,fire:0,earth:0,metal:0,water:0};
@@ -14464,386 +14476,359 @@ function renderLottoNumbers(natal, bazi){
 /* ─────────────────────────────────────────────────────────
  * LUNAR-SOLAR HYBRID ENGINE: SUKUYO & QUANTUM SAJU
  * ───────────────────────────────────────────────────────── */
-function QuantumFortuneEngine(lunarObj, bazi, natal, p) {
-    var LUNAR_MONTH_START_MANSION = [
-        0, // index 0 unused
-        22, // 1월: 실(室)
-        24, // 2월: 규(奎)
-        26, // 3월: 위(胃)
-        1,  // 4월: 묘(昴)
-        3,  // 5월: 자(觜)
-        5,  // 6월: 귀(鬼)
-        7,  // 7월: 성(星)
-        9,  // 8월: 익(翼)
-        11, // 9월: 각(角)
-        13, // 10월: 저(氐)
-        15, // 11월: 심(心)
-        17  // 12월: 두(斗)
+function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
+    if (!lunarObj || !lunarObj.month || !lunarObj.day) return null;
+
+    const mansions27 = [
+        { name: "각", ch_name: "角" }, { name: "항", ch_name: "亢" }, { name: "저", ch_name: "氐" },
+        { name: "방", ch_name: "房" }, { name: "심", ch_name: "心" }, { name: "미", ch_name: "尾" }, { name: "기", ch_name: "箕" },
+        { name: "두", ch_name: "斗" }, { name: "여", ch_name: "女" }, { name: "허", ch_name: "虛" },
+        { name: "위", ch_name: "危", is_first_wi: true }, { name: "실", ch_name: "室" }, { name: "벽", ch_name: "壁" },
+        { name: "규", ch_name: "奎" }, { name: "루", ch_name: "婁" },
+        { name: "위", ch_name: "胃", is_second_wi: true }, { name: "묘", ch_name: "昴" }, { name: "필", ch_name: "畢" },
+        { name: "자", ch_name: "觜" }, { name: "삼", ch_name: "參" },
+        { name: "정", ch_name: "井" }, { name: "귀", ch_name: "鬼" }, { name: "류", ch_name: "柳" },
+        { name: "성", ch_name: "星" }, { name: "장", ch_name: "張" }, { name: "익", ch_name: "翼" }, { name: "진", ch_name: "軫" }
     ];
 
-    var MANSIONS = [
-        { name: "각(角)", jp: "Kaku", elem: "목", keyword: "사교성, 인기" },
-        { name: "항(亢)", jp: "Ko", elem: "금", keyword: "리더십, 저항" },
-        { name: "저(氐)", jp: "Tei", elem: "토", keyword: "의지, 배짱" },
-        { name: "방(房)", jp: "Bo", elem: "일", keyword: "카리스마, 재물" },
-        { name: "심(心)", jp: "Shin", elem: "월", keyword: "인애, 다정" },
-        { name: "미(尾)", jp: "Bi", elem: "화", keyword: "투쟁, 집념" },
-        { name: "기(箕)", jp: "Ki", elem: "수", keyword: "모험, 개척" },
-        { name: "두(斗)", jp: "To", elem: "목", keyword: "영적, 명예" },
-        // 우(牛) 제외 (27숙 체계)
-        { name: "여(女)", jp: "Jo", elem: "토", keyword: "학구, 지적" },
-        { name: "허(虛)", jp: "Kyo", elem: "일", keyword: "복잡, 비애" },
-        { name: "위(危)", jp: "Ki", elem: "월", keyword: "자유, 반항" },
-        { name: "실(室)", jp: "Shitsu", elem: "화", keyword: "자신감, 호탕" },
-        { name: "벽(壁)", jp: "Heki", elem: "수", keyword: "학문, 신뢰" },
-        { name: "규(奎)", jp: "Kei", elem: "목", keyword: "진정성, 가업" },
-        { name: "루(婁)", jp: "Ro", elem: "금", keyword: "순수, 봉사" },
-        { name: "위(胃)", jp: "I",  elem: "토", keyword: "야심, 돌파" },
-        { name: "묘(昴)", jp: "Bo", elem: "일", keyword: "재치, 유머" },
-        { name: "필(畢)", jp: "Hitsu", elem: "월", keyword: "안정, 우직" },
-        { name: "자(觜)", jp: "Shi", elem: "화", keyword: "언변, 설득" },
-        { name: "삼(參)", jp: "San", elem: "수", keyword: "지성, 호기심" },
-        { name: "정(井)", jp: "Sei", elem: "목", keyword: "감성, 감수성" },
-        { name: "귀(鬼)", jp: "Ki",  elem: "금", keyword: "변덕, 영감" },
-        { name: "류(柳)", jp: "Ryu", elem: "토", keyword: "열정, 집착" },
-        { name: "성(星)", jp: "Sei", elem: "일", keyword: "독립, 고고함" },
-        { name: "장(張)", jp: "Cho", elem: "월", keyword: "화려, 권위" },
-        { name: "익(翼)", jp: "Yoku", elem: "화", keyword: "온화, 조화" },
-        { name: "진(軫)", jp: "Shin", elem: "수", keyword: "이동, 신속" }
-    ];
+    const monthStartOffsets = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
-    // 1. Sukuyo Logic
-    var lm = lunarObj ? lunarObj.month : 1;
-    var ld = lunarObj ? lunarObj.day : 1;
-    var startIdx = LUNAR_MONTH_START_MANSION[lm] || 0;
-    var myMansionIdx = (startIdx + ld - 1) % 27;
-    var myMansion = MANSIONS[myMansionIdx];
+    let m_month = parseInt(lunarObj.month, 10);
+    let m_day = parseInt(lunarObj.day, 10);
+    let isLeap = !!lunarObj.isLeap;
 
-    // 2. Quantum Score Calculation
-    // Use Elements from natal
-    var quantumBase = 50; 
-    var _c = natal.counts || {wood:0,fire:0,earth:0,metal:0,water:0};
-    var maxElem = Math.max(_c.wood, _c.fire, _c.earth, _c.metal, _c.water);
-    var balanceBonus = maxElem <= 3 ? 20 : 0; // Better balance -> higher base
-    
-    // Day luck (Pseudo sync based on today's day)
-    var todayStr = new Date().toISOString().slice(0,10);
-    var pseudoHash = (myMansionIdx * 7 + parseInt(todayStr.slice(8,10)) * 13) % 30;
-    var finalSync = quantumBase + balanceBonus + pseudoHash;
-    if (finalSync > 100) finalSync = 100;
+    if (isLeap && opt.leapRule === 'previous') {
+        m_month = m_month === 1 ? 12 : m_month - 1;
+    }
+
+    let startIdx = monthStartOffsets[m_month - 1];
+    if (startIdx === undefined) startIdx = 11;
+
+    let finalIdx = (startIdx + m_day - 1) % 27;
+    let m_data = mansions27[finalIdx];
+    let m = m_data.name;
+
+    const baseData = {
+        "각": {icon: "✨", celebs: "아인슈타인, 마리 퀴리", talent: 95, 
+            desc: "화려한 무대 위의 별처럼 자신을 드러내는 것을 즐기며, 탁월한 창조력과 예술적 기질을 지녔습니다.",
+            work: "독창적인 아이디어와 기획력이 뛰어나 사람들의 이목을 끄는 직업이나 엔터테인먼트 분야에서 쉽게 두각을 나타냅니다.",
+            love: "로맨틱한 분위기를 중시하며 시각적인 매력에 약합니다. 감정 표현이 솔직하여 연애에서도 주도적인 역할을 합니다.",
+            wealth: "자신의 능력을 활용해 부를 창출합니다. 쓸 때는 화끈하게 쓰므로 감정적 지출을 통제해야 더 큰 부를 모읍니다."},
+        "항": {icon: "🌟", celebs: "스티브 잡스, 오프라 윈프리", talent: 90,
+            desc: "강직하고 원칙을 중시하며, 한번 목표를 세우면 끝까지 밀고 나가는 불굴의 의지와 추진력을 지녔습니다.",
+            work: "리더십이 강해 어딘가에 소속되기보다 독립적으로 일하거나 대장을 맡아야 직성이 풀립니다.",
+            love: "신중하고 진지하지만 한 번 마음을 열면 헌신적입니다. 하지만 타협을 모르는 성격 탓에 잦은 마찰이 생길 수 있습니다.",
+            wealth: "스스로 길을 개척하여 자수성가하는 타입으로, 차근차근 안정적이고 탄탄한 재물 기반을 다져갑니다."},
+        "저": {icon: "⭐", celebs: "빌 게이츠, 워런 버핏", talent: 88,
+            desc: "부드러운 외면 속에 굳센 내면을 숨기고 있는 외유내강형입니다. 지혜롭고 끈기가 강합니다.",
+            work: "묵묵히 주워진 일을 완수해내며, 참을성이 매우 깊어 장기적인 프로젝트나 연구 분야에서 크게 성공합니다.",
+            love: "쉽게 달아오르지 않지만 감정이 깊어지면 평생을 바라볼 정도로 진득한 사랑을 합니다. 배신을 가장 싫어합니다.",
+            wealth: "저축과 투자에 천부적인 감각이 있습니다. 티끌 모아 태산을 이루는 타고난 재물운의 소유자입니다."},
+        "방": {icon: "🌠", celebs: "일론 머스크, 제프 베이조스", talent: 92,
+            desc: "어디서나 이목을 끄는 매력과 카리스마를 지녔으며, 재물과 명예에 대한 야망과 성취욕이 매우 큽니다.",
+            work: "수완이 좋고 눈치가 빨라 협상과 비즈니스에 능합니다. 권력을 갈망하여 승진과 성공 가도를 달립니다.",
+            love: "이성에게 인기가 많아 낭만적인 연애를 즐깁니다. 소유욕이 강해 상대를 통제하려는 경향이 있습니다.",
+            wealth: "일생을 통해 재물이 마르지 않습니다. 하지만 큰 돈이 들어오는 만큼 과시욕에 의한 낭비도 따를 수 있습니다."},
+        "심": {icon: "💫", celebs: "마이클 잭슨, 마돈나", talent: 96,
+            desc: "타인의 속마음을 꿰뚫어 보는 무서운 직관력과 사람을 매료시키는 마성을 동시에 지니고 있습니다.",
+            work: "치밀하게 전략을 세우고 상황을 통제하는 능력이 뛰어납니다. 정치, 상담, 심리 분야에 탁월합니다.",
+            love: "안정보다는 극적이고 파괴적인 사랑에 끌리는 경향이 있으며, 남모르는 비밀 연애나 애증의 관계가 많습니다.",
+            wealth: "재물을 숨기거나 은밀한 투자(부동산, 주식)로 부를 불립니다. 속내를 알 수 없어 금전 거래에 조심해야 합니다."},
+        "미": {icon: "☄️", celebs: "레오나르도 다빈치, 미켈란젤로", talent: 100,
+            desc: "어떤 시련 앞에서도 굴복하지 않는 강인한 전투력과 잡초 같은 생명력을 자랑하는 독불장군입니다.",
+            work: "경쟁과 도전을 즐기며 남들이 포기하는 어려운 일일수록 오히려 전투 의지를 불태우며 성취해 냅니다.",
+            love: "매우 솔직하고 열정적이지만 지배욕이 쎕니다. 밀당을 싫어하며 직진하는 스타일로 쟁취하는 사랑을 원합니다.",
+            wealth: "투기성이 강해 큰 돈을 만질 수도, 크게 잃을 수도 있습니다. 치고 빠지는 타이밍 감각이 재물운의 핵심입니다."},
+        "기": {icon: "🪐", celebs: "갈릴레오, 아이작 뉴턴", talent: 98,
+            desc: "바람처럼 자유롭고 독립적입니다. 틀에 얽매이는 것을 극한으로 싫어하며 떠돌아다니는 자유 영혼입니다.",
+            work: "전문적이고 독특한 자기만의 영역을 가져야 하며, 상하 수직적인 조직 문화에서는 견디지 못합니다.",
+            love: "누군가 자신을 소유하거나 구속하면 도망치려 합니다. 친구같이 편안하고 적당한 거리를 존중해주는 사랑을 찾습니다.",
+            wealth: "자유를 유지할 만큼만 벌면 만족하기도 하지만, 전문성을 살리면 생각 이상의 엄청난 부를 거머쥡니다."},
+        "두": {icon: "🌌", celebs: "모차르트, 베토벤", talent: 97,
+            desc: "스승의 기운, 리더의 격을 타고나 지혜가 깊고 사람들을 올바른 방향으로 이끄는 선구자적 기질이 있습니다.",
+            work: "교육, 학문, 멘토링 분야에서 크게 존경받습니다. 큰 그림을 그리고 무리를 지휘하는 능력이 탁월합니다.",
+            love: "연애에서도 상대를 챙겨주고 가르치려 하는 경향이 있습니다. 연하보다는 의지할 수 있는 성숙한 대상을 선호합니다.",
+            wealth: "정도(正道)를 걷기 때문에 단기적인 일확천금보다는 명예를 바탕으로 안정적인 중산층 이상의 궤도에 오릅니다."},
+        "여": {icon: "🌙", celebs: "셰익스피어, 톨스토이", talent: 93,
+            desc: "철저한 자기 관리와 완벽주의 창착의 기운입니다. 내성적이지만 권위와 체면을 깊게 중시합니다.",
+            work: "책임감이 강해 맡은 일은 빈틈없이 해내며, 자기만의 확실한 무기나 기술을 가지고 일해야 성공합니다.",
+            love: "이성 앞에서 자존심을 세워 짝사랑으로 끝나는 경우가 많습니다. 먼저 다가오기를 기다리는 수동적인 성향입니다.",
+            wealth: "계산이 빠르고 지출에 깐깐하여 재산이 결코 새어나가지 않습니다. 알뜰살뜰히 거대한 부를 쟁취합니다."},
+        "허": {icon: "☀️", celebs: "소크라테스, 플라톤", talent: 91,
+            desc: "이상과 현실의 경계에 서 있습니다. 복잡한 내면과 높은 정신적 깊이를 가졌으나 종종 고독과 공허함을 느낍니다.",
+            work: "종교, 철학, 심리, 대형 구호 활동 등 정신적인 가치를 다루는 일에서 크게 빛을 발할 수 있습니다.",
+            love: "세속적인 조건보다 영혼의 교감과 대화가 통하는 상대를 우선합니다. 속세를 벗어난 플라토닉 러브를 꿈꾸기도 합니다.",
+            wealth: "물질 자체에 큰 미련이 없으나, 기부를 하거나 타인을 도울 때 오히려 행운과 재물이 돌고 돌아 찾아옵니다."},
+        "위1": {icon: "🔥", celebs: "알렉산더 대왕, 율리우스 카이사르", talent: 89, char: "危",
+            desc: "위험을 두려워하지 않는 개척자적 기질과 감정의 기복, 극단적인 파괴와 창조의 힘을 동시에 지녔습니다.",
+            work: "극단적인 모험, 변동성이 큰 사업, 신기술 개발 등 리스크가 클수록 역량이 폭발하며 큰 성공을 이룹니다.",
+            love: "평범함을 거부하며 자극적이고 폭발적인 감정에 휩쓸립니다. 연애사 역시 롤러코스터처럼 파란만장할 수 있습니다.",
+            wealth: "모 아니면 도. 일순간에 거부가 되기도, 바닥으로 추락하기도 합니다. 리스크 관리가 평생의 과제입니다."},
+        "실": {icon: "💧", celebs: "이순신, 세종대왕", talent: 99,
+            desc: "순수하고 거침이 없으며 목표를 향해 무서운 기세로 돌진하는 진취적이고 호탕한 성격입니다.",
+            work: "장애물을 뚫고 새로운 프로젝트를 시작할 때 엄청난 파괴력을 냅니다. 기획과 시작의 달인입니다.",
+            love: "상대방의 조건보다 자신의 감정을 맹신하며 불도저처럼 직진합니다. 지나친 솔직함 때문에 때론 파열음이 생깁니다.",
+            wealth: "돈을 쫓지 않고 목표를 달성하면 부는 자연히 따라온다는 신념을 가집니다. 금전운의 굴곡이 깊은 편입니다."},
+        "벽": {icon: "🌈", celebs: "피카소, 반 고흐", talent: 95,
+            desc: "친절하고 조화로운 성정을 가지며, 타인을 돕고 사람들과 무리 없이 어울리는 세련된 사교성을 지녔습니다.",
+            work: "협업과 조정 능력이 탁월해 참모나 중간 관리자 역할을 완벽하게 수행합니다. 타인의 지지를 얻어 성장합니다.",
+            love: "안정되고 순탄한 연애를 선호합니다. 싸움을 싫어하며 대부분 상대의 의견에 양보하고 맞춰주는 부드러운 연인입니다.",
+            wealth: "기대가 높지 않으나 인맥이 곧 재물이 되어 예상치 못한 주위의 도움으로 부가 늘어나는 복이 있습니다."},
+        "규": {icon: "🌺", celebs: "콜럼버스, 마젤란", talent: 85,
+            desc: "질서와 규범을 중요시하며 기품있고 고상한 태도를 지녔습니다. 타인에게 존경받고 대우받기를 원합니다.",
+            work: "가정적이고 전통적인 가치, 교육, 가업 등을 계승하거나 관리 감독하는 보수적인 일에 최적화되어 있습니다.",
+            love: "연애 역시 보수적인 성향으로 결혼을 전제로 한 안정적인 만남을 추구하며 체통을 중시합니다.",
+            wealth: "물려받은 유산이 있거나, 스스로 차곡차곡 재산을 쌓아 부를 지키는 확실한 성향을 가집니다."},
+        "루": {icon: "🍀", celebs: "마르코 폴로", talent: 86,
+            desc: "사교력의 끝판왕이자 상황 적응력이 매우 뛰어납니다. 생존 본능이 뛰어나 언제 어디서나 잘 살아남습니다.",
+            work: "말솜씨와 대인 관계가 탁월하여 서비스, 세일즈, 외교 분야 등 사람을 상대하는 모든 일에 재능이 넘칩니다.",
+            love: "이성과 금방 친해지며 연애를 가볍게 즐기는 경향이 있습니다. 깊은 헌신보다는 트렌디하고 가벼운 데이트를 선호합니다.",
+            wealth: "자신의 화려한 인맥과 언변을 활용하여 쉬지 않고 돈을 만들어내는 재주꾼입니다."},
+        "위2": {icon: "🍁", celebs: "링컨, 처칠", talent: 92, char: "胃",
+            desc: "풍부한 지식과 호기심이 무기입니다. 끊임없이 진리를 탐구하고 배우며, 분석적이고 논리적인 성향이 짙습니다.",
+            work: "기획력과 지능으로 승부하는 연구, 학문, 마케팅에 뛰어납니다. 식도락이나 음식 관련업과도 인연이 깊습니다.",
+            love: "감정보다 머리로 사랑을 분석하려는 버릇이 있어 종종 매우 이성적으로 보입니다. 신중한 연애를 합니다.",
+            wealth: "재물 흐름을 파악하는 두뇌 회전이 빠릅니다. 뛰어난 안목으로 투자하여 이익을 철저히 챙기는 지능형 부자입니다."},
+        "묘": {icon: "🌲", celebs: "만델라, 마틴 루터 킹", talent: 94,
+            desc: "직감과 육감이 남다르고 온화하며 자비롭습니다. 보호본능을 자극하고 부드러운 매력으로 사랑받습니다.",
+            work: "타인을 돌보는 의료, 복지, 보육 분야나 섬세함이 요구되는 디자인 분야에서 놀라운 성과를 이룹니다.",
+            love: "사랑받고 싶어하는 애정 결핍이 존재하며, 포근하게 감싸안아주는 다정한 연애를 열망합니다.",
+            wealth: "욕심을 크게 부리지 않지만 타고난 인복 덕에 의식주가 떨어지는 일 없이 안락함을 유지하는 복이 따릅니다."},
+        "필": {icon: "🏔️", celebs: "조지 워싱턴, 토머스 제퍼슨", talent: 88,
+            desc: "우직한 황소 같은 성실함, 묵묵함의 대명사. 느리지만 결국 자신의 뜻을 끝까지 관철하는 진정한 고집쟁이입니다.",
+            work: "하루아침에 이뤄지는 일보다는 장기 기술과 장인정신이 필요한 물리적 노동, 장인, 제조업 분야에서 대성합니다.",
+            love: "표현은 서툴지만 행동으로 진심을 증명하며, 한 사람에게 절대 변하지 않는 굳건하고 편안한 사랑을 줍니다.",
+            wealth: "일확천금의 운은 없으나 피땀 흘린 정직한 근로 소득으로 땅이나 건물 등 실물 자산을 거대하게 소유하게 됩니다."},
+        "자": {icon: "🌋", celebs: "나폴레옹, 잔 다르크", talent: 90,
+            desc: "언변이 타고 났으며 호기심이 하늘을 찌릅니다. 박학다식하지만 때로는 지나친 참견으로 보일 수 있습니다.",
+            work: "말로 하는 직업, 방송, 교육, 변호사, 언론 등에서 두각을 나타내며 지식을 전파하며 돈을 법니다.",
+            love: "말이 통하고 토론이 가능한 지적인 파트너를 사랑합니다. 하지만 대화 중 논쟁으로 번지는 것을 조심해야 합니다.",
+            wealth: "뛰어난 정보력을 돈으로 환전하는 능력이 있습니다. 말실수만 조심하면 꾸준히 부를 축적합니다."},
+        "삼": {icon: "🌊", celebs: "헬렌 켈러, 앤 설리번", talent: 96,
+            desc: "모순을 극복하고 혁신을 이루려는 창조적 파괴의 별. 활동성이 강하고 변화를 두려워하지 않는 야심가입니다.",
+            work: "가만히 앉아있는 직업은 절대 맞지 않으며 출장이나 이동이 잦은 무역업, 혁신적 IT, 여행업에서 크게 대성합니다.",
+            love: "호불호가 명확하고 불같은 사랑에 빠져듭니다. 자존심이 세고 시시비비를 가리는 성향 때문에 다툼이 생깁니다.",
+            wealth: "판단력이 뛰어나 결단성 있게 크게 투자하고 크게 회수하는 대범한 멘탈형 자산가 타입입니다."},
+        "정": {icon: "🌪️", celebs: "마리 앙투아네트", talent: 84,
+            desc: "철저히 이성적이고 차가울 만큼 냉정하며 합리타당한 것을 좋아합니다. 타인과의 감정 거리를 두는 매력이 있습니다.",
+            work: "분석과 계산이 철저히 요구되는 금융, IT, 법률 분야의 스페셜리스트. 완벽주의자적인 면모가 강합니다.",
+            love: "연애에서도 손익이나 조건을 이성적으로 따집니다. 속을 잘 보여주지 않아 상대가 거리감을 느낄 수 있습니다.",
+            wealth: "매우 안정적이고 차분하게 재물을 관리합니다. 리스크를 극도로 싫어해 분산투자로 철저히 돈을 보호합니다."},
+        "귀": {icon: "🌩️", celebs: "잔 다르크, 엘리자베스", talent: 87,
+            desc: "발랄하고 통통 튀며 사람들을 기분 좋게 하는 엔돌핀. 영감과 직관, 그리고 남다른 촉침이 발달해 있습니다.",
+            work: "순발력이 요구되는 연예계, 방송, 예술, 프리랜서 분야에서 크게 활약합니다. 단, 규칙적인 일상은 숨막혀 합니다.",
+            love: "호기심이 사랑으로 발전하는 경우가 많아 첫눈에 반하기 쉽고, 예측 불가능한 상대를 만나면 흥미를 느낍니다.",
+            wealth: "감각적인 투자나 아이디어 하나로 큰 성공을 이뤄냅니다. 그러나 계획 없는 대책없는 소비가 발목을 잡을 수 있습니다."},
+        "류": {icon: "❄️", celebs: "안네 프랑크, 헬렌 켈러", talent: 91,
+            desc: "외면은 유순해 보여도 내면에 불타는 집념과 광기를 품고 있습니다. 한 곳에 꽂히면 끝을 보는 집착이 강력합니다.",
+            work: "자신이 좋아하는 분야라면 미친듯이 파고들어 그 분야 최고의 일인자, 전문가의 반열에 당당히 오릅니다.",
+            love: "극단적이고 독점적인 사랑. 자신이 모든 것을 주고 상대를 지배하려는 강렬한 팜탈 여운적인 사랑을 합니다.",
+            wealth: "자비없이 목표를 성취하기 때문에 돈 역시 불같은 의지로 쓸어 담지만, 극단적 행동으로 다 날리기도 쉽습니다."},
+        "성": {icon: "🔥", celebs: "마이클 조던", talent: 98,
+            desc: "스케일이 크고 도량이 넓으며 지는 것을 무척이나 싫어하는 승부사. 대장부로서 뭇 사람들의 존중을 받습니다.",
+            work: "스스로를 신뢰하며 타인의 밑에 있기 보단 사업이나 중책을 맡아 리더십을 발휘해야만 재능이 폭발합니다.",
+            love: "프라이드가 너무 높아 상대에게 잘 숙이지 않습니다. 나를 믿고 따라주는 헌신적인 서포터형 연인과 장수합니다.",
+            wealth: "씀씀이가 대단히 큽니다. 벌 때 크게 벌지만 나가는 돈 단위도 커서 통장 관리보다 스케일 관리에 집중해야 합니다."},
+        "장": {icon: "⚡", celebs: "펠레, 마라도나", talent: 97,
+            desc: "화려하고 대범하며 무리의 중심에서 화제성을 이끄는 태양 같은 존재입니다. 자신감과 매력이 넘쳐흐릅니다.",
+            work: "스포트라이트를 받는 것을 즐겨 정치, 기획, 사업, 무대 등 화려한 곳에서 재능과 존재감을 무한 과시합니다.",
+            love: "사랑에서도 강렬하고 열정적인 표현과 이벤트를 선호하며 자신이 극의 중심에서 대접받는 무드를 중요하게 생각합니다.",
+            wealth: "성공 의지가 매우 강하여 큰 재산을 소유합니다. 품위 유지비로 지나치게 나가는 지출을 막는 것이 유일한 관건입니다."},
+        "익": {icon: "🌟", celebs: "타이거 우즈, 세레나", talent: 95,
+            desc: "타협을 모르는 뚜렷한 철칙과 도덕성, 그리고 이국적이고 넓은 세상으로 향하려는 역마의 강렬한 기운이 있습니다.",
+            work: "해외로 뻗어나가는 무역, 항공, 대외 협력업 등에 탁월하며, 완벽주의가 강해 자신이 맡은 일에 에러가 없습니다.",
+            love: "존경할 수 없는 이에게 절대 마음을 주지 않으며, 도덕적이고 지적으로 성숙한 대상에게만 끌림을 느낍니다.",
+            wealth: "이동과 여행, 해외 교류를 통해 부가 확산됩니다. 해외 부동산, 외화 투자 등과 완벽한 시너지를 이룹니다."},
+        "진": {icon: "✨", celebs: "우사인 볼트, 마이클 펠프스", talent: 99,
+            desc: "정밀한 분석력과 통찰력, 조심스러움을 갖췄습니다. 실용성을 중시하며 비밀스럽고 방어적인 성태를 띱니다.",
+            work: "의사, 연구, 회계, 수사 분야처럼 실수 없는 섬세함과 비밀보장이 필요한 직군에서 최고로 인정받습니다.",
+            love: "마음을 여는데 엄청난 시간이 소요되며, 상처받기를 극도로 두려워해 의심을 푼 뒤에야 진정한 사랑을 줍니다.",
+            wealth: "단돈 1원도 헛되이 쓰지 않으며 철저하고 치밀한 자금 관리 덕에 빈틈없이 막대한 부를 서서히 일구어 냅니다."}
+    };
+
+    let key = m;
+    if (m === "위") {
+        key = m_data.is_first_wi ? "위1" : "위2";
+    }
+
+    const mapped = baseData[key] || {
+        icon: "🌟", celebs: "유명인 미상", talent: 80, 
+        desc: "타고난 직관력과 깊은 영성을 지녔습니다.",
+        work: "자신만의 길에서 천천히 기회를 발견합니다.",
+        love: "신중하고 느린 호흡으로 인연을 만들어갑니다.",
+        wealth: "꾸준하고 안정된 삶을 영위할 기본적인 운을 지녔습니다."
+    };
+
+    lunarObj.lunarMansion = m + "(" + m_data.ch_name + ")";
 
     return {
-        mansion: myMansion,
-        sync: finalSync,
-        metadata: {
-            item: ["크리스탈 오브제", "은제 반지", "만년필", "딥우드 향수", "가죽 다이어리", "네이비 실크 타이"][pseudoHash % 6],
-            color: ['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa', '#f472b6'][myMansionIdx % 6]
-        }
+        mansion: m + "(" + m_data.ch_name + ")",
+        icon: mapped.icon,
+        talent: mapped.talent,
+        celebs: mapped.celebs,
+        mansionIdx: finalIdx,
+        traits: mapped
     };
 }
 
-
-/* ══════════════════════════════════════════
-   고대 이집트 오라클 (Eye of Horus) Engine
-══════════════════════════════════════════ */
-function EgyptianOracleCore(year, month, day, natal) {
-    var EGYPTIAN_DECANS = [
-        { deity: "아몬-라 (Amon-Ra)", desc: "태양과 창조의 근원. 강력한 자아실현의 의지와 무한한 잠재력." },
-        { deity: "오시리스 (Osiris)", desc: "부활과 영원. 끝없는 재생의 순환 속에서 피어나는 권능." },
-        { deity: "이시스 (Isis)", desc: "마법과 치유. 부드럽지만 절대 꺾이지 않는 신성한 포용력." },
-        { deity: "토트 (Thoth)", desc: "지혜와 진리. 차가운 이성과 운명의 도서관을 기록하는 수호자." },
-        { deity: "호루스 (Horus)", desc: "질서와 승리. 모든 위협을 꿰뚫어보는 매의 눈과 압도적 지배력." },
-        { deity: "아누비스 (Anubis)", desc: "죽음과 전이. 필멸의 경계를 넘나들며 진실을 이끄는 안내자." },
-        { deity: "세트 (Seth)", desc: "혼돈과 사막. 파괴적인 모험을 불사하는 절대적인 힘의 화신." },
-        { deity: "마아트 (Ma'at)", desc: "진실과 정의. 어떠한 편견에도 흔들리지 않는 우주적 균형과 질서." },
-        { deity: "하토르 (Hathor)", desc: "아름다움과 사랑. 삶의 기쁨을 증폭시키는 풍요로운 생명력." },
-        { deity: "바스트 (Bastet)", desc: "음악과 환희. 관능적이고 직관적인 에너지 속의 맹렬한 수호." },
-        { deity: "세크메트 (Sekhmet)", desc: "전쟁과 수호. 타오르는 태양의 불꽃처럼 압도적인 돌파력." },
-        { deity: "프타 (Ptah)", desc: "건축과 창조. 고도의 영감으로 현실의 뼈대를 주조하는 장인정신." }
-    ];
-
-    var EGYPTIAN_HIEROGLYPHS = [
-        { symbol: "𓋹", name: "Ankh (앙크)", meaning: "영원한 생명력의 숨결이 당신의 궤도를 휘감고 있습니다." },
-        { symbol: "𓊽", name: "Djed (제드)", meaning: "흔들리지 않는 척추 메타포, 절대적인 심리적 안정감이 구축될 시점입니다." },
-        { symbol: "𓌀", name: "Was (와스)", meaning: "통제력과 절대적 권능. 당신의 뚜렷한 의지가 현실의 형태를 규정합니다." },
-        { symbol: "𓂀", name: "Udjat (우자트)", meaning: "모든 것을 꿰뚫어보는 혜안. 불확실성의 안개 속에서 명확한 활로를 발견합니다." },
-        { symbol: "𓆣", name: "Scarab (스카라브)", meaning: "아침의 태양을 밀어올리는 재생. 창조적 파괴 이후 위대한 부활의 모멘텀입니다." },
-        { symbol: "𓍶", name: "Shen (셴)", meaning: "무한한 보호의 궤도. 인간적 한계를 초월하여 뻗어나가는 영적 에너지입니다." }
-    ];
-
-    var bd = new Date(year, Math.max(0, month-1), day);
-    var startOfYear = new Date(year, 0, 0);
-    var diffMs = bd - startOfYear;
-    var dayOfYear = Math.floor(diffMs / 86400000) || 1;
-    var decanIndex = Math.floor(dayOfYear / 10) % 36;
-    var deityIndex = decanIndex % 12;
-    var patronDeity = EGYPTIAN_DECANS[deityIndex];
-
-    var now = new Date();
-    var currentDayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000) || 1;
-    var currentDecan = Math.floor(currentDayOfYear / 10) % 36;
-    var interference = Math.abs(decanIndex - currentDecan);
-
-    var counts = natal.counts || {wood:0,fire:0,earth:0,metal:0,water:0};
-    var maxElem = Math.max(counts.wood, counts.fire, counts.earth, counts.metal, counts.water);
+function getDailyKarmicGuidance(lunarObj, m) {
+    const today = new Date();
+    // deterministic seeds
+    const seed1 = today.getDate() + today.getMonth() + (m ? m.charCodeAt(0) : 0);
+    const seed2 = today.getDate() * 3 + (m ? m.charCodeAt(0)*2 : 0);
+    const strDate = today.getFullYear()+""+today.getMonth()+today.getDate()+m;
     
-    var balanceSync = (5 - maxElem) * 12; 
-    if(balanceSync < 0) balanceSync = 0;
-    var timeSync = 40 - (interference % 18) * 2;
-    var pseudoRandom = (year * 7 + month * 13 + day * 17) % 20;
+    let hashScore1 = (seed1 * 13) % 40 + 60; // 60 ~ 99
+    let hashScore2 = (seed2 * 17) % 40 + 60; 
+    let hashScore3 = (strDate.length * seed1) % 40 + 60;
+    
+    const actions = ["명상하기 10분", "따뜻한 차 마시기", "옛 친구에게 연락하기", "감사 일기 쓰기", "자연 속 산책하기", "책 10분 읽기", "주변 정리정돈", "마음 비우기", "긍정 확언 3번 외치기", "오래된 물건 버리기"];
+    const items = ["머스크 향초", "실버 링", "파란색 아이템", "에메랄드빛 소품", "나무 질감의 펜", "손수건", "드림캐처", "오닉스 팔찌", "백합 꽃", "레몬 향수"];
 
-    var maatScore = balanceSync + timeSync + pseudoRandom;
-    if (maatScore > 99) maatScore = 99;
-    if (maatScore < 33) maatScore = 33;
-
-    var hIndex = (maatScore + dayOfYear) % EGYPTIAN_HIEROGLYPHS.length;
-    var hieroglyph = EGYPTIAN_HIEROGLYPHS[hIndex];
-
-    var insight = "우주의 질서 마아트(Ma'at)가 당신의 시공간을 비추고 있습니다. 수호신 <b style='color:#F3E5AB'>" + patronDeity.deity + "</b>의 강력한 파동이 현재 태양계의 정렬과 <b>" + maatScore + "%</b>의 고밀도로 공명하고 있습니다.";
+    let overall = Math.floor((hashScore1 + hashScore2 + hashScore3) / 3);
+    
+    // add small random noise bounded by seed
+    function getBounded(base) {
+       let val = base + ((seed1 % 11) - 5);
+       if (val > 100) val = 100; if(val < 50) val = 50; return val;
+    }
 
     return {
-        PatronDeity: patronDeity,
-        MaatSyncRate: maatScore,
-        DailyHieroglyph: hieroglyph,
-        QuantumInsight: insight
+        overall: overall,
+        relations: getBounded(hashScore1),
+        love: getBounded(hashScore2),
+        wealth: getBounded(hashScore3),
+        action: actions[seed1 % actions.length],
+        item: items[seed2 % items.length]
     };
 }
-
-function renderEgyptianOracle(year, month, day, natal) {
-    var area = document.getElementById('egyptSection');
-    var card = document.getElementById('egyptCard');
-    if (!area || !card) return;
-
-    var res = EgyptianOracleCore(year, month, day, natal);
-    var d = res.PatronDeity;
-    var h = res.DailyHieroglyph;
-    var score = res.MaatSyncRate;
-
-    var tilt = (100 - score) * -0.25; 
-
-    var html = `
-    <style>
-      .egypt-wrap {
-        background: radial-gradient(circle at center, #003366 0%, #001122 100%);
-        border: 1px solid rgba(212, 175, 55, 0.4);
-        border-radius: 16px; padding: 24px;
-        color: #F3E5AB; font-family: 'Pretendard', sans-serif;
-        position: relative; overflow: hidden;
-      }
-      .egypt-wrap::before {
-        content: ""; position: absolute; top:0; left:0; right:0; bottom:0;
-        background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="rgba(212,175,55,0.15)"/></svg>') repeat;
-        opacity: 0.8; pointer-events: none;
-      }
-      .maat-scale {
-        display: inline-block; font-size: 3.5rem;
-        transform: rotate(${tilt}deg);
-        transition: transform 2.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        color: #D4AF37; text-shadow: 0 0 25px rgba(212, 175, 55, 0.8);
-      }
-      .egypt-glass-card {
-        background: rgba(0, 20, 50, 0.5); backdrop-filter: blur(12px);
-        border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 12px;
-        padding: 18px; margin-bottom: 16px; text-align: center;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); position: relative; z-index: 10;
-      }
-      .egypt-deity { font-size: 1.5rem; color: #D4AF37; font-weight: bold; margin-bottom: 6px; letter-spacing: 1px; }
-      .egypt-hiero { font-size: 4.5rem; cursor: pointer; color: #D4AF37; transition: all 0.4s; padding:10px; }
-      .egypt-hiero:hover { text-shadow: 0 0 35px #D4AF37; transform: scale(1.15); }
-      .egypt-insight { line-height: 1.7; font-size: 0.98rem; color: #e2e8f0; margin-top: 12px; word-break: keep-all; font-weight: 300;}
-      .btn-reveal {
-        background: linear-gradient(135deg, #D4AF37 0%, #8c7324 100%); color: #011;
-        border: none; padding: 12px 24px; border-radius: 30px; font-weight: 800;
-        cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
-      }
-      .btn-reveal:hover { filter: brightness(1.2); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6); transform: translateY(-2px); }
-    </style>
-    
-    <div class="egypt-wrap">
-      <div style="text-align: center; margin-bottom: 24px; z-index: 10; position:relative;">
-        <div style="font-size: 0.8rem; color: rgba(243, 229, 171, 0.6); letter-spacing: 3px;">THE BALANCE OF MA'AT</div>
-        <div class="maat-scale">⚖️</div>
-        <div style="margin-top: 5px; font-size: 1.3rem; color: #fff;">영혼의 무게 동기화: <b style="color:#D4AF37;">${score}%</b></div>
-      </div>
-
-      <div class="egypt-glass-card">
-        <div style="font-size:0.8rem; color: rgba(255,255,255,0.5); letter-spacing: 2px; margin-bottom: 4px;">PATRON DEITY</div>
-        <div class="egypt-deity">${d.deity}</div>
-        <div style="font-size:0.9rem; color:#ccc;">${d.desc}</div>
-      </div>
-
-      <div class="egypt-glass-card" id="hieroBox">
-        <div style="font-size:0.8rem; color: rgba(255,255,255,0.5); letter-spacing: 2px; margin-bottom: 10px;">DIVINE REVELATION</div>
-        <div class="egypt-hiero" id="hieroSym" onclick="document.getElementById('hieroMeans').style.display='block';">✧</div>
-        <div style="margin-top: 5px;">
-          <button class="btn-reveal" id="btnR" onclick="document.getElementById('hieroMeans').style.display='block'; this.style.display='none'; document.getElementById('hieroSym').innerText='${h.symbol}';">상징 문자 해독하기</button>
-        </div>
-        <div id="hieroMeans" style="display:none; margin-top:20px; animation: fadeIn 1s ease-in-out;">
-          <div style="font-size: 1.4rem; color: #D4AF37; margin-bottom:10px; font-weight:bold;">${h.name}</div>
-          <div class="egypt-insight">${h.meaning}</div>
-        </div>
-      </div>
-
-      <div class="egypt-insight" style="text-align:center; margin-top:20px; font-style: italic; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 16px;">
-        "${res.QuantumInsight}"
-      </div>
-    </div>
-    `;
-
-    area.innerHTML = html;
-    card.style.display = 'block';
-}
-
 
 function renderSukuyo(p, natal, bazi, lunarObj) {
     var area = document.getElementById('sukuyoSection');
     var card = document.getElementById('sukuyoCard');
-    if (!area || !card || !lunarObj) return;
+    if (!area || !card) return;
 
-    var result = QuantumFortuneEngine(lunarObj, bazi, natal, p);
-    var m = result.mansion;
+    let html = `<style>
+        .sy-container { background: rgba(20,25,35,0.95); border: 1px solid rgba(255,215,0,0.2); border-radius: 15px; padding: 25px; color: #ede8d0; font-family: 'Noto Serif KR', serif; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(12px); overflow: hidden; position: relative; }
+        .sy-header { text-align: center; border-bottom: 1px solid rgba(255,215,0,0.3); padding-bottom: 15px; margin-bottom: 20px; }
+        .sy-header h3 { margin: 0; color: #ffd700; font-size: 1.5rem; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+        .sy-card { background: rgba(40,45,60,0.8); border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 3px solid #ffd700; transition: transform 0.3s ease; }
+        .sy-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,215,0,0.1); }
+        .sy-gauge-bg { background: #333; height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden; position: relative; }
+        .sy-gauge-fill { height: 100%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: inset 0 0 5px rgba(255,255,255,0.5); }
+        .sy-glow-text { color: #f8c291; font-weight: bold; }
+        .sy-loader { display: none; text-align: center; padding: 20px; color: #ffd700; font-style: italic; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; text-shadow: 0 0 15px #ffd700; } 100% { opacity: 0.6; } }
+        .sy-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media(min-width: 600px) { .sy-grid { grid-template-columns: 1fr 1fr; } }
+        .trait-tag { display: inline-block; padding: 3px 8px; font-size: 0.8rem; background: rgba(255,215,0,0.15); color: #ffd700; border-radius: 15px; margin-right: 5px; margin-bottom: 5px; border: 1px solid rgba(255,215,0,0.3); }
+        .trait-row { margin-bottom: 8px; font-size: 0.9rem; line-height: 1.4; color:#ddd; padding-left: 10px; border-left: 2px solid rgba(255,255,255,0.1); }
+        .daily-flow-row { display: flex; align-items: center; margin-bottom: 8px; font-size:0.85rem; }
+        .daily-flow-label { width: 80px; font-weight: bold; color: #b2bec3; }
+        .daily-flow-gauge { flex: 1; margin: 0 10px; }
+        .daily-flow-val { width: 35px; text-align: right; color:#f8c291; font-weight: bold;}
+    </style>`;
+    
+    html += `<div class="sy-container" id="lunarNexusApp">`;
+    html += `<div class="sy-header"><h3> Lunar Nexus (숙요점)</h3><p style="font-size: 0.9rem; opacity: 0.8; margin-top:5px;">카르마와 별의 궤적이 교차하는 곳</p></div>`;
 
-    var html = `
-    <style>
-      .sukuyo-container {
-        font-family: 'Pretendard', sans-serif;
-        background: rgba(20, 10, 30, 0.6);
-        border: 1px solid rgba(147, 51, 234, 0.4);
-        border-radius: 16px;
-        padding: 20px;
-        color: #fff;
-        backdrop-filter: blur(12px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(147, 51, 234, 0.1);
-        text-align: center;
-        overflow: hidden;
-        position: relative;
-      }
-      .sy-gauge-wrap {
-        position: relative;
-        width: 140px;
-        height: 140px;
-        margin: 10px auto 20px;
-      }
-      .sy-gauge-bg {
-        fill: none;
-        stroke: rgba(255, 255, 255, 0.1);
-        stroke-width: 8;
-      }
-      .sy-gauge-fg {
-        fill: none;
-        stroke: url(#sy-grad);
-        stroke-width: 8;
-        stroke-linecap: round;
-        stroke-dasharray: 400;
-        stroke-dashoffset: ${400 - (400 * result.sync / 100)};
-        transition: stroke-dashoffset 1.5s ease-in-out;
-        transform: rotate(-90deg);
-        transform-origin: 50% 50%;
-      }
-      .sy-gauge-text {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #e9d5ff;
-        text-shadow: 0 0 10px rgba(147, 51, 234, 0.6);
-      }
-      .sy-sub-text {
-        font-size: 0.7rem;
-        color: #cbd5e1;
-        margin-top: 4px;
-        display: block;
-      }
-      .sy-mansion-box {
-        background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2));
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 20px;
-      }
-      .sy-mansion-title {
-        font-size: 1.4rem;
-        color: #fca5a5;
-        font-weight: 700;
-        margin-bottom: 8px;
-        letter-spacing: 2px;
-      }
-      .sy-mansion-keyword {
-        background: #4c1d95;
-        color: #fff;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        display: inline-block;
-        margin-bottom: 15px;
-      }
-      .sy-mansion-desc {
-        font-size: 0.9rem;
-        color: #cbd5e1;
-        line-height: 1.5;
-        word-break: keep-all;
-      }
-      .sy-item-box {
-        display: flex;
-        justify-content: space-around;
-        background: rgba(0,0,0,0.3);
-        padding: 12px;
-        border-radius: 10px;
-      }
-      .sy-item {
-        font-size: 0.85rem;
-      }
-      .sy-item span {
-        display: block;
-        font-size: 1.1rem;
-        margin-bottom: 5px;
-      }
-    </style>
+    if (!lunarObj) {
+        area.innerHTML = html + `<p style="text-align:center;">음력/숙요 정보가 부족합니다.</p></div>`;
+        return;
+    }
 
-    <div class="sukuyo-container">
-      <svg width="0" height="0">
-        <defs>
-          <linearGradient id="sy-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#f472b6" />
-            <stop offset="100%" stop-color="#9333ea" />
-          </linearGradient>
-        </defs>
-      </svg>
-      
-      <div style="font-size: 1rem; color: #a78bfa; font-weight: 600; margin-bottom: 5px;">오늘의 퀀텀 싱크로율</div>
-      <div class="sy-gauge-wrap">
-        <svg width="140" height="140" viewBox="0 0 140 140">
-          <circle class="sy-gauge-bg" cx="70" cy="70" r="63"></circle>
-          <circle class="sy-gauge-fg" cx="70" cy="70" r="63"></circle>
-        </svg>
-        <div class="sy-gauge-text">${result.sync}%</div>
-      </div>
+    let sData = calcSukuyoData(lunarObj);
 
-      <div class="sy-mansion-box">
-        <div class="sy-mansion-title">본명숙: ${m.name}</div>
-        <div class="sy-mansion-keyword">핵심 키워드 • ${m.keyword}</div>
-        <div class="sy-mansion-desc">
-          태어난 음력일을 기준으로 도출된 당신의 별자리는 <b>${m.name}</b>입니다. 
-          이 별자리는 일본 고전 숙요점 체계에서 <b>${m.elem}</b>의 기운을 담고 있으며, 깊은 무의식 안에 <b>[${m.keyword}]</b>의 에너지가 내재되어 있음을 의미합니다.
-          사주 원국의 오행과 결합된 퀀텀 점수에 따르면, 오늘은 당신만의 독특한 매력을 발산하기에 최적화된 우주적 타이밍입니다.
+    if (sData) {
+        let tr = sData.traits;
+        html += `
+        <div class="sy-grid">
+            <div class="sy-card" style="grid-column: 1 / -1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h4 style="margin: 0; color: #e1c16e; font-size: 1.2rem;">${sData.icon} 본성 (Natal Star) - 당신의 별: <span class="sy-glow-text">${sData.mansion}</span></h4>
+                    <div style="text-align: right; font-size: 0.85rem;">잠재적 재능 지수: <strong style="color:#ffd700; font-size:1.1rem;">${sData.talent}%</strong></div>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                    <p style="margin:0 0 10px 0; font-size:1.05rem; color:#fff; font-weight:bold;"></p>
+                    
+                    <div class="trait-tag">🔮 종합성향</div>
+                    <div class="trait-row" style="color:#eee;">${tr.desc}</div>
+
+                    <div class="trait-tag">💼 일과 사회성</div>
+                    <div class="trait-row">${tr.work}</div>
+
+                    <div class="trait-tag">❤️ 연애와 카르마</div>
+                    <div class="trait-row">${tr.love}</div>
+
+                    <div class="trait-tag">💰 재물과 현실</div>
+                    <div class="trait-row">${tr.wealth}</div>
+                    
+                    <div style="margin-top:10px; font-size:0.8rem; color:#aaa; font-style:italic;">대표 위인: ${sData.celebs}</div>
+                </div>
+            </div>
+
+            <div class="sy-card" style="grid-column: 1 / -1; border-left-color: #82ccdd;">
+                <h4 style="margin: 0 0 15px 0; color: #82ccdd;">🌊 오늘의 흐름 (Daily Flow)</h4>
+        `;
+        const daily = getDailyKarmicGuidance(lunarObj, sData.mansion);
+        
+        const renderGauge = (lbl, val, color) => `
+            <div class="daily-flow-row">
+                <div class="daily-flow-label">${lbl}</div>
+                <div class="daily-flow-gauge">
+                    <div class="sy-gauge-bg"><div class="sy-gauge-fill" style="width: 0%; background: ${color};" data-target="${val}%"></div></div>
+                </div>
+                <div class="daily-flow-val">${val}점</div>
+            </div>
+        `;
+
+        html += renderGauge('전체 운세', daily.overall, 'linear-gradient(90deg, #34e89e, #0f3443)');
+        html += renderGauge('인간관계', daily.relations, 'linear-gradient(90deg, #ff9a9e, #fecfef)');
+        html += renderGauge('연애 운', daily.love, 'linear-gradient(90deg, #ff0844, #ffb199)');
+        html += renderGauge('재물 운', daily.wealth, 'linear-gradient(90deg, #f6d365, #fda085)');
+
+        html += `
+                <div style="margin-top: 15px; padding: 12px; border: 1px dashed rgba(130, 204, 221, 0.4); border-radius: 8px; font-size:0.9rem;">
+                    <div style="display:flex; justify-content:space-around; align-items:center;">
+                        <div><strong style="color:#aaa;">🔑 행운의 열쇠:</strong> <span style="color:#82ccdd; font-weight:bold;">${daily.action}</span></div>
+                        <div><strong style="color:#aaa;">🛡️ 수호 아이템:</strong> <span style="color:#82ccdd; font-weight:bold;">${daily.item}</span></div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+        `;
+    }
 
-      <div class="sy-item-box">
-        <div class="sy-item"><span>✨</span>행운의 아이템<br><b>${result.metadata.item}</b></div>
-        <div class="sy-item"><span>🎨</span>오러(Aura) 컬러<br><b style="color:${result.metadata.color}">${result.metadata.color.toUpperCase()}</b></div>
-      </div>
-    </div>
-    `;
+    html += `<div class="sy-card" style="margin-top: 15px; border-left-color: #ff6b81;">
+        <h4 style="margin: 0 0 10px 0; color: #ff6b81;">인연의 끈 (Karma Synergy)</h4>
+        <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px;">상대방의 생년월일을 입력하여 카르마 궁합(숙요점) 지수와 관계 유형을 확인하세요.</p>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; gap: 10px;">
+                  <input type="date" id="sy3BirthDate" style="flex:1; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81;" required>
+                  <select id="sy3CalType" style="padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81;">
+                      <option value="solar">양력</option>
+                      <option value="lunar">음력</option>
+                      <option value="lunar_leap">음력(윤달)</option>
+                  </select>
+                  <input type="time" id="sy3BirthTime" value="12:00" style="padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81;">
+              </div>
+              <button onclick="triggerSynergyCheck('${sData ? sData.mansionIdx : 0}')" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;"> 카르마 인연 분석하기</button>
+          </div>
+        <div id="sy3Loading" class="sy-loader">우주의 먼지를 헤치며 카르마를 읽는 중...</div>
+        <div id="sy3Result" style="margin-top: 15px; display: none;"></div>
+    </div>`;
 
+    html += `</div>`;
     area.innerHTML = html;
-    card.style.display = 'block';
-}
 
-/* ══════════════════════════════════════════
-   퀀텀 명리 전략 리포트 — 합화 우선 분석
-══════════════════════════════════════════ */
+    // Animate gauges after DOM insertion
+    setTimeout(() => {
+        const bars = document.querySelectorAll('.sy-gauge-fill');
+        bars.forEach(bar => {
+            bar.style.width = bar.getAttribute('data-target');
+        });
+    }, 100);
+}
 function renderQuantumStrategy(p, natal, bazi){
   var area=document.getElementById('quantumSection');
   var card=document.getElementById('quantumCard');
@@ -15960,6 +15945,8 @@ window.addEventListener('load', function() {
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <!-- 관상 분석 스크립트 추가 -->
+<script src="SukuyoDB.js"></script>
+<script src="SukuyoData.js"></script>
 <script src="AnalysisEngine.js"></script>
 <script src="PhysiognomyUI.js"></script>
 
@@ -16507,14 +16494,14 @@ window.addEventListener('load', function() {
    * bg     = 라이트 모드 헤더 배경 틴트
    */
   var GROUPS = [
-    { id:'acc-sukuyo', emoji:'💫', title:'숙요점 & 퀀텀 명리', open:false, color:'#c084fc', lite:'#9333ea', bg:'rgba(250,245,255,1)' },
     { id:'acc-core',   emoji:'\uD83D\uDD2E', title:'\uc0ac\uc8fc \uba85\ub9ac\ud559\uc758 \uc7a5',       open:true,  color:'#f9a8d4', lite:'#be185d', bg:'rgba(253,242,248,1)'  },
     { id:'acc-fun',    emoji:'\uD83C\uDFAA', title:'\uc7ac\ubc0c\ub294 \uc0ac\uc8fc \ucf58\ud150\uce20',  open:false, color:'#fda4af', lite:'#e11d48', bg:'rgba(255,241,242,1)'  },
     { id:'acc-ai',     emoji:'\uD83E\uDD16', title:'AI \uc0ac\uc8fc \ud504\ub86c\ud504\ud2b8 \ubaa8\uc74c',open:false, color:'#7dd3fc', lite:'#0369a1', bg:'rgba(240,249,255,1)'  },
     { id:'acc-lotto',  emoji:'\uD83C\uDFB1', title:'\ud589\uc6b4\uc758 \ub85c\ub610',                     open:false, color:'#86efac', lite:'#15803d', bg:'rgba(240,253,244,1)'  },
     { id:'acc-ziwei',  emoji:'\uD83C\uDF0C', title:'\uc790\ubbf8\ub450\uc218',                             open:false, color:'#c4b5fd', lite:'#6d28d9', bg:'rgba(245,243,255,1)'  },
     { id:'acc-iching', emoji:'\u262F\uFE0F', title:'\uc8fc\uc5ed\uc810',                                   open:false, color:'#fcd34d', lite:'#b45309', bg:'rgba(255,251,235,1)'  },
-    { id:'acc-astro',  emoji:'\u2728',        title:'\uc810\uc131\uc220',                                   open:false, color:'#a5b4fc', lite:'#4338ca', bg:'rgba(238,242,255,1)'  }
+    { id:'acc-astro',  emoji:'\u2728',        title:'\uc810\uc131\uc220',                                   open:false, color:'#a5b4fc', lite:'#4338ca', bg:'rgba(238,242,255,1)'  },
+    { id:'acc-sukuyo', emoji:'💫', title:'숙요점', open:false, color:'#c084fc', lite:'#9333ea', bg:'rgba(250,245,255,1)' }
   ];
 
   var CORE_IDS  = ['sajuCard','adMiddle1','iljuCard','tenshinCard','johuCard','ukbuCard','adMiddle2','dailyMonthlyCard','summaryCard','adMiddle3','daewunCard','quantumCard','adMiddle4','compatCard','adMiddle5','similarCelebCard'];
