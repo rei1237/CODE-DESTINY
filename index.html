@@ -8550,15 +8550,16 @@ function startSajuCalculationFlow() {
     txtEl.offsetHeight;
     txtEl.style.animation = 'sajuTyping 0.8s steps(20, end), sajuBlink .75s step-end infinite';
 
-    // 계산 + 최소 애니메이션 시간(800ms)을 병렬 실행
-    // 둘 다 끝난 시점에 오버레이를 닫아 애니메이션이 반드시 보이도록 함
+    // 계산 + 애니메이션 완료 시간을 병렬 실행
+    // 최장 애니메이션: page3 turnPage(2.2s + 0.9s delay = 3.1s) + vortex(2.5s+0.5s=3.0s)
+    // → 3300ms 대기로 모든 애니메이션이 완전히 끝난 후 결과 표시
     setTimeout(async () => {
       await Promise.all([
         calculate(),
-        new Promise(resolve => setTimeout(resolve, 800))
+        new Promise(resolve => setTimeout(resolve, 3300))
       ]);
       var _lo = document.getElementById('sajuLoaderOverlay');
-      if (_lo) { _lo.classList.remove('show'); setTimeout(function(){ _lo.style.display='none'; }, 250); }
+      if (_lo) { _lo.classList.remove('show'); setTimeout(function(){ _lo.style.display='none'; }, 500); }
     }, 80);
   });
 }
