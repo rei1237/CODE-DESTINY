@@ -99,67 +99,139 @@ function renderAstroInsight() {
 
     // [MASTER INSIGHT] Override & Add Custom Reading for 1991-02-20
     var masterInsight = '';
-    if (Math.abs(chart.jdUT - 2448307.86) < 0.01) { // Check Master Chart ID
+    if (Math.abs(chart.jdUT - 2448307.86) < 0.01) {
        masterInsight = `<div class="astro-section" style="border-left:4px solid #D4AF37; background:linear-gradient(to right, rgba(212,175,55,0.05), transparent); margin-bottom:20px;">
             <div class="astro-subhead" style="color:#D4AF37; font-family:'Cinzel',serif;">👑 Absolute Celestial Sync (마스터 리딩)</div>
             <div class="astro-desc" style="font-size:0.95rem;">
                 <p><b>[Elemental Synergy: 물고기자리 ☀ & 황소자리 ☽]</b><br>
-                당신은 몽상하는 자아(Pisces Sun)와 현실적 안정(Taurus Moon)이 절묘하게 교차하는 영혼입니다. 
+                당신은 몽상하는 자아(Pisces Sun)와 현실적 안정(Taurus Moon)이 절묘하게 교차하는 영혼입니다.
                 물고기자리의 무한한 상상력을 황소자리의 끈기로 구체화할 때, 당신의 꿈은 단순한 환상이 아닌 거대한 현실이 됩니다.
                 감정의 파도가 칠 때(Water), 단단한 흙(Earth)이 방파제가 되어주는 완벽한 상호보완적 구조를 가졌습니다.</p>
                 <p><b>[Karmic Path: 토성 & 11하우스]</b><br>
                 토성(Saturn)이 11하우스 물병자리(Domicile)에 위치하여, 당신은 전생으로부터 '혁신적 공동체'를 건설해야 하는 업(Karma)을 가지고 왔습니다.
                 고독한 천재로서의 시련을 견뎌내고, 소수정예의 동료들과 함께 시대를 앞서가는 비전을 제시하는 것이 당신의 영적 소명입니다.</p>
                 <p><b>[Vital Point: 포르투나 & 스피릿]</b><br>
-                물질적 풍요의 포르투나(♊ 3H)는 '언어와 소통'을 통해 부가 창출됨을 암시하며, 
+                물질적 풍요의 포르투나(♊ 3H)는 '언어와 소통'을 통해 부가 창출됨을 암시하며,
                 영적 성장의 스피릿(♑ 10H)은 '사회적 정점'에 도달하는 것이 곧 영혼의 완성임을 가리킵니다.</p>
             </div>
         </div>`;
     }
 
-    
-    /* ── 궁합 및 고급 기능 (Synastry, Firdaria, Profection) 공간 추가 ── */
-    var advancedAstrologyHtml = `
-    <div class="astro-section">
-      <div class="astro-subhead">📌 3. 4원소 균형 (Elemental Balance)</div>
-      <div class="astro-desc" style="display:flex; justify-content:space-around;">
-        <span style="color:#f87171">불(Fire): 25%</span>
-        <span style="color:#fde68a">흙(Earth): 40%</span>
-        <span style="color:#60a5fa">공기(Air): 20%</span>
-        <span style="color:#34d399">물(Water): 15%</span>
-      </div>
-      <p style="text-align:center; font-size:0.8rem; margin-top:5px; color:#94a3b8;">
-        물질적 안정성(흙)이 주도하며 창조적 열정(불)이 보완하는 구조입니다.
-      </p>
-    </div>
+    /* ── 4원소 실시간 계산 ── */
+    var SIGN_ELEM = {
+        '양자리':'fire','사자자리':'fire','사수자리':'fire',
+        '황소자리':'earth','처녀자리':'earth','염소자리':'earth',
+        '쌍둥이자리':'air','천칭자리':'air','물병자리':'air',
+        '게자리':'water','전갈자리':'water','물고기자리':'water'
+    };
+    var elemCount = { fire:0, earth:0, air:0, water:0 };
+    var elemPlanets = { fire:[], earth:[], air:[], water:[] };
+    var elemSigns   = [chart.sun.sign, chart.moon.sign, chart.asc.sign, chart.mc.sign];
+    var elemPlanetNames = ['Mercury','Venus','Mars','Jupiter','Saturn'];
+    elemPlanetNames.forEach(function(pn){
+        if(chart.planets[pn]) elemSigns.push(chart.planets[pn].sign.sign);
+    });
+    elemSigns.forEach(function(s, i){
+        var el = SIGN_ELEM[s];
+        if(el) { elemCount[el]++; elemPlanets[el].push(s); }
+    });
+    var elemTotal = elemCount.fire + elemCount.earth + elemCount.air + elemCount.water || 1;
+    var elemPct = {
+        fire:  Math.round(elemCount.fire  / elemTotal * 100),
+        earth: Math.round(elemCount.earth / elemTotal * 100),
+        air:   Math.round(elemCount.air   / elemTotal * 100),
+        water: Math.round(elemCount.water / elemTotal * 100)
+    };
+    var elemDominant = Object.keys(elemCount).reduce(function(a,b){ return elemCount[a]>=elemCount[b]?a:b; });
+    var elemDomNames = { fire:'🔥 불(Fire)의 시대', earth:'🌿 흙(Earth)의 번영', air:'💨 공기(Air)의 지성', water:'💧 물(Water)의 감성' };
+    var elemDomDesc  = {
+        fire:  '창조, 열정, 직관이 넘치는 영혼. 행동이 먼저이고 생각은 나중.',
+        earth: '물질적 현실 감각과 인내가 최강 무기. 꾸준함이 부를 쌓는다.',
+        air:   '논리와 언어, 소통으로 세상을 이끄는 지식인 기질.',
+        water: '감수성과 영성이 폭발하는 직관의 달인. 타인의 감정에 즉각 공명.'
+    };
 
-    <div class="astro-section">
-      <div class="astro-subhead">📌 4. 궁합(Synastry) 및 인연의 끈</div>
-      <div class="astro-desc">
-        <p><b>[소울메이트 시그니처]</b> 당신의 금성(Venus)과 상대의 화성(Mars)이 만들어내는 각도는 매우 강렬한 로맨틱 텐션을 자아냅니다.</p>
-        <p><b>[업장(Karmic)의 교차]</b> 토성(Saturn)의 위치로 보아 책임감과 인내를 배우는 배움의 관계로 이어질 확률이 짙습니다. 단기적인 쾌락보다 상호 성장을 추구하세요.</p>
-      </div>
-    </div>
+    /* ── 피르다리아 계산 (Chaldean order, 낮 출생 기준) ── */
+    var FIRDARIA_DAY  = [
+        {planet:'☀ 태양(Sun)',   years:10, kr:'태양', theme:'자아 확립·명예·창조력의 시대. 당신이 주인공이 될 무대가 펼쳐집니다.'},
+        {planet:'♀ 금성(Venus)', years:8,  kr:'금성', theme:'사랑·미적 성취·재물의 꽃이 활짝 피는 달콤한 시기.'},
+        {planet:'☿ 수성(Mercury)',years:13, kr:'수성', theme:'학습·커뮤니케이션·계약과 협상의 시대. 언어가 곧 권력.'},
+        {planet:'☽ 달(Moon)',    years:9,  kr:'달',   theme:'내면의 감정을 정화하고 가정·모성·직관이 빛나는 시기.'},
+        {planet:'♄ 토성(Saturn)',years:11, kr:'토성', theme:'시련과 인내, 그 끝에 단단한 전문성이 완성되는 여정.'},
+        {planet:'♃ 목성(Jupiter)',years:12,kr:'목성', theme:'확장·행운·성장의 정점. 씨앗이 거목으로 자라나는 시절.'},
+        {planet:'♂ 화성(Mars)',  years:7,  kr:'화성', theme:'도전·경쟁·에너지 폭발. 멈추지 말고 전진할 것.'}
+    ];
+    var age = now.getFullYear() - y;
+    var firdariaMain = null, firdariaMainYearsLeft = 0;
+    var accAge = 0;
+    for(var fi = 0; fi < FIRDARIA_DAY.length; fi++){
+        accAge += FIRDARIA_DAY[fi].years;
+        if(age < accAge){
+            firdariaMain = FIRDARIA_DAY[fi];
+            firdariaMainYearsLeft = accAge - age;
+            break;
+        }
+        age -= FIRDARIA_DAY[fi].years; // 한 바퀴 넘으면 재순환
+        if(fi === FIRDARIA_DAY.length - 1){ fi = -1; }
+    }
+    if(!firdariaMain) firdariaMain = FIRDARIA_DAY[0];
+    // 서브 피르다리아: 메인 기간을 7개 행성으로 균등 분할
+    var subIdx = Math.floor((firdariaMain.years - firdariaMainYearsLeft) / (firdariaMain.years / 7)) % 7;
+    var firdariaSubPlanet = FIRDARIA_DAY[subIdx].kr;
 
-    <div class="astro-section">
-      <div class="astro-subhead">📌 5. 피르다리아 (Firdaria - 고전 시간 통치자)</div>
-      <div class="astro-desc">
-        <p>현재 당신을 지배하는 메인 타임로드는 <b>수성(Mercury)</b>입니다. 지적 탐구, 커뮤니케이션, 단기 여행이 인생의 주 무대가 되는 시기입니다.</p>
-        <p>서브 타임로드는 <b>금성(Venus)</b>으로, 이 시기에는 인간관계의 호전과 미적 성취, 그리고 재정적 이익이 따르게 될 것입니다.</p>
-      </div>
-    </div>
+    /* ── 연간 프로펙션 계산 ── */
+    var HOUSE_KR = ['1하우스(자아·몸)','2하우스(재물·가치)','3하우스(소통·이동)',
+                    '4하우스(가정·뿌리)','5하우스(창조·연애)','6하우스(건강·일상)',
+                    '7하우스(관계·계약)','8하우스(변환·심연)','9하우스(철학·여행)',
+                    '10하우스(사회·명예)','11하우스(공동체·미래)','12하우스(영성·은둔)'];
+    var PROFECTION_RULER = ['화성','금성','수성','달','태양','수성','금성','화성','목성','토성','토성','목성'];
+    var PROFECTION_SIGN  = astrologer.signs;
+    var profAge = now.getFullYear() - y; // 만 나이 기준
+    var profHouseIdx = profAge % 12;
+    var profHouse    = HOUSE_KR[profHouseIdx];
+    var profSign     = PROFECTION_SIGN[(ascIndex + profHouseIdx) % 12];
+    var profRuler    = PROFECTION_RULER[profHouseIdx];
+    var profThemes   = [
+        '자아 이미지 리부트의 해. 새로운 나를 세상에 선언하라.',
+        '돈과 자존감을 동시에 챙기는 해. 내 가치를 증명할 기회.',
+        '말과 글이 운명을 바꾸는 해. 네트워크를 적극적으로 넓혀라.',
+        '가족과 심리적 기반이 핵심 과제. 내면의 안전지대를 구축하라.',
+        '사랑·창작·자녀에게 행운이 집중되는 해. 즐거움을 추구하라.',
+        '건강 관리와 직업적 루틴이 미래를 좌우하는 해.',
+        '중요한 파트너십·계약·결혼 이슈가 수면 위로 떠오른다.',
+        '심리적 변환과 유산·투자·은밀한 관계가 주 무대.',
+        '해외·학업·종교가 새로운 지평을 열어주는 자유의 해.',
+        '커리어의 정점을 향해 달리는 성과의 해. 사회적 타이틀 획득 집중.',
+        '공동체와 비전, 우정이 인생을 확장시키는 연대의 해.',
+        '내면 정화·영성·은둔이 다음 큰 사이클을 준비시키는 해.'
+    ];
 
-    <div class="astro-section">
-      <div class="astro-subhead">📌 6. 연간 프로펙션 (Annual Profections)</div>
-      <div class="astro-desc">
-        <p>올해 당신은 <b>제 4하우스(게자리/달)</b> 프로펙션 해를 맞이합니다.</p>
-        <p>핵심 테마: 가정, 주거 환경의 변화, 내적 뿌리의 다지기. 올해의 가장 중요한 천체는 '달(Moon)'이며, 멘탈 케어와 가족 관계가 핵심이 됩니다.</p>
-      </div>
-    </div>`;
+    var html = '<div class="astro-body star-container" id="astroBodyWrap">' + masterInsight
 
-    html += advancedAstrologyHtml;
+    /* ───────────────────────────────────────────
+     * 섹션 1: 통합 인연 리포트 (Synastry & Bond)
+     * ─────────────────────────────────────────── */
+        +'<div class="astro-section" style="border-left:4px solid #f472b6; background:linear-gradient(to right, rgba(244,114,182,0.06), transparent);">'
+        +'<div class="astro-subhead" style="color:#f472b6;">💞 통합 인연 리포트 (Synastry &amp; Bond)</div>'
+        +'<div class="astro-desc">'
+        +'<p><b>[하강궁 — 끌림의 코드]</b> 당신의 하강궁(7H)이 <b>'+descSign+'</b>에 걸려있습니다. 무의식이 억눌러 온 그림자 자아의 에너지가 이 별자리를 가진 타인에게 폭발적으로 투사되며, 인생을 통틀어 이 파동을 지닌 인연에게 가장 강렬히 매혹됩니다.</p>'
+        +'<p><b>[Venus ♀ × Mars ♂ — 끌림의 화학반응]</b> 금성(<b>'+venusSign+'</b>)과 화성(<b>'+marsSign+'</b>)의 교차가 만들어내는 당신만의 관계 화학식: '+vmAspect+(vmAspect?'':' 두 에너지가 보완 관계를 이루며 안정적이고 지속 가능한 끌림을 형성합니다.')+'</p>'
+        +'<p><b>[Chiron 키론 — 상처가 인연을 부른다]</b> "'+p.chironMeaning+'" 이 상처를 정면으로 끌어안는 과정에서 운명적 인연이 찾아옵니다.</p>'
+        +'<div style="background:rgba(244,114,182,0.08); border-radius:10px; padding:14px; margin-top:12px;">'
+        +'<div style="color:#f9a8d4; font-weight:700; margin-bottom:8px; font-size:0.88rem; text-transform:uppercase; letter-spacing:1px;">Bond Compatibility Map</div>'
+        +'<ul style="padding-left:18px; margin:0; font-size:0.9rem; color:#e2e8f0; line-height:1.8;">'
+        +'<li><b>💕 연애 궁합</b> — <b>'+moonSign+'</b> 달의 감정선과 물·흙 기운 영혼에게서 깊은 안식을 얻습니다. 자극보다 포근한 공존이 더 오래 지속됩니다.</li>'
+        +'<li><b>✨ 속 궁합</b> — <b>'+venusSign+'</b> 금성이 원하는 사랑의 질감은 섬세한 터치와 무언의 이해. 말로 하지 않아도 통하는 교감이 핵심입니다.</li>'
+        +'<li><b>🤝 일 궁합</b> — <b>'+mcSign+'</b> MC를 뒷받침할 현실적 조력자, 특히 흙의 별자리가 든든한 파트너가 됩니다.</li>'
+        +'</ul>'
+        +'</div>'
+        +'</div>'
+        +'</div>'
 
-  var html = '<div class="astro-body">' + masterInsight
+    /* ───────────────────────────────────────────
+     * 기존 섹션 1·2: 페르소나 + 사회적 소명
+     * ─────────────────────────────────────────── */
+        +'<div class="astro-section">'
         +'<div class="astro-subhead">📌 1. 심층 페르소나 (천체역학 기반 · Jean Meeus 알고리즘)</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">☀ 태양</span> <span class="astro-planet">'+sunSign+'</span>'+sunDeg
@@ -168,86 +240,174 @@ function renderAstroInsight() {
         +'</div>'
         +'<div class="astro-desc">'
         +'<p><b>[핵심 자아의 발현]</b><br>'+sunInterpretations[sunIndex]+'</p>'
-        +'<p><b>[정서와 무의식의 그림자]</b><br>'+moonSign+'에 위치한 달은 정서적 안정감의 원천입니다. 무의식적으로 이 영역이 충족될 때 파괴된 멘탈을 가장 빠르게 회복하며, 위기의 순간 타인에게 드러나는 민낯이자 방어기제로 작용합니다.</p>'
-        +'<p>당신의 외적 페르소나인 상승궁(Ascendant)은 <b>'+ascSign+'</b>에 걸려 있습니다. 사람들은 처음 당신을 만났을 때 이 별자리가 지닌 에너지를 필터링하여 인지합니다.</p>'
+        +'<p><b>[정서와 무의식의 그림자]</b><br>'+moonSign+'에 위치한 달은 정서적 안정감의 원천입니다. 무의식적으로 이 영역이 충족될 때 파괴된 멘탈을 가장 빠르게 회복하며, 위기의 순간 민낯이자 방어기제로 작용합니다.</p>'
+        +'<p>당신의 외적 페르소나인 상승궁(Ascendant)은 <b>'+ascSign+'</b>에 걸려 있습니다.</p>'
         +'</div>'
-        +'<div class="astro-core">"당신의 차트 룰러(Chart Ruler)는 <strong>'+p.ruler+'</strong>입니다. 삶의 전반적인 방향타를 쥐고 있는 영혼의 마스터키 장치입니다."</div>'
+        +'<div class="astro-core">"차트 룰러(Chart Ruler): <strong>'+p.ruler+'</strong> — 영혼의 마스터키"</div>'
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 2. 사회적 소명과 천직 (MC & 하우스 시스템 · Placidus)</div>'
+        +'<div class="astro-subhead">📌 2. 사회적 소명과 천직 (MC & Placidus)</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">MC 천정(10H)</span> <span class="astro-planet">'+mcSign+'</span>'
-        +' <span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
         +' <span class="astro-tag">6H</span> <span class="astro-house">'+h6Sign+'</span>'
         +' <span class="astro-tag">Saturn ♄</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
-        +'<p>당신의 사회적 정점(MC)은 <b>'+mcSign+'</b> 영역을 가리킵니다. 이는 세상이 당신을 인지하는 방식이자, 이생에서 반드시 성취해야 할 직업적 페르소나입니다. 단순한 노동(6하우스: <b>'+h6Sign+'</b>)을 넘어, 자신의 고유한 명예 타이틀을 획득하는 것이 영혼의 과업입니다.</p>'
-        +'<p>제한과 규율의 행성 토성(Saturn)이 <b>'+saturnSign+'</b>에 있어, 이 분야에 대한 두려움을 극복하는 숙제를 던져줍니다.</p>'
+        +'<p>사회적 정점(MC)은 <b>'+mcSign+'</b>. 토성이 <b>'+saturnSign+'</b>에서 던지는 시련을 극복할 때 비로소 이 타이틀이 완성됩니다.</p>'
         +'</div>'
         +'</div>'
 
+    /* ───────────────────────────────────────────
+     * 섹션 3: 4원소 균형 (실시간 계산)
+     * ─────────────────────────────────────────── */
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 3. 관계 역학과 내면의 타자 투사</div>'
-        +'<div class="astro-tags">'
-        +'<span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
-        +' <span class="astro-tag">Venus 금성 ♀</span> <span class="astro-planet">'+venusSign+(chart.planets.Venus&&chart.planets.Venus.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
-        +' <span class="astro-tag">Mars 화성 ♂</span> <span class="astro-planet">'+marsSign+(chart.planets.Mars&&chart.planets.Mars.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
-        +'</div>'
+        +'<div class="astro-subhead">📌 3. 4원소 균형 (Elemental Balance)</div>'
         +'<div class="astro-desc">'
-        +'<p>당신의 하강궁(Descendant)은 <b>'+descSign+'</b>에 걸려있습니다. 이는 본인이 의식적으로 거부하거나 억눌러 온 \'그림자 자아\'를 상징하며, 무의식적으로 이 에너지를 지닌 타인에게 강렬히 매혹됩니다.</p>'
-        +'<p>금성(매력·가치관)은 <b>'+venusSign+'</b>에, 화성(욕망·행동력)은 <b>'+marsSign+'</b>에 자리합니다. '+vmAspect+'</p>'
-        +'<p>영혼의 상처 치유자인 <b>Chiron(키론)</b>의 영향력("'+p.chironMeaning+'")을 정면으로 마주하는 과정이 인간관계의 성숙도로 직결됩니다.</p>'
+        +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">'
+        +['fire','earth','air','water'].map(function(el){
+            var cfg = { fire:['#f87171','🔥','불(Fire)'], earth:['#fde68a','🌿','흙(Earth)'], air:['#93c5fd','💨','공기(Air)'], water:['#34d399','💧','물(Water)'] };
+            var c = cfg[el]; var pct = elemPct[el];
+            return '<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; border:1px solid rgba(255,255,255,0.07);">'
+                +'<div style="font-size:0.85rem; color:'+c[0]+'; font-weight:700; margin-bottom:6px;">'+c[1]+' '+c[2]+'</div>'
+                +'<div style="font-size:1.5rem; font-weight:900; color:'+c[0]+'; line-height:1;">'+pct+'<span style="font-size:0.75rem; color:#94a3b8; font-weight:400;">%</span></div>'
+                +'<div style="height:4px; background:#1e293b; border-radius:2px; margin-top:8px; overflow:hidden;"><div style="height:100%; width:'+pct+'%; background:'+c[0]+'; border-radius:2px; transition:width 1.5s ease;"></div></div>'
+                +'</div>';
+        }).join('')
+        +'</div>'
+        +'<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; font-size:0.9rem;">'
+        +'<span style="color:#fbbf24; font-weight:700;">지배 원소: '+elemDomNames[elemDominant]+'</span>'
+        +'<p style="margin:6px 0 0 0; color:#cbd5e1; line-height:1.5;">'+elemDomDesc[elemDominant]+'</p>'
+        +'</div>'
         +'</div>'
         +'</div>'
 
+    /* ───────────────────────────────────────────
+     * 섹션 4: 목성 트랜짓 (기존)
+     * ─────────────────────────────────────────── */
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 4. 거대한 우주의 통신 (현재 목성 트랜짓 기류)</div>'
+        +'<div class="astro-subhead">📌 4. 거대한 우주의 통신 (목성 트랜짓)</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">Jupiter ♃ Transit</span> <span class="astro-planet">'+jupiterTransit+'</span>'
-        +' <span style="color:#94a3b8;font-size:0.78rem">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+(now.getDate())+'일 기준)</span>'
+        +' <span style="color:#94a3b8;font-size:0.78rem">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+now.getDate()+'일 기준)</span>'
         +'</div>'
         +'<div class="astro-desc">'
-        +'<p>현재 하늘을 통과하는 목성(Jupiter)이 <b>'+jupiterTransit+'</b>에 상주하며 당신의 거시적 운명에 거대한 기류 변화를 촉구하고 있습니다.</p>'
-        +'<div class="astro-core" style="font-size:1.05rem;margin-top:20px;font-weight:bold">"👉 '+transitMsg[jupiterIndex]+'"</div>'
-        +'<p>이 시기에는 수축보다 경험이, 두려움보다는 확장이 당신의 운을 지배해야만 합니다.</p>'
+        +'<p>현재 목성이 <b>'+jupiterTransit+'</b>에 상주하며 당신의 거시적 운명에 거대한 기류 변화를 촉구합니다.</p>'
+        +'<div class="astro-core" style="font-size:1.0rem;margin-top:14px;font-weight:bold">"👉 '+transitMsg[jupiterIndex]+'"</div>'
         +'</div>'
         +'</div>'
 
-        +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 5. 영혼이 공명하는 별들의 궁합 (Healing Synergy)</div>'
+    /* ───────────────────────────────────────────
+     * 섹션 5: 피르다리아 (실시간 계산)
+     * ─────────────────────────────────────────── */
+        +'<div class="astro-section" style="border-left:3px solid #a78bfa;">'
+        +'<div class="astro-subhead" style="color:#a78bfa;">📌 5. 피르다리아 (Firdaria — 고전 시간 통치자)</div>'
         +'<div class="astro-desc">'
-        +'<p>사람과 사람의 만남은 우주가 안배한 치유의 여정입니다. 당신의 <b>'+sunSign+'</b> 태양과 <b>'+moonSign+'</b> 달이 그려내는 따스한 파동을 통해 힐링 에너지를 불어넣는 궁합의 결을 들여다봅니다.</p>'
-        +'<div class="astro-core" style="font-size:0.95rem;line-height:1.6;font-weight:normal">'
-        +'<ul style="padding-left:20px;margin-bottom:0;">'
-        +'<li style="margin-bottom:10px;"><b>💕 연애 궁합 (정서적 지지와 안식처)</b><br>당신의 지친 하루를 안아줄 사람은, 본연의 감수성을 온전히 이해해주는 수용적인 에너지를 가진 사람입니다. 특히 <b>'+moonSign+'</b>의 감정선과 잔잔하게 공명할 수 있는 물이나 땅(흙)의 기운을 가진 영혼 곁에서 큰 위안을 얻습니다. 밀고 당기기보다는, 그저 같은 공간에서 서로 숨 쉬는 것만으로도 충전되는 은은하고 따뜻한 유대감이 당신의 마음을 가장 완벽하게 지켜줍니다.</li>'
-        +'<li style="margin-bottom:10px;"><b>✨ 속 궁합 (본능과 영혼의 교감)</b><br>보이지 않는 교감과 은밀한 감정선이 하나로 이어질 때, 당신의 몸도 가장 평안한 이완을 경험합니다. <b>'+venusSign+'</b> 금성과 <b>'+marsSign+'</b> 화성의 결합은 단순히 뜨거움을 넘어선 무의식적 치유의 스킨십을 원합니다. 사랑하는 사람의 부드러운 눈빛과 섬세한 터치는 세상의 모든 스트레스를 씻어내는 우주 최고의 힐링 리추얼이 되어 당신을 더욱 단단하게 만들어줍니다.</li>'
-        +'<li><b>🤝 일 궁합 (상호 보완적인 조력자)</b><br>당신의 '+mcSign+' MC(사회적 소명)를 뒷받침해주면서도 언제나 부드러운 피드백으로 용기를 불어넣는 조력자가 필요합니다. 완벽을 기하려다 홀로 지쳐버리지 않도록, 당신 대신 무거운 짐을 기꺼이 나누어 지는 현실적이면서도 배려심 깊은 인연(특히 흙의 별자리 성향)이 조직 내의 든든한 나무가 되어줄 것입니다. 함께 성장하며 만들어가는 성취의 기쁨 속에서 진정한 자존감을 확인해보세요.</li>'
-        +'</ul>'
+        +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">'
+        +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.12); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.3); text-align:center;">'
+        +'<div style="font-size:0.75rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">메인 타임로드</div>'
+        +'<div style="font-size:1.2rem; font-weight:900; color:#ddd6fe;">'+firdariaMain.planet+'</div>'
+        +'<div style="font-size:0.72rem; color:#94a3b8; margin-top:4px;">잔여 약 '+firdariaMainYearsLeft+'년</div>'
         +'</div>'
+        +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.06); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.15); text-align:center;">'
+        +'<div style="font-size:0.75rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">서브 타임로드</div>'
+        +'<div style="font-size:1.2rem; font-weight:900; color:#c4b5fd;">'+firdariaSubPlanet+'</div>'
+        +'</div>'
+        +'</div>'
+        +'<p>'+firdariaMain.theme+'</p>'
+        +'<p style="font-size:0.88rem; color:#a78bfa;">✦ 서브 기간 <b>'+firdariaSubPlanet+'</b>의 에너지가 주파수를 더하며 이 테마를 세밀하게 조율합니다.</p>'
         +'</div>'
         +'</div>'
 
+    /* ───────────────────────────────────────────
+     * 섹션 6: 연간 프로펙션 (실시간 계산)
+     * ─────────────────────────────────────────── */
+        +'<div class="astro-section" style="border-left:3px solid #22d3ee;">'
+        +'<div class="astro-subhead" style="color:#22d3ee;">📌 6. 연간 프로펙션 (Annual Profection — '+now.getFullYear()+'년)</div>'
+        +'<div class="astro-desc">'
+        +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">'
+        +'<div style="flex:1; min-width:130px; background:rgba(34,211,238,0.1); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.25); text-align:center;">'
+        +'<div style="font-size:0.75rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 하우스</div>'
+        +'<div style="font-size:1.0rem; font-weight:800; color:#a5f3fc;">'+profHouse+'</div>'
+        +'</div>'
+        +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.1); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.25); text-align:center;">'
+        +'<div style="font-size:0.75rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">지배 별자리</div>'
+        +'<div style="font-size:1.0rem; font-weight:800; color:#a5f3fc;">'+profSign+'</div>'
+        +'</div>'
+        +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.1); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.25); text-align:center;">'
+        +'<div style="font-size:0.75rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 행성</div>'
+        +'<div style="font-size:1.2rem; font-weight:900; color:#67e8f9;">'+profRuler+'</div>'
+        +'</div>'
+        +'</div>'
+        +'<p>'+profThemes[profHouseIdx]+'</p>'
+        +'</div>'
+        +'</div>'
+
+    /* ───────────────────────────────────────────
+     * 섹션 7: 쌈바 & 연이 카운슬링
+     * ─────────────────────────────────────────── */
         +'<div class="astro-expert">'
-        +'<div class="expert-title">🗣️ 쌈바 & 연이의 코즈믹 카운슬링</div>'
+        +'<div class="expert-title">🗣️ 쌈바 &amp; 연이의 코즈믹 카운슬링</div>'
         +'<div class="expert-msg">'
-        +'<div class="neo-bubble"><strong>[분석가 쌈바 🦁]</strong> "당신의 차트는 <b>'+sunSign+'</b> 태양의 본질적 의지와 <b>'+ascSign+'</b> 상승궁 시스템 사이의 역학적 긴장도(Aspect)를 어떻게 다루느냐에 따라 성공의 볼륨이 결정됩니다. 타인의 평가(하강궁: '+descSign+')와 자아(상승궁)의 저울을 타협하지 말고, 토성('+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' Rx':'')+') 위치가 던져주는 시간적 지연을 오히려 전문성의 발판으로 삼으십시오."</div>'
-        +'<div class="yeon-bubble"><strong>[공감요정 연이 🐷]</strong> "우와, <b>'+venusSign+'</b> 금성의 부드럽고 매력적인 에너지가 당신을 반짝이게 해주고 있어요! 💖 때로는 상처받기 쉬운 내면의 아이(달: '+moonSign+')를 토닥여주는 시간이 꼭 필요하답니다. 키론(Chiron)이 가리키는 아픔은 우리 꿀꿀이님이 사랑받을 자격이 충분하다는 걸 알려주는 따스한 마법의 열쇠니까 스스로를 꽉 안아주세요!"</div>'
+        +'<div class="neo-bubble"><strong>[분석가 쌈바 🦁]</strong> "당신의 차트는 <b>'+sunSign+'</b> 태양의 본질적 의지와 <b>'+ascSign+'</b> 상승궁 사이의 역학적 긴장도를 어떻게 다루느냐에 따라 성공의 볼륨이 결정됩니다. 올해 <b>'+profHouse+'</b> 프로펙션과 피르다리아 타임로드 <b>'+firdariaMain.kr+'</b>의 교차점에서 당신에게 허락된 창문이 열립니다. 지금 이 순간을 놓치지 마십시오."</div>'
+        +'<div class="yeon-bubble"><strong>[공감요정 연이 🐷]</strong> "우와, <b>'+venusSign+'</b> 금성의 부드럽고 매력적인 에너지가 당신을 반짝이게 해주고 있어요! 💖 지배 원소 <b>'+elemDomNames[elemDominant]+'</b>를 다스리면 인간관계가 놀랍게 부드러워진답니다. 달(<b>'+moonSign+'</b>)의 속삭임대로 감정에 솔직해지는 연습을 해보세요. 자신을 꽉 안아주세요!"</div>'
         +'</div>'
         +'</div>'
 
-        +'<div style="margin-top:16px;padding:10px 14px;background:rgba(0,0,0,0.35);border-radius:8px;border:1px solid rgba(148,163,184,0.15)">'
-        +'<div style="color:#475569;font-size:0.7rem;line-height:1.8">🔬 <b style="color:#64748b">천체역학 계산 메타데이터</b> (Jean Meeus, Astronomical Algorithms 2nd Ed.)<br>'
+    /* ───────────────────────────────────────────
+     * 섹션 최하단: 메타데이터 + 행성 테이블
+     * ─────────────────────────────────────────── */
+        +'<div style="margin-top:16px;padding:12px 14px;background:rgba(0,0,0,0.4);border-radius:10px;border:1px solid rgba(148,163,184,0.1)">'
+        +'<div style="color:#475569;font-size:0.7rem;line-height:1.9">🔬 <b style="color:#64748b">천체역학 계산 메타데이터</b> (Jean Meeus, Astronomical Algorithms 2nd Ed.)<br>'
         +'ΔT = '+chart.dT.toFixed(1)+'초 &nbsp;|&nbsp; 황도 경사각 ε = '+chart.eps.toFixed(4)+'° &nbsp;|&nbsp; JD(TT) = '+chart.jdTT.toFixed(5)
         +' &nbsp;|&nbsp; 위도 '+lat.toFixed(2)+'° / 경도 '+lon.toFixed(2)+'° &nbsp;|&nbsp; UTC+'+tz
         +'<br><span style="color:#334155">태양 정확도 ≈0.01° · 달 ≈0.3° · 행성 ≈0.5–1° · 하우스: Placidus 구면삼각법</span>'
         +'</div>'
-        +'</div>'
 
-        +'</div>';
+    /* ── Falling Stars CSS 주입 (이미 삽입됐으면 스킵) ── */
+    if(!document.getElementById('falling-stars-style')){
+        var styleEl = document.createElement('style');
+        styleEl.id = 'falling-stars-style';
+        styleEl.textContent = `
+        .star-container { position:relative; overflow:hidden; }
+        .astro-star {
+            position:absolute; background:#fff; border-radius:50%;
+            opacity:0; pointer-events:none; z-index:0;
+            animation: astroFall linear infinite;
+        }
+        @keyframes astroFall {
+            0%   { transform:translateY(-10vh) translateX(0px);  opacity:0; }
+            10%  { opacity:0.6; }
+            90%  { opacity:0.4; }
+            100% { transform:translateY(110vh) translateX(22px); opacity:0; }
+        }
+        .astro-body > * { position:relative; z-index:1; }
+        `;
+        document.head.appendChild(styleEl);
+    }
 
     document.getElementById('astroResult').innerHTML = html;
+
+    /* ── 별 생성 (DOM 삽입 후) ── */
+    var wrap = document.getElementById('astroBodyWrap');
+    if(wrap && !wrap.dataset.starsAdded){
+        wrap.dataset.starsAdded = '1';
+        for(var si = 0; si < 28; si++){
+            var star = document.createElement('div');
+            star.className = 'astro-star';
+            var size = Math.random() * 2.5 + 0.8;
+            star.style.cssText = [
+                'width:'+size+'px',
+                'height:'+size+'px',
+                'left:'+Math.random()*100+'%',
+                'top:'+Math.random()*100+'%',
+                'animation-duration:'+(Math.random()*8+6)+'s',
+                'animation-delay:'+(-Math.random()*10)+'s',
+                'filter:blur('+(size>2?'0.4px':'0px')+')'
+            ].join(';');
+            wrap.appendChild(star);
+        }
+    }
 }
 
 /* ─────── 자미두수 12궁 심층 분석 요약 ─────── */
