@@ -10447,8 +10447,22 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                               
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- 연도-월-일 분리 select (모바일 브라우저에서도 정확히 연도-월-일 순서로 표시) -->
+              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px;">
+                <select id="sy3BirthY" style="padding: 8px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 0.88rem; text-align: center;">
+                  <option value="">연도</option>
+                  ${(function(){ let o=''; for(let y=new Date().getFullYear(); y>=1920; y--) o+=`<option value="${y}">${y}년</option>`; return o; })()}
+                </select>
+                <select id="sy3BirthM" style="padding: 8px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 0.88rem; text-align: center;">
+                  <option value="">월</option>
+                  ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${m}">${m}월</option>`).join('')}
+                </select>
+                <select id="sy3BirthD" style="padding: 8px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 0.88rem; text-align: center;">
+                  <option value="">일</option>
+                  ${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}일</option>`).join('')}
+                </select>
+              </div>
               <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                  <input type="date" id="sy3BirthDate" style="flex: 1 1 140px; min-width: 130px; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark;" required>
                   <select id="sy3CalType" style="flex: 0 0 auto; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81;">
                       <option value="solar">양력</option>
                       <option value="lunar">음력</option>
@@ -11007,14 +11021,20 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
   };
 
   window.triggerSynergyCheck = function(myIdx) {
-      if(!document.getElementById('sy3BirthDate')) return;
+      if(!document.getElementById('sy3BirthY')) return;
       myIdx = parseInt(myIdx, 10);
-      const dateStr = document.getElementById('sy3BirthDate').value;
+      /* 분리 select(연도-월-일)에서 값을 읽어 YYYY-MM-DD 문자열로 조합 */
+      const yVal = document.getElementById('sy3BirthY').value;
+      const mVal = document.getElementById('sy3BirthM').value;
+      const dVal = document.getElementById('sy3BirthD').value;
+      const dateStr = (yVal && mVal && dVal)
+          ? yVal + '-' + String(mVal).padStart(2,'0') + '-' + String(dVal).padStart(2,'0')
+          : '';
       const timeStr = document.getElementById('sy3BirthTime').value || "12:00";
       const calType = document.getElementById('sy3CalType').value || "solar";
 
       if(!dateStr) {
-          alert('상대방의 생년월일을 정확히 입력해주세요.');
+          alert('상대방의 생년월일(연도·월·일)을 모두 선택해주세요.');
           return;
       }
 
