@@ -3,22 +3,22 @@
 
 /* ── 화투 이미지 경로 헬퍼 ── */
 function hwatuImg(month, index) {
-    return 'sudda/hwatu/' + month + '_' + index + '.png';
+    return 'sudda/hwatu/' + month + '_' + index + '.webp';
 }
 
 const TAZZA_SYSTEM = {
     CHARACTERS: {
-        master: { name: '퐁퐁장', image: 'sudda/master.png', tone: 'advice', catchphrase: '"기술 부리지 마라. 운명이란 건… 속여서 되는 게 아니여."' },
-        goni: { name: '꼬니', image: 'sudda/goni.png', tone: 'fortune', catchphrase: '"이게 내 팔자인가 보지. 한 판 화끈하게 뒤집어볼까?"' },
-        madam: { name: '천마담', image: 'sudda/madam.png', tone: 'love', catchphrase: '"나 서울대 나온 여자야. 격조 있는 운세만 내놓을게."' },
-        agui: { name: '아구', image: 'sudda/agui.png', tone: 'warning', catchphrase: '"뻥치다 걸리면 코피 나는 거 안 배웠어? 솔직하게 봐줄게."' },
-        gosu: { name: '짝꿍', image: 'sudda/gosu.png', tone: 'insight', catchphrase: '"기술이 아니라 심리전이야. 니 속마음… 다 들여다보인다."' }
+        master: { name: '퐁퐁장', image: 'sudda/master.webp', tone: 'advice', catchphrase: '"기술 부리지 마라. 운명이란 건… 속여서 되는 게 아니여."' },
+        goni: { name: '꼬니', image: 'sudda/goni.webp', tone: 'fortune', catchphrase: '"이게 내 팔자인가 보지. 한 판 화끈하게 뒤집어볼까?"' },
+        madam: { name: '천마담', image: 'sudda/madam.webp', tone: 'love', catchphrase: '"나 서울대 나온 여자야. 격조 있는 운세만 내놓을게."' },
+        agui: { name: '아구', image: 'sudda/agui.webp', tone: 'warning', catchphrase: '"뻥치다 걸리면 코피 나는 거 안 배웠어? 솔직하게 봐줄게."' },
+        gosu: { name: '짝꿍', image: 'sudda/gosu.webp', tone: 'insight', catchphrase: '"기술이 아니라 심리전이야. 니 속마음… 다 들여다보인다."' }
     },
 
     /*
      * 표준 화투 48장 완전 덱
      * type: kwang(광) / yul(열끗) / tti(띠) / pi(피) / dpi(쌍피)
-     * img: sudda/hwatu/${month}_${index}.png
+     * img: sudda/hwatu/${month}_${index}.webp
      *
      * 1월(송학):  1_1광  1_2홍단  1_3피  1_4피
      * 2월(매조):  2_1열  2_2홍단  2_3피  2_4피
@@ -345,11 +345,11 @@ function injectHwatuHTML() {
         
         <div class="vignette-overlay"></div><div id="goldAura" class="gold-aura"></div><div class="flickering-lamp"></div>
         <div class="tazza-hero-bg">
-            <img src="sudda/goni.png" class="tazza-hero-img" style="transform: scaleX(-1);">
-            <img src="sudda/madam.png" class="tazza-hero-img">
-            <img src="sudda/agui.png" class="tazza-hero-img">
-            <img src="sudda/gosu.png" class="tazza-hero-img">
-            <img src="sudda/master.png" class="tazza-hero-img">
+            <img src="sudda/goni.webp" class="tazza-hero-img" style="transform: scaleX(-1);">
+            <img src="sudda/madam.webp" class="tazza-hero-img">
+            <img src="sudda/agui.webp" class="tazza-hero-img">
+            <img src="sudda/gosu.webp" class="tazza-hero-img">
+            <img src="sudda/master.webp" class="tazza-hero-img">
         </div>
         <div class="hwatu-table" style="position: relative; z-index: 2;">
             <h2 class="tazza-title" style="font-family: '궁서', cursive; font-size: 2.8rem; letter-spacing: -2px; color: #d4af37; text-shadow: 2px 2px 5px rgba(185,28,28,0.8);">화투 운세: 신의 손길</h2>

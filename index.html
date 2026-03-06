@@ -158,8 +158,9 @@
 </script>
 <!-- PWA 설정 -->
 <link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="icons/honeypig-192.png">
 <link rel="icon" type="image/svg+xml" href="icons/honeypig.svg">
-<link rel="apple-touch-icon" href="icons/honeypig-maskable.svg">
+<link rel="apple-touch-icon" href="icons/honeypig-192.png">
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3051,9 +3052,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         box-shadow:0 0 50px rgba(108,99,255,0.7), 0 0 100px rgba(244,114,182,0.4);
         animation:splashPulse 2.4s ease-in-out infinite;
       ">
-        <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#0d1225;">
-          <img src="icons/loading.svg" alt="로딩" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-        </div>
+        <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;background:#0d1225 url(icons/loading.svg) center/cover no-repeat;background-size:cover;"></div>
       </div>
       <!-- 궤도 링 -->
       <div style="
@@ -3607,7 +3606,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         <!-- 1. AI 동물 관상 -->
         <div class="feature-card feature-card--face" onclick="openPhysiognomyApp()">
           <div class="feature-card__img-wrap">
-            <img src="fuctionassets/ai%20animal.png?v=20260304" alt="AI 동물 관상" class="feature-card__img" loading="lazy">
+            <img src="fuctionassets/ai%20animal.webp" alt="AI 동물 관상" class="feature-card__img" loading="lazy">
             <span class="feature-card__badge">BETA</span>
           </div>
           <div class="feature-card__body">
@@ -3620,7 +3619,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         <!-- 2. MBTI 동물 궁합 -->
         <div class="feature-card feature-card--animal" onclick="openMbtiModal()">
           <div class="feature-card__img-wrap">
-            <img src="fuctionassets/ai%20face.png?v=20260304" alt="MBTI 동물 궁합" class="feature-card__img" loading="lazy">
+            <img src="fuctionassets/ai%20face.webp" alt="MBTI 동물 궁합" class="feature-card__img" loading="lazy">
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🦁 MBTI 동물 궁합</h3>
@@ -3632,7 +3631,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         <!-- 3. 신비의 타로 -->
         <div class="feature-card feature-card--tarot" onclick="openTarotModal()">
           <div class="feature-card__img-wrap">
-            <img src="fuctionassets/ai%20tarrot%20(2).png" alt="AI 타로" class="feature-card__img" loading="lazy">
+            <img src="fuctionassets/ai%20tarrot.webp" alt="AI 타로" class="feature-card__img" loading="lazy">
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🔮 신비의 타로</h3>
@@ -3644,7 +3643,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         <!-- 4. 타짜들의 화투점 -->
         <div class="feature-card feature-card--tazza" onclick="openHwatuModal()">
           <div class="feature-card__img-wrap">
-            <img src="fuctionassets/tazza.png?v=20260304" alt="타짜들의 화투점" class="feature-card__img" loading="lazy">
+            <img src="fuctionassets/tazza.webp" alt="타짜들의 화투점" class="feature-card__img" loading="lazy">
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🎴 타짜들의 화투점</h3>
@@ -3656,7 +3655,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         <!-- 5. 이집트 신탁 운세 -->
         <div class="feature-card feature-card--egypt" onclick="openKemetModal()">
           <div class="feature-card__img-wrap">
-            <img src="fuctionassets/egypt.png" alt="고대 이집트 신탁" class="feature-card__img" loading="lazy">
+            <img src="fuctionassets/egypt.webp" alt="고대 이집트 신탁" class="feature-card__img" loading="lazy">
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">𓂀 고대 이집트 신탁</h3>
@@ -3668,7 +3667,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         <!-- 6. 주역(周易) 64괘 -->
         <div class="feature-card feature-card--juyuk" onclick="openJuyukModal()">
           <div class="feature-card__img-wrap">
-            <img src="fuctionassets/juyuk.png" alt="주역 64괘 점" class="feature-card__img" loading="lazy"
+            <img src="fuctionassets/juyuk.webp" alt="주역 64괘 점" class="feature-card__img" loading="lazy"
               onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(145deg,#2a1a00,#120800)'">
           </div>
           <div class="feature-card__body">
