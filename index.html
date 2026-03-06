@@ -17246,13 +17246,13 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
               <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                  <input type="date" id="sy3BirthDate" style="flex: 1 1 140px; min-width: 130px; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81;" required>
+                  <input type="date" id="sy3BirthDate" style="flex: 1 1 140px; min-width: 130px; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark;" required>
                   <select id="sy3CalType" style="flex: 0 0 auto; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81;">
                       <option value="solar">양력</option>
                       <option value="lunar">음력</option>
                       <option value="lunar_leap">음력(윤달)</option>
                   </select>
-                  <input type="time" id="sy3BirthTime" value="12:00" style="flex: 0 0 auto; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81;">
+                  <input type="time" id="sy3BirthTime" value="12:00" style="flex: 0 0 auto; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark;">
               </div>
               <button onclick="triggerSynergyCheck('${sData ? sData.mansionIdx : 0}')" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;"> 카르마 인연 분석하기</button>
           </div>
@@ -21784,6 +21784,23 @@ function getSynergyText(t1, t2) {
   :root:not(.theme-pig) {
     color-scheme: dark;
   }
+}
+
+/* date/time 입력 — 모바일에서 텍스트 가시성 보장 */
+input[type="date"][style*="background: rgba(20,25,35"],
+input[type="time"][style*="background: rgba(20,25,35"] {
+  color-scheme: dark;
+}
+input[type="date"]::-webkit-date-and-time-value,
+input[type="time"]::-webkit-date-and-time-value,
+input[type="datetime-local"]::-webkit-date-and-time-value {
+  color: inherit;
+}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.7;
+  cursor: pointer;
 }
 
 /* 3. 저사양 기기 — 모션 최소화 */
