@@ -11049,16 +11049,21 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       let lunarObj = null;
       let tDate = new Date(y, m-1, d, h, min, 0);
 
-      if (calType === 'solar') {
-          lunarObj = KasiEngine.solarToLunar(tDate, true);
-      } else {
-          if(h >= 23) {
-              let nextDay = new Date(tDate.getTime());
-              nextDay.setDate(nextDay.getDate() + 1);
-              y = nextDay.getFullYear(); m = nextDay.getMonth()+1; d = nextDay.getDate();
+      try {
+          if (calType === 'solar') {
+              lunarObj = KasiEngine.solarToLunar(tDate);
+          } else {
+              if(h >= 23) {
+                  let nextDay = new Date(tDate.getTime());
+                  nextDay.setDate(nextDay.getDate() + 1);
+                  y = nextDay.getFullYear(); m = nextDay.getMonth()+1; d = nextDay.getDate();
+              }
+              let isLeap = (calType === 'lunar_leap');
+              lunarObj = { year: y, month: m, day: d, isLeap: isLeap };
           }
-          let isLeap = (calType === 'lunar_leap');
-          lunarObj = { year: y, month: m, day: d, isLeap: isLeap };
+      } catch(e) {
+          alert('음양력 변환 중 오류가 발생했습니다. 날짜를 확인해주세요.');
+          return;
       }
 
       const tData = calcSukuyoData(lunarObj);
@@ -11075,17 +11080,35 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
 
       const loader = document.getElementById('sy3Loading');
       const resDiv = document.getElementById('sy3Result');
+      if(!loader || !resDiv) return;
       resDiv.style.display = 'none';
       loader.style.display = 'block';
 
       setTimeout(() => {
+        try {
           loader.style.display = 'none';
           resDiv.style.display = 'block';
 
           const scoreColor = rel.score >= 80 ? '#2ed573' : (rel.score >= 55 ? '#f39c12' : '#ff4757');
-          const th = rel.theme;
-          const gradColor = `linear-gradient(135deg, ${rel.palette[0]}, ${rel.palette[1]})`;
+          const th = rel.theme || { bg:'rgba(20,25,35,0.8)', border:'rgba(255,107,129,0.3)', color1:'#ff6b81', color2:'#ff4757', label:'', concept:'', glowColor:'#ff6b81' };
+          const palette = rel.palette || ['#ff6b81','#ff4757'];
+          const gradColor = 'linear-gradient(135deg, ' + palette[0] + ', ' + palette[1] + ')';
           const mgVal = rel.magnetism || 60;
+
+          // <style> 태그를 innerHTML 대신 <head>에 한 번만 주입 (모바일 WebKit 호환)
+          var _syStyleId = 'sy-compat-style';
+          var _existing = document.getElementById(_syStyleId);
+          if (_existing) _existing.parentNode.removeChild(_existing);
+          var _styleEl = document.createElement('style');
+          _styleEl.id = _syStyleId;
+          _styleEl.textContent = [
+            '@keyframes fadeUpSy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}',
+            '@keyframes glowPulse{0%,100%{box-shadow:0 0 14px ' + th.glowColor + '44}50%{box-shadow:0 0 28px ' + th.glowColor + '88}}',
+            '.sy-report{animation:fadeUpSy 0.55s ease}',
+            '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:12px;font-size:0.92rem;line-height:1.65}',
+            '.sy-sec-title{font-weight:800;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px}'
+          ].join('');
+          document.head.appendChild(_styleEl);
 
           // ── 안·괴 포지션 배지 ──
           let ankaiBadge = '';
@@ -11111,14 +11134,6 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
             </div>`).join('');
 
           resDiv.innerHTML = `
-          <style>
-            @keyframes fadeUpSy { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-            @keyframes glowPulse { 0%,100%{box-shadow:0 0 14px ${th.glowColor}44;} 50%{box-shadow:0 0 28px ${th.glowColor}88;} }
-            .sy-report { animation: fadeUpSy 0.55s ease; }
-            .sy-sec { margin-bottom:14px; padding:15px 16px; border-radius:12px; font-size:0.92rem; line-height:1.65; }
-            .sy-sec-title { font-weight:800; font-size:0.82rem; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:8px; }
-          </style>
-
           <div class="sy-report" style="background:rgba(8,10,18,0.95); border-radius:18px; overflow:hidden; border:1px solid ${th.border}; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family:'Gowun Dodum',sans-serif;">
 
             <!-- ══ HEADER ══ -->
@@ -11216,6 +11231,11 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
             if(bar) bar.style.width = rel.temperature + '%';
           }, 80);
 
+        } catch(err) {
+          loader.style.display = 'none';
+          resDiv.style.display = 'block';
+          resDiv.innerHTML = '<div style="color:#ff6b81;padding:20px;text-align:center;font-family:sans-serif;">궁합 분석 중 오류가 발생했습니다.<br><br>다시 시도해 주세요.</div>';
+        }
       }, 1000);
   }
 
