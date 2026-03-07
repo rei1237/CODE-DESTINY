@@ -467,7 +467,26 @@
 
     resultEl.innerHTML = html;
     resultEl.classList.add('show');
-    resultEl.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+
+    // 결과 표시 후 shell 버튼의 touch-action:none 해제
+    // → 결과 화면에서 버튼 위를 스쳐 지나가는 스크롤 제스처 복원
+    var shellBtn = _tcEl('tcShellBtn');
+    if (shellBtn) {
+      shellBtn.style.touchAction = 'auto';
+      shellBtn.style.pointerEvents = 'none'; // 버튼 자체 클릭 방지 (리셋은 하단 버튼으로)
+    }
+
+    // 모달 오버레이 기준으로 결과 상단까지 스크롤
+    var overlay = document.getElementById('juyukModalOverlay');
+    if (overlay) {
+      setTimeout(function() {
+        var rectR = resultEl.getBoundingClientRect();
+        var rectO = overlay.getBoundingClientRect();
+        overlay.scrollTop += (rectR.top - rectO.top) - 20;
+      }, 80);
+    } else {
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   function _tcCat(label, desc) {
@@ -479,7 +498,12 @@
     var btn = _tcEl('tcShellBtn');
     var canvas = _tcEl('tcCrackCanvas');
     if (resultEl) { resultEl.classList.remove('show'); resultEl.innerHTML = ''; }
-    if (btn) btn.classList.remove('cracked');
+    if (btn) {
+      btn.classList.remove('cracked');
+      // touch-action:none / pointer-events 원상 복구
+      btn.style.touchAction = 'none';
+      btn.style.pointerEvents = '';
+    }
     if (canvas) { var ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
     _resetShell();
     _TC_STATE = 'IDLE';
