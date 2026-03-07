@@ -3837,14 +3837,16 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
 
       <!-- 주역(周易) 64괘 모달 — 거북점 UI -->
-      <div id="juyukModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(5,3,10,0.96); backdrop-filter:blur(10px); overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
-        <!-- 닫기 버튼 (sticky — 스크롤해도 항상 표시) -->
-        <div style="position:sticky; top:0; z-index:100000; height:0; overflow:visible; display:flex; justify-content:flex-end; padding:16px 16px 0; pointer-events:none;">
-          <button onclick="closeJuyukModal()" aria-label="닫기" style="pointer-events:auto; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:1.4rem; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
-        </div>
-
-        <!-- 거북점 메인 컨테이너 -->
-      <div style="max-width:680px; margin:16px auto 20px; padding:0 16px; box-sizing:border-box;">
+      <!-- [수정] bottom-sheet 구조: 오버레이=백드롭, 시트=콘텐츠 크기에 맞는 스크롤 영역 -->
+      <div id="juyukModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(5,3,10,0.80); backdrop-filter:blur(10px); align-items:flex-end; justify-content:center;">
+        <!-- 시트: 콘텐츠 크기만큼만 위로 올라오는 시트 -->
+        <div id="juyukModalSheet" style="position:relative; width:100%; max-width:700px; max-height:92dvh; max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; border-radius:20px 20px 0 0; animation:tcSheetUp 0.32s cubic-bezier(0.32,0.72,0,1);">
+          <!-- 닫기 버튼 (sticky) -->
+          <div style="position:sticky; top:0; z-index:100000; height:0; overflow:visible; display:flex; justify-content:flex-end; padding:12px 12px 0; pointer-events:none;">
+            <button onclick="closeJuyukModal()" aria-label="닫기" style="pointer-events:auto; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:1.4rem; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
+          </div>
+          <!-- 거북점 메인 컨테이너 -->
+          <div style="padding:0 12px 40px; box-sizing:border-box;">
         <div class="tc-wrap" id="tcWrap">
           <!-- 촛불 광원 -->
           <div class="tc-candle tc-candle-l"></div>
@@ -3908,9 +3910,10 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <!-- 결과 패널 -->
           <div class="tc-result" id="tcResult"></div>
         </div> <!-- /.tc-wrap -->
-      </div> <!-- /max-width wrapper -->
-      </div>
-      <!-- / 주역(周易) 64괘 모달 -->
+          </div> <!-- /패딩 wrapper -->
+        </div> <!-- /#juyukModalSheet -->
+      </div><!-- /#juyukModalOverlay -->
+      <!-- / 주역(周易) 64괱 모달 -->
 
 
       <!-- 타로 모달 (Hidden Overlay) -->
@@ -5308,17 +5311,24 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           to{transform:translate(-50%,-50%) scale(1.15);opacity:0;}
         }
         /* 외부 컨테이너 */
+        /* bottom-sheet 애니메이션 */
+        @keyframes tcSheetUp {
+          from { transform: translateY(60px); opacity: 0; }
+          to   { transform: translateY(0);   opacity: 1; }
+        }
         .tc-wrap {
           position: relative;
           background: radial-gradient(ellipse at 50% 30%, #1a0e06 0%, #0c0704 55%, #000 100%);
-          border-radius: 20px;
+          border-radius: 20px 20px 0 0; /* 시트 상단 둥건, 하단 0 (bottom-sheet) */
           overflow: hidden;
+          touch-action: pan-y; /* iOS: 수직 팅치 스크롤을 부모로 위임 보장 */
           padding: 28px 20px 32px;
           font-family: 'Gowun Dodum', serif;
           color: #e8d9c0;
           min-height: auto;
           border: 1px solid rgba(180,120,30,.35);
-          box-shadow: 0 0 0 1px rgba(255,180,50,.08), 0 20px 60px rgba(0,0,0,.8);
+          border-bottom: none;
+          box-shadow: 0 0 0 1px rgba(255,180,50,.08), 0 -10px 40px rgba(0,0,0,.6);
         }
         /* 목재 질감 오버레이 */
         .tc-wrap::before {

@@ -476,13 +476,13 @@
       shellBtn.style.pointerEvents = 'none'; // 버튼 자체 클릭 방지 (리셋은 하단 버튼으로)
     }
 
-    // 모달 오버레이 기준으로 결과 상단까지 스크롤
-    var overlay = document.getElementById('juyukModalOverlay');
-    if (overlay) {
+    // bottom-sheet 시트 기준으로 결과 상단까지 스크롤
+    var scrollContainer = document.getElementById('juyukModalSheet') || document.getElementById('juyukModalOverlay');
+    if (scrollContainer) {
       setTimeout(function() {
         var rectR = resultEl.getBoundingClientRect();
-        var rectO = overlay.getBoundingClientRect();
-        overlay.scrollTop += (rectR.top - rectO.top) - 20;
+        var rectO = scrollContainer.getBoundingClientRect();
+        scrollContainer.scrollTop += (rectR.top - rectO.top) - 20;
       }, 80);
     } else {
       resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });

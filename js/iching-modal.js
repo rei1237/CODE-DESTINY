@@ -3,8 +3,10 @@ function openJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (!overlay) return;
   if (typeof tcReset === 'function') tcReset();
-  overlay.scrollTop = 0;
-  overlay.style.display = 'block';
+  // bottom-sheet: 시트 스크롤 완전 저위
+  var sheet = document.getElementById('juyukModalSheet');
+  if (sheet) sheet.scrollTop = 0;
+  overlay.style.display = 'flex'; // flex: align-items:flex-end 적용
   overlay.style.animation = 'fadeIn 0.3s ease-out';
   document.body.style.overflow = 'hidden';
   setTimeout(function() {
