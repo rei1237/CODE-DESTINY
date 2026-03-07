@@ -4893,6 +4893,9 @@ function renderZiwei(p, natal, targetId) {
       border-radius: 16px;
       box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
       position: relative;
+      min-width: 0; /* flex child 오버플로우 방지 */
+      overflow-x: auto; /* 모바일 협소 화면에서 4칸 그리드 수평 스크롤 허용 */
+      -webkit-overflow-scrolling: touch;
     }
     .zw-grid {
       display: grid;
@@ -10388,7 +10391,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         var _sySt = document.createElement('style');
         _sySt.id = 'sy-main-style';
         _sySt.textContent = `
-        .sy-container { background: linear-gradient(160deg, rgba(10,12,25,0.98) 0%, rgba(20,22,45,0.98) 100%); border: 1px solid rgba(180,160,255,0.25); border-radius: 18px; padding: 28px 22px; color: #ede8d0; font-family: 'Noto Serif KR', serif; box-shadow: 0 15px 50px rgba(0,0,0,0.7), 0 0 80px rgba(120,80,220,0.07); position: relative; }
+        .sy-container { background: linear-gradient(160deg, rgba(10,12,25,0.98) 0%, rgba(20,22,45,0.98) 100%); border: 1px solid rgba(180,160,255,0.25); border-radius: 18px; padding: 28px 22px; color: #ede8d0; font-family: 'Noto Serif KR', serif; box-shadow: 0 15px 50px rgba(0,0,0,0.7), 0 0 80px rgba(120,80,220,0.07); position: relative; touch-action: pan-y; overflow-x: hidden; }
         .sy-container::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; background:radial-gradient(circle, rgba(120,80,220,0.12) 0%, transparent 70%); pointer-events:none; }
         .sy-header { text-align: center; border-bottom: 1px solid rgba(180,160,255,0.2); padding-bottom: 16px; margin-bottom: 22px; }
         .sy-header h3 { margin: 0; background: linear-gradient(135deg, #e2c9ff, #ffd700, #e2c9ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size: 1.6rem; text-shadow: none; }

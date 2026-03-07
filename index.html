@@ -3276,13 +3276,18 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
   <style>
   /* 💫 모달 전용 커스텀 스크롤바 (자미두수, 숙요점, 점성술, 주역점) 💫 */
+  #ziweiModalSheet, #sukuyoModalSheet, #astroModalSheet, #juyukModalSheet, .tc-result {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212, 175, 55, 0.6) rgba(255,255,255,0.05);
+    scrollbar-gutter: stable; /* 스크롤바 공간 항상 예약 (레이아웃 점프 방지) */
+  }
   #ziweiModalSheet::-webkit-scrollbar,
   #sukuyoModalSheet::-webkit-scrollbar,
   #astroModalSheet::-webkit-scrollbar,
   #juyukModalSheet::-webkit-scrollbar,
   .tc-result::-webkit-scrollbar {
-    width: 6px;
-    background: transparent;
+    width: 10px;
+    background: rgba(0,0,0,0.2);
   }
   #ziweiModalSheet::-webkit-scrollbar-track,
   #sukuyoModalSheet::-webkit-scrollbar-track,
@@ -3290,23 +3295,23 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
   #juyukModalSheet::-webkit-scrollbar-track,
   .tc-result::-webkit-scrollbar-track {
     background: rgba(255,255,255,0.05);
-    border-radius: 6px;
+    border-radius: 4px;
+    border-left: 1px solid rgba(255,255,255,0.05);
   }
   #ziweiModalSheet::-webkit-scrollbar-thumb,
   #sukuyoModalSheet::-webkit-scrollbar-thumb,
   #astroModalSheet::-webkit-scrollbar-thumb,
   #juyukModalSheet::-webkit-scrollbar-thumb,
   .tc-result::-webkit-scrollbar-thumb {
-    background: rgba(212, 175, 55, 0.5); /* 은은한 골드 */
-    border-radius: 6px;
-    border: 1px solid rgba(0,0,0,0.2);
+    background: rgba(212, 175, 55, 0.6); /* 은은한 골드 */
+    border-radius: 4px;
   }
   #ziweiModalSheet::-webkit-scrollbar-thumb:hover,
   #sukuyoModalSheet::-webkit-scrollbar-thumb:hover,
   #astroModalSheet::-webkit-scrollbar-thumb:hover,
   #juyukModalSheet::-webkit-scrollbar-thumb:hover,
   .tc-result::-webkit-scrollbar-thumb:hover {
-    background: rgba(212, 175, 55, 0.8);
+    background: rgba(212, 175, 55, 0.9);
   }
   /* 결과 화면이 잘리지 않도록 하단 여백 추가 연장 */
   #ziweiModalSheet > div,
@@ -4676,7 +4681,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <div style="width:72px;"></div>
         </div>
         <!-- 스크롤 전용 컨테이너 (네비바 54px 아래 ~ 화면 끝, 이 안에서만 스크롤) -->
-        <div id="juyukModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
+        <div id="juyukModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:scroll; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
           <!-- 콘텐츠 (max-width 중앙정렬) -->
           <div style="width:100%; max-width:700px; margin:0 auto; box-sizing:border-box; animation:tcPageIn 0.35s cubic-bezier(0.22,1,0.36,1); padding-bottom:env(safe-area-inset-bottom,0px);">
           <!-- 거북점 메인 컨테이너 -->
@@ -4757,7 +4762,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(167,139,250,0.65); letter-spacing:2.5px; pointer-events:none;">💫 宿曜占 · 숙요점</div>
           <div style="width:60px;"></div>
         </div>
-        <div id="sukuyoModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
+        <div id="sukuyoModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:scroll; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
           <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
             <div id="sukuyoNoProfile" style="display:none; text-align:center; padding:60px 20px;">
               <div style="font-size:3rem; margin-bottom:16px;">💫</div>
@@ -4779,7 +4784,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(125,42,232,0.65); letter-spacing:2.5px; pointer-events:none;">✨ Cosmic Chart · 점성술</div>
           <div style="width:60px;"></div>
         </div>
-        <div id="astroModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
+        <div id="astroModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:scroll; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
           <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
             <div id="astroNoProfile" style="display:none; text-align:center; padding:60px 20px;">
               <div style="font-size:3rem; margin-bottom:16px;">✨</div>
@@ -4804,7 +4809,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(232,121,249,0.65); letter-spacing:2.5px; pointer-events:none;">🌌 紫微斗數 · 자미두수</div>
           <div style="width:60px;"></div>
         </div>
-        <div id="ziweiModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
+        <div id="ziweiModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:scroll; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
           <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
             <!-- 프로필 없음 상태 -->
             <div id="ziweiNoProfile" style="display:none; text-align:center; padding:60px 20px;">
@@ -5112,7 +5117,9 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       function openSukuyoModal() {
         var overlay = document.getElementById('sukuyoModalOverlay');
         if (!overlay) return;
-        document.body.style.overflow = "hidden";
+        /* iOS Safari 배경 스크롤 완전 차단 */
+        if (window._perf && window._perf.lockBody) { window._perf.lockBody(); }
+        else { document.body.style.overflow = 'hidden'; }
         var s = _dpStorage();
         var profiles = s ? s.list() : [];
         var profile  = s ? s.current() : null;
@@ -5135,14 +5142,17 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
       function closeSukuyoModal() {
         var o = document.getElementById('sukuyoModalOverlay'); if (o) o.style.display = 'none';
-        document.body.style.overflow = "";
+        if (window._perf && window._perf.unlockBody) { window._perf.unlockBody(); }
+        else { document.body.style.overflow = ''; }
         _ModalProfileState.unsubscribe('sukuyo');
       }
 
       function openZiweiModal() {
         var overlay = document.getElementById('ziweiModalOverlay');
         if (!overlay) return;
-        document.body.style.overflow = "hidden";
+        /* iOS Safari 배경 스크롤 완전 차단 */
+        if (window._perf && window._perf.lockBody) { window._perf.lockBody(); }
+        else { document.body.style.overflow = 'hidden'; }
         var s = _dpStorage();
         var profiles = s ? s.list() : [];
         var profile  = s ? s.current() : null;
@@ -5164,14 +5174,17 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
       function closeZiweiModal() {
         var o = document.getElementById('ziweiModalOverlay'); if (o) o.style.display = 'none';
-        document.body.style.overflow = "";
+        if (window._perf && window._perf.unlockBody) { window._perf.unlockBody(); }
+        else { document.body.style.overflow = ''; }
         _ModalProfileState.unsubscribe('ziwei');
       }
 
       function openAstroModal() {
         var overlay = document.getElementById('astroModalOverlay');
         if (!overlay) return;
-        document.body.style.overflow = "hidden";
+        /* iOS Safari 배경 스크롤 완전 차단 */
+        if (window._perf && window._perf.lockBody) { window._perf.lockBody(); }
+        else { document.body.style.overflow = 'hidden'; }
         var s = _dpStorage();
         var profiles = s ? s.list() : [];
         var profile  = s ? s.current() : null;
@@ -5193,7 +5206,8 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
       function closeAstroModal() {
         var o = document.getElementById('astroModalOverlay'); if (o) o.style.display = 'none';
-        document.body.style.overflow = "";
+        if (window._perf && window._perf.unlockBody) { window._perf.unlockBody(); }
+        else { document.body.style.overflow = ''; }
         _ModalProfileState.unsubscribe('astro');
       }
       </script>
