@@ -3273,6 +3273,49 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
     }
   </style>
 
+
+  <style>
+  /* 💫 모달 전용 커스텀 스크롤바 (자미두수, 숙요점, 점성술, 주역점) 💫 */
+  #ziweiModalSheet::-webkit-scrollbar,
+  #sukuyoModalSheet::-webkit-scrollbar,
+  #astroModalSheet::-webkit-scrollbar,
+  #juyukModalSheet::-webkit-scrollbar,
+  .tc-result::-webkit-scrollbar {
+    width: 6px;
+    background: transparent;
+  }
+  #ziweiModalSheet::-webkit-scrollbar-track,
+  #sukuyoModalSheet::-webkit-scrollbar-track,
+  #astroModalSheet::-webkit-scrollbar-track,
+  #juyukModalSheet::-webkit-scrollbar-track,
+  .tc-result::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+  }
+  #ziweiModalSheet::-webkit-scrollbar-thumb,
+  #sukuyoModalSheet::-webkit-scrollbar-thumb,
+  #astroModalSheet::-webkit-scrollbar-thumb,
+  #juyukModalSheet::-webkit-scrollbar-thumb,
+  .tc-result::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.5); /* 은은한 골드 */
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.2);
+  }
+  #ziweiModalSheet::-webkit-scrollbar-thumb:hover,
+  #sukuyoModalSheet::-webkit-scrollbar-thumb:hover,
+  #astroModalSheet::-webkit-scrollbar-thumb:hover,
+  #juyukModalSheet::-webkit-scrollbar-thumb:hover,
+  .tc-result::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.8);
+  }
+  /* 결과 화면이 잘리지 않도록 하단 여백 추가 연장 */
+  #ziweiModalSheet > div,
+  #sukuyoModalSheet > div,
+  #astroModalSheet > div,
+  #juyukModalSheet > div > div {
+    padding-bottom: calc(180px + env(safe-area-inset-bottom)) !important;
+  }
+  </style>
 </head>
 <body>
 
