@@ -11130,7 +11130,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         try {
           if (ld) ld.style.display = 'none';
           if (!rd) { window._sy3Running = false; return; }
-          rd.style.display = 'block';
+          // rd.style.display = 'block'은 innerHTML 작성 후에 실행 (빈 상태 레이아웃 계산 방지)
 
           const scoreColor = rel.score >= 80 ? '#2ed573' : (rel.score >= 55 ? '#f39c12' : '#ff4757');
           const th = rel.theme || { bg:'rgba(20,25,35,0.8)', border:'rgba(255,107,129,0.3)', color1:'#ff6b81', color2:'#ff4757', label:'', concept:'', glowColor:'#ff6b81' };
@@ -11138,12 +11138,15 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           const gradColor = 'linear-gradient(135deg, ' + palette[0] + ', ' + palette[1] + ')';
           const mgVal = rel.magnetism || 60;
 
-          // <style> 태그를 innerHTML 대신 <head>에 한 번만 주입 (모바일 WebKit 호환)
+          // <style> 태그 upsert — removeChild+appendChild 대신 textContent만 교체
+          // (remove+add 방식은 매 호출마다 head 리플로우를 강제 트리거)
           var _syStyleId = 'sy-compat-style';
-          var _existing = document.getElementById(_syStyleId);
-          if (_existing) _existing.parentNode.removeChild(_existing);
-          var _styleEl = document.createElement('style');
-          _styleEl.id = _syStyleId;
+          var _styleEl = document.getElementById(_syStyleId);
+          if (!_styleEl) {
+            _styleEl = document.createElement('style');
+            _styleEl.id = _syStyleId;
+            document.head.appendChild(_styleEl);
+          }
           _styleEl.textContent = [
             '@keyframes fadeUpSy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}',
             '@keyframes glowPulse{0%,100%{box-shadow:0 0 14px ' + th.glowColor + '44}50%{box-shadow:0 0 28px ' + th.glowColor + '88}}',
@@ -11151,7 +11154,6 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
             '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:12px;font-size:0.92rem;line-height:1.65}',
             '.sy-sec-title{font-weight:800;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px}'
           ].join('');
-          document.head.appendChild(_styleEl);
 
           // ── 안·괴 포지션 배지 ──
           let ankaiBadge = '';
@@ -11267,6 +11269,9 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
 
             </div>
           </div>`;
+
+          // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약
+          rd.style.display = 'block';
 
           // 온도 바 애니메이션 재실행
           setTimeout(() => {
