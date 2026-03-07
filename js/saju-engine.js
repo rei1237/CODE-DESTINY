@@ -5268,12 +5268,15 @@ function renderZiwei(p, natal, targetId) {
     };
 
     window._zwScrollToDetail = function() {
-      // 모바일에서 리포트 패널로 자동 스크롤
+      // overlay가 스크롤 컨테이너 — overlay 기준으로 스크롤
       var dp = document.getElementById('zwDetailPanel');
-      if (dp && window.innerWidth <= 900) {
+      var overlay = document.getElementById('ziweiModalOverlay');
+      if (dp && overlay) {
         requestAnimationFrame(function() {
           setTimeout(function() {
-            dp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            var rect = dp.getBoundingClientRect();
+            var overlayRect = overlay.getBoundingClientRect();
+            overlay.scrollTo({ top: overlay.scrollTop + (rect.top - overlayRect.top) - 10, behavior: 'smooth' });
           }, 80);
         });
       }

@@ -3,8 +3,8 @@ function openJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (!overlay) return;
   if (typeof tcReset === 'function') tcReset();
-  var sheet = document.getElementById('juyukModalSheet');
-  if (sheet) sheet.scrollTop = 0;
+  /* overlay가 스크롤 컨테이너이므로 overlay.scrollTop 리셋 */
+  overlay.scrollTop = 0;
   /* iOS Safari 배경 스크롤 완전 차단 */
   if (window._perf && window._perf.lockBody) { window._perf.lockBody(); }
   else { document.body.style.overflow = 'hidden'; }
