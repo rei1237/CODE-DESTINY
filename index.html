@@ -458,7 +458,7 @@ button[onclick*="close"], button[aria-label*="닫"] {
    body의 overflow-x:hidden이 visible인 html을 통해 뷰포트로 전파되므로 html에는 설정 불필요 */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
-body{background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
+body{background-color:#FFF5F8;background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
   min-height:100vh;min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
   overscroll-behavior-y:contain;
   -webkit-overflow-scrolling:touch;
@@ -3457,6 +3457,12 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
            pseudo-element/filter를 사용하는 것만 제거
 ──────────────────────────────────────────────────── */
 @media (pointer: coarse) {
+  /* 0. position:fixed 장식 배경 제거 → iOS Safari 스크롤 시 GPU 재페인트로 인한 흰화면 방지 */
+  body::before, body::after { display: none !important; }
+
+  /* 0-1. wrap CSS containment → repaint 범위 제한 */
+  .wrap { contain: layout; }
+
   /* 1. 별똥별 5개 will-change compositor layer 완전 제거 (모바일 렌더링 보호) */
   .meteor { display: none !important; }
 

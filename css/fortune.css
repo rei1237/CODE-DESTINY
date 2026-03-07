@@ -1,200 +1,275 @@
-/* ================================================================
-   fortune.css  |  연이의 꿀꿀 만세력 운세 페이지 공용 스타일
-================================================================ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* fortune.css — 운세 페이지 전용 스타일시트
+   모바일 최우선, 접근성, SEO 친화 */
 
-:root {
-  --bg: #0d0720;
-  --card-bg: rgba(20, 10, 40, 0.95);
-  --border: rgba(255, 183, 178, 0.18);
-  --pink: #ff8ba7;
-  --gold: #FFD700;
-  --text: #e8e0f0;
-  --text-dim: rgba(232,224,240,0.6);
-  --radius: 16px;
-}
-
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  background-image: radial-gradient(ellipse at 30% 0%, rgba(120,40,180,0.25) 0%, transparent 55%),
-                    radial-gradient(ellipse at 70% 100%, rgba(255,100,150,0.15) 0%, transparent 55%);
-  min-height: 100vh;
-  font-family: 'Noto Sans KR', 'Gowun Dodum', sans-serif;
-  color: var(--text);
-  line-height: 1.7;
+/* ── 리셋 & 기본 ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{
+  font-family:'Gowun Dodum','Noto Sans KR',sans-serif;
+  background:#0f0e1a;
+  color:#e8e0f0;
+  min-height:100vh;
+  line-height:1.6;
+  -webkit-overflow-scrolling:touch;
+  overflow-x:hidden;
 }
 
-.fe-wrap {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 0 16px 60px;
+/* ── GNB (Global Nav Bar) ── */
+.fe-gnb{
+  position:sticky;
+  top:0;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:12px 16px;
+  background:rgba(15,14,26,0.92);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(232,121,249,0.15);
+  font-size:.88rem;
+}
+.fe-gnb a{color:#c084fc;text-decoration:none;font-weight:700;}
+.fe-gnb-logo{font-size:.95rem;}
+.fe-gnb a:hover{color:#e879f9;}
+
+/* ── 메인 래퍼 ── */
+.fe-wrap{
+  max-width:700px;
+  margin:0 auto;
+  padding:16px 14px calc(40px + env(safe-area-inset-bottom,0px));
 }
 
-/* ── GNB ── */
-.fe-gnb {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  background: rgba(13, 7, 32, 0.9);
-  position: sticky; top: 0; z-index: 100;
-  border-bottom: 1px solid var(--border);
+/* ── 로딩 스피너 ── */
+#feLoading{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:60px 20px;gap:16px;color:#c084fc;
+  font-size:.95rem;
 }
-.fe-gnb a { color: var(--pink); text-decoration: none; font-weight: 700; font-size: .9rem; }
-.fe-gnb-logo { font-size: 1.1rem; font-weight: 900; color: var(--text); }
+.fe-spinner{
+  width:40px;height:40px;border:3px solid rgba(192,132,252,.2);
+  border-top-color:#c084fc;border-radius:50%;
+  animation:feSpin .8s linear infinite;
+}
+@keyframes feSpin{to{transform:rotate(360deg);}}
 
-/* ── Breadcrumb ── */
-.fe-breadcrumb {
-  font-size: .78rem;
-  color: var(--text-dim);
-  padding: 14px 0 8px;
-  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+/* ── 브레드크럼 ── */
+.fe-breadcrumb{
+  display:flex;flex-wrap:wrap;gap:4px;align-items:center;
+  font-size:.78rem;color:rgba(232,224,240,.45);
+  margin-bottom:18px;line-height:1.5;
 }
-.fe-breadcrumb a { color: var(--pink); text-decoration: none; }
-.fe-breadcrumb a:hover { text-decoration: underline; }
-.fe-breadcrumb span { color: var(--text-dim); }
+.fe-breadcrumb a{color:rgba(192,132,252,.7);text-decoration:none;}
+.fe-breadcrumb a:hover{color:#e879f9;}
+.fe-breadcrumb-sep{padding:0 2px;}
 
-/* ── Header ── */
-.fe-header { text-align: center; padding: 28px 0 20px; }
-.fe-entity-emoji { font-size: 4.5rem; line-height: 1; margin-bottom: 12px; display: block; }
-.fe-title { font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 900; color: #fff; margin-bottom: 6px; }
-.fe-subtitle { font-size: .85rem; color: var(--text-dim); margin-bottom: 14px; }
-.fe-total-score { font-size: 1.1rem; font-weight: 700; }
-.fe-stars { font-size: 1.4rem; letter-spacing: 2px; }
-.fe-grade { font-size: .9rem; margin-left: 8px; }
-
-/* ── Card ── */
-.fe-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 14px;
+/* ── 영웅 헤더 ── */
+.fe-hero{
+  text-align:center;
+  padding:28px 16px 20px;
+  background:linear-gradient(160deg,rgba(88,28,135,.35),rgba(15,14,26,.8));
+  border-radius:20px;
+  border:1px solid rgba(232,121,249,.15);
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
 }
-.fe-card-title {
-  font-size: 1rem; font-weight: 700; color: var(--pink);
-  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+.fe-hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(232,121,249,.12),transparent 65%);
+  pointer-events:none;
 }
-.fe-card-title::before {
-  content: ''; display: block;
-  width: 3px; height: 16px;
-  background: var(--pink); border-radius: 2px;
+.fe-hero-icon{font-size:3.5rem;line-height:1;display:block;margin-bottom:8px;}
+.fe-hero-title{
+  font-size:1.55rem;font-weight:900;
+  color:#f0e6ff;
+  text-shadow:0 0 20px rgba(232,121,249,.4);
+  margin-bottom:6px;
+  word-break:keep-all;
 }
-.fe-card-text { font-size: .92rem; color: var(--text); line-height: 1.75; }
-.fe-card-text--sm { font-size: .84rem; }
-
-/* ── Score Bar ── */
-.fe-score-bar {
-  height: 8px; background: rgba(255,255,255,0.08);
-  border-radius: 4px; overflow: hidden; margin-bottom: 8px;
+.fe-hero-subtitle{
+  font-size:.85rem;color:rgba(232,224,240,.6);
+  word-break:keep-all;
 }
-.fe-score-fill { height: 100%; border-radius: 4px; width: 0; transition: width 1.2s ease; }
-
-/* ── 3-col grid ── */
-.fe-grid3 {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 10px; margin-bottom: 14px;
-}
-.fe-sub-card { padding: 14px; }
-.fe-sub-card .fe-card-title { font-size: .85rem; margin-bottom: 8px; }
-@media (max-width: 480px) { .fe-grid3 { grid-template-columns: 1fr; } }
-
-/* ── Lucky Grid ── */
-.fe-lucky-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.fe-lucky-item {
-  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
-  border-radius: 12px; padding: 16px; text-align: center;
-}
-.fe-lucky-icon { font-size: 1.8rem; margin-bottom: 6px; }
-.fe-lucky-label { font-size: .72rem; color: var(--text-dim); margin-bottom: 4px; }
-.fe-lucky-val { font-size: 1.1rem; font-weight: 900; color: var(--gold); }
-
-/* ── Advice ── */
-.fe-advice {
-  font-family: 'Gowun Dodum', serif; font-size: 1rem;
-  color: var(--gold); line-height: 1.8;
-  border-left: 3px solid var(--gold); padding-left: 16px;
+.fe-hero-date{
+  display:inline-block;margin-top:10px;font-size:.8rem;
+  background:rgba(232,121,249,.12);
+  border:1px solid rgba(232,121,249,.25);
+  padding:4px 12px;border-radius:20px;color:#e879f9;
 }
 
-/* ── Link Chips ── */
-.fe-links { margin-bottom: 14px; }
-.fe-links-title { font-size: .9rem; font-weight: 700; color: var(--text-dim); margin-bottom: 10px; }
-.fe-link-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-.fe-link-chip {
-  display: inline-block; padding: 7px 14px;
-  background: rgba(255,139,167,0.1); border: 1px solid rgba(255,139,167,0.25);
-  border-radius: 50px; color: var(--pink); font-size: .8rem; font-weight: 700;
-  text-decoration: none; transition: background .2s; white-space: nowrap;
+/* ── 점수 바 ── */
+.fe-scores{
+  display:grid;grid-template-columns:1fr;gap:10px;
+  margin-bottom:20px;
 }
-.fe-link-chip:hover { background: rgba(255,139,167,0.22); }
-.fe-link-chip--period {
-  background: rgba(255,215,0,0.1); border-color: rgba(255,215,0,0.3); color: var(--gold);
+.fe-score-row{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  padding:12px 14px;
 }
-.fe-link-chip--period:hover { background: rgba(255,215,0,0.2); }
+.fe-score-label{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:.82rem;color:rgba(232,224,240,.7);
+  margin-bottom:7px;
+}
+.fe-score-name{font-weight:700;}
+.fe-score-val{color:#e879f9;font-weight:900;font-size:.9rem;}
+.fe-score-bar{
+  height:6px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;
+}
+.fe-score-fill{
+  height:100%;border-radius:99px;
+  background:linear-gradient(90deg,#7c3aed,#e879f9);
+  transition:width .8s cubic-bezier(.22,1,.36,1);
+}
+.fe-score-fill.love{background:linear-gradient(90deg,#be185d,#f472b6);}
+.fe-score-fill.wealth{background:linear-gradient(90deg,#b45309,#fbbf24);}
+.fe-score-fill.health{background:linear-gradient(90deg,#065f46,#34d399);}
 
-/* ── CTA ── */
-.fe-cta {
-  background: linear-gradient(135deg, rgba(120,40,180,0.3), rgba(255,100,150,0.15));
-  border: 1px solid rgba(255,139,167,0.3); border-radius: var(--radius);
-  padding: 24px 20px; text-align: center; margin-bottom: 14px;
+/* ── 콘텐츠 카드 ── */
+.fe-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  padding:18px 16px;
+  margin-bottom:14px;
 }
-.fe-cta-title { font-size: 1.1rem; font-weight: 900; color: #fff; margin-bottom: 16px; }
-.fe-cta-btns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.fe-cta-btn {
-  display: inline-block; padding: 12px 22px; border-radius: 12px;
-  text-decoration: none; font-weight: 700; font-size: .9rem;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-  color: #fff; transition: background .2s;
+.fe-card-title{
+  font-size:.95rem;font-weight:900;
+  color:#c084fc;
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(255,255,255,.06);
 }
-.fe-cta-btn:hover { background: rgba(255,255,255,0.15); }
-.fe-cta-btn--main {
-  background: linear-gradient(135deg, #ff8ba7, #e879f9);
-  border: none; color: #fff;
-  box-shadow: 0 4px 18px rgba(255,139,167,0.35);
+.fe-card-body{
+  font-size:.9rem;line-height:1.85;
+  color:rgba(232,224,240,.85);
+  word-break:keep-all;
 }
 
-/* ── Index Grid ── */
-.fe-index-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px; margin-top: 16px;
+/* ── 행운 아이템 ── */
+.fe-lucky{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  margin-bottom:14px;
 }
-.fe-index-card {
-  background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: 14px; padding: 16px 12px; text-align: center;
-  text-decoration: none; color: var(--text);
-  transition: border-color .2s, background .2s; display: block;
+.fe-lucky-item{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;padding:14px 12px;text-align:center;
 }
-.fe-index-card:hover { border-color: var(--pink); background: rgba(255,139,167,0.08); }
-.fe-index-card-emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
-.fe-index-card-name  { font-size: .88rem; font-weight: 700; }
-.fe-index-card-sub   { font-size: .72rem; color: var(--text-dim); margin-top: 2px; }
+.fe-lucky-label{font-size:.72rem;color:rgba(232,224,240,.45);margin-bottom:4px;}
+.fe-lucky-val{font-size:1.1rem;font-weight:900;color:#f0e6ff;}
 
-/* ── Ad ── */
-.fe-ad {
-  margin: 20px 0; padding: 14px;
-  background: rgba(255,255,255,0.03);
-  border: 1px dashed rgba(255,255,255,0.1);
-  border-radius: 12px; text-align: center;
+/* ── 조언 박스 ── */
+.fe-advice{
+  background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(232,121,249,.08));
+  border:1px solid rgba(232,121,249,.2);
+  border-radius:16px;padding:18px 16px;margin-bottom:20px;
 }
-.fe-ad-label { font-size: .72rem; color: var(--text-dim); margin-bottom: 8px; }
+.fe-advice-title{
+  font-size:.88rem;font-weight:900;color:#e879f9;
+  display:flex;align-items:center;gap:6px;margin-bottom:10px;
+}
+.fe-advice-body{
+  font-size:.88rem;line-height:1.9;
+  color:rgba(232,224,240,.8);font-style:italic;word-break:keep-all;
+}
 
-/* ── Loading ── */
-#feLoading {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  min-height: 40vh; gap: 12px;
+/* ── FAQ 섹션 ── */
+.fe-faq{margin-bottom:20px;}
+.fe-faq-title{
+  font-size:1rem;font-weight:900;color:#c084fc;
+  margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid rgba(255,255,255,.06);
 }
-.fe-spinner {
-  width: 40px; height: 40px;
-  border: 3px solid rgba(255,139,167,0.2);
-  border-top-color: var(--pink);
-  border-radius: 50%;
-  animation: feSpin .8s linear infinite;
+.fe-faq-item{margin-bottom:10px;}
+.fe-faq-q{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:12px 14px;
+  font-size:.85rem;font-weight:700;color:rgba(232,224,240,.8);
+  cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
 }
-@keyframes feSpin { to { transform: rotate(360deg); } }
+.fe-faq-q[aria-expanded="true"]{
+  background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.35);
+  border-radius:10px 10px 0 0;
+}
+.fe-faq-arrow{transition:transform .25s;}
+.fe-faq-q[aria-expanded="true"] .fe-faq-arrow{transform:rotate(180deg);}
+.fe-faq-a{
+  display:none;
+  background:rgba(124,58,237,.06);
+  border:1px solid rgba(124,58,237,.2);border-top:none;
+  border-radius:0 0 10px 10px;
+  padding:12px 14px;
+  font-size:.83rem;line-height:1.8;color:rgba(232,224,240,.7);
+  word-break:keep-all;
+}
+.fe-faq-q[aria-expanded="true"] + .fe-faq-a{display:block;}
 
-/* ── Mobile: backdrop 없이도 충분한 배경 보장 ── */
-@media (pointer: coarse) {
-  .fe-card { background: rgba(20, 10, 40, 0.98); }
+/* ── 내부 링크 그리드 ── */
+.fe-links{margin-bottom:20px;}
+.fe-links-title{
+  font-size:.88rem;color:rgba(232,224,240,.45);
+  margin-bottom:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;font-size:.75rem;
 }
+.fe-link-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+}
+@media(min-width:400px){.fe-link-grid{grid-template-columns:repeat(3,1fr);}}
+.fe-link-card{
+  display:block;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;
+  padding:10px 10px;
+  text-align:center;
+  text-decoration:none;
+  color:rgba(232,224,240,.75);
+  font-size:.78rem;font-weight:700;
+  transition:background .2s,border-color .2s,color .2s;
+  -webkit-tap-highlight-color:transparent;
+  line-height:1.4;
+}
+.fe-link-card:hover,.fe-link-card:focus{
+  background:rgba(124,58,237,.15);
+  border-color:rgba(124,58,237,.4);
+  color:#e879f9;
+}
+.fe-link-card span{display:block;font-size:1.1rem;margin-bottom:4px;}
+
+/* ── 광고 영역 ── */
+.fe-ad{
+  margin:20px 0;padding:0;
+  min-height:90px;
+  border-radius:12px;overflow:hidden;
+}
+.fe-ad-label{
+  font-size:.72rem;color:rgba(232,224,240,.3);
+  text-align:center;margin-bottom:6px;
+}
+
+/* ── 에러 폴백 ── */
+#feError{
+  text-align:center;padding:40px 20px;color:rgba(232,224,240,.5);
+  font-size:.88rem;line-height:1.8;
+}
+#feError a{color:#c084fc;text-decoration:none;}
+
+/* ── 반응형: 큰 화면 ── */
+@media(min-width:500px){
+  .fe-scores{grid-template-columns:1fr 1fr;}
+  .fe-hero-title{font-size:1.8rem;}
+}
+
+/* ── 하단 안전 영역 ── */
+.fe-footer{
+  text-align:center;padding:20px 0;
+  font-size:.72rem;color:rgba(232,224,240,.25);
+}
+.fe-footer a{color:rgba(192,132,252,.5);text-decoration:none;}

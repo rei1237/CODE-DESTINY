@@ -1828,7 +1828,7 @@ function startSajuCalculationFlow() {
       txtEl.innerText = '';
       txtEl.style.width = 'auto';
       txtEl.style.animation = 'sajuBlink .75s step-end infinite';
-      const _typeText = '만세력을 조율하는 중..';
+      const _typeText = '만세력을 조율하는 중...';
       let _ti = 0;
       const _typeInterval = setInterval(function() {
         if (_ti < _typeText.length) {
