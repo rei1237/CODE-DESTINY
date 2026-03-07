@@ -134,6 +134,7 @@
 
     return {
       name: name,
+      gender: gender,
       birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: calType },
       location: { label: locationLabel, tz: tz, lng: lng, lat: lat, tzOffset: tzOff }
     };
@@ -186,6 +187,11 @@
             + '<div class="dp-mc-birth">' + calLabel + ' '
               + b.year + '년 ' + b.month + '월 ' + b.day + '일 '
               + String(b.hour).padStart(2,'0') + ':' + String(b.minute).padStart(2,'0')
+            + '</div>'
+            + '<div style="margin-top:4px;">'
+              + (profile.gender === 'M'
+                ? '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(96,165,250,0.18);border:1px solid rgba(96,165,250,0.45);color:#93c5fd;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9794; 남성</span>'
+                : '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.45);color:#f9a8d4;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9792; 여성</span>')
             + '</div>'
           + '</div>'
           + '<button class="dp-mc-list-btn" onclick="dpOpenList()" aria-label="프로필 목록" style="touch-action:manipulation">'
@@ -281,6 +287,9 @@
           + '<div class="dp-li-body">'
             + '<div class="dp-li-name">' + _esc(p.name)
               + (isActive ? ' <span class="dp-li-current-badge">현재</span>' : '')
+              + (p.gender === 'M'
+                ? ' <span style="font-size:0.65rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">&#9794;</span>'
+                : ' <span style="font-size:0.65rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">&#9792;</span>')
             + '</div>'
             + '<div class="dp-li-meta">[' + calLabel + '] ' + b.year + '.' + b.month + '.' + b.day
               + ' · 진태양시 ' + tsStr + '</div>'
