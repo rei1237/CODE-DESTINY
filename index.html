@@ -8147,9 +8147,9 @@ window.addEventListener('load', function() {
     position: absolute; inset: 0; 
     background: #0f172a; overflow-y: auto; z-index: 2000;
     padding: 20px; animation: fadeIn 0.5s ease-out;
-    scrollbar-width: none; /* Firefox */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
-.astral-result-layer::-webkit-scrollbar { display: none; }
 
 .result-content { max-width: 100%; margin: 0 auto; color: #fff; padding-bottom: 50px; }
 .back-btn {
@@ -8275,9 +8275,9 @@ window.addEventListener('load', function() {
     z-index: 2100; overflow-y: auto;
     padding: 0 0 40px;
     animation: slideUpSheet 0.4s cubic-bezier(0.22,1,0.36,1);
-    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
-.mbti-detail-sheet::-webkit-scrollbar { display: none; }
 
 @keyframes slideUpSheet {
     from { transform: translateY(30px); opacity: 0; }
