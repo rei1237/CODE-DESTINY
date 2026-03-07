@@ -3,10 +3,8 @@ function openJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (!overlay) return;
   if (typeof tcReset === 'function') tcReset();
-  var sheet = document.getElementById('juyukModalSheet');
-  if (sheet) sheet.scrollTop = 0;
+  overlay.scrollTop = 0;
   overlay.style.display = 'block';
-  document.body.style.overflow = 'hidden';
   setTimeout(function() {
     var inp = document.getElementById('ichingQuestion');
     if (inp) inp.focus();
@@ -16,7 +14,6 @@ function openJuyukModal() {
 function closeJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (overlay) overlay.style.display = 'none';
-  document.body.style.overflow = '';
   /* 홈(메인 화면)으로 돌아갈 때 거북점 섹션이 보이도록 부드럽게 스크롤 */
   var iChingSection = document.getElementById('tabIching') || document.querySelector('[data-section="iching"]');
   if (iChingSection) {

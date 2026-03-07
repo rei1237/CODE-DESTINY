@@ -478,17 +478,18 @@
       shellBtn.style.pointerEvents = 'none'; // 버튼 자체 클릭 방지 (리셋은 하단 버튼으로)
     }
 
-    // 스크롤 컨테이너(juyukModalSheet)로 결과 상단까지 스크롤
-    var scrollContainer = document.getElementById('juyukModalSheet');
-    if (scrollContainer) {
-      setTimeout(function() {
-        var rectR = resultEl.getBoundingClientRect();
-        var rectO = scrollContainer.getBoundingClientRect();
-        scrollContainer.scrollTop += (rectR.top - rectO.top) - 20;
-      }, 80);
-    } else {
-      resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // overlay(juyukModalOverlay) 자체를 부드럽게 스크롤 → 결과 상단으로 이동
+    var scrollOverlay = document.getElementById('juyukModalOverlay');
+    setTimeout(function() {
+      if (scrollOverlay) {
+        var overlayRect = scrollOverlay.getBoundingClientRect();
+        var resultRect  = resultEl.getBoundingClientRect();
+        var newTop = scrollOverlay.scrollTop + (resultRect.top - overlayRect.top) - 20;
+        scrollOverlay.scrollTo({ top: newTop, behavior: 'smooth' });
+      } else {
+        resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 80);
   }
 
   function _tcCat(label, desc) {
