@@ -255,7 +255,7 @@
   function _tcEl(id) { return document.getElementById(id); }
 
   window.tcStartPress = function(e) {
-    if (e && e.preventDefault) e.preventDefault();
+    // touch-action:none (CSS에 설정)으로 스크롤 방지 — 여기서 preventDefault 제거하여 모달 스크롤 허용
     if (_TC_STATE !== 'IDLE') return;
     _TC_STATE = 'CHARGING';
     _pressStart = Date.now();
@@ -292,7 +292,6 @@
   };
 
   window.tcEndPress = function(e) {
-    if (e && e.preventDefault) e.preventDefault();
     if (_TC_STATE === 'CHARGING') {
       clearInterval(_pressInterval);
       _TC_STATE = 'IDLE';
@@ -301,7 +300,6 @@
   };
 
   window.tcCancelPress = function(e) {
-    if (e && e.preventDefault) e.preventDefault();
     if (_TC_STATE === 'CHARGING') {
       clearInterval(_pressInterval);
       _TC_STATE = 'IDLE';

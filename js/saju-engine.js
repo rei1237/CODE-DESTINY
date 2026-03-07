@@ -10281,8 +10281,12 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     var card = document.getElementById('sukuyoCard');
     if (!area || !card) return;
 
-    let html = `<style>
-        .sy-container { background: linear-gradient(160deg, rgba(10,12,25,0.98) 0%, rgba(20,22,45,0.98) 100%); border: 1px solid rgba(180,160,255,0.25); border-radius: 18px; padding: 28px 22px; color: #ede8d0; font-family: 'Noto Serif KR', serif; box-shadow: 0 15px 50px rgba(0,0,0,0.7), 0 0 80px rgba(120,80,220,0.07); backdrop-filter: blur(16px); overflow: hidden; position: relative; }
+    // CSS를 document.head에 주입 (모바일 WebKit innerHTML <style> 미적용 버그 방지 + iOS backdrop-filter 화이트스크린 수정)
+    if (!document.getElementById('sy-main-style')) {
+        var _sySt = document.createElement('style');
+        _sySt.id = 'sy-main-style';
+        _sySt.textContent = `
+        .sy-container { background: linear-gradient(160deg, rgba(10,12,25,0.98) 0%, rgba(20,22,45,0.98) 100%); border: 1px solid rgba(180,160,255,0.25); border-radius: 18px; padding: 28px 22px; color: #ede8d0; font-family: 'Noto Serif KR', serif; box-shadow: 0 15px 50px rgba(0,0,0,0.7), 0 0 80px rgba(120,80,220,0.07); position: relative; }
         .sy-container::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; background:radial-gradient(circle, rgba(120,80,220,0.12) 0%, transparent 70%); pointer-events:none; }
         .sy-header { text-align: center; border-bottom: 1px solid rgba(180,160,255,0.2); padding-bottom: 16px; margin-bottom: 22px; }
         .sy-header h3 { margin: 0; background: linear-gradient(135deg, #e2c9ff, #ffd700, #e2c9ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size: 1.6rem; text-shadow: none; }
@@ -10324,8 +10328,12 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-ritual-icon { font-size:1.3rem; display:block; margin-bottom:4px; }
         .sy-ritual-label { font-size:0.68rem; color:#9ca3af; display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em; }
         .sy-ritual-val { font-size:0.78rem; color:#e2d9ff; font-weight:bold; line-height:1.4; }
-    </style>`;
-    
+        `;
+        document.head.appendChild(_sySt);
+    }
+
+    let html = ``;
+
     // 별 파티클 헤더
     const starsHtml = '<span class="sy-star">✦</span> <span class="sy-star">✧</span> <span class="sy-star">✦</span> <span class="sy-star">✧</span>';
     html += `<div class="sy-container" id="lunarNexusApp">`;
