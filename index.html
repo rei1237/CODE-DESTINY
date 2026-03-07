@@ -4637,7 +4637,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <!-- 콘텐츠 (max-width 중앙정렬) -->
           <div style="width:100%; max-width:700px; margin:0 auto; box-sizing:border-box; animation:tcPageIn 0.35s cubic-bezier(0.22,1,0.36,1); padding-bottom:env(safe-area-inset-bottom,0px);">
           <!-- 거북점 메인 컨테이너 -->
-          <div style="padding:20px 16px 88px; box-sizing:border-box;">
+          <div style="padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
         <div class="tc-wrap" id="tcWrap">
           <!-- 촛불 광원 -->
           <div class="tc-candle tc-candle-l"></div>
@@ -4715,7 +4715,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <div style="width:60px;"></div>
         </div>
         <div id="sukuyoModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
-          <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px 88px; box-sizing:border-box;">
+          <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
             <div id="sukuyoNoProfile" style="display:none; text-align:center; padding:60px 20px;">
               <div style="font-size:3rem; margin-bottom:16px;">💫</div>
               <h3 style="color:#c4b5fd; margin-bottom:8px; font-family:'Gowun Dodum',serif;">나의 운명 카드 필요</h3>
@@ -4737,7 +4737,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <div style="width:60px;"></div>
         </div>
         <div id="astroModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
-          <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px 88px; box-sizing:border-box;">
+          <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
             <div id="astroNoProfile" style="display:none; text-align:center; padding:60px 20px;">
               <div style="font-size:3rem; margin-bottom:16px;">✨</div>
               <h3 style="color:#d1c4e9; margin-bottom:8px; font-family:'Gowun Dodum',serif;">나의 운명 카드 필요</h3>
@@ -4762,7 +4762,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <div style="width:60px;"></div>
         </div>
         <div id="ziweiModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
-          <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px 88px; box-sizing:border-box;">
+          <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
             <!-- 프로필 없음 상태 -->
             <div id="ziweiNoProfile" style="display:none; text-align:center; padding:60px 20px;">
               <div style="font-size:3.5rem; margin-bottom:16px;">🌌</div>
@@ -5069,6 +5069,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       function openSukuyoModal() {
         var overlay = document.getElementById('sukuyoModalOverlay');
         if (!overlay) return;
+        document.body.style.overflow = "hidden";
         var s = _dpStorage();
         var profiles = s ? s.list() : [];
         var profile  = s ? s.current() : null;
@@ -5091,12 +5092,14 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
       function closeSukuyoModal() {
         var o = document.getElementById('sukuyoModalOverlay'); if (o) o.style.display = 'none';
+        document.body.style.overflow = "";
         _ModalProfileState.unsubscribe('sukuyo');
       }
 
       function openZiweiModal() {
         var overlay = document.getElementById('ziweiModalOverlay');
         if (!overlay) return;
+        document.body.style.overflow = "hidden";
         var s = _dpStorage();
         var profiles = s ? s.list() : [];
         var profile  = s ? s.current() : null;
@@ -5118,12 +5121,14 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
       function closeZiweiModal() {
         var o = document.getElementById('ziweiModalOverlay'); if (o) o.style.display = 'none';
+        document.body.style.overflow = "";
         _ModalProfileState.unsubscribe('ziwei');
       }
 
       function openAstroModal() {
         var overlay = document.getElementById('astroModalOverlay');
         if (!overlay) return;
+        document.body.style.overflow = "hidden";
         var s = _dpStorage();
         var profiles = s ? s.list() : [];
         var profile  = s ? s.current() : null;
@@ -5145,6 +5150,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
       function closeAstroModal() {
         var o = document.getElementById('astroModalOverlay'); if (o) o.style.display = 'none';
+        document.body.style.overflow = "";
         _ModalProfileState.unsubscribe('astro');
       }
       </script>
@@ -5901,7 +5907,100 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
-    <!-- 오늘의 운세 카드 -->
+    <!--  오늘의 운명 카드 (Premium Quantum Destiny) -->
+    <div class="destiny-section quantum-mode" id="destinySection" style="display:none; margin: 20px 0;">
+      <div class="quantum-wrap">
+        <div class="quantum-title">Today's Destiny Card</div>
+        <div class="quantum-subtitle" id="qSub">에너지 파동을 분석하기 위해 카드를 터치하세요</div>
+        
+        <div class="quantum-card-scene" id="qCardScene">
+          <div class="quantum-card" id="qCardEl" onclick="startQuantumAnalysis()">
+            <div class="quantum-card-inner" id="qCardInner">
+              <div class="quantum-card-front">
+                <div class="q-stars"></div>
+                <div class="q-logo"></div>
+                <div class="q-tap-text">탭하여 카드 열기</div>
+              </div>
+              <div class="quantum-card-back" id="qCardBack">
+                <div class="q-back-element-emoji" id="qBackEmoji">☯</div>
+                <div class="q-back-element-name" id="qBackElName">오행</div>
+                <div class="q-back-gan-ji" id="qBackGanJi">--</div>
+                <div class="q-back-desc" id="qBackDesc">오늘의 오행 에너지</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Expanded Dashboard -->
+        <div class="q-dashboard" id="qDashboard">
+          <!-- Daily Pillars -->
+          <div class="q-pillars-wrap">
+            <div class="q-pillar">
+              <div class="q-p-label">천간 (Sky)</div>
+              <div class="q-p-char" id="qDayGan">--</div>
+              <div class="q-p-desc" id="qDayGanDesc">--</div>
+            </div>
+            <div class="q-pillar">
+              <div class="q-p-label">지지 (Earth)</div>
+              <div class="q-p-char" id="qDayJi">--</div>
+              <div class="q-p-desc" id="qDayJiDesc">--</div>
+            </div>
+          </div>
+          
+          <!-- Human-centric Explanation -->
+          <div class="q-explanation" id="qExplanation">
+            분석된 운세 데이터가 이곳에 표시됩니다.
+          </div>
+          
+          <!-- Elemental Balance -->
+          <div class="q-elements-title">Elemental Balance & Tooltips</div>
+          <div class="q-elements-row" id="qElementsRow">
+            <div class="q-chip wood" id="cWood">木<span class="q-tooltip">초록/나무의 기운<br>성장과 새로운 시작을 의미합니다.</span></div>
+            <div class="q-chip fire" id="cFire">火<span class="q-tooltip">빨강/불의 기운<br>열정과 확산을 의미합니다.</span></div>
+            <div class="q-chip earth" id="cEarth">土<span class="q-tooltip">노랑/흙의 기운<br>안정과 포용을 의미합니다.</span></div>
+            <div class="q-chip metal" id="cMetal">金<span class="q-tooltip">백색/쇠의 기운<br>결실과 단호함을 의미합니다.</span></div>
+            <div class="q-chip water" id="cWater">水<span class="q-tooltip">검정/물의 기운<br>지혜와 유연함을 의미합니다.</span></div>
+          </div>
+          
+          <!-- Gaeun -->
+          <div class="gaeun-prescript" id="gaeunBox">
+            <h4 class="gaeun-title"> 오늘의 운세 및 라이프가이드</h4>
+            <div class="gaeun-grid" style="display:flex; flex-direction:column; gap:12px;">
+              <div class="g-item" style="flex-direction:row; text-align:left; justify-content:flex-start; align-items:center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="g-icon" style="background:var(--neo-red, #f43f5e); border:none; color:#f8fafc; flex-shrink:0; font-size: 1.1rem; box-shadow: 0 0 10px rgba(244,63,94,0.4);"></div>
+                <div style="margin-left: 12px;">
+                  <div class="g-type" style="text-align:left; color:#cbd5e1; font-weight:700;">인간관계/연애</div>
+                  <div class="g-desc" id="gRel" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
+                </div>
+              </div>
+              <div class="g-item" style="flex-direction:row; text-align:left; justify-content:flex-start; align-items:center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="g-icon" style="background:var(--neo-green, #10b981); border:none; color:#f8fafc; flex-shrink:0; font-size: 1.1rem; box-shadow: 0 0 10px rgba(16,185,129,0.4);"></div>
+                <div style="margin-left: 12px;">
+                  <div class="g-type" style="text-align:left; color:#cbd5e1; font-weight:700;">재물/비즈니스</div>
+                  <div class="g-desc" id="gHealth" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
+                </div>
+              </div>
+              <div class="g-item" style="flex-direction:row; text-align:left; justify-content:flex-start; align-items:center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="g-icon" style="background:var(--neo-yellow, #eab308); border:none; color:#f8fafc; flex-shrink:0; font-size: 1.1rem; box-shadow: 0 0 10px rgba(234,179,8,0.4);"></div>
+                <div style="margin-left: 12px;">
+                  <div class="g-type" style="text-align:left; color:#cbd5e1; font-weight:700;">개운법 (컬러/액션)</div>
+                  <div class="g-desc" id="gAction" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    
+
+   
+    </section>
+<!-- 오늘의 운세 카드 -->
     <div class="card fortune-card" id="dailyFortuneCard" style="display:none;">
       <div class="fortune-header">
         <div class="fortune-date" id="fortuneDate"></div>
@@ -7467,100 +7566,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
 
     
-    <!--  오늘의 운명 카드 (Premium Quantum Destiny) -->
-    <div class="destiny-section quantum-mode" id="destinySection" style="display:none; margin: 20px 0;">
-      <div class="quantum-wrap">
-        <div class="quantum-title">Today's Destiny Card</div>
-        <div class="quantum-subtitle" id="qSub">에너지 파동을 분석하기 위해 카드를 터치하세요</div>
-        
-        <div class="quantum-card-scene" id="qCardScene">
-          <div class="quantum-card" id="qCardEl" onclick="startQuantumAnalysis()">
-            <div class="quantum-card-inner" id="qCardInner">
-              <div class="quantum-card-front">
-                <div class="q-stars"></div>
-                <div class="q-logo"></div>
-                <div class="q-tap-text">탭하여 카드 열기</div>
-              </div>
-              <div class="quantum-card-back" id="qCardBack">
-                <div class="q-back-element-emoji" id="qBackEmoji">☯</div>
-                <div class="q-back-element-name" id="qBackElName">오행</div>
-                <div class="q-back-gan-ji" id="qBackGanJi">--</div>
-                <div class="q-back-desc" id="qBackDesc">오늘의 오행 에너지</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Expanded Dashboard -->
-        <div class="q-dashboard" id="qDashboard">
-          <!-- Daily Pillars -->
-          <div class="q-pillars-wrap">
-            <div class="q-pillar">
-              <div class="q-p-label">천간 (Sky)</div>
-              <div class="q-p-char" id="qDayGan">--</div>
-              <div class="q-p-desc" id="qDayGanDesc">--</div>
-            </div>
-            <div class="q-pillar">
-              <div class="q-p-label">지지 (Earth)</div>
-              <div class="q-p-char" id="qDayJi">--</div>
-              <div class="q-p-desc" id="qDayJiDesc">--</div>
-            </div>
-          </div>
-          
-          <!-- Human-centric Explanation -->
-          <div class="q-explanation" id="qExplanation">
-            분석된 운세 데이터가 이곳에 표시됩니다.
-          </div>
-          
-          <!-- Elemental Balance -->
-          <div class="q-elements-title">Elemental Balance & Tooltips</div>
-          <div class="q-elements-row" id="qElementsRow">
-            <div class="q-chip wood" id="cWood">木<span class="q-tooltip">초록/나무의 기운<br>성장과 새로운 시작을 의미합니다.</span></div>
-            <div class="q-chip fire" id="cFire">火<span class="q-tooltip">빨강/불의 기운<br>열정과 확산을 의미합니다.</span></div>
-            <div class="q-chip earth" id="cEarth">土<span class="q-tooltip">노랑/흙의 기운<br>안정과 포용을 의미합니다.</span></div>
-            <div class="q-chip metal" id="cMetal">金<span class="q-tooltip">백색/쇠의 기운<br>결실과 단호함을 의미합니다.</span></div>
-            <div class="q-chip water" id="cWater">水<span class="q-tooltip">검정/물의 기운<br>지혜와 유연함을 의미합니다.</span></div>
-          </div>
-          
-          <!-- Gaeun -->
-          <div class="gaeun-prescript" id="gaeunBox">
-            <h4 class="gaeun-title"> 오늘의 운세 및 라이프가이드</h4>
-            <div class="gaeun-grid" style="display:flex; flex-direction:column; gap:12px;">
-              <div class="g-item" style="flex-direction:row; text-align:left; justify-content:flex-start; align-items:center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                <div class="g-icon" style="background:var(--neo-red, #f43f5e); border:none; color:#f8fafc; flex-shrink:0; font-size: 1.1rem; box-shadow: 0 0 10px rgba(244,63,94,0.4);"></div>
-                <div style="margin-left: 12px;">
-                  <div class="g-type" style="text-align:left; color:#cbd5e1; font-weight:700;">인간관계/연애</div>
-                  <div class="g-desc" id="gRel" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
-                </div>
-              </div>
-              <div class="g-item" style="flex-direction:row; text-align:left; justify-content:flex-start; align-items:center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                <div class="g-icon" style="background:var(--neo-green, #10b981); border:none; color:#f8fafc; flex-shrink:0; font-size: 1.1rem; box-shadow: 0 0 10px rgba(16,185,129,0.4);"></div>
-                <div style="margin-left: 12px;">
-                  <div class="g-type" style="text-align:left; color:#cbd5e1; font-weight:700;">재물/비즈니스</div>
-                  <div class="g-desc" id="gHealth" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
-                </div>
-              </div>
-              <div class="g-item" style="flex-direction:row; text-align:left; justify-content:flex-start; align-items:center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                <div class="g-icon" style="background:var(--neo-yellow, #eab308); border:none; color:#f8fafc; flex-shrink:0; font-size: 1.1rem; box-shadow: 0 0 10px rgba(234,179,8,0.4);"></div>
-                <div style="margin-left: 12px;">
-                  <div class="g-type" style="text-align:left; color:#cbd5e1; font-weight:700;">개운법 (컬러/액션)</div>
-                  <div class="g-desc" id="gAction" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
-                </div>
-
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    
-
-   
-    </section>
-    <!-- 9. 연이의 편지 / 쌈바의 팩폭 -->
+        <!-- 9. 연이의 편지 / 쌈바의 팩폭 -->
     <section class="letter-box" id="letterBox" style="margin-bottom:16px; display:none;" aria-labelledby="letterTitle">
       <h3 id="letterTitle">💖 연이의 편지</h3>
       <div id="letterContent"></div>

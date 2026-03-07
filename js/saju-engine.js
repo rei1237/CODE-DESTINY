@@ -2247,9 +2247,12 @@ function renderSpecialCharm(p, natal) {
         '<div class="cs-strategy-title">🚀 매력 극대화 전략 처방전</div>'+
         stratRows+
       '</div>'+
-    '</div>'+
+    '</div>';
+
+  var aiPromptHtml = 
+    '<div id="aiPromptCard" style="margin-top:15px">'+
     /* AI 프롬프트 박스들 */
-    '<div class="prem-box" style="background:#fff;margin-top:12px;border:1px solid #FFB7B2;">'+
+    '<div class="prem-box" style="background:#fff;border:1px solid #FFB7B2;">'+
       '<span class="prem-title" style="color:#FF8BA7;">🎨 맞춤형 사주 물상 AI 프롬프트</span>'+
       '<p style="font-size:0.8rem;color:#888;margin-bottom:10px;">이 문구를 복사해 AI(미드저니 등)에게 풍경화 스타일 물상을 요청해보세요.</p>'+
       '<div style="background:#FFF5F8;padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #FF8BA7;word-break:break-all;color:#555;">'+prompt+'</div>'+
@@ -2271,7 +2274,12 @@ function renderSpecialCharm(p, natal) {
 
   var existing = document.getElementById('specialCharmCard');
   if(existing) existing.remove();
+  
+  var existingAi = document.getElementById('aiPromptCard');
+  if(existingAi) existingAi.remove();
+  
   document.getElementById('dailyMonthlyCard').insertAdjacentHTML('afterend', html);
+  document.getElementById('specialCharmCard').insertAdjacentHTML('afterend', aiPromptHtml);
 }
 
 /* ═══════════════════════════════════════
@@ -11916,7 +11924,7 @@ var REPORT_CARDS = [
   { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수',        badge:'✨ 매력',  accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard'    },
   { id:'quntum',     label:'퀀텀 명리 전략',        desc:'합화 우선 분석 · 나의 전략 지도',      badge:'⚡ 전략',  accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard'         },
   { id:'sajuhealth', label:'명리 헬스 리포트',      desc:'오행 균형 · 내 몸의 약점 신호',        badge:'💚 건강',  accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard'    },
-  { id:'sajuprompt', label:'사주 프롬프트',         desc:'AI 아바타 · 이상형 초상화 프롬프트',   badge:'🤖 AI',   accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'specialCharmCard'    },
+  { id:'sajuprompt', label:'사주 프롬프트',         desc:'AI 아바타 · 이상형 초상화 프롬프트',   badge:'🤖 AI',   accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard'    },
   { id:'sajurpg',    label:'인생 스킬 트리',        desc:'運命 RPG · 나의 능력치 레벨 시트',     badge:'🎮 RPG',  accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard'       },
   { id:'tbal',       label:'극T 테스트',            desc:'The Frozen Logic · 논리의 온도',      badge:'🧊 극T',  accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard'           },
   { id:'tetoegen',   label:'테토 vs 에겐',          desc:'사주로 보는 나의 호르몬 유형',          badge:'🌊 유형',  accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section'},
