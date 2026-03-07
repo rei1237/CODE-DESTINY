@@ -1,41 +1,4 @@
 (function(){
-  /* ── 터치 기기 판별 (모바일/태블릿) ── */
-  var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-
-  /* ── 별빛 캔버스 (데스크탑 전용 — 모바일은 RAF 루프 생략으로 메인 스레드 보호) ── */
-  var cvs = document.getElementById('splashCanvas');
-  var rafId;
-  if(cvs && !isMobile){
-    var ctx = cvs.getContext('2d');
-    /* 캔버스 해상도: 1x 고정 (devicePixelRatio 무시) — 고DPI 모바일 과부하 방지 */
-    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-    var stars = Array.from({length:60}, function(){
-      return {
-        x: Math.random()*cvs.width,
-        y: Math.random()*cvs.height,
-        r: Math.random()*1.5+0.3,
-        a: Math.random(),
-        speed: Math.random()*0.008+0.003
-      };
-    });
-    function drawStars(){
-      ctx.clearRect(0,0,cvs.width,cvs.height);
-      stars.forEach(function(s){
-        s.a += s.speed;
-        var alpha = (Math.sin(s.a)*0.5+0.5)*0.8+0.1;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-        ctx.fillStyle = 'rgba(200,210,255,'+alpha+')';
-        ctx.fill();
-      });
-      rafId = requestAnimationFrame(drawStars);
-    }
-    drawStars();
-  } else if(cvs) {
-    /* 모바일: 캔버스 숨김 (compositor 레이어 절약) */
-    cvs.style.display = 'none';
-  }
-
   /* ── 안내 문구 순환 ── */
   var msgs = [
     '하늘의 별자리가 당신을 향해 정렬되는 중...',
@@ -53,8 +16,10 @@
     msgEl.style.opacity = '0';
     msgEl.style.transition = 'opacity 0.35s';
     setTimeout(function(){
-      msgEl.textContent = msgs[mi];
-      msgEl.style.opacity = '1';
+      if(msgEl){
+        msgEl.textContent = msgs[mi];
+        msgEl.style.opacity = '1';
+      }
     }, 350);
   }, 1800);
 
@@ -77,7 +42,7 @@
       if(splash){
         splash.style.opacity = '0';
         splash.style.visibility = 'hidden';
-        setTimeout(function(){ splash.remove(); if(rafId) cancelAnimationFrame(rafId); }, 750);
+        setTimeout(function(){ splash.remove(); }, 750);
       }
     }, 400);
   }
@@ -86,7 +51,7 @@
     hideSplash();
   } else {
     window.addEventListener('load', hideSplash);
-    /* 네트워크가 느릴 경우도 최대 6초 후 강제 제거 */
-    setTimeout(hideSplash, 6000);
+    /* 안전장치: 네트워크 지연 등에도 3초 후 무조건 해제 (프리징 방지) */
+    setTimeout(hideSplash, 3000);
   }
 })();
