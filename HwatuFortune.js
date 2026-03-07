@@ -1010,7 +1010,7 @@ window.startTraditionalGame = function() {
 function _renderTradBoard() {
     if(!_tradState) return;
     const { stacks, removedCount } = _tradState;
-    const totalVisible = stacks.flat().filter(c => c.status !== 'removed').length;
+    const totalVisible = [].concat.apply([], stacks).filter(c => c.status !== 'removed').length;
     document.getElementById('tradRemaining').innerText = totalVisible;
     document.getElementById('tradRemoved').innerText = removedCount;
 
@@ -1064,7 +1064,7 @@ function _renderTradBoard() {
 
 function _onTradCardClick(cardId) {
     if(!_tradState) return;
-    const allCards = _tradState.stacks.flat();
+    const allCards = [].concat.apply([], _tradState.stacks);
     const card = allCards.find(c => c.id === cardId);
     if(!card || card.status !== 'visible') return;
 
@@ -1136,7 +1136,7 @@ window.endTraditionalGame = function() {
 // 남은 카드 중 가장 많이 남은 월 찾기
 function _calcDominantMonths(stacks) {
     const freq = {};
-    stacks.flat().forEach(c => {
+    [].concat.apply([], stacks).forEach(c => {
         if(c.status !== 'removed') freq[c.month] = (freq[c.month]||0)+1;
     });
     const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]);
@@ -1145,7 +1145,7 @@ function _calcDominantMonths(stacks) {
 
 // 제거된 카드로 '운의 흐름' 계산
 function _calcRemovedPattern(stacks) {
-    const removed = stacks.flat().filter(c=>c.status==='removed');
+    const removed = [].concat.apply([], stacks).filter(c=>c.status==='removed');
     const removedMonths = [...new Set(removed.map(c=>c.month))];
     const hasKwang = removed.some(c=>c.type==='kwang');
     const hasYul   = removed.some(c=>c.type==='yul');
