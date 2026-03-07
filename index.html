@@ -3135,6 +3135,12 @@ body.neo-mode .monthly-label { color: #64748b; }
   filter: drop-shadow(0 0 14px rgba(212,175,55,0.75)) brightness(1.1);
 }
 body.neo-mode .feature-card--juyuk .feature-card__img-wrap { background: linear-gradient(135deg, #1a1000, #0d0800); }
+.feature-card--sukuyo { border-bottom: 3px solid #9333ea; }
+.feature-card--sukuyo .feature-card__cta { background: linear-gradient(135deg, #3b1f7a, #9333ea); }
+.feature-card--sukuyo .feature-card__img-wrap { background: linear-gradient(145deg, #0a0c19, #1a0e3b); }
+.feature-card--astro-fc { border-bottom: 3px solid #7d2ae8; }
+.feature-card--astro-fc .feature-card__cta { background: linear-gradient(135deg, #1e003b, #7d2ae8); }
+.feature-card--astro-fc .feature-card__img-wrap { background: linear-gradient(145deg, #0a0a14, #12103a); }
 @media (max-width: 480px) {
   .juyuk-modal-inner { padding: 0 12px !important; }
   .juyuk-modal-card { padding: 20px 16px !important; }
@@ -4273,6 +4279,38 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
         </div>
 
+        <!-- 7. 숙요점 -->
+        <div class="feature-card feature-card--sukuyo" onclick="openSukuyoModal()">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/sukyo.webp"
+                 alt="숙요점 宿曜占 — 불교 밀교 27수 별자리 운명 분석 (Sukuyo Lunar Divination, 宿曜占)"
+                 class="feature-card__img" loading="lazy" width="400" height="300"
+              onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(145deg,#0a0c19,#1a0e3b)'">
+            <span class="feature-card__badge">NEW</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">💫 숙요점(宿曜占)</h3>
+            <p class="feature-card__desc">불교 밀교 27수 별자리로 보는 나의 본성·카르마·운명 — 나의 운명 카드로 분석</p>
+            <span class="feature-card__cta">별자리 확인 →</span>
+          </div>
+        </div>
+
+        <!-- 8. 점성술 -->
+        <div class="feature-card feature-card--astro-fc" onclick="openAstroModal()">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/jumsung.webp"
+                 alt="점성술 코즈믹 차트 — 태양·달·상승궁 천체 배치 운세 (Astrology, Cosmic Chart)"
+                 class="feature-card__img" loading="lazy" width="400" height="300"
+              onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(145deg,#0a0a14,#12103a)'">
+            <span class="feature-card__badge">FREE</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">✨ 점성술 코즈믹 차트</h3>
+            <p class="feature-card__desc">태양·달·상승궁의 천체 배치로 풀어보는 나의 영혼 차트 — 나의 운명 카드로 분석</p>
+            <span class="feature-card__cta">차트 보기 →</span>
+          </div>
+        </div>
+
       </div>
       <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
 
@@ -4360,6 +4398,121 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         </div> <!-- /#juyukModalSheet 스크롤 컨테이너 -->
       </div><!-- /#juyukModalOverlay -->
       <!-- / 주역(周易) 64괘 전체화면 -->
+
+      <!-- 💫 숙요점(宿曜占) 전체화면 모달 -->
+      <div id="sukuyoModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#0a0c19; overflow:hidden;">
+        <div id="sukuyoNavBar" style="position:absolute; top:0; left:0; right:0; z-index:100000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(10,12,25,0.97); border-bottom:1px solid rgba(167,139,250,0.3);">
+          <button onclick="closeSukuyoModal()" aria-label="홈으로" style="display:flex; align-items:center; gap:5px; background:transparent; border:none; color:rgba(180,150,255,0.9); font-family:'Gowun Dodum',serif; font-size:0.88rem; font-weight:700; cursor:pointer; padding:10px 4px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; letter-spacing:0.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
+          <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(167,139,250,0.65); letter-spacing:2.5px; pointer-events:none;">💫 宿曜占 · 숙요점</div>
+          <div style="width:72px;"></div>
+        </div>
+        <div id="sukuyoModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
+          <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px 88px; box-sizing:border-box;">
+            <div id="sukuyoNoProfile" style="display:none; text-align:center; padding:60px 20px;">
+              <div style="font-size:3rem; margin-bottom:16px;">💫</div>
+              <h3 style="color:#c4b5fd; margin-bottom:8px; font-family:'Gowun Dodum',serif;">나의 운명 카드 필요</h3>
+              <p style="color:#9ca3af; line-height:1.6; margin-bottom:24px;">숙요점을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요</p>
+              <button onclick="closeSukuyoModal(); window.scrollTo({top:0,behavior:'smooth'})" style="background:linear-gradient(135deg,#1a0e3b,#2d1b6b); border:1px solid rgba(167,139,250,0.5); color:#c4b5fd; padding:12px 24px; border-radius:12px; font-family:'Gowun Dodum',serif; font-size:0.9rem; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">← 카드 설정하러 가기</button>
+            </div>
+            <div id="sukuyoCard" style="display:none;">
+              <div id="sukuyoSection"></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /#sukuyoModalOverlay -->
+
+      <!-- ✨ 점성술 코즈믹 차트 전체화면 모달 -->
+      <div id="astroModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#0a0a14; overflow:hidden;">
+        <div id="astroNavBar" style="position:absolute; top:0; left:0; right:0; z-index:100000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(10,10,20,0.97); border-bottom:1px solid rgba(125,42,232,0.3);">
+          <button onclick="closeAstroModal()" aria-label="홈으로" style="display:flex; align-items:center; gap:5px; background:transparent; border:none; color:rgba(160,130,255,0.9); font-family:'Gowun Dodum',serif; font-size:0.88rem; font-weight:700; cursor:pointer; padding:10px 4px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; letter-spacing:0.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
+          <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(125,42,232,0.65); letter-spacing:2.5px; pointer-events:none;">✨ Cosmic Chart · 점성술</div>
+          <div style="width:72px;"></div>
+        </div>
+        <div id="astroModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; word-break:keep-all; overflow-wrap:break-word;">
+          <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px 88px; box-sizing:border-box;">
+            <div id="astroNoProfile" style="display:none; text-align:center; padding:60px 20px;">
+              <div style="font-size:3rem; margin-bottom:16px;">✨</div>
+              <h3 style="color:#d1c4e9; margin-bottom:8px; font-family:'Gowun Dodum',serif;">나의 운명 카드 필요</h3>
+              <p style="color:#9ca3af; line-height:1.6; margin-bottom:24px;">점성술 분석을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요</p>
+              <button onclick="closeAstroModal(); window.scrollTo({top:0,behavior:'smooth'})" style="background:linear-gradient(135deg,#1e003b,#300063); border:1px solid rgba(125,42,232,0.5); color:#d1c4e9; padding:12px 24px; border-radius:12px; font-family:'Gowun Dodum',serif; font-size:0.9rem; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">← 카드 설정하러 가기</button>
+            </div>
+            <div id="astroCardWrap" style="display:none;">
+              <div class="astro-card">
+                <h3 class="astro-header">✨ 당신의 영혼이 기록된 코즈믹 차트</h3>
+                <div id="astroResult"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /#astroModalOverlay -->
+
+      <script>
+      function openSukuyoModal() {
+        var overlay = document.getElementById('sukuyoModalOverlay');
+        if (!overlay) return;
+        var profile = (typeof DPStorage !== 'undefined') ? DPStorage.current() : null;
+        overlay.style.display = 'block';
+        var sheet = document.getElementById('sukuyoModalSheet');
+        if (sheet) sheet.scrollTop = 0;
+        var noProfile = document.getElementById('sukuyoNoProfile');
+        var card = document.getElementById('sukuyoCard');
+        if (!profile || !profile.birth) {
+          if (noProfile) noProfile.style.display = 'block';
+          if (card) card.style.display = 'none';
+          return;
+        }
+        if (noProfile) noProfile.style.display = 'none';
+        if (card) card.style.display = 'block';
+        var b = profile.birth;
+        var lunarObj = null;
+        try {
+          if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
+            lunarObj = KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
+          }
+        } catch(e) { console.warn('숙요점 음력 변환 오류:', e); }
+        if (typeof renderSukuyo === 'function') {
+          renderSukuyo(null, null, null, lunarObj);
+        }
+      }
+      function closeSukuyoModal() {
+        var overlay = document.getElementById('sukuyoModalOverlay');
+        if (overlay) overlay.style.display = 'none';
+      }
+      function openAstroModal() {
+        var overlay = document.getElementById('astroModalOverlay');
+        if (!overlay) return;
+        var profile = (typeof DPStorage !== 'undefined') ? DPStorage.current() : null;
+        overlay.style.display = 'block';
+        var sheet = document.getElementById('astroModalSheet');
+        if (sheet) sheet.scrollTop = 0;
+        var noProfile = document.getElementById('astroNoProfile');
+        var cardWrap = document.getElementById('astroCardWrap');
+        if (!profile || !profile.birth) {
+          if (noProfile) noProfile.style.display = 'block';
+          if (cardWrap) cardWrap.style.display = 'none';
+          return;
+        }
+        if (noProfile) noProfile.style.display = 'none';
+        if (cardWrap) cardWrap.style.display = 'block';
+        var b = profile.birth;
+        var l = profile.location || {};
+        window._ziweiBirth = {
+          year: b.year, month: b.month, day: b.day,
+          hour: b.hour != null ? b.hour : 12,
+          minute: b.minute != null ? b.minute : 0,
+          lat: l.lat || 37.6,
+          lon: l.lng || 127.0,
+          tz: l.tzOffset != null ? l.tzOffset : 9
+        };
+        if (typeof renderAstroInsight === 'function') {
+          renderAstroInsight();
+        }
+      }
+      function closeAstroModal() {
+        var overlay = document.getElementById('astroModalOverlay');
+        if (overlay) overlay.style.display = 'none';
+      }
+      </script>
 
 
       <!-- 타로 모달 (Hidden Overlay) -->
@@ -5691,7 +5844,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <nav class="mystic-tab-nav" id="mysticTabNav" role="tablist" aria-label="Mystic Tabs">
         <button class="mystic-tab-btn active" role="tab" aria-selected="true" onclick="switchMysticTab('tabZiwei', this)">🌌 자미두수</button>
         <button class="mystic-tab-btn" role="tab" aria-selected="false" onclick="switchMysticTab('tabIching', this)">☯️ 주역점</button>
-        <button class="mystic-tab-btn" role="tab" aria-selected="false" onclick="switchMysticTab('tabAstro', this)">✨ 점성술</button>
+
       </nav>
 
       <!-- 탭 컨텐츠 영역 -->
@@ -6433,10 +6586,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 .gaeun-title { font-size: 0.95rem; color: #c4b5fd; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
   </style>
-        <div class="astro-card">
-          <h3 class="astro-header">✨ 당신의 영혼이 기록된 코즈믹 차트</h3>
-          <div id="astroResult"></div>
-        </div>
       </section>
     </section>
       <!-- 탭 전환 스크립트 -->
@@ -6728,10 +6877,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
                   <div class="g-desc" id="gAction" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
                 </div>
 
-                 <!-- 6-4. 숙요점 & 퀀텀 명리 -->
-    <section class="card" id="sukuyoCard" style="display:none" aria-labelledby="sukuyoTitle">
-      <h3 id="sukuyoTitle" class="sec-title" style="color: #9333ea;">💫 숙요점 대시보드</h3>
-      <div id="sukuyoSection"></div>
+
               </div>
             </div>
           </div>
@@ -7034,8 +7180,7 @@ window.addEventListener('load', function() {
 ════════════════════════════════════════════ -->
 <script src="js/fsn-navbar.js"></script>
 
-<!--  IA accordion  -->
-<script src="js/accordion.js"></script>
+
 
 <!-- =================================================================================== 
      ASTRAL TOTEM : SUPREME MBTI INTERFACE 
