@@ -1,10 +1,15 @@
 (function(){
-  /* ── 별빛 캔버스 ── */
+  /* ── 터치 기기 판별 (모바일/태블릿) ── */
+  var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+  /* ── 별빛 캔버스 (데스크탑 전용 — 모바일은 RAF 루프 생략으로 메인 스레드 보호) ── */
   var cvs = document.getElementById('splashCanvas');
-  if(cvs){
+  var rafId;
+  if(cvs && !isMobile){
     var ctx = cvs.getContext('2d');
+    /* 캔버스 해상도: 1x 고정 (devicePixelRatio 무시) — 고DPI 모바일 과부하 방지 */
     cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-    var stars = Array.from({length:120}, function(){
+    var stars = Array.from({length:60}, function(){
       return {
         x: Math.random()*cvs.width,
         y: Math.random()*cvs.height,
@@ -13,7 +18,6 @@
         speed: Math.random()*0.008+0.003
       };
     });
-    var rafId;
     function drawStars(){
       ctx.clearRect(0,0,cvs.width,cvs.height);
       stars.forEach(function(s){
@@ -27,6 +31,9 @@
       rafId = requestAnimationFrame(drawStars);
     }
     drawStars();
+  } else if(cvs) {
+    /* 모바일: 캔버스 숨김 (compositor 레이어 절약) */
+    cvs.style.display = 'none';
   }
 
   /* ── 안내 문구 순환 ── */
