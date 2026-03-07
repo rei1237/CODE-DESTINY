@@ -506,8 +506,8 @@
     if (resultEl) { resultEl.classList.remove('show'); resultEl.innerHTML = ''; }
     if (btn) {
       btn.classList.remove('cracked');
-      // touch-action / pointer-events 원상 복구
-      btn.style.touchAction = 'none';
+      // touch-action 복구: pan-y로 수직 스크롤 허용 유지
+      btn.style.touchAction = 'pan-y';
       btn.style.pointerEvents = '';
     }
     var wrap = _tcEl('tcWrap');

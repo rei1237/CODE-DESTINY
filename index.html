@@ -3275,45 +3275,11 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
 
   <style>
-  /* 💫 모달 전용 커스텀 스크롤바 (자미두수, 숙요점, 점성술, 주역점) 💫 */
-  #ziweiModalSheet, #sukuyoModalSheet, #astroModalSheet, #juyukModalSheet, .tc-result {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(212, 175, 55, 0.6) rgba(255,255,255,0.05);
-    scrollbar-gutter: stable; /* 스크롤바 공간 항상 예약 (레이아웃 점프 방지) */
+  /* 모달 시트 — 브라우저 네이티브 스크롤바 사용, 레이아웃 점프 방지 */
+  #ziweiModalSheet, #sukuyoModalSheet, #astroModalSheet, #juyukModalSheet {
+    scrollbar-gutter: stable;
   }
-  #ziweiModalSheet::-webkit-scrollbar,
-  #sukuyoModalSheet::-webkit-scrollbar,
-  #astroModalSheet::-webkit-scrollbar,
-  #juyukModalSheet::-webkit-scrollbar,
-  .tc-result::-webkit-scrollbar {
-    width: 10px;
-    background: rgba(0,0,0,0.2);
-  }
-  #ziweiModalSheet::-webkit-scrollbar-track,
-  #sukuyoModalSheet::-webkit-scrollbar-track,
-  #astroModalSheet::-webkit-scrollbar-track,
-  #juyukModalSheet::-webkit-scrollbar-track,
-  .tc-result::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.05);
-    border-radius: 4px;
-    border-left: 1px solid rgba(255,255,255,0.05);
-  }
-  #ziweiModalSheet::-webkit-scrollbar-thumb,
-  #sukuyoModalSheet::-webkit-scrollbar-thumb,
-  #astroModalSheet::-webkit-scrollbar-thumb,
-  #juyukModalSheet::-webkit-scrollbar-thumb,
-  .tc-result::-webkit-scrollbar-thumb {
-    background: rgba(212, 175, 55, 0.6); /* 은은한 골드 */
-    border-radius: 4px;
-  }
-  #ziweiModalSheet::-webkit-scrollbar-thumb:hover,
-  #sukuyoModalSheet::-webkit-scrollbar-thumb:hover,
-  #astroModalSheet::-webkit-scrollbar-thumb:hover,
-  #juyukModalSheet::-webkit-scrollbar-thumb:hover,
-  .tc-result::-webkit-scrollbar-thumb:hover {
-    background: rgba(212, 175, 55, 0.9);
-  }
-  /* 결과 화면이 잘리지 않도록 하단 여백 추가 연장 */
+  /* 결과 화면이 잘리지 않도록 하단 여백 */
   #ziweiModalSheet > div,
   #sukuyoModalSheet > div,
   #astroModalSheet > div,
@@ -6873,7 +6839,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           cursor: pointer;
           outline: none;
           -webkit-tap-highlight-color: transparent;
-          touch-action: none;
+          touch-action: pan-y; /* 수직 스크롤 허용 — touchstart/touchend는 정상 발화 */
           transition: transform .2s, border-color .3s;
           box-shadow:
             inset 0 0 25px rgba(0,0,0,.6),
@@ -6882,9 +6848,8 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           overflow: hidden;
           user-select: none;
         }
-        /* 결과 표시 중: 셸 버튼 touch-action 전면 해제 → 스크롤 완전 허용 */
+        /* 결과 표시 중: 셸 버튼 비활성화 */
         .tc-wrap--answered .tc-shell-btn {
-          touch-action: pan-y !important;
           pointer-events: none !important;
         }
         /* 결과 확인 중: 질문 입력·열기바·상태·버튼 영역 완전 숨김
@@ -6979,28 +6944,8 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           padding-bottom: 1.5rem;
           word-break: keep-all;
           overflow-wrap: break-word;
-          /* 자체 스크롤 컨테이너 */
-          max-height: calc(100dvh - 200px);
-          overflow-y: auto;
           overflow-x: hidden;
-          -webkit-overflow-scrolling: touch;
-          overscroll-behavior: contain;
-          scroll-behavior: smooth;
-          /* Firefox 커스텀 스크롤바 */
-          scrollbar-width: thin;
-          scrollbar-color: rgba(200,160,50,.55) rgba(15,8,2,.6);
-        }
-        .tc-result::-webkit-scrollbar { width: 5px; }
-        .tc-result::-webkit-scrollbar-track {
-          background: rgba(15,8,2,.6);
-          border-radius: 3px;
-        }
-        .tc-result::-webkit-scrollbar-thumb {
-          background: rgba(200,160,50,.55);
-          border-radius: 3px;
-        }
-        .tc-result::-webkit-scrollbar-thumb:hover {
-          background: rgba(255,200,60,.85);
+          /* 스크롤은 #juyukModalSheet 컨테이너가 전담 — 이중 스크롤 제거 */
         }
         .tc-result.show { display: block; }
         /* 맨 위로 버튼 */
