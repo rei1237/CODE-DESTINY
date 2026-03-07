@@ -347,6 +347,16 @@
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 <style>
+/* ─── 전역 버튼 터치 반응성 ─── */
+button, [role="button"], input[type="button"], input[type="submit"], label[for] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 닫기 버튼 최소 터치 영역 44px 보장 */
+button[onclick*="close"], button[aria-label*="닫"] {
+  min-width: 44px; min-height: 44px;
+}
+
 /* ─── 변수 & 리셋 ─── */
 :root{
   /* 공통 레이아웃 수치 */
@@ -780,7 +790,8 @@ input:checked + .slider .paw-pad {
 .btn-main:active{transform:scale(.96);box-shadow:0 2px 10px rgba(255,139,167,.3);opacity:.9}
 .btn-main:disabled{opacity:.55;cursor:not-allowed;transform:none}
 .btn-sub{width:100%;padding:15px;background:#fff;color:var(--pink);border:2px solid var(--pink-l);
-  border-radius:14px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .25s;font-family:inherit}
+  border-radius:14px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .25s;font-family:inherit;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .btn-sub:hover{background:#FFF5F8}
 .btn-sub:active{transform:scale(.97);background:#FFE8EF;box-shadow:0 1px 4px rgba(255,139,167,.2)}
 
@@ -3024,6 +3035,9 @@ body.neo-mode .monthly-label { color: #64748b; }
   border: 1px solid rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .feature-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,0,0,0.14); }
 .feature-card:active { transform: scale(0.98); }
@@ -3902,7 +3916,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <!-- 타로 모달 (Hidden Overlay) -->
       <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
         <div style="position:absolute; top:20px; right:20px; z-index:100000;">
-          <button onclick="closeTarotModal()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
+          <button onclick="closeTarotModal()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
         </div>
         
         <div id="tarotInnerContainer" style="max-width:420px; margin:60px auto 40px; padding:0 20px; position:relative;">
@@ -4302,7 +4316,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
     <!-- ═══ 이집트 신탁 운세 (The Oracle of Kemet) ═══ -->
     <div id="kemetOracleOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,12,18,0.95); backdrop-filter:blur(10px); overflow-y:auto; animation: kemetFadeIn 0.4s ease-out;">
       <div style="position:absolute; top:20px; right:20px; z-index:100000;">
-        <button onclick="closeKemetModal()" style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.4); color:#d4af37; font-size:1.8rem; width:45px; height:45px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.3s;" onmouseover="this.style.background='rgba(212,175,55,0.3)'" onmouseout="this.style.background='rgba(212,175,55,0.1)'">&times;</button>
+        <button onclick="closeKemetModal()" style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.4); color:#d4af37; font-size:1.8rem; width:45px; height:45px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.3s; touch-action:manipulation; -webkit-tap-highlight-color:transparent;" onmouseover="this.style.background='rgba(212,175,55,0.3)'" onmouseout="this.style.background='rgba(212,175,55,0.1)'">&times;</button>
       </div>
       <div style="padding: 20px;">
     <style>

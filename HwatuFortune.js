@@ -172,6 +172,7 @@ const hwatuStyles = `
 .ctg-btn {
     background: rgba(0,0,0,0.6); border: 1px solid #d4af37; color: #cbd5e1; padding: 10px 18px; border-radius: 20px;
     cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
 }
 .ctg-btn:hover { background: rgba(251,191,36,0.2); }
 .ctg-btn.active { background: #d4af37; color: #1a202c; font-weight: bold; box-shadow: 0 0 15px rgba(251,191,36,0.5); border-color: #f59e0b; }
@@ -216,6 +217,7 @@ const hwatuStyles = `
     background: linear-gradient(to right, #b91c1c, #991b1b); color: #d4af37; border: 2px solid #d4af37; padding: 14px 30px;
     border-radius: 30px; font-size: 1.2rem; cursor: pointer; font-family: inherit; font-weight: bold;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); transition: 0.3s; letter-spacing: 1px;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
 }
 .btn-hwatu:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(251,191,36,0.4); text-shadow: 0 0 5px #d4af37; }
 .btn-hwatu:disabled { filter: grayscale(1); cursor: not-allowed; transform: none; opacity: 0.5; }
@@ -224,7 +226,7 @@ const hwatuStyles = `
 .result-box {
     margin-top: 30px; background: rgba(15,23,42,0.8); padding: 25px; border-radius: 12px;
     border: 1px solid #d4af37; display: none; text-align: left; animation: fadeInUp 0.8s forwards;
-    position: relative; overflow: hidden;
+    position: relative; overflow: visible;
 }
 .jokbo-name { font-size: 2rem; color: #ef4444; font-weight: bold; text-align: center; margin: 10px 0 20px; text-shadow: 0 2px 5px #000; letter-spacing: 2px; }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -268,6 +270,9 @@ const hwatuStyles = `
     overflow: hidden;
     background: repeating-linear-gradient(45deg,#b91c1c,#b91c1c 6px,#991b1b 6px,#991b1b 12px);
     box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 .trad-card img {
     width: 100%;
@@ -341,7 +346,7 @@ function injectHwatuHTML() {
     overlay.innerHTML = `
         <div class="smoke-layer"></div>
         <div style="position:absolute; top:20px; left:20px; color:#d4af37; z-index:10; font-weight:bold;">남은 횟수: <span id="hwatuLimitText"></span>/10</div>
-        <button onclick="closeHwatuModal()" style="position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.5); border:1px solid #d4af37; color:#d4af37; font-size:1.5rem; width:40px; height:40px; border-radius:50%; cursor:pointer; z-index:10; transition:0.2s;">&times;</button>
+        <button onclick="closeHwatuModal()" style="position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.5); border:1px solid #d4af37; color:#d4af37; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; z-index:10; transition:0.2s; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
         
         <div class="vignette-overlay"></div><div id="goldAura" class="gold-aura"></div><div class="flickering-lamp"></div>
         <div class="tazza-hero-bg">
@@ -412,7 +417,7 @@ function injectHwatuHTML() {
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                         <span style="color:#94a3b8;font-size:0.85rem;">남은 패: <strong id="tradRemaining" style="color:#d4af37;">48</strong>장</span>
                         <span style="color:#94a3b8;font-size:0.85rem;">제거: <strong id="tradRemoved" style="color:#4ade80;">0</strong>장</span>
-                        <button onclick="endTraditionalGame()" style="background:rgba(185,28,28,0.7);border:1px solid #ef4444;color:#fca5a5;padding:5px 12px;border-radius:15px;cursor:pointer;font-family:inherit;font-size:0.8rem;">그만 보기</button>
+                        <button onclick="endTraditionalGame()" style="background:rgba(185,28,28,0.7);border:1px solid #ef4444;color:#fca5a5;padding:8px 16px;border-radius:15px;cursor:pointer;font-family:inherit;font-size:0.85rem;min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">그만 보기</button>
                     </div>
                     <div id="tradStackGrid"></div>
                     <div id="tradSelectionHint" style="color:#d4af37;text-align:center;margin-top:10px;font-size:0.9rem;min-height:20px;"></div>
@@ -430,7 +435,8 @@ function injectHwatuHTML() {
             <div class="result-box" id="hwatuResultBox">
                 <div class="jokbo-name" id="jokboName"></div>
                 <div style="font-size: 1.1rem; line-height: 1.7; color: #e5e7eb; margin-bottom:20px; text-align:center;" id="fortuneDetails"></div>
-                <button class="btn-hwatu" style="width:100%; font-size:1.1rem;" onclick="shareHwatu()">📢 전보 치기 (공유)</button>
+                <button class="btn-hwatu" id="hwatuRetryBtn" style="width:100%; font-size:1.1rem; margin-bottom:12px; display:none;" onclick="startShuffleSequence()">🔄 한 판 더 (다시 뽑기)</button>
+                <button class="btn-hwatu" style="width:100%; font-size:1.1rem; background:linear-gradient(to right,#1a3a5c,#0f2540);" onclick="shareHwatu()">📢 전보 치기 (공유)</button>
             </div>
         </div>
 
@@ -630,6 +636,8 @@ window.openHwatuModal = function() {
     document.getElementById('hwatuResultBox').style.display = 'none';
     document.getElementById('hwatuWarnMsg').style.display = 'none';
     document.getElementById('revealArea').style.display = 'none';
+    const retryBtnInit = document.getElementById('hwatuRetryBtn');
+    if(retryBtnInit) retryBtnInit.style.display = 'none';
     // 정통 화투점 초기화
     if(document.getElementById('tradGameBoard'))  document.getElementById('tradGameBoard').style.display  = 'none';
     if(document.getElementById('tradResultBox'))  document.getElementById('tradResultBox').style.display  = 'none';
@@ -851,15 +859,12 @@ function showReveal() {
           document.getElementById('fortuneDetails').innerHTML = finalHwatuHTML;
         document.getElementById('hwatuResultBox').style.display = 'block';
         
-        // 다시 뽑기 위한 리셋
         const btn = document.getElementById('startShuffleBtn');
-        btn.innerText = "한 판 더? (다시 뽑기)";
-        btn.style.display = 'block';
-        document.getElementById('shuffleArea').style.display = 'block';
-        document.getElementById('shuffleArea').style.height = '60px'; // 높이 축소하여 공간 절약
-        document.getElementById('shuffleArea').style.opacity = 1;
-        const areaCards = document.getElementById('shuffleArea').querySelectorAll('.hwatu-deck-card');
-        areaCards.forEach(c => c.remove());
+        btn.style.display = 'none'; // 섯다 결과 후 shuffleArea 버튼 숨김
+        document.getElementById('shuffleArea').style.display = 'none';
+        // 전용 다시뽑기 버튼 표시
+        const retryBtn = document.getElementById('hwatuRetryBtn');
+        if(retryBtn) retryBtn.style.display = 'block';
     }, 1800);
 }
 
