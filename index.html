@@ -4073,13 +4073,21 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         max-height: 75dvh; max-height: 75vh;
         display: flex; flex-direction: column;
         transform: translateY(100%);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
         transition: transform 0.36s cubic-bezier(0.22,1,0.36,1);
         will-change: transform;
         box-shadow: 0 -8px 40px rgba(0,0,0,0.7);
       }
       .dp-sheet-overlay.dp-sheet--open,
       .dp-sheet.dp-sheet--open { display: flex; }
-      .dp-sheet.dp-sheet--open { transform: translateY(0); }
+      .dp-sheet.dp-sheet--open {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
       .dp-sheet-overlay { display: block; }
       .dp-sheet-overlay:not(.dp-sheet--open) { display: none; }
 
@@ -8201,9 +8209,7 @@ window.addEventListener('load', function() {
 </script>
 <script type="text/javascript" async src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-<!-- 관상 분석 스크립트 추가 -->
-<script src="AnalysisEngine.js"></script>
-<script src="PhysiognomyUI.js"></script>
+<!-- Optional feature scripts are lazy-loaded by mobile-performance-bootstrap.js -->
 
 <div class="modal" id="tsModal" onclick="closeModal(event)">
   <div class="modal-box" onclick="event.stopPropagation()">
@@ -8966,10 +8972,7 @@ window.addEventListener('load', function() {
 
 </style>
 
-<script src="js/astral-soul.js"></script>
-
-<!-- 타짜 화투점 -->
-<script src="HwatuFortune.js"></script>
+<!-- MBTI/Hwatu/Physiognomy are code-split and loaded on demand -->
 <style>
 /* ═══ 모바일 마스터 최적화 추가 CSS ═══ */
 
@@ -9144,6 +9147,7 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 }
 </style>
 
+<script type="module" src="js/mobile-performance-bootstrap.js"></script>
 <script src="js/runtime-stability.js"></script>
 <script src="js/touch-perf.js"></script>
 

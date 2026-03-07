@@ -626,6 +626,9 @@
      10. 초기화
   ────────────────────────────────────────── */
   function init() {
+    /* 모바일 브라우저(BFCache/세션 복원)에서 시트 열린 상태가 남는 문제 방지 */
+    dpCloseList();
+
     renderMasterCard(DPStorage.current());
 
     /* ESC 키로 시트 닫기 */
@@ -667,6 +670,10 @@
         if (DPStorage.current()) renderMasterCard(DPStorage.current());
       });
     });
+
+    window.addEventListener('pageshow', function() {
+      dpCloseList();
+    }, { passive: true });
   }
 
   if (document.readyState === 'loading') {
