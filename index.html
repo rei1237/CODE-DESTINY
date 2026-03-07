@@ -5843,7 +5843,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
       <nav class="mystic-tab-nav" id="mysticTabNav" role="tablist" aria-label="Mystic Tabs">
         <button class="mystic-tab-btn active" role="tab" aria-selected="true" onclick="switchMysticTab('tabZiwei', this)">🌌 자미두수</button>
-        <button class="mystic-tab-btn" role="tab" aria-selected="false" onclick="switchMysticTab('tabIching', this)">☯️ 주역점</button>
 
       </nav>
 
@@ -6413,15 +6412,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         .iching-result-box { display: none; }
         </style>
 
-      <!-- 거북점 진입 카드 -->
-      <div style="padding:40px 20px 20px; text-align:center; max-width:480px; margin:0 auto;">
-        <div style="font-size:4.5rem; margin-bottom:18px; filter:drop-shadow(0 0 22px rgba(200,160,50,0.55));">🐢</div>
-        <h2 style="color:#e8c860; font-family:'Gowun Dodum',serif; font-size:1.55rem; font-weight:900; letter-spacing:2.5px; margin:0 0 10px; text-shadow:0 0 18px rgba(255,200,50,0.45);">龜趺神占 · 거북점</h2>
-        <p style="color:rgba(200,175,120,0.75); font-size:0.88rem; line-height:1.8; margin:0 0 30px; word-break:keep-all;">고대 귀복(龜卜) 의식을 현대적으로 재해석한 신탁.<br>거북 등껍질의 균열이 하늘의 뜻을 전합니다.</p>
-        <button onclick="openJuyukModal()" style="display:inline-flex; align-items:center; gap:10px; padding:15px 36px; background:linear-gradient(135deg,rgba(80,45,5,0.92),rgba(40,22,2,0.96)); border:1px solid rgba(220,160,40,0.55); border-radius:10px; color:#f0d060; font-family:'Gowun Dodum',serif; font-size:1rem; font-weight:700; letter-spacing:1.5px; cursor:pointer; transition:box-shadow 0.3s,transform 0.15s; touch-action:manipulation; -webkit-tap-highlight-color:transparent; box-shadow:0 4px 20px rgba(0,0,0,0.5);">🔮 신탁 받기</button>
-      </div>
-
-      <!-- SVG 먹물 번짐 필터 (전역) -->
+      <!-- SVG 먹물 번짐 필터 (전역, juyukModalOverlay 의존) -->
       <svg class="tc-ink-filter" aria-hidden="true">
         <defs>
           <filter id="inkFilter">
