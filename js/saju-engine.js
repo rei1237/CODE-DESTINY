@@ -10584,10 +10584,16 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                 _catsDiv.appendChild(btn);
             });
         }
-        // 검색 이벤트 연결
+        // 검색 이벤트 연결 — 300ms debounce로 키 입력마다 발생하는 DOM 과부하 방지
         const _qInp = document.getElementById('szCelebQ');
         if (_qInp) {
-            _qInp.addEventListener('input', () => window._szCelebFilter(_renderMIdx, document.querySelector('.sy-ctab.active')?.dataset.cat || '', _qInp.value, null));
+            var _szDebounceTimer = null;
+            _qInp.addEventListener('input', () => {
+                clearTimeout(_szDebounceTimer);
+                _szDebounceTimer = setTimeout(() => {
+                    window._szCelebFilter(_renderMIdx, document.querySelector('.sy-ctab.active')?.dataset.cat || '', _qInp.value, null);
+                }, 300);
+            });
         }
         // 초기 유명인 목록
         window._szActiveCountry = '';
@@ -10932,7 +10938,8 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       return;
     }
 
-    // 최대 80명까지 버튼 표시
+    // DocumentFragment로 일괄 삽입 — 개별 appendChild×80 대신 단 1회 DOM 변경
+    var frag = document.createDocumentFragment();
     list.slice(0, 80).forEach(function(c) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -10947,14 +10954,15 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         this.style.background = 'rgba(162,155,254,0.25)';
         this.style.color = '#fff';
       };
-      btnsDiv.appendChild(btn);
+      frag.appendChild(btn);
     });
     if (list.length > 80) {
       var note = document.createElement('span');
       note.style.cssText = 'color:#666;font-size:0.75rem;padding:6px 4px;align-self:center;';
       note.textContent = '... 외 ' + (list.length - 80) + '명 (검색으로 좁혀보세요)';
-      btnsDiv.appendChild(note);
+      frag.appendChild(note);
     }
+    btnsDiv.appendChild(frag); // 단 1회 DOM 삽입
   };
 
   // ── 유명인 선택 → 숙요 궁합 계산 및 배지 표시 ──────────────────
