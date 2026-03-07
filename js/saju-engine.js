@@ -11235,8 +11235,10 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       // ── 모바일 더블탭 / 중복 실행 방어 ──
       if (window._sy3Running) return;
       window._sy3Running = true;
+      // 12초 안전망: 탭 비활성화·예외 탈출 등으로 플래그가 永久 잠기는 것 방지
+      var _sy3Guard = setTimeout(function(){ window._sy3Running = false; }, 12000);
 
-      if(!document.getElementById('sy3BirthY')) { window._sy3Running = false; return; }
+      if(!document.getElementById('sy3BirthY')) { clearTimeout(_sy3Guard); window._sy3Running = false; return; }
       myIdx = parseInt(myIdx, 10);
 
       /* 분리 select(연도-월-일)에서 값을 읽어 YYYY-MM-DD 문자열로 조합 */
@@ -11250,24 +11252,24 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       const calType = document.getElementById('sy3CalType').value || "solar";
 
       if(!dateStr) {
+          clearTimeout(_sy3Guard);
           window._sy3Running = false;
           alert('상대방의 생년월일(연도·월·일)을 모두 선택해주세요.');
           return;
       }
 
-      // ── [핵심] 로딩 UI를 계산 전에 즉각 표시 ──
-      // 이전: 계산(동기) → 로더 표시 → setTimeout 렌더링  (모바일 프리징 원인)
-      // 수정: 로더 표시 → rAF → setTimeout(0) 내에서 계산+렌더링
       const loader = document.getElementById('sy3Loading');
       const resDiv = document.getElementById('sy3Result');
-      if(!loader || !resDiv) { window._sy3Running = false; console.warn('[sy3] 결과 DOM 없음'); return; }
+      if(!loader || !resDiv) { clearTimeout(_sy3Guard); window._sy3Running = false; console.warn('[sy3] 결과 DOM 없음'); return; }
       resDiv.style.display = 'none';
       loader.style.display = 'block';
-      void loader.offsetWidth; // iOS Safari 강제 페인트 flush
 
-      // rAF → 브라우저가 로딩 UI를 실제로 렌더링한 직후에 계산 시작
-      requestAnimationFrame(() => {
-        setTimeout(() => {
+      // [핵심 수정] setTimeout(50ms): 모바일(iOS Safari 포함)에서 loader 실제 페인트 보장 후 계산 시작
+      // rAF+setTimeout(0) 패턴 문제: iOS에서 rAF콜백과 setTimeout(0)이 같은 프레임에 실행될 수 있어
+      // loader가 화면에 그려지기 전에 메인 스레드를 블로킹 → 반응이 없어 보이는 프리징 원인
+      // void loader.offsetWidth도 레이아웃 강제일 뿐 페인트 강제가 아니므로 제거
+      // setTimeout(50ms) ≈ 3프레임(60fps) 여유 → 모든 모바일 브라우저에서 안정적
+      setTimeout(function() {
         const ld = loader;
         const rd = resDiv;
         try {
@@ -11278,6 +11280,8 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           let d = parseInt(parts[2],10);
           let h = parseInt(tParts[0]||12,10);
           let min = parseInt(tParts[1]||0,10);
+          if(isNaN(h)) h = 12;
+          if(isNaN(min)) min = 0;
 
           let lunarObj = null;
           let tDate = new Date(y, m-1, d, h, min, 0);
@@ -11497,10 +11501,10 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           console.error('[sy3] outer err:', outerErr);
           if (loader) loader.style.display = 'none';
           if (resDiv) { resDiv.style.display = 'block'; resDiv.innerHTML = '<div style="color:#ff6b81;padding:20px;text-align:center;font-family:sans-serif;">궁합 분석 중 오류가 발생했습니다.<br><br>다시 시도해 주세요.</div>'; }
+          clearTimeout(_sy3Guard);
           window._sy3Running = false;
         }
-        }, 0); // setTimeout(0) — 로더 페인트 후 계산 시작
-      }); // requestAnimationFrame
+      }, 50); // setTimeout(50ms) — loader 실제 페인트 보장 후 계산 시작
   }
 
 function renderQuantumStrategy(p, natal, bazi){
