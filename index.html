@@ -3836,15 +3836,18 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
 
       <!-- 주역(周易) 64괘 전체화면 — 거북점 UI -->
-      <div id="juyukModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#080401; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
-        <!-- 전체화면 시트 -->
-        <div id="juyukModalSheet" style="width:100%; max-width:700px; margin:0 auto; min-height:100vh; box-sizing:border-box; animation:tcPageIn 0.35s cubic-bezier(0.22,1,0.36,1);">
-          <!-- sticky 네비게이션 바 -->
-          <div id="juyukNavBar" style="position:sticky; top:0; z-index:100000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(8,4,1,0.97); border-bottom:1px solid rgba(180,130,30,0.3); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
-            <button onclick="closeJuyukModal()" aria-label="홈으로" style="display:flex; align-items:center; gap:5px; background:transparent; border:none; color:rgba(220,185,80,0.9); font-family:'Gowun Dodum',serif; font-size:0.88rem; font-weight:700; cursor:pointer; padding:10px 4px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; letter-spacing:0.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
-            <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(255,200,70,0.65); letter-spacing:2.5px; pointer-events:none;">龜趺神占 · 거북점</div>
-            <div style="width:72px;"></div>
-          </div>
+      <!-- 네비바: position:absolute (스크롤 밖) / 콘텐츠: 별도 overflow:auto 영역 — iOS 스크롤 간섭 없음 -->
+      <div id="juyukModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#080401;">
+        <!-- 네비게이션 바 (스크롤 영역 밖, 항상 고정) -->
+        <div id="juyukNavBar" style="position:absolute; top:0; left:0; right:0; z-index:100000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(8,4,1,0.97); border-bottom:1px solid rgba(180,130,30,0.3);">
+          <button onclick="closeJuyukModal()" aria-label="홈으로" style="display:flex; align-items:center; gap:5px; background:transparent; border:none; color:rgba(220,185,80,0.9); font-family:'Gowun Dodum',serif; font-size:0.88rem; font-weight:700; cursor:pointer; padding:10px 4px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; letter-spacing:0.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
+          <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(255,200,70,0.65); letter-spacing:2.5px; pointer-events:none;">龜趺神占 · 거북점</div>
+          <div style="width:72px;"></div>
+        </div>
+        <!-- 스크롤 전용 컨테이너 (네비바 54px 아래부터 화면 끝까지) -->
+        <div id="juyukModalSheet" style="position:absolute; top:54px; left:0; right:0; bottom:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
+          <!-- 콘텐츠 (max-width 중앙정렬) -->
+          <div style="width:100%; max-width:700px; margin:0 auto; box-sizing:border-box; animation:tcPageIn 0.35s cubic-bezier(0.22,1,0.36,1);">
           <!-- 거북점 메인 컨테이너 -->
           <div style="padding:20px 16px 60px; box-sizing:border-box;">
         <div class="tc-wrap" id="tcWrap">
@@ -3911,9 +3914,10 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <div class="tc-result" id="tcResult"></div>
         </div> <!-- /.tc-wrap -->
           </div> <!-- /패딩 wrapper -->
-        </div> <!-- /#juyukModalSheet -->
+          </div> <!-- /max-width 중앙정렬 -->
+        </div> <!-- /#juyukModalSheet 스크롤 컨테이너 -->
       </div><!-- /#juyukModalOverlay -->
-      <!-- / 주역(周易) 64괱 모달 -->
+      <!-- / 주역(周易) 64괘 전체화면 -->
 
 
       <!-- 타로 모달 (Hidden Overlay) -->
