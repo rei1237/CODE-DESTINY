@@ -464,7 +464,8 @@
       + '</div>'
 
       + '<button class="tc-share-btn" id="tcShareBtn" onclick="tcShareResult()">📜 신탁 공유하기</button>'
-      + '<button class="tc-redo-btn" onclick="tcReset()">⟳ 다시 불을 지피다</button>';
+      + '<button class="tc-redo-btn" onclick="tcReset()">⟳ 다시 불을 지피다</button>'
+      + '<button class="tc-home-btn" onclick="closeJuyukModal()">← 홈으로 돌아가기</button>';
 
     resultEl.innerHTML = html;
     resultEl.classList.add('show');
@@ -477,13 +478,13 @@
       shellBtn.style.pointerEvents = 'none'; // 버튼 자체 클릭 방지 (리셋은 하단 버튼으로)
     }
 
-    // bottom-sheet 시트 기준으로 결과 상단까지 스크롤
-    var scrollContainer = document.getElementById('juyukModalSheet') || document.getElementById('juyukModalOverlay');
+    // 전체화면 오버레이 기준으로 결과 상단까지 스크롤
+    var scrollContainer = document.getElementById('juyukModalOverlay');
     if (scrollContainer) {
       setTimeout(function() {
         var rectR = resultEl.getBoundingClientRect();
         var rectO = scrollContainer.getBoundingClientRect();
-        scrollContainer.scrollTop += (rectR.top - rectO.top) - 20;
+        scrollContainer.scrollTop += (rectR.top - rectO.top) - 70;
       }, 80);
     } else {
       resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });

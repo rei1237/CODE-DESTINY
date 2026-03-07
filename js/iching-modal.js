@@ -1,35 +1,32 @@
-﻿/* ─── 주역 메인 대시보드 모달 ─── */
+﻿/* ─── 주역 전체화면 페이지 ─── */
 function openJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (!overlay) return;
   if (typeof tcReset === 'function') tcReset();
-  // bottom-sheet: 시트 스크롤 완전 저위
-  var sheet = document.getElementById('juyukModalSheet');
-  if (sheet) sheet.scrollTop = 0;
-  overlay.style.display = 'flex'; // flex: align-items:flex-end 적용
-  overlay.style.animation = 'fadeIn 0.3s ease-out';
+  overlay.scrollTop = 0;
+  overlay.style.display = 'block';
   document.body.style.overflow = 'hidden';
   setTimeout(function() {
     var inp = document.getElementById('ichingQuestion');
     if (inp) inp.focus();
-  }, 350);
+  }, 380);
 }
 
 function closeJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (overlay) overlay.style.display = 'none';
   document.body.style.overflow = '';
+  /* 홈(메인 화면)으로 돌아갈 때 거북점 섹션이 보이도록 부드럽게 스크롤 */
+  var iChingSection = document.getElementById('tabIching') || document.querySelector('[data-section="iching"]');
+  if (iChingSection) {
+    setTimeout(function() {
+      iChingSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
+  }
 }
 
-/* ESC 키로 모달 닫기 */
+/* ESC 키로 닫기 */
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeJuyukModal();
-});
-/* 오버레이 배경 클릭 시 닫기 */
-document.addEventListener('DOMContentLoaded', function() {
-  var ov = document.getElementById('juyukModalOverlay');
-  if (ov) ov.addEventListener('click', function(e) {
-    if (e.target === ov) closeJuyukModal();
-  });
 });
 

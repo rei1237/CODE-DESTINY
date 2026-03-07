@@ -3835,17 +3835,18 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
 
 
-      <!-- 주역(周易) 64괘 모달 — 거북점 UI -->
-      <!-- [수정] bottom-sheet 구조: 오버레이=백드롭, 시트=콘텐츠 크기에 맞는 스크롤 영역 -->
-      <div id="juyukModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(5,3,10,0.80); backdrop-filter:blur(10px); align-items:flex-end; justify-content:center;">
-        <!-- 시트: 콘텐츠 크기만큼만 위로 올라오는 시트 -->
-        <div id="juyukModalSheet" style="position:relative; width:100%; max-width:700px; max-height:92dvh; max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; border-radius:20px 20px 0 0; animation:tcSheetUp 0.32s cubic-bezier(0.32,0.72,0,1);">
-          <!-- 닫기 버튼 (sticky) -->
-          <div style="position:sticky; top:0; z-index:100000; height:0; overflow:visible; display:flex; justify-content:flex-end; padding:12px 12px 0; pointer-events:none;">
-            <button onclick="closeJuyukModal()" aria-label="닫기" style="pointer-events:auto; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:1.4rem; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
+      <!-- 주역(周易) 64괘 전체화면 — 거북점 UI -->
+      <div id="juyukModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#080401; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
+        <!-- 전체화면 시트 -->
+        <div id="juyukModalSheet" style="width:100%; max-width:700px; margin:0 auto; min-height:100vh; box-sizing:border-box; animation:tcPageIn 0.35s cubic-bezier(0.22,1,0.36,1);">
+          <!-- sticky 네비게이션 바 -->
+          <div id="juyukNavBar" style="position:sticky; top:0; z-index:100000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(8,4,1,0.97); border-bottom:1px solid rgba(180,130,30,0.3); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
+            <button onclick="closeJuyukModal()" aria-label="홈으로" style="display:flex; align-items:center; gap:5px; background:transparent; border:none; color:rgba(220,185,80,0.9); font-family:'Gowun Dodum',serif; font-size:0.88rem; font-weight:700; cursor:pointer; padding:10px 4px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; letter-spacing:0.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
+            <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(255,200,70,0.65); letter-spacing:2.5px; pointer-events:none;">龜趺神占 · 거북점</div>
+            <div style="width:72px;"></div>
           </div>
           <!-- 거북점 메인 컨테이너 -->
-          <div style="padding:0 12px 40px; box-sizing:border-box;">
+          <div style="padding:20px 16px 60px; box-sizing:border-box;">
         <div class="tc-wrap" id="tcWrap">
           <!-- 촛불 광원 -->
           <div class="tc-candle tc-candle-l"></div>
@@ -5311,23 +5312,22 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         }
         /* 외부 컨테이너 */
         /* bottom-sheet 애니메이션 */
-        @keyframes tcSheetUp {
-          from { transform: translateY(60px); opacity: 0; }
-          to   { transform: translateY(0);   opacity: 1; }
+        @keyframes tcPageIn {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         .tc-wrap {
           position: relative;
-          background: radial-gradient(ellipse at 50% 30%, #1a0e06 0%, #0c0704 55%, #000 100%);
-          border-radius: 20px 20px 0 0; /* 시트 상단 둥건, 하단 0 (bottom-sheet) */
-          overflow: clip; /* 절대배치 장식 요소만 clip, 시트 자체 스크롤 허용 */
-          touch-action: pan-y; /* iOS: 수직 터치 스크롤을 부모로 위임 보장 */
+          background: radial-gradient(ellipse at 50% 30%, #1a0e06 0%, #0c0704 55%, #050200 100%);
+          border-radius: 14px;
+          overflow: hidden;
+          touch-action: pan-y;
           padding: 28px 20px 32px;
           font-family: 'Gowun Dodum', serif;
           color: #e8d9c0;
           min-height: auto;
-          border: 1px solid rgba(180,120,30,.35);
-          border-bottom: none;
-          box-shadow: 0 0 0 1px rgba(255,180,50,.08), 0 -10px 40px rgba(0,0,0,.6);
+          border: 1px solid rgba(180,120,30,.3);
+          box-shadow: 0 0 60px rgba(180,100,20,.12), 0 4px 32px rgba(0,0,0,.6);
         }
         /* 목재 질감 오버레이 */
         .tc-wrap::before {
@@ -5692,10 +5692,39 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           animation: resultFadeIn .8s .6s both;
           position: relative;
           z-index: 2;
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
         }
         .tc-redo-btn:hover {
           box-shadow: 0 0 20px rgba(255,180,30,.2);
           background: linear-gradient(135deg, rgba(100,55,8,.85), rgba(55,28,4,.95));
+        }
+        /* 홈으로 버튼 */
+        .tc-home-btn {
+          display: block;
+          width: 100%;
+          margin-top: 10px;
+          padding: 13px;
+          background: transparent;
+          border: 1px solid rgba(180,130,30,.3);
+          border-radius: 9px;
+          color: rgba(220,185,80,0.7);
+          font-size: .88rem;
+          font-family: 'Gowun Dodum', serif;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          cursor: pointer;
+          transition: background .3s, border-color .3s, color .3s;
+          animation: resultFadeIn .8s .75s both;
+          position: relative;
+          z-index: 2;
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .tc-home-btn:hover, .tc-home-btn:active {
+          background: rgba(40,22,2,0.6);
+          border-color: rgba(220,175,50,.5);
+          color: rgba(255,210,100,0.9);
         }
         /* 신탁 공유하기 버튼 */
         .tc-share-btn {
