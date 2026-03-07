@@ -10547,7 +10547,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                 b.className = 'sz-country-tab' + (isActive ? ' active' : '');
                 b.dataset.country = code;
                 b.textContent = label;
-                b.style.cssText = 'padding:3px 9px;border-radius:20px;font-size:0.7rem;border:1px solid rgba(100,200,255,' + (isActive?'0.7':'0.3') + ');background:rgba(100,200,255,' + (isActive?'0.18':'0.04') + ');color:' + (isActive?'#87ceeb':'#7f8c8d') + ';cursor:pointer;white-space:nowrap;transition:all 0.2s;';
+                b.style.cssText = 'padding:3px 9px;border-radius:20px;font-size:0.7rem;border:1px solid rgba(100,200,255,' + (isActive?'0.7':'0.3') + ');background:rgba(100,200,255,' + (isActive?'0.18':'0.04') + ');color:' + (isActive?'#87ceeb':'#7f8c8d') + ';cursor:pointer;white-space:nowrap;transition:all 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:36px;';
                 b.onclick = () => {
                     document.querySelectorAll('#szCountryCats .sz-country-tab').forEach(t => {
                         t.classList.remove('active');
@@ -10579,7 +10579,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                 btn.className = 'sy-ctab' + (i === 0 ? ' active' : '');
                 btn.dataset.cat = i === 0 ? '' : c;
                 btn.textContent = (_ic[c] || (i === 0 ? '✨' : '')) + ' ' + c;
-                btn.style.cssText = 'padding:4px 10px;border-radius:20px;font-size:0.73rem;border:1px solid rgba(162,155,254,' + (i===0?'0.6':'0.3') + ');background:rgba(162,155,254,' + (i===0?'0.2':'0.05') + ');color:#c792ea;cursor:pointer;white-space:nowrap;transition:all 0.2s;';
+                btn.style.cssText = 'padding:4px 10px;border-radius:20px;font-size:0.73rem;border:1px solid rgba(162,155,254,' + (i===0?'0.6':'0.3') + ');background:rgba(162,155,254,' + (i===0?'0.2':'0.05') + ');color:#c792ea;cursor:pointer;white-space:nowrap;transition:all 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:36px;';
                 btn.onclick = () => window._szCelebFilter(_renderMIdx, btn.dataset.cat, document.getElementById('szCelebQ')?.value || '', btn);
                 _catsDiv.appendChild(btn);
             });
@@ -10938,7 +10938,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       btn.type = 'button';
       var _flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[c.nationality]) ? COUNTRY_CONFIG[c.nationality].flag + ' ' : '';
       btn.textContent = _flag + c.name;
-      btn.style.cssText = 'padding:4px 10px;border-radius:20px;font-size:0.75rem;border:1px solid rgba(162,155,254,0.3);background:rgba(20,25,35,0.8);color:#c9d1e8;cursor:pointer;transition:all 0.2s;white-space:nowrap;';
+      btn.style.cssText = 'padding:4px 10px;border-radius:20px;font-size:0.75rem;border:1px solid rgba(162,155,254,0.3);background:rgba(20,25,35,0.8);color:#c9d1e8;cursor:pointer;transition:all 0.2s;white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:36px;';
       btn.onmouseenter = function() { this.style.background = 'rgba(162,155,254,0.2)'; this.style.color = '#e0d0ff'; };
       btn.onmouseleave = function() { this.style.background = 'rgba(20,25,35,0.8)'; this.style.color = '#c9d1e8'; };
       btn.onclick = function() {
