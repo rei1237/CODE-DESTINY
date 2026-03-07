@@ -1727,6 +1727,9 @@ function agreeAndCalculate() {
   startSajuCalculationFlow();
 }
 
+/* ─── 코스모스 로딩 캔버스 ─── */
+let _cosmosRafId = null;
+
 function startSajuCalculationFlow() {
   if(typeof Solar==='undefined'||typeof Solar.fromYmdHms!=='function'){
     alert('라이브러리가 아직 로딩 중입니다. 잠시 후 다시 시도해주세요 🐷');return;
@@ -1739,49 +1742,241 @@ function startSajuCalculationFlow() {
 
   requestAnimationFrame(() => {
     overlay.classList.add('show');
+    _startCosmosCanvas();
+    const txtInterval = _startLoadingTextCycle();
 
-    const hanjas = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸','子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-    const pContainer = document.getElementById('hanjaParticleContainer');
-    pContainer.innerHTML = '';
-    for(let i=0; i<15; i++) {
-       let span = document.createElement('span');
-       span.className = 'hanja-char';
-       span.innerText = hanjas[Math.floor(Math.random() * hanjas.length)];
-       span.style.left = (20 + Math.random() * 60) + '%';
-       span.style.top = (40 + Math.random() * 40) + '%';
-       span.style.fontSize = (1.2 + Math.random() * 1.5) + 'rem';
-       span.style.animation = `hanjaFloat ${1.5 + Math.random()}s ease-out forwards ${Math.random() * 0.5}s`;
-       pContainer.appendChild(span);
-    }
-
-    const txtEl = document.getElementById('sajuLoadingTxt');
-    txtEl.innerText = '';
-    txtEl.style.width = 'auto';
-    txtEl.style.animation = 'sajuBlink .75s step-end infinite';
-    const _typeText = "운명의 실타래를 푸는 중...";
-    let _ti = 0;
-    const _typeInterval = setInterval(function() {
-      if (_ti < _typeText.length) {
-        txtEl.innerText += _typeText[_ti++];
-      } else {
-        clearInterval(_typeInterval);
-      }
-    }, 95);
-
-    // 계산 + 애니메이션 완료 시간을 병렬 실행
-    // 최장 애니메이션: page3 turnPage(2.2s + 0.9s delay = 3.1s)
-    // 800ms 딜레이: CSS 애니메이션이 컴포지터 스레드에 올라간 후 계산 시작
-    // → 메인 스레드 블로킹이 초반 애니메이션 프레임을 방해하지 않음
-    // → 총 최소 체감 시간: 800 + 2600 = 3400ms (이전 자연스러운 흐름 복원)
     setTimeout(async () => {
       await Promise.all([
         calculate(),
         new Promise(resolve => setTimeout(resolve, 2600))
       ]);
+      clearInterval(txtInterval);
       var _lo = document.getElementById('sajuLoaderOverlay');
-      if (_lo) { _lo.classList.remove('show'); setTimeout(function(){ _lo.style.display='none'; }, 600); }
+      if (_lo) {
+        _lo.classList.remove('show');
+        _stopCosmosCanvas();
+        setTimeout(function(){ _lo.style.display='none'; }, 600);
+      }
     }, 800);
   });
+}
+
+function _stopCosmosCanvas() {
+  if (_cosmosRafId) { cancelAnimationFrame(_cosmosRafId); _cosmosRafId = null; }
+}
+
+function _startLoadingTextCycle() {
+  const msgs = [
+    '천지의 기운을 모으는 중...',
+    '별자리가 당신을 향해 정렬 중...',
+    '27宿의 숙요를 분석하는 중...',
+    '팔괘의 운기를 읽는 중...',
+    '오행의 균형을 맞추는 중...',
+    '우주의 운명실을 잇는 중...'
+  ];
+  const el = document.getElementById('sajuLoadingTxt');
+  if (!el) return null;
+  let idx = 0;
+  el.textContent = msgs[0];
+  el.style.opacity = '1';
+  return setInterval(() => {
+    idx = (idx + 1) % msgs.length;
+    el.style.opacity = '0';
+    setTimeout(() => { if (el) { el.textContent = msgs[idx]; el.style.opacity = '1'; } }, 380);
+  }, 1300);
+}
+
+function _startCosmosCanvas() {
+  _stopCosmosCanvas();
+  const cvs = document.getElementById('sajuCosmosCanvas');
+  if (!cvs) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const W = window.innerWidth, H = window.innerHeight;
+  cvs.width  = Math.floor(W * dpr);
+  cvs.height = Math.floor(H * dpr);
+  cvs.style.width  = W + 'px';
+  cvs.style.height = H + 'px';
+  const ctx = cvs.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const cx = W / 2, cy = H / 2;
+  const t0 = performance.now();
+  const isMobile = ('ontouchstart' in window);
+  const MAX_P = isMobile ? 45 : 72;
+
+  /* 심볼 풀 — 천간·지지·27수·오행·8괘·우주 */
+  const SYMS = [
+    '甲','乙','丙','丁','戊','己','庚','辛','壬','癸',
+    '子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥',
+    '角','亢','氐','房','心','尾','箕','斗','牛','女','虛','危',
+    '室','壁','奎','婁','胃','昴','畢','參','井','鬼','柳','星','張','翼','軫',
+    '木','火','土','金','水',
+    '☰','☱','☲','☳','☴','☵','☶','☷','☯','★','✦','✧','☽'
+  ];
+  const COLS = ['#ffd700','#e5c07b','#c678dd','#a855f7','#61afef','#56c2b6','#ffffff','#ffaa80','#a8ff78'];
+
+  /* ── 오프스크린: 성운 배경 (1회 렌더) ── */
+  const nbCvs = document.createElement('canvas');
+  nbCvs.width = W; nbCvs.height = H;
+  const nbCtx = nbCvs.getContext('2d');
+  const nbG = nbCtx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.62);
+  nbG.addColorStop(0,   'rgba(110,30,190,0.42)');
+  nbG.addColorStop(0.3, 'rgba(40,10,100,0.22)');
+  nbG.addColorStop(0.7, 'rgba(10,3,32,0.09)');
+  nbG.addColorStop(1,   'rgba(0,0,0,0)');
+  nbCtx.fillStyle = nbG;
+  nbCtx.fillRect(0, 0, W, H);
+
+  /* ── 오프스크린: 중앙 오브 (1회 렌더) ── */
+  const ORB_R = 96;
+  const orbCvs = document.createElement('canvas');
+  orbCvs.width = ORB_R * 2; orbCvs.height = ORB_R * 2;
+  const orbCtx = orbCvs.getContext('2d');
+  const orbG = orbCtx.createRadialGradient(ORB_R, ORB_R, 0, ORB_R, ORB_R, ORB_R);
+  orbG.addColorStop(0,    'rgba(255,248,200,0.97)');
+  orbG.addColorStop(0.15, 'rgba(255,210,80,0.82)');
+  orbG.addColorStop(0.42, 'rgba(185,80,225,0.38)');
+  orbG.addColorStop(0.75, 'rgba(60,120,240,0.12)');
+  orbG.addColorStop(1,    'rgba(0,0,0,0)');
+  orbCtx.fillStyle = orbG;
+  orbCtx.fillRect(0, 0, ORB_R * 2, ORB_R * 2);
+
+  /* ── 배경 별 ── */
+  const STAR_N = isMobile ? 120 : 180;
+  const stars = Array.from({ length: STAR_N }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 1.4 + 0.2,
+    ba: Math.random() * 0.7 + 0.1,
+    ts: Math.random() * 1.8 + 0.4,
+    to: Math.random() * Math.PI * 2
+  }));
+
+  /* ── 파티클 풀 ── */
+  const particles = [];
+  function rSym() { return SYMS[(Math.random() * SYMS.length) | 0]; }
+  function rCol() { return COLS[(Math.random() * COLS.length) | 0]; }
+
+  function addBigbang() {
+    if (particles.length >= MAX_P) return;
+    const a = Math.random() * 6.2832;
+    const spd = 0.8 + Math.random() * 3.4;
+    particles.push({
+      sym: rSym(), col: rCol(),
+      x: cx + (Math.random() - 0.5) * 26, y: cy + (Math.random() - 0.5) * 26,
+      vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
+      sz: 13 + Math.random() * 22,
+      life: 0, ml: 65 + Math.random() * 55
+    });
+  }
+
+  function addSpiral() {
+    if (particles.length >= MAX_P) return;
+    const a = Math.random() * 6.2832;
+    const r = Math.min(W, H) * 0.3 + Math.random() * Math.min(W, H) * 0.22;
+    const ta = a + Math.PI / 2 + (Math.random() - 0.5) * 0.9;
+    const spd = 0.5 + Math.random() * 1.2;
+    particles.push({
+      sym: rSym(), col: rCol(),
+      x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r,
+      vx: Math.cos(ta) * spd, vy: Math.sin(ta) * spd,
+      sz: 15 + Math.random() * 19,
+      life: 0, ml: 85 + Math.random() * 65
+    });
+  }
+
+  function addConverge() {
+    if (particles.length >= MAX_P) return;
+    const a = Math.random() * 6.2832;
+    const r = Math.min(W, H) * 0.18 + Math.random() * Math.min(W, H) * 0.3;
+    const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+    const dx = cx - px, dy = cy - py;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const spd = 1.2 + Math.random() * 2.3;
+    particles.push({
+      sym: rSym(), col: rCol(),
+      x: px, y: py,
+      vx: dx / len * spd, vy: dy / len * spd,
+      sz: 16 + Math.random() * 17,
+      life: 0, ml: 45 + Math.random() * 38
+    });
+  }
+
+  let frame = 0;
+
+  function loop(now) {
+    _cosmosRafId = requestAnimationFrame(loop);
+    const sec = (now - t0) / 1000;
+    frame++;
+
+    ctx.clearRect(0, 0, W, H);
+
+    /* 성운 페이드인 */
+    const nbA = Math.min(1, sec * 1.8);
+    if (nbA > 0.01) { ctx.globalAlpha = nbA; ctx.drawImage(nbCvs, 0, 0); }
+
+    /* 배경 별 (트윙클) */
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
+      ctx.globalAlpha = s.ba * (0.55 + 0.45 * Math.sin(sec * s.ts + s.to));
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832); ctx.fill();
+    }
+
+    /* 중앙 오브 (펄스) */
+    const orbFade = Math.min(1, sec * 2.6);
+    if (orbFade > 0.01) {
+      const scale = 0.88 + 0.12 * Math.sin(sec * 3.8);
+      const drawR = ORB_R * 2 * scale;
+      ctx.globalAlpha = orbFade * 0.92;
+      ctx.drawImage(orbCvs, cx - drawR / 2, cy - drawR / 2, drawR, drawR);
+    }
+
+    /* 스폰 */
+    if (sec > 0.28 && sec < 1.05 && frame % 2 === 0) { addBigbang(); addBigbang(); }
+    if (sec > 1.0  && sec < 2.25 && frame % 4 === 0) { addSpiral(); }
+    if (sec > 2.0  && sec < 3.55 && frame % 3 === 0) { addConverge(); if (sec > 2.5) addConverge(); }
+
+    /* 파티클 렌더 */
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life++;
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= 0.976; p.vy *= 0.976;
+      const prog = p.life / p.ml;
+      ctx.globalAlpha = (prog < 0.15 ? prog / 0.15 : prog > 0.72 ? (1 - prog) / 0.28 : 1) * 0.92;
+      ctx.font = p.sz + 'px serif';
+      ctx.fillStyle = p.col;
+      ctx.fillText(p.sym, p.x, p.y);
+      if (p.life >= p.ml) particles.splice(i, 1);
+    }
+
+    /* 버스트 링 (phase 4) */
+    if (sec > 3.25) {
+      const bt = sec - 3.25;
+      const ringCols = ['#ffd700', '#c678dd', '#61afef', '#ffffff'];
+      for (let ring = 0; ring < 4; ring++) {
+        const rt = bt - ring * 0.17;
+        if (rt <= 0) continue;
+        const rr = rt * 370;
+        const ra = Math.max(0, 1 - rt * 1.4);
+        if (ra <= 0) continue;
+        ctx.save();
+        ctx.globalAlpha = ra;
+        ctx.strokeStyle = ringCols[ring];
+        ctx.lineWidth   = Math.max(0.5, 2.4 - ring * 0.5);
+        ctx.shadowColor = ringCols[ring];
+        ctx.shadowBlur  = 16;
+        ctx.beginPath(); ctx.arc(cx, cy, rr, 0, 6.2832); ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    ctx.globalAlpha = 1;
+  }
+
+  _cosmosRafId = requestAnimationFrame(loop);
 }
 
 /* ═══════════════════════════════════════
