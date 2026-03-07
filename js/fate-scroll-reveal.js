@@ -50,6 +50,8 @@
   var indicatorLabel = null;
   var currentSection = null;
   var sectionObserver = null;
+  var lateRevealObserver = null;
+  var resultPageObserver = null;
 
   function createIndicator() {
     if (document.getElementById(INDICATOR_ID)) {
@@ -115,7 +117,7 @@
   function watchLateReveal() {
     var rp = document.getElementById('resultPage');
     if (!rp) return;
-    var mo = new MutationObserver(function (mutations) {
+    lateRevealObserver = new MutationObserver(function (mutations) {
       mutations.forEach(function (mut) {
         var el = mut.target;
         if (!isDisplayed(el)) return;
@@ -130,7 +132,8 @@
       });
     });
     getSections().forEach(function (el) {
-      mo.observe(el, { attributes: true, attributeFilter: ['style', 'class'] });
+      if (!el) return;
+      lateRevealObserver.observe(el, { attributes: true, attributeFilter: ['style', 'class'] });
     });
   }
 
@@ -157,14 +160,22 @@
       return;
     }
     /* resultPage style 속성 변화 감지 */
-    var rpMo = new MutationObserver(function () {
+    resultPageObserver = new MutationObserver(function () {
       var page = document.getElementById('resultPage');
       if (page && page.style.display !== 'none') {
-        rpMo.disconnect();
+        resultPageObserver.disconnect();
+        resultPageObserver = null;
         setTimeout(onResultVisible, 80);
       }
     });
-    rpMo.observe(rp, { attributes: true, attributeFilter: ['style'] });
+    resultPageObserver.observe(rp, { attributes: true, attributeFilter: ['style'] });
+  }
+
+  function disposeObservers() {
+    if (revealObserver) { revealObserver.disconnect(); revealObserver = null; }
+    if (sectionObserver) { sectionObserver.disconnect(); sectionObserver = null; }
+    if (lateRevealObserver) { lateRevealObserver.disconnect(); lateRevealObserver = null; }
+    if (resultPageObserver) { resultPageObserver.disconnect(); resultPageObserver = null; }
   }
 
   /* DOMContentLoaded or immediate */
@@ -173,5 +184,7 @@
   } else {
     init();
   }
+
+  window.addEventListener('pagehide', disposeObservers, { once: true });
 
 })();

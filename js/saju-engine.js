@@ -9,6 +9,30 @@ var CDN_URLS=[
 ];
 var tried=0;
 
+function _hideLibOverlay(forceRemove) {
+  var ov = document.getElementById('lib-overlay');
+  if (!ov) return;
+  ov.style.display = 'none';
+  ov.classList.add('done');
+  if (forceRemove && ov.parentNode) {
+    ov.parentNode.removeChild(ov);
+  }
+}
+
+function _showEngineFallbackNotice(msg) {
+  var id = 'engineFallbackNotice';
+  var old = document.getElementById(id);
+  if (old && old.parentNode) old.parentNode.removeChild(old);
+  var box = document.createElement('div');
+  box.id = id;
+  box.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:2147483646;'
+    + 'background:rgba(20,20,30,.94);color:#f5f5f5;border:1px solid rgba(255,255,255,.18);'
+    + 'padding:10px 14px;border-radius:10px;font-size:12px;max-width:88vw;line-height:1.5;text-align:center;';
+  box.textContent = msg || '콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
+  document.body.appendChild(box);
+  setTimeout(function(){ if (box && box.parentNode) box.parentNode.removeChild(box); }, 7000);
+}
+
 /**
  * [Backend Engine] 한국 표준 고정밀 음양력 변환 시스템
  * KASI(한국천문연구원) 표준 음양력 변환 데이터 및 1분 1초 24절기 오차 보정 반영
@@ -109,13 +133,19 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
 
 function loadNext(){
   if(tried>=CDN_URLS.length){
-    document.getElementById('lib-msg').textContent='❌ 라이브러리 로드 실패';
-    document.getElementById('lib-sub').textContent='새로고침 후 다시 시도해주세요';
-    document.getElementById('run-btn').textContent='⚠️ 로드 실패 (새로고침)';
+    var msgEl = document.getElementById('lib-msg');
+    var subEl = document.getElementById('lib-sub');
+    var btnEl = document.getElementById('run-btn');
+    if (msgEl) msgEl.textContent='❌ 라이브러리 로드 실패';
+    if (subEl) subEl.textContent='새로고침 후 다시 시도해주세요';
+    if (btnEl) btnEl.textContent='⚠️ 로드 실패 (새로고침)';
+    setTimeout(function(){ _hideLibOverlay(true); }, 900);
+    _showEngineFallbackNotice('일부 라이브러리 로딩에 실패했습니다. 기본 화면은 계속 이용할 수 있습니다.');
     return;
   }
   var url=CDN_URLS[tried];
-  document.getElementById('lib-sub').textContent='CDN '+(tried+1)+'/'+CDN_URLS.length+' 시도 중...';
+  var sub = document.getElementById('lib-sub');
+  if (sub) sub.textContent='CDN '+(tried+1)+'/'+CDN_URLS.length+' 시도 중...';
   tried++;
   var s=document.createElement('script');s.src=url;s.async=false;
   s.onload=function(){waitForSolar(0);};
@@ -128,10 +158,13 @@ function waitForSolar(n){
   else{setTimeout(function(){waitForSolar(n+1);},100);}
 }
 function onLibReady(){
-  document.getElementById('lib-overlay').classList.add('done');
+  _hideLibOverlay(false);
   var btn=document.getElementById('run-btn');
-  btn.disabled=false;btn.textContent='🐷 사주 분석하기';
+  if (btn) { btn.disabled=false;btn.textContent='🐷 사주 분석하기'; }
 }
+
+/* 라이브러리 오버레이 잔존 방지: 15초 경과 시 강제 해제 */
+setTimeout(function(){ _hideLibOverlay(false); }, 15000);
 
 /* ═══════════════════════════════════════
    STEP 2: 명리학 데이터
@@ -1799,6 +1832,13 @@ function startSajuCalculationFlow() {
   if(!bd){alert('생년월일을 입력하세요');return;}
 
   const overlay = document.getElementById('sajuLoaderOverlay');
+  if (!overlay) {
+    try { calculate(); } catch (e) {
+      console.error('[saju] calculate failed without loader overlay', e);
+      _showEngineFallbackNotice('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    }
+    return;
+  }
   overlay.style.display = 'flex';
 
   requestAnimationFrame(() => {
@@ -1840,13 +1880,32 @@ function startSajuCalculationFlow() {
     }
 
     // 계산 + 최소 표시 시간(2600ms) 병렬 실행 / 최소 런타임: 3400ms
+    var _hardStop = setTimeout(function() {
+      var _stuck = document.getElementById('sajuLoaderOverlay');
+      if (_stuck) {
+        _stuck.classList.remove('show');
+        _stuck.style.display = 'none';
+      }
+      _showEngineFallbackNotice('결과 렌더링이 지연되어 기본 화면으로 복귀했습니다. 다시 시도해주세요.');
+    }, 22000);
+
     setTimeout(async () => {
-      await Promise.all([
-        calculate(),
-        new Promise(resolve => setTimeout(resolve, 2600))
-      ]);
-      var _lo = document.getElementById('sajuLoaderOverlay');
-      if (_lo) { _lo.classList.remove('show'); setTimeout(function(){ _lo.style.display='none'; }, 600); }
+      try {
+        await Promise.all([
+          calculate(),
+          new Promise(resolve => setTimeout(resolve, 2600))
+        ]);
+      } catch (calcErr) {
+        console.error('[saju] calculate flow failed', calcErr);
+        _showEngineFallbackNotice('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      } finally {
+        clearTimeout(_hardStop);
+        var _lo = document.getElementById('sajuLoaderOverlay');
+        if (_lo) {
+          _lo.classList.remove('show');
+          _lo.style.display = 'none';
+        }
+      }
     }, 800);
   });
 }
@@ -2432,14 +2491,122 @@ function toggleIljuDetail(){
   const card = document.getElementById('iljuCard');
   if(!detail) return;
   if(detail.style.maxHeight === '0px' || detail.style.maxHeight === ''){
-    detail.style.maxHeight = '2000px';
-    btn.innerHTML = '접기 ▲';
+    detail.style.maxHeight = (detail.scrollHeight + 12) + 'px';
+    btn.innerHTML = '상세 분석 접기 ▲';
     if(card) card.classList.add('open-detail');
   } else {
     detail.style.maxHeight = '0px';
-    btn.innerHTML = '자세히 보기 ▼';
+    btn.innerHTML = '상세 분석 보기 ▼';
     if(card) card.classList.remove('open-detail');
   }
+}
+
+function iljuSanitizeText(html) {
+  return String(html || '')
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function iljuSentenceList(text) {
+  var clean = iljuSanitizeText(text);
+  if (!clean) return [];
+  clean = clean
+    .replace(/\.\s+/g, '.|')
+    .replace(/!\s+/g, '!|')
+    .replace(/\?\s+/g, '?|')
+    .replace(/다\.\s+/g, '다.|');
+  return clean.split('|').map(function(s) {
+    return s.trim();
+  }).filter(Boolean);
+}
+
+function iljuBullets(text, maxCount) {
+  var lines = iljuSentenceList(text);
+  if (!lines.length) return [];
+  return lines.slice(0, maxCount || 3);
+}
+
+function iljuEscapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function iljuSetList(id, items, fallback) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var safeItems = (items && items.length) ? items : [fallback || '분석 정보가 준비되는 중입니다.'];
+  el.innerHTML = safeItems.map(function(item) {
+    return '<li>' + iljuEscapeHtml(item) + '</li>';
+  }).join('');
+}
+
+function iljuSetBar(barId, valId, value) {
+  var bar = document.getElementById(barId);
+  var label = document.getElementById(valId);
+  var v = Math.max(0, Math.min(100, Math.round(value || 0)));
+  if (bar) bar.style.width = v + '%';
+  if (label) label.innerText = v + '%';
+}
+
+function buildIljuElementScores(dayStem, dayBranch) {
+  var stemElMap = { '甲':'wood','乙':'wood','丙':'fire','丁':'fire','戊':'earth','己':'earth','庚':'metal','辛':'metal','壬':'water','癸':'water' };
+  var branchElMap = { '子':'water','丑':'earth','寅':'wood','卯':'wood','辰':'earth','巳':'fire','午':'fire','未':'earth','申':'metal','酉':'metal','戌':'earth','亥':'water' };
+  var genMap = { wood:'fire', fire:'earth', earth:'metal', metal:'water', water:'wood' };
+  var conMap = { wood:'earth', fire:'metal', earth:'water', metal:'wood', water:'fire' };
+  var scores = { wood:26, fire:26, earth:26, metal:26, water:26 };
+
+  var stemEl = stemElMap[dayStem];
+  var branchEl = branchElMap[dayBranch];
+
+  if (stemEl) {
+    scores[stemEl] += 32;
+    scores[genMap[stemEl]] += 8;
+    scores[conMap[stemEl]] -= 4;
+  }
+  if (branchEl) {
+    scores[branchEl] += 22;
+    scores[genMap[branchEl]] += 5;
+  }
+
+  Object.keys(scores).forEach(function(k) {
+    scores[k] = Math.max(8, Math.min(95, scores[k]));
+  });
+  return scores;
+}
+
+function buildIljuKeywords(key, data, stem, branch, elementLabel) {
+  var animalMap = { '子':'쥐', '丑':'소', '寅':'호랑이', '卯':'토끼', '辰':'용', '巳':'뱀', '午':'말', '未':'양', '申':'원숭이', '酉':'닭', '戌':'개', '亥':'돼지' };
+  var stemTraits = {
+    '甲':['리더십','직진성'], '乙':['유연성','섬세함'], '丙':['열정','표현력'], '丁':['공감력','집중력'],
+    '戊':['안정감','책임감'], '己':['실용성','배려력'], '庚':['결단력','추진력'], '辛':['정교함','완성도'],
+    '壬':['포용력','통찰력'], '癸':['적응력','직관력']
+  };
+
+  var tags = [];
+  tags.push((key || '') + ' 일주');
+  if (elementLabel) tags.push(elementLabel + ' 중심');
+  if (animalMap[branch]) tags.push(animalMap[branch] + ' 기운');
+  (stemTraits[stem] || []).forEach(function(t) { tags.push(t); });
+
+  if (data && data.details) {
+    var tg = data.details.match(/핵심 십성:\s*([^\/\n]+)/);
+    var e12 = data.details.match(/십이운성\):\s*([^\n]+)/);
+    if (tg && tg[1]) tags.push(tg[1].trim());
+    if (e12 && e12[1]) tags.push('십이운성 ' + e12[1].trim());
+  }
+
+  var uniq = [];
+  tags.forEach(function(t) {
+    if (!t) return;
+    if (uniq.indexOf(t) === -1) uniq.push(t);
+  });
+  return uniq.slice(0, 7);
 }
 
 function renderIlju(p){
@@ -2453,32 +2620,73 @@ function renderIlju(p){
   const key = p.d.g + p.d.j;
   
   const data = ILJU_DB[key];
+  const rawName = data && data.name ? data.name : (key + '일주');
+  const nameMatch = rawName.match(/^([^\(]+)\(([^\)]+)\)일주$/);
+  const mainName = nameMatch ? (nameMatch[1] + '일주') : rawName;
+  const hanjaName = nameMatch ? ('(' + nameMatch[2] + ')') : ('(' + key + ')');
+  const animalMap = { '子': ['🐭','쥐'], '丑': ['🐮','소'], '寅': ['🐯','호랑이'], '卯': ['🐰','토끼'], '辰': ['🐉','용'], '巳': ['🐍','뱀'], '午': ['🐴','말'], '未': ['🐑','양'], '申': ['🐵','원숭이'], '酉': ['🐔','닭'], '戌': ['🐶','개'], '亥': ['🐷','돼지'] };
+  const stemElementMap = { '甲':['wood','목(木)'], '乙':['wood','목(木)'], '丙':['fire','화(火)'], '丁':['fire','화(火)'], '戊':['earth','토(土)'], '己':['earth','토(土)'], '庚':['metal','금(金)'], '辛':['metal','금(金)'], '壬':['water','수(水)'], '癸':['water','수(水)'] };
+  const elementTheme = {
+    wood: { accent:'#2e7d32', soft:'#e8f5e9' },
+    fire: { accent:'#c62828', soft:'#ffebee' },
+    earth: { accent:'#8d6e63', soft:'#fff3e0' },
+    metal: { accent:'#78909c', soft:'#eceff1' },
+    water: { accent:'#1565c0', soft:'#e3f2fd' }
+  };
   
   iljuCard.style.display = 'block';
   
   const detail = document.getElementById('iljuDetailWrap');
   const btn = document.getElementById('iljuToggleBtn');
   if(detail) detail.style.maxHeight = '0px';
-  if(btn) btn.innerHTML = '자세히 보기 ▼';
+  if(btn) btn.innerHTML = '상세 분석 보기 ▼';
 
-  if(data) {
-    document.getElementById('iljuName').innerHTML = data.name || key + "일주";
-    document.getElementById('iljuSymbol').innerHTML = data.symbol || "";
-    document.getElementById('iljuSummary').innerHTML = data.summary || "";
-    document.getElementById('iljuPersonality').innerHTML = data.personality || "";
-    document.getElementById('iljuProfessional').innerHTML = data.professional || "";
-    document.getElementById('iljuRelationship').innerHTML = data.relationship || "";
-    document.getElementById('iljuAdvice').innerHTML = data.advice || "";
-    document.getElementById('iljuDetailsInfo').innerHTML = data.details ? "*십이운성/지장간 분석: " + data.details : "";
-  } else {
-    document.getElementById('iljuName').innerText = key + "일주";
-    document.getElementById('iljuSymbol').innerText = p.d.g + "와(과) " + p.d.j + "의 조화";
-    document.getElementById('iljuSummary').innerText = "일주(Day Pillar)는 개인의 가장 핵심적인 자아와 성향을 뜻합니다.";
-    document.getElementById('iljuPersonality').innerHTML = "현재 고도화된 일주 심층 프로파일링 데이터가 업데이트 중에 있습니다. (" + key + "일주 데이터 준비 중)";
-    document.getElementById('iljuProfessional').innerHTML = "데이터 업데이트 후 상세 직무 적성이 제공됩니다.";
-    document.getElementById('iljuRelationship').innerHTML = "데이터 업데이트 후 대인관계 분석이 제공됩니다.";
-    document.getElementById('iljuAdvice').innerHTML = "추후 완벽한 60갑자 데이터베이스 패치가 적용될 예정입니다.";
-    document.getElementById('iljuDetailsInfo').innerText = "*일간(" + p.d.g + ")과 일지(" + p.d.j + ")";
+  var elementInfo = stemElementMap[p.d.g] || ['wood', '목(木)'];
+  var theme = elementTheme[elementInfo[0]] || elementTheme.wood;
+  iljuCard.style.setProperty('--ilju-accent', theme.accent);
+  iljuCard.style.setProperty('--ilju-soft', theme.soft);
+
+  var animal = animalMap[p.d.j] || ['✨','상징'];
+  var nameMainEl = document.getElementById('iljuNameMain');
+  var nameHanjaEl = document.getElementById('iljuNameHanja');
+  var badgeEl = document.getElementById('iljuElementBadge');
+  var animalEl = document.getElementById('iljuHeroAnimal');
+  var animalLabelEl = document.getElementById('iljuHeroAnimalLabel');
+  if (nameMainEl) nameMainEl.innerText = mainName;
+  if (nameHanjaEl) nameHanjaEl.innerText = hanjaName;
+  if (badgeEl) badgeEl.innerText = elementInfo[1] + ' 에너지 중심';
+  if (animalEl) animalEl.innerText = animal[0];
+  if (animalLabelEl) animalLabelEl.innerText = animal[1] + ' 상징';
+
+  var summaryLines = data ? iljuBullets(data.summary, 3) : ['일주는 나의 본질을 보여주는 핵심 축입니다.', '일간과 일지의 조합으로 성향이 형성됩니다.', '요약/상세/조언 순서로 읽어보세요.'];
+  var detailSource = data ? ((data.personality || '') + ' ' + (data.professional || '') + ' ' + (data.relationship || '')) : '상세 분석 데이터가 업데이트되는 중입니다.';
+  var detailLines = iljuBullets(detailSource, 4);
+  var adviceLines = data ? iljuBullets(data.advice, 3) : ['하루 루틴을 짧게 기록하며 감정과 판단 흐름을 점검해 보세요.', '강점은 더 선명하게, 취약점은 부드럽게 보완하는 전략이 좋습니다.'];
+
+  iljuSetList('iljuSummaryList', summaryLines, '핵심 요약 데이터가 준비 중입니다.');
+  iljuSetList('iljuDetailList', detailLines, '상세 분석 데이터가 준비 중입니다.');
+  iljuSetList('iljuAdviceList', adviceLines, '맞춤 조언 데이터가 준비 중입니다.');
+
+  var keywords = buildIljuKeywords(key, data, p.d.g, p.d.j, elementInfo[1]);
+  var keywordWrap = document.getElementById('iljuKeywords');
+  if (keywordWrap) {
+    keywordWrap.innerHTML = keywords.map(function(k) {
+      return '<span class="ilju-v2-chip">#' + iljuEscapeHtml(k) + '</span>';
+    }).join('');
+  }
+
+  var scores = buildIljuElementScores(p.d.g, p.d.j);
+  iljuSetBar('iljuWoodBar', 'iljuWoodVal', scores.wood);
+  iljuSetBar('iljuFireBar', 'iljuFireVal', scores.fire);
+  iljuSetBar('iljuEarthBar', 'iljuEarthVal', scores.earth);
+  iljuSetBar('iljuMetalBar', 'iljuMetalVal', scores.metal);
+  iljuSetBar('iljuWaterBar', 'iljuWaterVal', scores.water);
+
+  var detailsInfo = document.getElementById('iljuDetailsInfo');
+  if (detailsInfo) {
+    detailsInfo.innerText = data && data.details
+      ? 'ⓘ 전문 용어 참고: ' + iljuSanitizeText(data.details)
+      : 'ⓘ 일간(' + p.d.g + ') · 일지(' + p.d.j + ') 기반 기본 분석';
   }
 }
 
@@ -4159,14 +4367,6 @@ function renderAstroInsight() {
         +'</div>'
         +'</div>'
 
-        /* ── 카카오톡 공유 버튼 ── */
-        +'<div style="margin-top:28px; padding:24px 20px; background:linear-gradient(160deg,rgba(10,8,30,0.85),rgba(20,10,55,0.85)); border:1px solid rgba(209,196,233,0.2); border-radius:18px; text-align:center;">'
-        +'<p style="font-family:\'Gowun Dodum\',serif; font-size:0.88rem; color:rgba(209,196,233,0.6); letter-spacing:1px; margin:0 0 16px;">✨ 이 코즈믹 차트를 친구와 나눠보세요</p>'
-        +'<button onclick="shareAstroKakao()" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#FEE500; color:#3B1E08; border:none; border-radius:13px; font-size:0.95rem; font-weight:800; padding:14px 28px; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; box-shadow:0 4px 18px rgba(254,229,0,0.35); transition:transform 0.15s, box-shadow 0.15s; letter-spacing:0.3px;" onmouseenter="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 6px 22px rgba(254,229,0,0.5)\';" onmouseleave="this.style.transform=\'\'; this.style.boxShadow=\'0 4px 18px rgba(254,229,0,0.35)\';" onmousedown="this.style.transform=\'scale(0.96)\';" onmouseup="this.style.transform=\'\'">'
-        +'<span style="font-size:1.2rem">💬</span> 카카오톡 공유'
-        +'</button>'
-        +'</div>'
-
         +'</div>';
 
     document.getElementById('astroResult').innerHTML = html;
@@ -4869,12 +5069,424 @@ function buildZwSummaryTableHtml(palace) {
     +'</table></div>';
 }
 
+function renderZiweiMobileDashboard(palace, targetId) {
+  var sec = document.getElementById(targetId || 'ziweiSection');
+  if (!sec || !palace || !palace.palacesByIndex || !palace.stars) return false;
+
+  if (!document.getElementById('zw3-style')) {
+    var style = document.createElement('style');
+    style.id = 'zw3-style';
+    style.textContent = ''
+      + '.zw3{--zw3-bg:#f6f5ff;--zw3-surface:#ffffff;--zw3-text:#1f1d2f;--zw3-sub:#6b6787;--zw3-accent:#7c3aed;--zw3-good:#22c55e;--zw3-warn:#f59e0b;--zw3-risk:#ef4444;--zw3-border:rgba(124,58,237,.14);font-family:\'Pretendard\',\'SUIT\',sans-serif;background:radial-gradient(circle at 20% -10%,#efe9ff 0%,#f6f5ff 48%,#f9f6ff 100%);border:1px solid var(--zw3-border);border-radius:18px;padding:14px;color:var(--zw3-text)}'
+      + 'body.neo-mode .zw3{--zw3-bg:#0f1020;--zw3-surface:#17192a;--zw3-text:#ece9ff;--zw3-sub:#a7a4bf;--zw3-border:rgba(255,215,0,.14);background:radial-gradient(circle at 20% -10%,#24213a 0%,#0f1020 60%,#0b0d18 100%)}'
+      + '.zw3 *{box-sizing:border-box}'
+      + '.zw3-stack{display:flex;flex-direction:column;gap:12px}'
+      + '.zw3-card{background:var(--zw3-surface);border:1px solid var(--zw3-border);border-radius:14px;padding:12px;box-shadow:0 8px 20px rgba(30,20,70,.08)}'
+      + '.zw3-head{display:flex;align-items:center;justify-content:space-between;gap:8px}'
+      + '.zw3-title{font-size:.98rem;font-weight:800;letter-spacing:.01em}'
+      + '.zw3-mini{font-size:.76rem;color:var(--zw3-sub)}'
+      + '.zw3-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}'
+      + '.zw3-chip{display:inline-flex;align-items:center;gap:4px;padding:6px 9px;border-radius:999px;font-size:.72rem;font-weight:700;background:rgba(124,58,237,.10);color:#6d28d9;border:1px solid rgba(124,58,237,.22)}'
+      + '.zw3-summary{font-size:.85rem;line-height:1.7;color:var(--zw3-text);margin-top:8px}'
+      + '.zw3-acc details{border:1px solid var(--zw3-border);border-radius:10px;background:rgba(124,58,237,.04);margin-top:7px}'
+      + '.zw3-acc summary{list-style:none;cursor:pointer;padding:10px 12px;font-size:.82rem;font-weight:800;min-height:44px;display:flex;align-items:center}'
+      + '.zw3-acc summary::-webkit-details-marker{display:none}'
+      + '.zw3-acc-body{padding:0 12px 11px 12px;font-size:.8rem;line-height:1.72;color:var(--zw3-sub)}'
+      + '.zw3-tab-scroll{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}'
+      + '.zw3-tab{border:1px solid var(--zw3-border);background:var(--zw3-surface);color:var(--zw3-text);border-radius:999px;padding:10px 12px;min-height:44px;font-size:.77rem;font-weight:700;white-space:nowrap;scroll-snap-align:start;cursor:pointer}'
+      + '.zw3-tab.active{background:linear-gradient(135deg,#7c3aed,#a855f7);border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(124,58,237,.32)}'
+      + '.zw3-swiper{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 1px 2px;-webkit-overflow-scrolling:touch}'
+      + '.zw3-pcard{min-width:88%;scroll-snap-align:start;border:1px solid var(--zw3-border);border-radius:12px;background:var(--zw3-surface);padding:12px;transform:translateY(10px);opacity:0;animation:zw3Rise .42s ease forwards}'
+      + '.zw3-phead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}'
+      + '.zw3-pname{font-size:.92rem;font-weight:900}'
+      + '.zw3-status{font-size:.7rem;border-radius:999px;padding:4px 8px;font-weight:800}'
+      + '.zw3-status.good{color:#166534;background:rgba(34,197,94,.16)}'
+      + '.zw3-status.warn{color:#92400e;background:rgba(245,158,11,.18)}'
+      + '.zw3-status.risk{color:#b91c1c;background:rgba(239,68,68,.16)}'
+      + '.zw3-stars{font-size:.8rem;line-height:1.65;color:var(--zw3-sub)}'
+      + '.zw3-open{margin-top:10px;width:100%;min-height:44px;border:none;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;font-weight:800;font-size:.82rem;cursor:pointer}'
+      + '.zw3-line-wrap{background:rgba(124,58,237,.06);border:1px solid var(--zw3-border);border-radius:12px;padding:10px}'
+      + '.zw3-spark{width:100%;height:70px;display:block}'
+      + '.zw3-tline{display:flex;flex-direction:column;gap:7px;margin-top:8px}'
+      + '.zw3-node{border:1px solid var(--zw3-border);background:var(--zw3-surface);border-radius:11px;padding:9px 10px;min-height:44px;cursor:pointer}'
+      + '.zw3-node-top{display:flex;justify-content:space-between;gap:8px;font-size:.75rem;color:var(--zw3-sub);font-weight:700}'
+      + '.zw3-node-body{font-size:.81rem;line-height:1.6;margin-top:3px}'
+      + '.zw3-score{font-weight:900}'
+      + '.zw3-stepper{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}'
+      + '.zw3-step{min-width:85%;scroll-snap-align:start;border:1px solid var(--zw3-border);border-radius:12px;background:var(--zw3-surface);padding:10px;position:relative}'
+      + '.zw3-step::before{content:\'\';position:absolute;inset:0;border-radius:12px;opacity:.18;pointer-events:none}'
+      + '.zw3-step.good::before{background:linear-gradient(135deg,#22c55e,#86efac)}'
+      + '.zw3-step.warn::before{background:linear-gradient(135deg,#f59e0b,#fde68a)}'
+      + '.zw3-step.risk::before{background:linear-gradient(135deg,#ef4444,#fca5a5)}'
+      + '.zw3-step-age{font-size:.72rem;font-weight:800;color:var(--zw3-sub)}'
+      + '.zw3-step-title{font-size:.86rem;font-weight:900;margin-top:2px}'
+      + '.zw3-step-note{font-size:.79rem;line-height:1.6;margin-top:4px;color:var(--zw3-sub)}'
+      + '.zw3-sheet-back{position:fixed;inset:0;background:rgba(9,10,19,.52);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:10040}'
+      + '.zw3-sheet-back.open{opacity:1;pointer-events:auto}'
+      + '.zw3-sheet{position:fixed;left:0;right:0;bottom:-84vh;max-height:84vh;background:var(--zw3-surface);border-radius:18px 18px 0 0;border:1px solid var(--zw3-border);padding:10px 12px 16px;transition:bottom .28s ease;z-index:10041;overflow:auto}'
+      + '.zw3-sheet.open{bottom:0}'
+      + '.zw3-sheet-handle{width:58px;height:5px;border-radius:999px;background:rgba(148,163,184,.45);margin:4px auto 10px}'
+      + '.zw3-sheet-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}'
+      + '.zw3-close{border:1px solid var(--zw3-border);background:transparent;border-radius:9px;padding:8px 10px;min-height:44px;cursor:pointer;color:var(--zw3-text);font-weight:700}'
+      + '.zw3-sheet-body{font-size:.84rem;line-height:1.72;color:var(--zw3-text)}'
+      + '.zw3-sheet-block{border:1px solid var(--zw3-border);border-radius:10px;background:rgba(124,58,237,.05);padding:10px;margin-top:8px}'
+      + '.zw3-sheet-k{font-size:.74rem;color:var(--zw3-sub);margin-bottom:4px;font-weight:700}'
+      + '.zw3-sheet-v{font-size:.83rem}'
+      + '.zw3-radar-wrap{border:1px solid var(--zw3-border);border-radius:12px;background:rgba(124,58,237,.06);padding:10px;margin-top:8px}'
+      + '.zw3-radar-title{font-size:.74rem;color:var(--zw3-sub);font-weight:700;margin-bottom:6px}'
+      + '.zw3-radar-canvas{width:100%;height:190px;display:block}'
+      + '@keyframes zw3Rise{to{opacity:1;transform:translateY(0)}}'
+      + '@media (min-width:760px){.zw3{padding:16px}.zw3-pcard{min-width:46%}.zw3-step{min-width:33%}.zw3-sheet{left:50%;transform:translateX(-50%);max-width:700px;border-radius:18px}}';
+    document.head.appendChild(style);
+  }
+
+  function cleanStar(raw) {
+    return String(raw || '').replace(/<[^>]+>/g, '').replace(/\(차성\)/g, '').trim().split(' ')[0];
+  }
+  function parseSihua(raw) {
+    var m = String(raw || '').match(/화록|화권|화과|화기/);
+    return m ? m[0] : '';
+  }
+  function getStatus(stars) {
+    var hasRisk = stars.bad.length >= 2 || stars.main.some(function(m) { return parseSihua(m) === '화기'; }) || stars.aux.some(function(m) { return parseSihua(m) === '화기'; });
+    if (hasRisk) return 'risk';
+    var hasGood = stars.main.some(function(m) { var sh = parseSihua(m); return sh === '화록' || sh === '화권' || sh === '화과'; }) || stars.aux.some(function(m) { var sh = parseSihua(m); return sh === '화록' || sh === '화권' || sh === '화과'; });
+    if (hasGood) return 'good';
+    return 'warn';
+  }
+  function scoreStars(stars) {
+    var score = 55 + stars.main.length * 12 + stars.aux.length * 4 - stars.bad.length * 11;
+    stars.main.forEach(function(s) {
+      var sh = parseSihua(s);
+      if (sh === '화록' || sh === '화권' || sh === '화과') score += 8;
+      if (sh === '화기') score -= 14;
+    });
+    if (score > 95) score = 95;
+    if (score < 18) score = 18;
+    return score;
+  }
+  function sparklineSvg(scores, gradId) {
+    if (!scores.length) return '';
+    var points = [];
+    var n = scores.length - 1;
+    for (var i = 0; i < scores.length; i++) {
+      var x = n === 0 ? 0 : (i * 100 / n);
+      var y = 100 - scores[i];
+      points.push(x.toFixed(1) + ',' + y.toFixed(1));
+    }
+    return '<svg class="zw3-spark" viewBox="0 0 100 100" preserveAspectRatio="none">'
+      + '<polyline points="' + points.join(' ') + '" fill="none" stroke="url(#' + gradId + ')" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></polyline>'
+      + '<defs><linearGradient id="' + gradId + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#60a5fa"></stop><stop offset="100%" stop-color="#a855f7"></stop></linearGradient></defs>'
+      + '</svg>';
+  }
+
+  var rootId = 'zw3-' + Date.now();
+  var palaceCards = [];
+  for (var i = 0; i < palace.palacesByIndex.length; i++) {
+    var name = palace.palacesByIndex[i];
+    var stars = palace.stars[i] || { main: [], aux: [], bad: [] };
+    var zhi = ZHI_LIST[i] || '';
+    var dahan = (palace.daHan && palace.daHan[i]) ? palace.daHan[i] : '';
+    var mainNames = stars.main.map(cleanStar).filter(Boolean);
+    var status = getStatus(stars);
+    var score = scoreStars(stars);
+    palaceCards.push({ idx: i, name: name, zhi: zhi, dahan: dahan, stars: stars, mainNames: mainNames, status: status, score: score });
+  }
+
+  var mengIdx = palace.palacesByIndex.indexOf('명궁');
+  if (mengIdx < 0) mengIdx = 0;
+  var mengCard = palaceCards[mengIdx] || palaceCards[0];
+  var topKeywords = (mengCard.mainNames.length ? mengCard.mainNames : ['균형']).slice(0, 3).map(function(s) {
+    return ZW_STAR_KW[s] || (s + ' 키워드');
+  });
+  var summarySentence = (ZW_GUNG_DEF[mengCard.name] || '삶의 핵심축') + '이 핵심이며, ' + topKeywords.join(' · ') + '의 흐름이 강하게 작동합니다.';
+
+  var timeline = [];
+  if (palace.daHanList && palace.daHanList.length) {
+    timeline = palace.daHanList.map(function(dh) {
+      var s = palace.stars[dh.idx] || { main: [], aux: [], bad: [] };
+      return {
+        idx: dh.idx,
+        palaceName: dh.palaceName,
+        age: dh.startAge + '~' + dh.endAge + '세',
+        score: scoreStars(s),
+        status: getStatus(s),
+        note: (ZW_GUNG_DEF[dh.palaceName] || '핵심 운기')
+      };
+    });
+  } else {
+    var startBase = palace.ju || 4;
+    timeline = palaceCards.map(function(pc, ix) {
+      return {
+        idx: pc.idx,
+        palaceName: pc.name,
+        age: (startBase + ix * 10) + '~' + (startBase + ix * 10 + 9) + '세',
+        score: pc.score,
+        status: pc.status,
+        note: (ZW_GUNG_DEF[pc.name] || '핵심 운기')
+      };
+    });
+  }
+
+  var pivots = timeline.slice().sort(function(a, b) {
+    var wa = (a.status === 'risk' ? 30 : (a.status === 'good' ? 20 : 10)) + a.score;
+    var wb = (b.status === 'risk' ? 30 : (b.status === 'good' ? 20 : 10)) + b.score;
+    return wb - wa;
+  }).slice(0, 3);
+
+  var tabsHtml = palaceCards.map(function(pc) {
+    return '<button type="button" class="zw3-tab' + (pc.idx === mengIdx ? ' active' : '') + '" data-zw3-tab="' + pc.idx + '">' + (ZW_PALACE_ICON[pc.name] || '◆') + ' ' + pc.name + '</button>';
+  }).join('');
+
+  var cardsHtml = palaceCards.map(function(pc, ix) {
+    var statusLabel = pc.status === 'good' ? '길(吉)' : (pc.status === 'risk' ? '흉(凶) 주의' : '중립');
+    var mainText = pc.mainNames.length ? pc.mainNames.join(' · ') : '공궁(空宮)';
+    var auxText = pc.stars.aux.length ? pc.stars.aux.map(cleanStar).slice(0, 3).join(' · ') : '보조성 없음';
+    return '<article class="zw3-pcard" data-zw3-card="' + pc.idx + '" style="animation-delay:' + (ix * 45) + 'ms">'
+      + '<div class="zw3-phead"><div class="zw3-pname">' + (ZW_PALACE_ICON[pc.name] || '◆') + ' ' + pc.name + ' · ' + pc.zhi + '</div><span class="zw3-status ' + pc.status + '">' + statusLabel + '</span></div>'
+      + '<div class="zw3-stars"><b>주성</b>: ' + mainText + '<br><b>보조</b>: ' + auxText + (pc.dahan ? ('<br><b>대한</b>: ' + pc.dahan + '세') : '') + '</div>'
+      + '<button type="button" class="zw3-open" data-zw3-open="' + pc.idx + '">해석 바텀시트 열기</button>'
+      + '</article>';
+  }).join('');
+
+  var timelineHtml = timeline.map(function(t) {
+    return '<button type="button" class="zw3-node" data-zw3-open="' + t.idx + '">'
+      + '<div class="zw3-node-top"><span>' + t.age + ' · ' + t.palaceName + '</span><span class="zw3-score" style="color:' + (t.status === 'good' ? '#16a34a' : (t.status === 'risk' ? '#dc2626' : '#b45309')) + '">' + t.score + '점</span></div>'
+      + '<div class="zw3-node-body">' + t.note + '</div>'
+      + '</button>';
+  }).join('');
+
+  var pivotHtml = pivots.map(function(p) {
+    var cls = p.status === 'good' ? 'good' : (p.status === 'risk' ? 'risk' : 'warn');
+    var badge = p.status === 'good' ? '기회 확장' : (p.status === 'risk' ? '리스크 집중' : '균형 조정');
+    return '<article class="zw3-step ' + cls + '">'
+      + '<div class="zw3-step-age">' + p.age + '</div>'
+      + '<div class="zw3-step-title">' + p.palaceName + ' · ' + badge + '</div>'
+      + '<div class="zw3-step-note">키워드: ' + (ZW_GUNG_DEF[p.palaceName] || '핵심 변곡점') + '<br>조언: 중요한 의사결정은 빠르게 결론내기보다 24시간 숙고 후 확정하세요.</div>'
+      + '</article>';
+  }).join('');
+
+  var sparkGradId = rootId + '-spark';
+  var html = ''
+    + '<section class="zw3" id="' + rootId + '">'
+    + '  <div class="zw3-stack">'
+    + '    <article class="zw3-card">'
+    + '      <div class="zw3-head"><h3 class="zw3-title">[Module 1] 생애 총론</h3><span class="zw3-mini">AI 요약 카드</span></div>'
+    + '      <div class="zw3-chip-row">'
+    + topKeywords.map(function(k) { return '<span class="zw3-chip"># ' + k + '</span>'; }).join('')
+    + '      </div>'
+    + '      <div class="zw3-summary">' + summarySentence + ' 오행국은 <b>' + (palace.juInfo || '-') + '</b>, 대한 흐름은 <b>' + ((palace.direction === 1) ? '순행' : '역행') + '</b>으로 전개됩니다.</div>'
+    + '      <div class="zw3-acc">'
+    + '        <details open><summary>강점 포인트</summary><div class="zw3-acc-body">명궁 중심의 잠재력은 <b>' + (mengCard.mainNames[0] || '적응력') + '</b>에 있습니다. 자신이 통제 가능한 루틴을 만들수록 운기의 편차가 줄어듭니다.</div></details>'
+    + '        <details><summary>리스크 체크</summary><div class="zw3-acc-body">화기(忌) 또는 흉성 구간은 확장보다 방어가 우선입니다. 관계/투자 결정을 분리하고, 감정적 결정을 하루 유예하세요.</div></details>'
+    + '        <details><summary>실행 전략</summary><div class="zw3-acc-body">이번 달은 1) 핵심 관계 3명 재정비 2) 고정 지출 최적화 3) 장기 목표를 12주 단위로 분할 실행하는 방식이 유효합니다.</div></details>'
+    + '      </div>'
+    + '    </article>'
+    + '    <article class="zw3-card">'
+    + '      <div class="zw3-head"><h3 class="zw3-title">12궁 심층 분석</h3><span class="zw3-mini">탭 + 스와이프 + 바텀시트</span></div>'
+    + '      <div class="zw3-tab-scroll">' + tabsHtml + '</div>'
+    + '      <div class="zw3-swiper" id="' + rootId + '-swiper">' + cardsHtml + '</div>'
+    + '    </article>'
+    + '    <article class="zw3-card">'
+    + '      <div class="zw3-head"><h3 class="zw3-title">[Module 2] 대한 12단계 타임라인</h3><span class="zw3-mini">인터랙티브 세로 스크롤</span></div>'
+    + '      <div class="zw3-line-wrap">' + sparklineSvg(timeline.map(function(t) { return t.score; }), sparkGradId) + '</div>'
+    + '      <div class="zw3-tline">' + timelineHtml + '</div>'
+    + '    </article>'
+    + '    <article class="zw3-card">'
+    + '      <div class="zw3-head"><h3 class="zw3-title">[Module 3] 인생의 3대 변곡점</h3><span class="zw3-mini">Stepper Highlight</span></div>'
+    + '      <div class="zw3-stepper">' + pivotHtml + '</div>'
+    + '    </article>'
+    + '  </div>'
+    + '</section>'
+    + '<div class="zw3-sheet-back" id="' + rootId + '-back"></div>'
+    + '<section class="zw3-sheet" id="' + rootId + '-sheet" role="dialog" aria-modal="true" aria-label="자미두수 궁 상세 바텀시트">'
+    + '  <div class="zw3-sheet-handle"></div>'
+    + '  <div class="zw3-sheet-top"><div class="zw3-title" id="' + rootId + '-sheet-title">궁 상세</div><button type="button" class="zw3-close" id="' + rootId + '-close">닫기</button></div>'
+    + '  <div class="zw3-sheet-body" id="' + rootId + '-sheet-body"></div>'
+    + '</section>';
+
+  sec.innerHTML = html;
+
+  var root = document.getElementById(rootId);
+  var swiper = document.getElementById(rootId + '-swiper');
+  var back = document.getElementById(rootId + '-back');
+  var sheet = document.getElementById(rootId + '-sheet');
+  var sheetTitle = document.getElementById(rootId + '-sheet-title');
+  var sheetBody = document.getElementById(rootId + '-sheet-body');
+  var closeBtn = document.getElementById(rootId + '-close');
+  var currentIdx = mengIdx;
+
+  function getRadarPack(palaceName, pc) {
+    var mainCnt = pc.stars.main.length;
+    var auxCnt = pc.stars.aux.length;
+    var badCnt = pc.stars.bad.length;
+    var labelsByTheme = {
+      base: ['잠재력', '실행력', '관계운', '확장운', '리스크'],
+      rel: ['친밀감', '신뢰도', '조율력', '연결성', '갈등도'],
+      fin: ['수익력', '안정성', '결단력', '성장성', '손실위험'],
+      well: ['체력', '회복력', '멘탈', '생활균형', '피로누적'],
+      move: ['적응력', '외연확장', '변화대응', '기회포착', '변수위험']
+    };
+    var theme = 'base';
+    if (['부처궁', '형제궁', '노복궁', '자녀궁', '부모궁'].indexOf(palaceName) >= 0) theme = 'rel';
+    else if (['관록궁', '재백궁', '전택궁'].indexOf(palaceName) >= 0) theme = 'fin';
+    else if (['질액궁', '복덕궁'].indexOf(palaceName) >= 0) theme = 'well';
+    else if (['천이궁'].indexOf(palaceName) >= 0) theme = 'move';
+
+    var d1 = Math.min(100, 46 + mainCnt * 16 + auxCnt * 4);
+    var d2 = Math.min(100, 50 + mainCnt * 10 + (theme === 'fin' ? 16 : 8));
+    var d3 = Math.min(100, 44 + auxCnt * 15 + (theme === 'rel' ? 12 : 6));
+    var d4 = Math.min(100, 48 + (theme === 'move' ? 22 : 10) + mainCnt * 6);
+    var d5 = Math.min(100, 20 + badCnt * 24 + (pc.status === 'risk' ? 15 : 0));
+    return { labels: labelsByTheme[theme] || labelsByTheme.base, data: [d1, d2, d3, d4, d5] };
+  }
+
+  function ensureChartJs(done) {
+    if (typeof Chart !== 'undefined') { done(); return; }
+    var existing = document.getElementById('chartjs-cdn');
+    if (existing) {
+      var wait = 0;
+      var timer = setInterval(function() {
+        wait++;
+        if (typeof Chart !== 'undefined' || wait > 50) {
+          clearInterval(timer);
+          if (typeof Chart !== 'undefined') done();
+        }
+      }, 80);
+      return;
+    }
+    var s = document.createElement('script');
+    s.id = 'chartjs-cdn';
+    s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+    s.onload = done;
+    document.head.appendChild(s);
+  }
+
+  function drawBottomSheetRadar(idx) {
+    var pc = palaceCards.find(function(c) { return c.idx === idx; });
+    if (!pc) return;
+    ensureChartJs(function() {
+      var canvas = document.getElementById(rootId + '-radar-canvas');
+      if (!canvas || typeof Chart === 'undefined') return;
+      var ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      var pack = getRadarPack(pc.name, pc);
+      if (window._zw3SheetChart) {
+        try { window._zw3SheetChart.destroy(); } catch (e) {}
+      }
+      window._zw3SheetChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: pack.labels,
+          datasets: [{
+            data: pack.data,
+            fill: true,
+            backgroundColor: 'rgba(124,58,237,0.24)',
+            borderColor: 'rgba(79,70,229,0.95)',
+            pointBackgroundColor: '#7c3aed',
+            pointBorderColor: '#ffffff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          animation: { duration: 260 },
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              suggestedMin: 0,
+              suggestedMax: 100,
+              ticks: { display: false },
+              pointLabels: { color: '#8b87a7', font: { size: 10 } },
+              angleLines: { color: 'rgba(148,163,184,.24)' },
+              grid: { color: 'rgba(148,163,184,.24)' }
+            }
+          }
+        }
+      });
+    });
+  }
+
+  function setActiveTab(idx, scrollCard) {
+    currentIdx = idx;
+    var tabs = root.querySelectorAll('[data-zw3-tab]');
+    tabs.forEach(function(tb) {
+      tb.classList.toggle('active', Number(tb.getAttribute('data-zw3-tab')) === idx);
+    });
+    if (scrollCard && swiper) {
+      var card = root.querySelector('[data-zw3-card="' + idx + '"]');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    }
+  }
+
+  function openSheet(idx) {
+    var pc = palaceCards.find(function(c) { return c.idx === idx; });
+    if (!pc) return;
+    var statusLabel = pc.status === 'good' ? '길(吉)' : (pc.status === 'risk' ? '흉(凶) 주의' : '중립');
+    var sihua = [];
+    pc.stars.main.concat(pc.stars.aux).forEach(function(raw) {
+      var sh = parseSihua(raw);
+      if (sh) sihua.push(sh + ' · ' + cleanStar(raw));
+    });
+    sheetTitle.textContent = (ZW_PALACE_ICON[pc.name] || '◆') + ' ' + pc.name + ' 상세 해석';
+    sheetBody.innerHTML = ''
+      + '<div class="zw3-radar-wrap"><div class="zw3-radar-title">궁 운기 레이더 차트</div><canvas id="' + rootId + '-radar-canvas" class="zw3-radar-canvas"></canvas></div>'
+      + '<div class="zw3-sheet-block"><div class="zw3-sheet-k">궁 정의</div><div class="zw3-sheet-v">' + (ZW_GUNG_DEF[pc.name] || '핵심 운기') + '</div></div>'
+      + '<div class="zw3-sheet-block"><div class="zw3-sheet-k">주성 / 보조성 / 흉성</div><div class="zw3-sheet-v"><b>주성:</b> ' + (pc.mainNames.length ? pc.mainNames.join(' · ') : '공궁') + '<br><b>보조:</b> ' + (pc.stars.aux.length ? pc.stars.aux.map(cleanStar).join(' · ') : '없음') + '<br><b>흉성:</b> ' + (pc.stars.bad.length ? pc.stars.bad.map(cleanStar).join(' · ') : '낮음') + '</div></div>'
+      + '<div class="zw3-sheet-block"><div class="zw3-sheet-k">길흉 상태</div><div class="zw3-sheet-v"><b>' + statusLabel + '</b> · 에너지 점수 <b>' + pc.score + '점</b><br>권장 행동: ' + (pc.status === 'risk' ? '투자·관계 결정을 분리하고 손실 방어를 우선하세요.' : (pc.status === 'good' ? '확장과 실행을 빠르게 진행하되 일정 관리를 병행하세요.' : '점진적 실행과 리듬 유지가 최적입니다.')) + '</div></div>'
+      + '<div class="zw3-sheet-block"><div class="zw3-sheet-k">사화(四化)</div><div class="zw3-sheet-v">' + (sihua.length ? sihua.join('<br>') : '강한 사화 변동 없음') + '</div></div>';
+    back.classList.add('open');
+    sheet.classList.add('open');
+    drawBottomSheetRadar(idx);
+    setActiveTab(idx, false);
+  }
+
+  function closeSheet() {
+    back.classList.remove('open');
+    sheet.classList.remove('open');
+  }
+
+  root.querySelectorAll('[data-zw3-tab]').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      setActiveTab(Number(tab.getAttribute('data-zw3-tab')), true);
+    });
+  });
+  root.querySelectorAll('[data-zw3-open]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      openSheet(Number(btn.getAttribute('data-zw3-open')));
+    });
+  });
+  if (swiper) {
+    swiper.addEventListener('scroll', function() {
+      var cards = root.querySelectorAll('[data-zw3-card]');
+      var best = { idx: currentIdx, dist: Infinity };
+      cards.forEach(function(card) {
+        var dist = Math.abs(card.getBoundingClientRect().left - swiper.getBoundingClientRect().left);
+        if (dist < best.dist) best = { idx: Number(card.getAttribute('data-zw3-card')), dist: dist };
+      });
+      if (best.idx !== currentIdx) setActiveTab(best.idx, false);
+    }, { passive: true });
+  }
+  if (back) back.addEventListener('click', closeSheet);
+  if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+
+  setActiveTab(mengIdx, false);
+  return true;
+}
+
 function renderZiwei(p, natal, targetId) {
   var mj = (p && p.m) ? p.m.j : '';
   var pw=G_POWER,jg=G_JONG;
   var birth = window._ziweiBirth || { year:0, month:1, day:1, hour:12, minute:0 };
   var palace = calcZiweiPalaces(birth.year, birth.month, birth.day, birth.hour, birth.minute);
   window._currentZiweiData = palace;
+
+  try {
+    if (renderZiweiMobileDashboard(palace, targetId)) return;
+  } catch (e) {
+    console.warn('[Ziwei] mobile dashboard render fallback:', e);
+  }
 
   var html = `
   <style>
@@ -8184,7 +8796,7 @@ function renderHormoneVibe(p, power) {
     html = '<div class="hv-teto-wrap">'
       + '<div class="hv-teto-bg">' + flames + '</div>'
       + '<div class="hv-teto-content">'
-      + '<div class="hv-teto-badge">🔥 TESTOSTERONE TYPE</div>'
+
       + '<div class="hv-teto-title" style="display:flex; flex-direction:column; align-items:center; line-height:1.2; padding:10px 0;">'
       + '<div style="font-size:4.5rem; text-shadow:0 10px 20px rgba(0,0,0,0.5); display:inline-block; margin-bottom:10px;" class="wild-horse">🐎</div>'
       + '<span>이 구역 야생마는<br>나야 나!</span>'
@@ -8215,7 +8827,7 @@ function renderHormoneVibe(p, power) {
     html = '<div class="hv-egen-wrap">'
       + '<div class="hv-egen-bg">' + sparkles + '</div>'
       + '<div class="hv-egen-content">'
-      + '<div class="hv-egen-badge">✨ ESTROGEN TYPE</div>'
+
       + '<div class="hv-egen-title">감성이 파도처럼<br>밀려오는 중 🌊</div>'
       + '<div class="hv-egen-copy">감성이 파도를 치네요, 에겐 지수가 한도 초과입니다!</div>'
       + barHtml
@@ -8234,7 +8846,7 @@ function renderHormoneVibe(p, power) {
 
     html = '<div class="hv-neutral-wrap">'
       + '<div class="hv-neutral-content">'
-      + '<div class="hv-teto-badge" style="background:linear-gradient(90deg,#4ecdc4,#a8e6df);margin-bottom:14px;">🌀 BALANCED TYPE</div>'
+
       + '<div class="hv-neutral-title">테토도 에겐도 아닌<br>뭔가 독특한 사주 🌀</div>'
       + '<div class="hv-neutral-copy" style="margin-bottom:18px;">"당신은 그냥 특별한 케이스입니다. 카테고리로 나눌 수가 없어요 🤷"<br>하나의 성향에 치우치지 않는 균형 잡힌 에너지를 보유 중!</div>'
       + barHtml
@@ -11910,16 +12522,16 @@ document.addEventListener('destinyProfileChanged', function(e) {
    리포트 대시보드 — 10개 분석 기능 카드 UI
    ══════════════════════════════════════════════ */
 var REPORT_CARDS = [
-  { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수',        badge:'✨ 매력',  accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard'    },
-  { id:'quntum',     label:'퀀텀 명리 전략',        desc:'합화 우선 분석 · 나의 전략 지도',      badge:'⚡ 전략',  accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard'         },
-  { id:'sajuhealth', label:'명리 헬스 리포트',      desc:'오행 균형 · 내 몸의 약점 신호',        badge:'💚 건강',  accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard'    },
-  { id:'sajuprompt', label:'사주 프롬프트',         desc:'AI 아바타 · 이상형 초상화 프롬프트',   badge:'🤖 AI',   accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard'    },
-  { id:'sajurpg',    label:'인생 스킬 트리',        desc:'運命 RPG · 나의 능력치 레벨 시트',     badge:'🎮 RPG',  accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard'       },
-  { id:'tbal',       label:'극T 테스트',            desc:'The Frozen Logic · 논리의 온도',      badge:'🧊 극T',  accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard'           },
-  { id:'tetoegen',   label:'테토 vs 에겐',          desc:'사주로 보는 나의 호르몬 유형',          badge:'🌊 유형',  accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section'},
-  { id:'trip',       label:'에너지 원정 리포트',     desc:'나의 에너지 방향 · 이상적 여정지',      badge:'🗺️ 여정', accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard'     },
-  { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 유형 분석',            badge:'⚠️ 주의', accent:'#f87171', glow:'rgba(248,113,113,.55)', target:'villainCard'         },
-  { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 번호 계산',            badge:'🎱 로또',  accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard'           }
+  { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기',     accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard'    },
+  { id:'quntum',     label:'퀀텀 명리 전략',        desc:'합화 우선 분석으로 나만의 전략 지도를 제공합니다.',      note:'지금 밀어붙일 타이밍인지, 숨을 고를 타이밍인지 전략적으로 짚어드립니다.', cta:'⚡ 전략 리포트 보기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard'         },
+  { id:'sajuhealth', label:'명리 헬스 리포트',      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 관리 우선순위를 정리해드립니다.', cta:'💚 건강 리포트 확인하기',      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard'    },
+  { id:'sajuprompt', label:'사주 프롬프트',         desc:'AI 아바타/초상화 제작용 프롬프트를 받아보세요.',         note:'내 사주 분위기를 AI 이미지로 구현할 문장까지 바로 가져갈 수 있습니다.', cta:'🤖 사주 프롬프트 보기',        accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard'    },
+  { id:'sajurpg',    label:'인생 스킬 트리',        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:'🎮 스킬 트리 펼쳐보기',        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard'       },
+  { id:'tbal',       label:'극T 테스트',            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 콕 집어드립니다.', cta:'🧊 극T 테스트 결과 보기',      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard'           },
+  { id:'tetoegen',   label:'테토 vs 에겐',          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 매력 결을 보여드립니다.', cta:'❤️ 테토/에겐 분석 보기',      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section'},
+  { id:'trip',       label:'에너지 원정 리포트',     desc:'나의 에너지 방향과 이상적 여정지를 안내합니다.',         note:'지금 나와 맞는 방향을 찾고 싶다면, 장소/활동 추천까지 한 번에 확인하세요.', cta:'🗺️ 에너지 좌표 확인하기',      accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard'     },
+  { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', glow:'rgba(248,113,113,.55)', target:'villainCard'         },
+  { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 기반 추천 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 번호 흐름을 기반으로 흥미로운 조합을 제안합니다.', cta:'🎱 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard'           }
 ];
 
 function renderReportDashboard() {
@@ -11936,12 +12548,16 @@ function renderReportDashboard() {
       seenTargets[c.target] = {
         images: [],
         target: c.target,
+        title: c.label,
+        preview: c.desc,
+        note: c.note,
+        cta: c.cta,
         accent: c.accent,
         glow: c.glow
       };
       blocks.push(seenTargets[c.target]);
     }
-    seenTargets[c.target].images.push({ id: c.id, label: c.label, badge: c.badge, accent: c.accent });
+    seenTargets[c.target].images.push({ id: c.id, label: c.label, accent: c.accent });
   });
 
   /* ── 그리드 HTML 생성 ── */
@@ -11959,17 +12575,23 @@ function renderReportDashboard() {
     });
     gridHtml += '</div>';
 
-    /* 배지 스트립 */
-    gridHtml += '<div class="rpt-v2-divider"></div>';
-    gridHtml += '<div class="rpt-v2-badge-strip">';
-    b.images.forEach(function(img) {
-      gridHtml += '<span class="rpt-v2-badge" style="background:' + img.accent + '22;color:' + img.accent + ';border:1px solid ' + img.accent + '44;">'
-        + img.badge + '&nbsp;' + img.label + '</span>';
-    });
+    /* 카드 헤더 + CTA */
+    gridHtml += '<div class="rpt-v2-head">';
+    gridHtml += '<h4 class="rpt-v2-title">' + b.title + '</h4>';
+    gridHtml += '<p class="rpt-v2-preview">' + b.preview + '</p>';
+    gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
+    gridHtml += '<button class="rpt-v2-toggle-btn" type="button" onclick="toggleReportFeatureCard(this)" aria-expanded="false" data-label="' + b.cta + '">';
+    gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
+    gridHtml += '<span class="rpt-v2-toggle-arrow" aria-hidden="true">▼</span>';
+    gridHtml += '</button>';
     gridHtml += '</div>';
+
+    /* 토글 상세 영역 */
+    gridHtml += '<div class="rpt-v2-detail" aria-hidden="true"><div class="rpt-v2-detail-inner">';
 
     /* 기능 콘텐츠 슬롯 */
     gridHtml += '<div class="rpt-v2-body" id="rpt-v2-body-' + b.target + '"></div>';
+    gridHtml += '</div></div>';
     gridHtml += '</div>';
   });
   gridHtml += '</div>';
@@ -11988,3 +12610,17 @@ function renderReportDashboard() {
     }
   });
 }
+
+function toggleReportFeatureCard(btn) {
+  var block = btn.closest('.rpt-v2-block');
+  if (!block) return;
+  var open = block.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  var detail = block.querySelector('.rpt-v2-detail');
+  if (detail) detail.setAttribute('aria-hidden', open ? 'false' : 'true');
+  var label = btn.querySelector('.rpt-v2-toggle-label');
+  var arrow = btn.querySelector('.rpt-v2-toggle-arrow');
+  if (label) label.textContent = open ? '닫기' : (btn.dataset.label || '자세히 보기');
+  if (arrow) arrow.textContent = open ? '▲' : '▼';
+}
+

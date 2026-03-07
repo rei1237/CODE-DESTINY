@@ -1,4 +1,5 @@
 (function(){
+  var _splashDone = false;
   /* -- ��ġ ��� �Ǻ� (�����/�º���) -- */
   var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
@@ -71,27 +72,26 @@
 
   /* -- ������ �ε� �Ϸ� -> ���÷��� ���� -- */
   function hideSplash() {
+    if (_splashDone) return;
+    _splashDone = true;
     clearInterval(msgTimer);
     clearInterval(barTimer);
     if (bar) bar.style.width = '100%';
-    setTimeout(function() {
-      var splash = document.getElementById('codeSplash');
-      if (splash) {
-        splash.style.opacity = '0';
-        splash.style.visibility = 'hidden';
-        setTimeout(function() {
-          splash.remove();
-          if (rafId) cancelAnimationFrame(rafId);
-        }, 750);
-      }
-    }, 400);
+    var splash = document.getElementById('codeSplash');
+    if (splash) {
+      splash.style.display = 'none';
+      if (splash.parentNode) splash.parentNode.removeChild(splash);
+    }
+    if (rafId) cancelAnimationFrame(rafId);
   }
 
   if (document.readyState === 'complete') {
     hideSplash();
   } else {
-    window.addEventListener('load', hideSplash);
+    window.addEventListener('load', hideSplash, { once: true });
     /* 긴급 해제: 모바일은 12초, 데스크탑은 8초 후 강제 종료 */
     setTimeout(hideSplash, isMobile ? 12000 : 8000);
+    /* 페이지 복귀 시 잔존 오버레이 제거 */
+    window.addEventListener('pageshow', hideSplash, { once: true });
   }
 })();

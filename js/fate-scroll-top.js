@@ -4,6 +4,7 @@
   var TOP_INDICATOR_ID = 'fateScrollTopIndicator';
   var topIndicatorEl = null;
   var ticking = false;
+  var resultObserver = null;
 
   function isDisplayed(el) {
     return !!(el && el.offsetParent !== null && getComputedStyle(el).display !== 'none');
@@ -113,18 +114,25 @@
     /* iOS Safari: overflow-x:hidden on <html> 시 scroll 이벤트가
        window 대신 document/body에 붙을 수 있으므로 모두 리스닝 */
     window.addEventListener('scroll', requestUpdate, { passive: true });
-    document.addEventListener('scroll', requestUpdate, { passive: true });
     window.addEventListener('resize', requestUpdate, { passive: true });
 
     var rp = getResultPage();
     if (rp) {
-      new MutationObserver(requestUpdate).observe(rp, {
+      resultObserver = new MutationObserver(requestUpdate);
+      resultObserver.observe(rp, {
         attributes: true,
         attributeFilter: ['style', 'class'],
         childList: true,
         subtree: true
       });
     }
+
+    window.addEventListener('pagehide', function () {
+      if (resultObserver) {
+        resultObserver.disconnect();
+        resultObserver = null;
+      }
+    }, { once: true });
   }
 
   if (document.readyState === 'loading') {

@@ -29,46 +29,6 @@
     });
   })();
   </script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
-     crossorigin="anonymous"></script>
-  <script>
-  /* 광고 안전 초기화 헬퍼: availableWidth=0 에러 방지, try-catch 격리, AdBlock 대응 */
-  window._safePushAd = function(sc) {
-    var ins = sc && sc.previousElementSibling;
-    if (!ins || ins.tagName !== 'INS') {
-      try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {} return;
-    }
-    var pushed = false;
-    function doPush() {
-      if (pushed) return; pushed = true;
-      try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {}
-    }
-    if (typeof IntersectionObserver !== 'undefined') {
-      var io = new IntersectionObserver(function(es, o) {
-        if (es[0].intersectionRatio > 0) { o.disconnect(); doPush(); }
-      }, {threshold: 0.01});
-      io.observe(ins);
-    } else {
-      setTimeout(doPush, 300);
-    }
-  };
-  /* AdBlock 감지: 3초 후에도 비어있으면 광고 컨테이너 접어서 레이아웃 붕괴(CLS) 방지 */
-  window.addEventListener('load', function() {
-    setTimeout(function() {
-      var cs = document.querySelectorAll('.ad-container');
-      for (var i = 0; i < cs.length; i++) {
-        var ins = cs[i].querySelector('.adsbygoogle');
-        if (ins && ins.offsetHeight === 0) {
-          cs[i].style.minHeight = '0';
-          cs[i].style.padding = '0';
-          cs[i].style.marginTop = '0';
-          cs[i].style.marginBottom = '0';
-          cs[i].style.border = 'none';
-        }
-      }
-    }, 3000);
-  });
-  </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>🐷 연이의 꿀꿀 만세력 | 무료사주 타로 운세 궁합 점성술 자미두수 MBTI — Free Saju Tarot Horoscope</title>
@@ -459,7 +419,7 @@ button[onclick*="close"], button[aria-label*="닫"] {
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 body{background-color:#FFF5F8;background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
-  min-height:100vh;min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
+  min-height:100vh;min-height:calc(var(--app-vh, 1vh) * 100);min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
   overscroll-behavior-y:contain;
   -webkit-overflow-scrolling:touch;
 }
@@ -1167,15 +1127,6 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .modal-close{position:absolute;top:16px;right:18px;font-size:1.4rem;cursor:pointer;
   color:#CCC;background:none;border:none;transition:color .2s;font-family:inherit}
 .modal-close:hover{color:var(--pink)}
-
-
-/* ─── 광고 ─── */
-.ad-container{background:#f9f9f9;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid #f0f0f0;text-align:center;min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.ad-sponsor-text{font-size:0.8rem;color:#999;margin-bottom:10px;line-height:1.4;word-break:keep-all;}
-body.neo-mode .ad-sponsor-text{color:#777;}
-.ad-container ins{display:inline-block!important;width:100%}
-
-
 /* ══════════════════════════════════════
    🎴 오늘의 운명 카드 (Universal Oracle)
 ══════════════════════════════════════ */
@@ -1349,6 +1300,39 @@ body.neo-mode .ad-sponsor-text{color:#777;}
   font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
 .btn-kakao:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(254,229,0,.45)}
 .btn-kakao:active{transform:scale(.96);box-shadow:0 2px 8px rgba(254,229,0,.3)}
+.modal-result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px}
+.modal-result-actions .btn-kakao{padding:12px 18px;border-radius:12px;font-size:.9rem;min-height:44px}
+.btn-modal-return{
+  --btn-return-bg:linear-gradient(135deg,#1e003b,#300063);
+  --btn-return-border:rgba(125,42,232,0.5);
+  --btn-return-text:#d1c4e9;
+  background:var(--btn-return-bg);
+  border:1px solid var(--btn-return-border);
+  color:var(--btn-return-text);
+  padding:12px 24px;
+  border-radius:12px;
+  font-family:'Gowun Dodum',serif;
+  font-size:.9rem;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  min-height:44px;
+}
+.btn-modal-return--sukuyo{
+  --btn-return-bg:linear-gradient(135deg,#1a0e3b,#2d1b6b);
+  --btn-return-border:rgba(167,139,250,0.5);
+  --btn-return-text:#c4b5fd;
+}
+.btn-modal-return--astro{
+  --btn-return-bg:linear-gradient(135deg,#1e003b,#300063);
+  --btn-return-border:rgba(125,42,232,0.5);
+  --btn-return-text:#d1c4e9;
+}
+.btn-modal-return--ziwei{
+  --btn-return-bg:linear-gradient(135deg,#2b0545,#4a0a7a);
+  --btn-return-border:rgba(232,121,249,0.5);
+  --btn-return-text:#e879f9;
+}
 .btn-insta{padding:14px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:13px;
   font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
 .btn-insta:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(131,58,180,.4)}
@@ -1498,17 +1482,24 @@ body.neo-mode .ad-sponsor-text{color:#777;}
 .hg-box li{font-size:.8rem;color:#6B4F66;line-height:1.65;margin-bottom:3px}
 .hg-summary{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 4px}
 /* ─── 리포트 대시보드 v2 ─── */
-.rpt-v2-grid{display:flex;flex-direction:column;gap:32px}
+.rpt-v2-grid{display:flex;flex-direction:column;gap:20px}
 .rpt-v2-block{border-radius:22px;overflow:hidden;background:rgba(10,8,28,.92);
   border:1px solid rgba(255,255,255,.08);box-shadow:0 6px 36px rgba(0,0,0,.55)}
 .rpt-v2-img-row{display:flex;width:100%}
 .rpt-v2-img-wrap{flex:1;background:rgba(0,0,0,.15);display:flex;
   align-items:center;justify-content:center;overflow:hidden}
 .rpt-v2-img{width:100%;height:auto;display:block;object-fit:contain;max-height:none}
-.rpt-v2-divider{height:1px;background:rgba(255,255,255,.08);margin:0}
-.rpt-v2-badge-strip{padding:14px 18px 6px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.rpt-v2-badge{font-size:.78rem;font-weight:800;letter-spacing:.4px;
-  padding:5px 14px;border-radius:20px;white-space:nowrap;line-height:1.6}
+.rpt-v2-head{padding:14px 16px 12px;display:flex;flex-direction:column;gap:8px}
+.rpt-v2-title{margin:0;font-size:1.02rem;line-height:1.35;font-weight:900;color:#f8fafc;word-break:keep-all}
+.rpt-v2-preview{margin:0;font-size:.83rem;line-height:1.6;color:#a9b4c8;word-break:keep-all}
+.rpt-v2-note{margin:0;font-size:.78rem;line-height:1.55;color:#7f8ea6;word-break:keep-all}
+.rpt-v2-toggle-btn{width:100%;min-height:44px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#c026d3);color:#fff;font-size:.84rem;font-weight:800;padding:10px 14px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.rpt-v2-toggle-label{flex:1 1 auto;text-align:center;word-break:keep-all}
+.rpt-v2-toggle-arrow{flex-shrink:0;transition:transform .25s ease}
+.rpt-v2-block.open .rpt-v2-toggle-arrow{transform:rotate(180deg)}
+.rpt-v2-detail{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(0.4,0,0.2,1)}
+.rpt-v2-block.open .rpt-v2-detail{grid-template-rows:1fr}
+.rpt-v2-detail-inner{overflow:hidden;min-height:0}
 .rpt-v2-body{padding:0}
 /* 일반 카드: 투명 처리 (내부 콘텐츠 스타일 그대로) */
 .rpt-v2-body>.card:not(.t-test-card):not(.hv-card){
@@ -1518,8 +1509,6 @@ body.neo-mode .ad-sponsor-text{color:#777;}
 /* 특수 카드: 하단 모서리만 조정 */
 .rpt-v2-body>.t-test-card,.rpt-v2-body>.hv-card{
   margin:0!important;border-radius:0 0 22px 22px!important}
-/* 구버전 grid 숨김 */
-.rpt-grid{display:none}
 .hg-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:.74rem;font-weight:700}
 .hg-none{background:#F5F5F5;color:#999}
 .hg-normal{background:#FCE4EC;color:#C2185B}
@@ -3257,6 +3246,94 @@ body.neo-mode .feature-card__title { color: #f1f5f9; }
 body.neo-mode .feature-card__desc { color: #94a3b8; }
 body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1b3a, #0f172a); }
 
+/* ─── Feature Card Accordion (토글 방식 상세 콘텐츠) ─── */
+.feature-card { cursor: default; }
+/* CTA: span → button 전면 재정의 (full-width, 44px+) */
+.feature-card__cta {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 10px 16px;
+  align-self: stretch !important;
+  transition: opacity 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  line-height: 1.3;
+  color: #fff;
+}
+.feature-card__cta:hover { opacity: 0.88; }
+.feature-card__cta:active { transform: scale(0.97); }
+.feature-card__cta-label { flex: 1 1 auto; white-space: normal; word-break: keep-all; text-align: center; }
+.feature-card__cta-arrow {
+  display: inline-block;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+  font-style: normal;
+  line-height: 1;
+}
+.feature-card--open .feature-card__cta-arrow { transform: rotate(180deg); }
+/* Accordion detail section */
+.feature-card__detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.feature-card--open .feature-card__detail { grid-template-rows: 1fr; }
+.feature-card__detail-inner { overflow: hidden; min-height: 0; }
+.feature-card__detail-content {
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid rgba(0,0,0,0.07);
+}
+.feature-card__detail-text {
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: #64748b;
+  margin: 0;
+  word-break: keep-all;
+}
+/* Launch button */
+.feature-card__launch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 12px 16px;
+  color: #fff;
+  letter-spacing: 0.3px;
+  transition: transform 0.2s, opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.feature-card__launch:active { transform: scale(0.97); opacity: 0.85; }
+.feature-card--face .feature-card__launch    { background: linear-gradient(135deg, #10b981, #059669); }
+.feature-card--animal .feature-card__launch  { background: linear-gradient(135deg, #eab308, #d97706); }
+.feature-card--tarot .feature-card__launch   { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.feature-card--tazza .feature-card__launch   { background: linear-gradient(135deg, #16a34a, #15803d); }
+.feature-card--egypt .feature-card__launch   { background: linear-gradient(135deg, #d4af37, #b8860b); }
+.feature-card--juyuk .feature-card__launch   { background: linear-gradient(135deg, #7c5c10, #b8860b); }
+.feature-card--sukuyo .feature-card__launch  { background: linear-gradient(135deg, #3b1f7a, #9333ea); }
+.feature-card--astro-fc .feature-card__launch{ background: linear-gradient(135deg, #1e003b, #7d2ae8); }
+.feature-card--ziwei .feature-card__launch   { background: linear-gradient(135deg, #2b0545, #c026d3); }
+body.neo-mode .feature-card__detail-content { border-top-color: rgba(255,255,255,0.07); }
+body.neo-mode .feature-card__detail-text { color: #94a3b8; }
+
   </style>
 
 
@@ -3551,13 +3628,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
   </div>
 </div>
 
-<div id="lib-overlay">
-  <div class="pig-float">🐷</div>
-  <p id="lib-msg">사주 라이브러리 불러오는 중...</p>
-  <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-  <p id="lib-sub"></p>
-</div>
-
 <!-- ═══ 사주 풀이 로딩 애니메이션 (만세력) ═══ -->
 <style>
   #sajuLoaderOverlay {
@@ -3679,7 +3749,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
   </div>
 
   <div class="saju-txt-wrap">
-    <div id="sajuLoadingTxt" class="saju-typing-txt">만세력을 조율하는 중...</div>
+    <div id="sajuLoadingTxt" class="saju-typing-txt">사주 만세력을 조율하는 중...</div>
   </div>
 </div>
 
@@ -3711,7 +3781,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <img src="https://raw.githubusercontent.com/Toss/tossface/main/dist/svg/u1F338.svg"
                width="130" height="130" alt="벚꽃" loading="lazy" style="display:block; border-radius: 50%; box-shadow: 0 4px 12px rgba(255,139,167,0.3);">
         </div>
-        <h1>연이의 꿀꿀 만세력</h1>
+        <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
       </div>
       <div class="neo-logo">
@@ -3719,7 +3789,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           <img src="https://raw.githubusercontent.com/Toss/tossface/main/dist/svg/u1F43E.svg"
                width="130" height="130" alt="동물 발바닥" loading="lazy" style="display:block; border-radius: 50%; box-shadow: 0 4px 12px rgba(255,215,0,0.3);">
         </div>
-        <h1>쌈바의 팩폭 운세 만세력</h1>
+        <h1>쌈바의 팩폭 운세 플랫폼</h1>
         <p>감성 제로. 팩트만 남는다.</p>
       </div>
 
@@ -4446,7 +4516,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       </div>
     </div>
 
-    <!-- 입력 폼 상단 광고 -->
     <section class="card input-section" aria-label="사주 정보 입력">
       <div class="form-group">
         <label class="form-label">이름</label>
@@ -4599,15 +4668,8 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <!-- ═══ 부가 기능 카드 그리드 ═══ -->
       <div class="feature-card-grid">
 
-            <div class="ad-container" id="adInputTop" style="margin-bottom:20px;">
-      <div class="ad-sponsor-text">💖 운세 풀이를 위해 잠시만요! 저희 서비스를 후원해 주시는 마음으로 광고를 둘러봐주시면 큰 힘이 됩니다. 🍀</div>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
-
-
         <!-- 1. AI 동물 관상 -->
-        <div class="feature-card feature-card--face" onclick="openPhysiognomyApp()">
+        <div class="feature-card feature-card--face">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/ai%20animal.webp"
                  alt="AI 동물 관상 — 셀카로 보는 얼굴형 관상 분석 (Animal Physiognomy AI, 顔相AI, AI动物面相)"
@@ -4616,13 +4678,25 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🎭 AI 동물 관상</h3>
-            <p class="feature-card__desc">셀카 한 장으로 나와 닮은 동물을 AI가 분석! 얼굴형·이목구비로 보는 관상 운세, 관상 궁합도 가능해요!</p>
-            <span class="feature-card__cta">분석 시작 →</span>
+            <p class="feature-card__desc">셀카 한 장으로 나와 닮은 동물을 AI가 찾아드립니다! 관상으로 보는 숨겨진 매력과 운세.</p>
+            <button class="feature-card__cta" type="button" onclick="fcToggle(this)"
+                    aria-expanded="false" data-label="🎭 AI 관상 시작하기">
+              <span class="feature-card__cta-label">🎭 AI 관상 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">얼굴형·이목구비·전체 인상으로 가장 닮은 동물 토템을 분석합니다. 봉황·흑표범·사자 등 55가지 동물 중 나의 관상은? 관상 궁합도 가능해요.</p>
+                <button class="feature-card__launch" type="button" onclick="openPhysiognomyApp()">🎭 지금 AI 동물 관상 시작하기 →</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- 2. MBTI 동물 궁합 -->
-        <div class="feature-card feature-card--animal" onclick="openMbtiModal()">
+        <div class="feature-card feature-card--animal">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/ai%20face.webp"
                  alt="MBTI 동물 궁합 — 16가지 토템 연애 궁합 테스트 (MBTI Compatibility, MBTI動物相性, MBTI动物配对)"
@@ -4630,13 +4704,25 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🦁 MBTI 동물 궁합</h3>
-            <p class="feature-card__desc">16가지 동물 토템으로 보는 나와 상대의 케미 — 최고의 짝꿍은 누구?</p>
-            <span class="feature-card__cta">궁합 보기 →</span>
+            <p class="feature-card__desc">내 MBTI는 어떤 동물일까요? 16가지 토템으로 찰떡 궁합 파트너를 찾아보세요.</p>
+            <button class="feature-card__cta" type="button" onclick="fcToggle(this)"
+                    aria-expanded="false" data-label="🦁 MBTI 궁합 시작하기">
+              <span class="feature-card__cta-label">🦁 MBTI 궁합 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">ENFP는 돌고래, INTJ는 외로운 늑대... 당신의 MBTI 동물 토템과 최고 궁합인 동물은 누구? 연인·친구·직장 동료와의 케미도 확인하세요.</p>
+                <button class="feature-card__launch" type="button" onclick="openMbtiModal()">🦁 나의 MBTI 동물 궁합 확인하기 →</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- 3. 신비의 타로 -->
-        <div class="feature-card feature-card--tarot" onclick="openTarotModal()">
+        <div class="feature-card feature-card--tarot">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/ai%20tarrot.webp"
                  alt="AI 타로카드 무료 운세 — 78장 유니버설 덱 (Free AI Tarot Reading, 無料AIタロット占い, 免费AI塔罗牌)"
@@ -4644,13 +4730,25 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🔮 신비의 타로</h3>
-            <p class="feature-card__desc">78장의 카드가 당신의 과거·현재·미래를 비춥니다 — Universal Oracle</p>
-            <span class="feature-card__cta">카드 뽑기 →</span>
+            <p class="feature-card__desc">지금 무엇이 궁금하신가요? 78장의 신비로운 카드 중 당신을 위한 카드가 기다립니다.</p>
+            <button class="feature-card__cta" type="button" onclick="fcToggle(this)"
+                    aria-expanded="false" data-label="🔮 타로 카드 시작하기">
+              <span class="feature-card__cta-label">🔮 타로 카드 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">연애·재물·미래·현재 에너지... 마음 속 질문을 품고 카드를 고르세요. Universal 덱 78장, 역방향 해석 포함. 오늘의 에너지를 타로가 알려드립니다.</p>
+                <button class="feature-card__launch" type="button" onclick="openTarotModal()">🔮 지금 타로 카드 뽑으러 가기 →</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- 4. 타짜들의 화투점 -->
-        <div class="feature-card feature-card--tazza" onclick="openHwatuModal()">
+        <div class="feature-card feature-card--tazza">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/tazza.webp"
                  alt="화투점 — 한국 전통 화투패 12달 오늘의 운세 (Hwatu Korean Fortune Telling, 花札占い, 韩国花牌占卜)"
@@ -4658,13 +4756,25 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🎴 타짜들의 화투점</h3>
-            <p class="feature-card__desc">12달의 화투패로 점치는 오늘의 운세 — The Tazza Fortune</p>
-            <span class="feature-card__cta">패 뒤집기 →</span>
+            <p class="feature-card__desc">열두 달의 화투패가 오늘의 운세를 속삭입니다. 어떤 패가 당신 앞에 놓일까요?</p>
+            <button class="feature-card__cta" type="button" onclick="fcToggle(this)"
+                    aria-expanded="false" data-label="🎴 화투점 시작하기">
+              <span class="feature-card__cta-label">🎴 화투점 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">정월 솔, 이월 매조... 12달의 화투패로 점치는 한국 전통 운세. 뒤집을 때마다 달라지는 결과, 오늘의 나를 위한 한 장을 골라보세요.</p>
+                <button class="feature-card__launch" type="button" onclick="openHwatuModal()">🎴 화투패 뒤집으러 가기 →</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- 5. 이집트 신탁 운세 -->
-        <div class="feature-card feature-card--egypt" onclick="openKemetModal()">
+        <div class="feature-card feature-card--egypt">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/egypt.webp"
                  alt="고대 이집트 케멧 신탁 — 오시리스 상형문자 오라클 운세 (Kemet Oracle, Ancient Egypt Divination, エジプト神託, 古埃及神谕)"
@@ -4672,13 +4782,25 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">𓂀 고대 이집트 신탁</h3>
-            <p class="feature-card__desc">오시리스의 저울과 상형문자로 풀어보는 카이로 도서관의 신비한 운세 — The Oracle</p>
-            <span class="feature-card__cta">신탁보러 가기</span>
+            <p class="feature-card__desc">수천 년 전 이집트 파피루스에 새겨진 신탁이 당신에게 말을 건넵니다.</p>
+            <button class="feature-card__cta" type="button" onclick="fcToggle(this)"
+                    aria-expanded="false" data-label="𓂀 이집트 신탁 시작하기">
+              <span class="feature-card__cta-label">𓂀 이집트 신탁 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">오시리스의 저울 앞에 서보세요. 고대 상형문자와 케멧 신들의 지혜로 풀어내는 오늘의 메시지. 라·이시스·아누비스의 신탁을 받아보세요.</p>
+                <button class="feature-card__launch" type="button" onclick="openKemetModal()">𓂀 이집트 신탁 받으러 가기 →</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- 6. 주역(周易) 64괘 -->
-        <div class="feature-card feature-card--juyuk" onclick="openJuyukModal()">
+        <div class="feature-card feature-card--juyuk">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/juyuk.webp"
                  alt="주역 64괘 거북점 — 동양 전통 귀복(龜卜) 신탁 (I Ching 64 Hexagrams Oracle, 易経龜卜, 周易六十四卦龟卜)"
@@ -4687,13 +4809,25 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">☯️ 주역(周易) — 64괘의 지혜</h3>
-            <p class="feature-card__desc">하늘과 땅의 변화를 읽어 현재의 길흉을 점칩니다.</p>
-            <span class="feature-card__cta">점치기 시작 →</span>
+            <p class="feature-card__desc">하늘과 땅의 변화를 읽는 3,000년의 지혜. 지금 마음 속 질문을 가지고 거북점을 쳐보세요.</p>
+            <button class="feature-card__cta" type="button" onclick="fcToggle(this)"
+                    aria-expanded="false" data-label="☯️ 주역 거북점 시작하기">
+              <span class="feature-card__cta-label">☯️ 주역 거북점 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">음효(--)와 양효(—)의 조합으로 이루어진 64괘 중 오늘 당신의 괘는? 행동 지침까지 담긴 깊이 있는 해석으로 중요한 결정에 도움을 드립니다.</p>
+                <button class="feature-card__launch" type="button" onclick="openJuyukModal()">☯️ 거북점 지금 시작하기 →</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- 7. 숙요점 -->
-        <div class="feature-card feature-card--sukuyo" onclick="openSukuyoModal()">
+        <div class="feature-card feature-card--sukuyo">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/sukyo.webp"
                  alt="숙요점 宿曜占 — 불교 밀교 27수 별자리 운명 분석 (Sukuyo Lunar Divination, 宿曜占)"
@@ -4703,13 +4837,25 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">💫 숙요점(宿曜占)</h3>
-            <p class="feature-card__desc">불교 밀교 27수 별자리로 보는 나의 본성·카르마·운명 — 나의 운명 카드로 분석</p>
-            <span class="feature-card__cta">별자리 확인 →</span>
+            <p class="feature-card__desc">불교 밀교 27수 별자리가 당신의 숨겨진 본성과 카르마를 읽어냅니다.</p>
+            <button class="feature-card__cta" type="button" onclick="fcToggle(this)"
+                    aria-expanded="false" data-label="💫 숙요점 시작하기">
+              <span class="feature-card__cta-label">💫 숙요점 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">태어난 날의 달이 어느 별자리에 있었는지로 보는 나의 숙(宿). 성격·재능·대인관계·운명의 흐름을 동양 점성술로 풀어드립니다.</p>
+                <button class="feature-card__launch" type="button" onclick="openSukuyoModal()">💫 내 숙요 별자리 확인하기 →</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- 8. 점성술 -->
-        <div class="feature-card feature-card--astro-fc" onclick="openAstroModal()">
+        <div class="feature-card feature-card--astro-fc">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/jumsung.webp"
                  alt="점성술 코즈믹 차트 — 태양·달·상승궁 천체 배치 운세 (Astrology, Cosmic Chart)"
@@ -4719,13 +4865,25 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">✨ 점성술 코즈믹 차트</h3>
-            <p class="feature-card__desc">태양·달·상승궁의 천체 배치로 풀어보는 나의 영혼 차트 — 나의 운명 카드로 분석</p>
-            <span class="feature-card__cta">차트 보기 →</span>
+            <p class="feature-card__desc">태양·달·상승궁의 배치로 펼쳐지는 나의 영혼 지도. 당신의 우주적 정체성은?</p>
+            <button class="feature-card__cta" type="button" onclick="fcToggle(this)"
+                    aria-expanded="false" data-label="✨ 코즈믹 차트 시작하기">
+              <span class="feature-card__cta-label">✨ 코즈믹 차트 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">서양 점성술 12궁·10천체 기반의 코즈믹 차트. 태양(자아)·달(감정)·상승궁(외면) 삼각 분석으로 내면의 진짜 나를 발견하세요.</p>
+                <button class="feature-card__launch" type="button" onclick="openAstroModal()">✨ 코즈믹 차트 펼쳐보기 →</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- 9. 자미두수 12궁 명반 -->
-        <div class="feature-card feature-card--ziwei" onclick="openZiweiModal()">
+        <div class="feature-card feature-card--ziwei">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/jami.webp"
                  alt="자미두수 紫微斗數 12궁 명반 — 동양 별자리 운명 분석 (Ziwei Doushu, 紫微斗数命盤, 자미두수)"
@@ -4735,13 +4893,50 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🌌 자미두수(紫微斗數)</h3>
-            <p class="feature-card__desc">동양의 별자리 命盤 — 명궁부터 12궁까지 나의 운명 지도를 펼쳐보세요</p>
-            <span class="feature-card__cta">명반 펼치기 →</span>
+            <p class="feature-card__desc">동양 최고의 명리 체계 자미두수가 12궁 명반으로 당신의 운명을 읽어냅니다.</p>
+            <button class="feature-card__cta" type="button" onclick="fcToggle(this)"
+                    aria-expanded="false" data-label="🌌 자미두수 시작하기">
+              <span class="feature-card__cta-label">🌌 자미두수 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">명궁·재백궁·전택궁... 12개의 궁으로 이루어진 나만의 별자리 지도. 자미·탐랑·거문 등 주요 성계 배치로 평생 운명의 흐름을 봅니다.</p>
+                <button class="feature-card__launch" type="button" onclick="openZiweiModal()">🌌 자미두수 명반 펼쳐보기 →</button>
+              </div>
+            </div>
           </div>
         </div>
 
       </div>
       <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
+      <script>
+      function fcToggle(btn) {
+        var card = btn.closest('.feature-card');
+        if (card) {
+          if (card.classList.contains('feature-card--face') && typeof openPhysiognomyApp === 'function') { openPhysiognomyApp(); return; }
+          if (card.classList.contains('feature-card--animal') && typeof openMbtiModal === 'function') { openMbtiModal(); return; }
+          if (card.classList.contains('feature-card--tarot') && typeof openTarotModal === 'function') { openTarotModal(); return; }
+          if (card.classList.contains('feature-card--tazza') && typeof openHwatuModal === 'function') { openHwatuModal(); return; }
+          if (card.classList.contains('feature-card--egypt') && typeof openKemetModal === 'function') { openKemetModal(); return; }
+          if (card.classList.contains('feature-card--juyuk') && typeof openJuyukModal === 'function') { openJuyukModal(); return; }
+          if (card.classList.contains('feature-card--sukuyo') && typeof openSukuyoModal === 'function') { openSukuyoModal(); return; }
+          if (card.classList.contains('feature-card--astro-fc') && typeof openAstroModal === 'function') { openAstroModal(); return; }
+          if (card.classList.contains('feature-card--ziwei') && typeof openZiweiModal === 'function') { openZiweiModal(); return; }
+        }
+
+        /* fallback: 기존 토글 동작 유지 */
+        var open = card.classList.toggle('feature-card--open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        var detail = card.querySelector('.feature-card__detail');
+        if (detail) detail.setAttribute('aria-hidden', open ? 'false' : 'true');
+        btn.querySelector('.feature-card__cta-label').textContent = open ? '닫기' : btn.dataset.label;
+        btn.querySelector('.feature-card__cta-arrow').textContent = open ? '▲' : '▼';
+      }
+
+      </script>
 
 
       <!-- 주역(周易) 64괘 전체화면 — 거북점 UI -->
@@ -4845,6 +5040,10 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
             </div>
             <div id="sukuyoCard" style="display:none;">
               <div id="sukuyoSection"></div>
+              <div class="modal-result-actions">
+                <button onclick="shareSukuyoKakao()" class="btn-kakao">💬 카카오톡 공유</button>
+                <button onclick="closeSukuyoModal(); window.scrollTo({top:0,behavior:'smooth'})" class="btn-modal-return btn-modal-return--sukuyo">← 돌아가기</button>
+              </div>
             </div>
           </div>
         </div>
@@ -4870,6 +5069,10 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
                 <h3 class="astro-header">✨ 당신의 영혼이 기록된 코즈믹 차트</h3>
                 <div id="astroResult"></div>
               </div>
+              <div class="modal-result-actions">
+                <button onclick="shareAstroKakao()" class="btn-kakao">💬 카카오톡 공유</button>
+                <button onclick="closeAstroModal(); window.scrollTo({top:0,behavior:'smooth'})" class="btn-modal-return btn-modal-return--astro">← 돌아가기</button>
+              </div>
             </div>
           </div>
         </div>
@@ -4894,6 +5097,10 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
             <!-- 자미두수 명반 렌더링 영역 -->
             <div id="ziweiModalCard" style="display:none;">
               <div id="ziweiModalSection"></div>
+              <div class="modal-result-actions">
+                <button onclick="shareZiweiKakao()" class="btn-kakao">💬 카카오톡 공유</button>
+                <button onclick="closeZiweiModal(); window.scrollTo({top:0,behavior:'smooth'})" class="btn-modal-return btn-modal-return--ziwei">← 돌아가기</button>
+              </div>
             </div>
           </div>
         </div>
@@ -5507,12 +5714,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
             </div>
           </div>
           
-          <!-- 타로 모달 하단 광고 -->
-          <div class="ad-container" id="adTarotBottom" style="margin-top:20px; text-align:center;">
-            <div class="ad-sponsor-text">✨ 신비로운 타로의 메시지가 도움이 되셨나요? 광고 클릭은 복채가 되어 다시 행운으로 돌아옵니다! 🌙</div>
-            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-            <script>_safePushAd(document.currentScript);</script>
-          </div>
+
 
         </div>
       </div>
@@ -5669,14 +5871,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
     </div>
 
 
-
-    <!-- 광고: 입력 페이지 광고 -->
-    <div class="ad-container" id="adInput" style="margin-top:20px">
-      <div class="ad-sponsor-text">💖 광고 클릭은 콘텐츠 제작에 큰 힘이 됩니다. 내어주신 작은 복채는 더 큰 행운이 되어 여러분께 돌아갈 거예요! 🍀</div>
-      <!-- 사주 입력 페이지 광고 -->
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
 
     <!-- ═══ 이집트 신탁 운세 (The Oracle of Kemet) ═══ -->
     <div id="kemetOracleOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,12,18,0.95); backdrop-filter:blur(10px); overflow-y:auto; animation: kemetFadeIn 0.4s ease-out;">
@@ -6017,13 +6211,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div class="hero-sub" id="heroSub"></div>
     </div>
 
-    <!-- 광고 1: 상단 광고 -->
-    <div class="ad-container" id="adTop">
-      <div class="ad-sponsor-text">✨ 무료 운세 서비스 운영에 힘을 보태주세요! 광고를 구경해 주시면 여러분의 앞날에 더 큰 복으로 돌아옵니다. 🙏</div>
-      <!-- 사주 분석 상단 광고 -->
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
+
 
     <!--  오늘의 운명 카드 (Premium Quantum Destiny) -->
     <div class="destiny-section quantum-mode" id="destinySection" style="display:none; margin: 20px 0;">
@@ -6165,19 +6353,200 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
     <!-- 1.5. 60갑자 일주론 분석 (NEW) -->
     <style>
-      /* --- Default iljuCard Base CSS (Yeon Mode) --- */
-      .ilju-summary-wrap { margin-bottom:10px; cursor:pointer; }
-      .ilju-name { margin:0; color:#1e293b; font-size:1.2rem; }
-      .ilju-toggle-btn { color:#64748b; font-size:0.9rem; transition:transform 0.3s; }
-      .ilju-symbol { font-size:0.85rem; color:#64748b; margin-top:4px; }
-      .ilju-summary { font-weight:bold; color:#0f172a; margin-top:8px; line-height:1.4; }
-      .ilju-detail-inner { border-top:1px dashed #e2e8f0; padding-top:12px; margin-top:8px; }
-      .ilju-detail-title { margin:0 0 6px 0; color:#334155; font-size:0.95rem; }
-      .ilju-detail-text { font-size:0.85rem; color:#475569; line-height:1.6; margin-bottom:12px; }
-      .ilju-advice-box { background:#f8fafc; padding:12px; border-radius:8px; margin-bottom:12px; border: 1px solid #e2e8f0; }
-      .ilju-advice-title { margin:0 0 6px 0; color:#0f172a; font-size:0.9rem; }
-      .ilju-advice-text { font-size:0.85rem; color:#475569; line-height:1.5; margin:0; }
-      .ilju-details-info { font-size:0.75rem; color:#94a3b8; text-align:right; }
+      /* --- ILJU Dashboard v2 --- */
+      .ilju-v2 {
+        --ilju-accent: #2e7d32;
+        --ilju-soft: #e8f5e9;
+      }
+      .ilju-v2-hero {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 14px;
+        align-items: center;
+        padding: 14px;
+        border-radius: 14px;
+        background: linear-gradient(160deg, #ffffff, #f8fafc);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 12px;
+      }
+      .ilju-v2-kicker {
+        margin: 0 0 4px 0;
+        font-size: .74rem;
+        font-weight: 700;
+        color: #64748b;
+        letter-spacing: .03em;
+      }
+      .ilju-v2-name {
+        margin: 0;
+        font-size: 1.5rem;
+        line-height: 1.2;
+        color: #0f172a;
+        font-weight: 900;
+      }
+      .ilju-v2-hanja {
+        font-size: .9rem;
+        color: #475569;
+        font-weight: 600;
+        margin-left: 6px;
+      }
+      .ilju-v2-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 800;
+        color: var(--ilju-accent);
+        background: var(--ilju-soft);
+        border: 1px solid #d7e2ea;
+      }
+      .ilju-v2-animal {
+        width: 68px;
+        height: 68px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        background: color-mix(in srgb, var(--ilju-soft) 80%, #ffffff);
+        border: 1px solid #dbe5ef;
+      }
+      .ilju-v2-animal-label {
+        margin-top: 5px;
+        font-size: .72rem;
+        color: #64748b;
+        text-align: center;
+      }
+      .ilju-v2-keywords {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-bottom: 12px;
+      }
+      .ilju-v2-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: .77rem;
+        font-weight: 700;
+        color: #334155;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+      }
+      .ilju-v2-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .ilju-v2-block {
+        padding: 12px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+      }
+      .ilju-v2-block-title {
+        margin: 0 0 10px 0;
+        font-size: .86rem;
+        font-weight: 800;
+        color: #334155;
+      }
+      .ilju-v2-bar-row {
+        margin-bottom: 8px;
+      }
+      .ilju-v2-bar-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: .75rem;
+        color: #64748b;
+        margin-bottom: 3px;
+      }
+      .ilju-v2-bar-track {
+        height: 7px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        overflow: hidden;
+      }
+      .ilju-v2-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        width: 0;
+        transition: width .45s ease;
+      }
+      .ilju-v2-bar-fill.wood { background: #2e7d32; }
+      .ilju-v2-bar-fill.fire { background: #c62828; }
+      .ilju-v2-bar-fill.earth { background: #8d6e63; }
+      .ilju-v2-bar-fill.metal { background: #90a4ae; }
+      .ilju-v2-bar-fill.water { background: #1565c0; }
+      .ilju-v2-summary-list,
+      .ilju-v2-detail-list,
+      .ilju-v2-advice-list {
+        margin: 0;
+        padding-left: 18px;
+        font-size: .84rem;
+        line-height: 1.65;
+        color: #334155;
+      }
+      .ilju-v2-toggle {
+        width: 100%;
+        min-height: 44px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #334155, #0f172a);
+        color: #f8fafc;
+        font-size: .82rem;
+        font-weight: 800;
+        cursor: pointer;
+        margin: 2px 0 8px;
+      }
+      .ilju-v2-detail-wrap {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.4s ease-out;
+      }
+      .ilju-v2-details-info {
+        margin-top: 8px;
+        font-size: .74rem;
+        color: #64748b;
+      }
+      @media (max-width: 768px) {
+        .ilju-v2-grid { grid-template-columns: 1fr; }
+        .ilju-v2-name { font-size: 1.32rem; }
+      }
+
+      body.neo-mode .ilju-v2 .ilju-v2-hero,
+      body.neo-mode .ilju-v2 .ilju-v2-block {
+        background: rgba(15, 23, 42, 0.72);
+        border-color: rgba(148, 163, 184, 0.28);
+      }
+      body.neo-mode .ilju-v2 .ilju-v2-name,
+      body.neo-mode .ilju-v2 .ilju-v2-block-title {
+        color: #f8fafc;
+      }
+      body.neo-mode .ilju-v2 .ilju-v2-kicker,
+      body.neo-mode .ilju-v2 .ilju-v2-hanja,
+      body.neo-mode .ilju-v2 .ilju-v2-bar-head,
+      body.neo-mode .ilju-v2 .ilju-v2-animal-label,
+      body.neo-mode .ilju-v2 .ilju-v2-details-info {
+        color: #94a3b8;
+      }
+      body.neo-mode .ilju-v2 .ilju-v2-summary-list,
+      body.neo-mode .ilju-v2 .ilju-v2-detail-list,
+      body.neo-mode .ilju-v2 .ilju-v2-advice-list {
+        color: #e2e8f0;
+      }
+      body.neo-mode .ilju-v2 .ilju-v2-chip {
+        background: rgba(51, 65, 85, 0.5);
+        border-color: rgba(148, 163, 184, 0.25);
+        color: #e2e8f0;
+      }
+      body.neo-mode .ilju-v2 .ilju-v2-bar-track {
+        background: rgba(51, 65, 85, 0.7);
+      }
 
       /* --- SACRED MIRROR & TAROT NOIR THEME (NEO MODE) --- */
       body.neo-mode .sacred-mirror-card {
@@ -6381,45 +6750,59 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 .gaeun-title { font-size: 0.95rem; color: #c4b5fd; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
   </style>
-    <div class="card sacred-mirror-card" id="iljuCard" style="display:none;">
+    <div class="card sacred-mirror-card ilju-v2" id="iljuCard" style="display:none;">
       <div class="sec-title ilju-sec-title">📖 나의 일주(日柱) 프로파일링</div>
-      <div id="iljuSummaryWrap" class="ilju-summary-wrap" onclick="toggleIljuDetail()">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h3 id="iljuName" class="ilju-name"></h3>
-          <span id="iljuToggleBtn" class="ilju-toggle-btn">자세히 보기 ▼</span>
+
+      <div class="ilju-v2-hero">
+        <div>
+          <p class="ilju-v2-kicker">DAY PILLAR DASHBOARD</p>
+          <h3 class="ilju-v2-name"><span id="iljuNameMain"></span><span id="iljuNameHanja" class="ilju-v2-hanja" title="일주 한자 표기"></span></h3>
+          <span id="iljuElementBadge" class="ilju-v2-badge"></span>
         </div>
-        <div id="iljuSymbol" class="ilju-symbol"></div>
-        <div id="iljuSummary" class="ilju-summary"></div>
+        <div>
+          <div id="iljuHeroAnimal" class="ilju-v2-animal"></div>
+          <div id="iljuHeroAnimalLabel" class="ilju-v2-animal-label"></div>
+        </div>
       </div>
-      <div id="iljuDetailWrap" class="ilju-detail-wrap" style="overflow:hidden; max-height:0; transition:max-height 0.4s ease-out;">
-        <div class="ilju-detail-inner">
-          <h4 class="ilju-detail-title">🧠 심층 관찰 (성격 및 심리)</h4>
-          <p id="iljuPersonality" class="ilju-detail-text"></p>
-          
-          <h4 class="ilju-detail-title">💼 비즈니스 & 적성</h4>
-          <p id="iljuProfessional" class="ilju-detail-text"></p>
-          
-          <h4 class="ilju-detail-title">🤝 사회적 통신망 (대인관계)</h4>
-          <p id="iljuRelationship" class="ilju-detail-text"></p>
-          
-          <div class="ilju-advice-box">
-            <h4 class="ilju-advice-title">💡 데이터 기반 어드바이스</h4>
-            <p id="iljuAdvice" class="ilju-advice-text"></p>
+
+      <div id="iljuKeywords" class="ilju-v2-keywords"></div>
+
+      <div class="ilju-v2-grid">
+        <div class="ilju-v2-block">
+          <h4 class="ilju-v2-block-title">📊 오행 균형도</h4>
+          <div class="ilju-v2-bar-row"><div class="ilju-v2-bar-head"><span>목(木)</span><span id="iljuWoodVal">0%</span></div><div class="ilju-v2-bar-track"><div id="iljuWoodBar" class="ilju-v2-bar-fill wood"></div></div></div>
+          <div class="ilju-v2-bar-row"><div class="ilju-v2-bar-head"><span>화(火)</span><span id="iljuFireVal">0%</span></div><div class="ilju-v2-bar-track"><div id="iljuFireBar" class="ilju-v2-bar-fill fire"></div></div></div>
+          <div class="ilju-v2-bar-row"><div class="ilju-v2-bar-head"><span>토(土)</span><span id="iljuEarthVal">0%</span></div><div class="ilju-v2-bar-track"><div id="iljuEarthBar" class="ilju-v2-bar-fill earth"></div></div></div>
+          <div class="ilju-v2-bar-row"><div class="ilju-v2-bar-head"><span>금(金)</span><span id="iljuMetalVal">0%</span></div><div class="ilju-v2-bar-track"><div id="iljuMetalBar" class="ilju-v2-bar-fill metal"></div></div></div>
+          <div class="ilju-v2-bar-row"><div class="ilju-v2-bar-head"><span>수(水)</span><span id="iljuWaterVal">0%</span></div><div class="ilju-v2-bar-track"><div id="iljuWaterBar" class="ilju-v2-bar-fill water"></div></div></div>
+        </div>
+
+        <div class="ilju-v2-block">
+          <h4 class="ilju-v2-block-title">🧾 세 줄 요약</h4>
+          <ul id="iljuSummaryList" class="ilju-v2-summary-list"></ul>
+        </div>
+      </div>
+
+      <button id="iljuToggleBtn" class="ilju-v2-toggle" type="button" onclick="toggleIljuDetail()">상세 분석 보기 ▼</button>
+
+      <div id="iljuDetailWrap" class="ilju-v2-detail-wrap">
+        <div class="ilju-v2-grid">
+          <div class="ilju-v2-block">
+            <h4 class="ilju-v2-block-title">🔍 상세 분석</h4>
+            <ul id="iljuDetailList" class="ilju-v2-detail-list"></ul>
           </div>
-          
-          <div class="ilju-details-info">
-            <span id="iljuDetailsInfo"></span>
+          <div class="ilju-v2-block">
+            <h4 class="ilju-v2-block-title">💡 맞춤 조언</h4>
+            <ul id="iljuAdviceList" class="ilju-v2-advice-list"></ul>
           </div>
+        </div>
+        <div class="ilju-v2-details-info">
+          <span id="iljuDetailsInfo"></span>
         </div>
       </div>
     </div>
 
-    <!-- 일주론과 핵심 십성 사이 광고 -->
-    <div class="ad-container" id="adMiddle1" style="margin-bottom:20px;">
-      <div class="ad-sponsor-text">🦊 사주에 숨겨진 비밀을 확인하셨나요? 광고 한 번 클릭은 저희가 더 정확한 운세를 제공하는 힘이 됩니다! 🍀</div>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
+
 
     <!-- 2. 핵심 십성 -->
     <div class="card" id="tenshinCard">
@@ -6450,12 +6833,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div id="ukbuSection"></div>
     </div>
 
-    <!-- 억부 종격과 대운 사이 광고 -->
-    <div class="ad-container" id="adMiddle2" style="margin-bottom:20px;">
-      <div class="ad-sponsor-text">⚖️ 운명의 균형을 알아가고 계신가요? 광고 한 번 둘러보시는 여유가 운의 흐름을 더욱 좋게 만듭니다. 🙏</div>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
+
 
     <!-- 7. 대운 -->
     <section class="card" id="daewunCard" aria-labelledby="daewunTitle">
@@ -6489,20 +6867,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div id="summaryArea"></div>
     </section>
 
-    <!-- 사주 분석 리포트 대시보드 -->
-    <section class="card" id="reportDashboardCard" style="display:none" aria-labelledby="dashboardTitle">
-      <div style="margin-bottom:14px;">
-        <h3 id="dashboardTitle" class="sec-title" style="margin-bottom:0">✦ 분석 리포트</h3>
-      </div>
-      <div id="reportDashboard"></div>
-    </section>
 
-    <!-- 종합 사주 풀이와 오늘의 운세 사이 광고 -->
-    <div class="ad-container" id="adMiddle3" style="margin-bottom:20px;">
-      <div class="ad-sponsor-text">☕ 긴 글 읽으시느라 수고하셨습니다. 잠시 커피 한 잔 하듯 광고를 클릭해 주시면 큰 힘이 됩니다. 💖</div>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
 
     <!-- 오늘의 운세 & 이달의 운세 -->
     <section class="card" id="dailyMonthlyCard" style="display:none" aria-labelledby="dailyMonthlyTitle">
@@ -6515,18 +6880,75 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div id="monthlyPanel" class="fortune-panel"></div>
     </section>
 
+
+
+    <!-- 2-1. 궁합 보기 -->
+    <section class="card" id="compatCard" aria-labelledby="compatTitle">
+      <h3 id="compatTitle" class="sec-title">💞 궁합 보기 (연애 · 사업 · 친구)</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        
+        <div class="row2">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" style="margin-bottom:6px">상대 이름</label>
+            <input class="inp" type="text" id="compatName" placeholder="상대 이름을 입력하세요">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" style="margin-bottom:6px">궁합 유형</label>
+            <select class="inp" id="compatType">
+              <option value="love">연애/결혼</option>
+              <option value="business">사업/동업</option>
+              <option value="friend">친구/동료</option>
+            </select>
+          </div>
+        </div>
+        <div id="compatTypeDesc" style="font-size:.85rem;color:#666;margin-top:-2px">유형을 선택하면 해당 유형에 맞는 분석 문구와 권장 포인트가 표시됩니다.</div>
+        <!-- 유명인 목록 클릭으로 빠르게 입력 -->
+        <div class="form-group">
+          <label class="form-label" style="margin-bottom:6px">유명인 선택</label>
+          <div id="celebsList"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label" style="margin-bottom:6px">상대 생년월일 · 시간</label>
+          <input class="inp" type="date" id="compatBirthDate" onchange="updateLunarPreview('compatBirthDate', 'compatCalType', 'compatLunarPreview')">
+          <div style="display:flex; gap:10px; margin-top:8px; font-size:0.9rem;">
+            <label><input type="radio" name="compatCalType" value="solar" checked onchange="updateLunarPreview('compatBirthDate', 'compatCalType', 'compatLunarPreview')"> 양력</label>
+            <label><input type="radio" name="compatCalType" value="lunar" onchange="updateLunarPreview('compatBirthDate', 'compatCalType', 'compatLunarPreview')"> 음력(평달)</label>
+            <label><input type="radio" name="compatCalType" value="lunar_leap" onchange="updateLunarPreview('compatBirthDate', 'compatCalType', 'compatLunarPreview')"> 음력(윤달)</label>
+          </div>
+          <div id="compatLunarPreview" style="font-size:0.85rem; color:var(--point-color, #FF8BA7); margin-top:4px; display:none;"></div>
+          <div class="row2" style="margin-top:8px">
+            <select class="inp" id="compatBirthHour"></select>
+            <select class="inp" id="compatBirthMinute"></select>
+          </div>
+        </div>
+        <button id="compatRunBtn" class="btn-sub" style="margin-top:4px" onclick="runCompat()">💗 궁합 분석하기</button>
+        <div id="compatResult" style="margin-top:14px"></div>
+        <div id="compatTestResults" style="margin-top:12px;font-size:.9rem;color:#333"></div>
+      </div>
+    </section>
+
+    <!-- 2-2. 나와 비슷한 연예인 -->
+    <section class="card" id="similarCelebCard" style="display:none" aria-labelledby="celebTitle">
+      <h3 id="celebTitle" class="sec-title">✨ 나와 영혼의 쌍둥이 연예인은?</h3>
+      <div id="similarCelebResult"></div>
+    </section>
+
+
+    <!-- 사주 분석 리포트 대시보드 -->
+    <section class="card" id="reportDashboardCard" style="display:none" aria-labelledby="dashboardTitle">
+      <div style="margin-bottom:14px;">
+        <h3 id="dashboardTitle" class="sec-title" style="margin-bottom:0">✦ 재미있는 사주 콘텐츠</h3>
+      </div>
+      <div id="reportDashboard"></div>
+    </section>
+
     <!-- 6-4. 퀀텀 명리 전략 리포트 (NEW) -->
     <section class="card" id="quantumCard" style="display:none" aria-labelledby="quantumTitle">
       <h3 id="quantumTitle" class="sec-title">⚡ 퀀텀 명리 전략 리포트 — 합화 우선 분석</h3>
       <div id="quantumSection"></div>
     </section>
 
-    <!-- 퀀텀 리포트와 통합점술 사이 광고 -->
-    <div class="ad-container" id="adMiddle4" style="margin-bottom:25px;">
-      <div class="ad-sponsor-text">🌌 무료로 즐기는 심층 분석! 스폰서 광고를 클릭하셔서 제작자에게 복채를 남겨주시면 큰 행운이 따를 거예요. 🌟</div>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
+
 
         <!-- 🌟 통합 점술 탭 시스템 (Mystic Tab System) 🌟 -->
     <section class="mystic-tabs-wrapper" style="margin-bottom:25px; position:relative;" aria-label="Mystic Tab System">
@@ -7464,70 +7886,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
     </script>
 
-    <!-- 점술 탭과 궁합 사이 광고 -->
-    <div class="ad-container" id="adMiddle5" style="margin-bottom:20px;">
-      <div class="ad-sponsor-text">💖 운명의 짝을 찾아볼까요? 잠시 광고를 클릭해 따뜻한 마음을 나누시면 더 좋은 인연이 다가올 수 있습니다! 🥰</div>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
 
-    <!-- 2-1. 궁합 보기 -->
-    <section class="card" id="compatCard" aria-labelledby="compatTitle">
-      <h3 id="compatTitle" class="sec-title">💞 궁합 보기 (연애 · 사업 · 친구)</h3>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        
-        <div class="row2">
-          <div class="form-group" style="flex:1;">
-            <label class="form-label" style="margin-bottom:6px">상대 이름</label>
-            <input class="inp" type="text" id="compatName" placeholder="상대 이름을 입력하세요">
-          </div>
-          <div class="form-group" style="flex:1;">
-            <label class="form-label" style="margin-bottom:6px">궁합 유형</label>
-            <select class="inp" id="compatType">
-              <option value="love">연애/결혼</option>
-              <option value="business">사업/동업</option>
-              <option value="friend">친구/동료</option>
-            </select>
-          </div>
-        </div>
-        <div id="compatTypeDesc" style="font-size:.85rem;color:#666;margin-top:-2px">유형을 선택하면 해당 유형에 맞는 분석 문구와 권장 포인트가 표시됩니다.</div>
-        <!-- 유명인 목록 클릭으로 빠르게 입력 -->
-        <div class="form-group">
-          <label class="form-label" style="margin-bottom:6px">유명인 선택</label>
-          <div id="celebsList"></div>
-        </div>
-        <div class="form-group" style="margin-bottom:10px">
-          <label class="form-label" style="margin-bottom:6px">상대 생년월일 · 시간</label>
-          <input class="inp" type="date" id="compatBirthDate" onchange="updateLunarPreview('compatBirthDate', 'compatCalType', 'compatLunarPreview')">
-          <div style="display:flex; gap:10px; margin-top:8px; font-size:0.9rem;">
-            <label><input type="radio" name="compatCalType" value="solar" checked onchange="updateLunarPreview('compatBirthDate', 'compatCalType', 'compatLunarPreview')"> 양력</label>
-            <label><input type="radio" name="compatCalType" value="lunar" onchange="updateLunarPreview('compatBirthDate', 'compatCalType', 'compatLunarPreview')"> 음력(평달)</label>
-            <label><input type="radio" name="compatCalType" value="lunar_leap" onchange="updateLunarPreview('compatBirthDate', 'compatCalType', 'compatLunarPreview')"> 음력(윤달)</label>
-          </div>
-          <div id="compatLunarPreview" style="font-size:0.85rem; color:var(--point-color, #FF8BA7); margin-top:4px; display:none;"></div>
-          <div class="row2" style="margin-top:8px">
-            <select class="inp" id="compatBirthHour"></select>
-            <select class="inp" id="compatBirthMinute"></select>
-          </div>
-        </div>
-        <button id="compatRunBtn" class="btn-sub" style="margin-top:4px" onclick="runCompat()">💗 궁합 분석하기</button>
-        <div id="compatResult" style="margin-top:14px"></div>
-        <div id="compatTestResults" style="margin-top:12px;font-size:.9rem;color:#333"></div>
-      </div>
-    </section>
-
-    <!-- 2-2. 나와 비슷한 연예인 -->
-    <section class="card" id="similarCelebCard" style="display:none" aria-labelledby="celebTitle">
-      <h3 id="celebTitle" class="sec-title">✨ 나와 영혼의 쌍둥이 연예인은?</h3>
-      <div id="similarCelebResult"></div>
-    </section>
-
-    <!-- 2-3. 요주의 빌런 블랙리스트 -->
-    <div class="ad-container" id="adMiddle6" style="margin-bottom:20px;">
-      <div class="ad-sponsor-text">💢 내 인생의 빌런을 피하려면? 잠시 광고를 눌러 기운을 정화하시고 액운을 예방해 보세요! 🛡️</div>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
     <section class="card" id="villainCard" style="display:none" aria-labelledby="villainTitle">
       <h3 id="villainTitle" class="sec-title">💀 요주의 빌런 블랙리스트</h3>
       <div id="villainResult"></div>
@@ -7539,12 +7898,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div id="skillTreeSection"></div>
     </section>
 
-    <!-- 6-2. 에너지 원정 리포트 (NEW) -->
-    <div class="ad-container" id="adMiddle7" style="margin-bottom:20px;">
-      <div class="ad-sponsor-text">🌍 나에게 맞는 에너지 좌표는 어딜까요? 하단 광고를 한 번씩 둘러봐주시면, 더욱 신비로운 운세 연구에 큰 도움이 됩니다! ✈️</div>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
+
     <section class="card" id="energyCoordCard" style="display:none" aria-labelledby="energyTitle">
       <h3 id="energyTitle" class="sec-title">🧭 에너지 원정 리포트 — 사주 맞춤 에너지 좌표</h3>
       <div id="energyCoordSection"></div>
@@ -7570,14 +7924,9 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
     </section>
 
 
-    <!-- ═══ 호르몬 관상: 테토 vs 에겐 ═══ -->
-    <div class="ad-container" id="adMiddle8" style="margin-bottom:20px;">
-      <div class="ad-sponsor-text">🧬 나의 호르몬 관상이 궁금하신가요? 광고 한 번 클릭은 저희가 유익한 콘텐츠를 끝없이 제작하는 원동력이 됩니다! 💪</div>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </div>
+
     <section id="hormone-vibe-section" class="card hv-card" style="display:none; overflow:hidden; position:relative;">
-      <div class="sec-title">🧬 사주로 볼때 나는 테토인가? 에겐인가?</div>
+      <h3 class="sec-title">🧬 사주로 볼때 나는 테토인가? 에겐인가?</h3>
       <div id="hormoneVibeResult"></div>
     </section>
 
@@ -7586,8 +7935,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <h3 id="tTestTitle" class="sec-title">The Frozen Logic — 극T 테스트</h3>
       <div id="tTestResult"></div>
     </section>
-
-      <!-- /#ichingWrap removed -->
 
       <!-- 쌈바 프로모션 박스 -->
       <aside class="neo-promo-box" style="padding-bottom: 25px;" aria-label="Premium Service Promotion">
@@ -7645,12 +7992,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         
         <!-- 하단 상담 신청 띠 -->
       </aside>
-      <!-- 사주 분석 중단 광고 -->
-      <div class="ad-container" style="margin-top:16px;">
-        <div class="ad-sponsor-text">☕ 관심 있는 광고를 클릭해 주시면 서비스 운영에 큰 도움이 됩니다! 여러분의 따뜻한 마음이 복으로 돌아갈 것입니다. 💕</div>
-        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-        <script>_safePushAd(document.currentScript);</script>
-      </div>
+
     </div>
 
 
@@ -7661,15 +8003,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div id="letterContent"></div>
     </section>
 
-    <!-- 광고 3: 하단 광고 -->
-    <aside class="ad-container" id="adBottom" style="margin-bottom:16px" aria-label="Advertisement">
-      <div class="ad-sponsor-text">🌟 무료로 제공되는 양질의 콘텐츠, 광고 클릭 한 번이 그 원동력이 됩니다. 여러분의 넉넉한 인심이 복이 되어 돌아갈 거예요! 🍀</div>
-      <!-- 사주 분석 하단 광고 -->
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-      <script>_safePushAd(document.currentScript);</script>
-    </aside>
-
-    <!-- 공유하기 -->
+<!-- 공유하기 -->
     <section class="share-section" id="shareSection" style="display:none" aria-labelledby="shareTitle">
       <h3 id="shareTitle" class="share-title">📤 사주 결과 공유하기</h3>
       <div class="share-btns">
@@ -8636,45 +8970,6 @@ window.addEventListener('load', function() {
 
 <!-- 타짜 화투점 -->
 <script src="HwatuFortune.js"></script>
-
-  <!-- 맥락 맞춤형 복채(AdSense) 컴포넌트 -->
-  <script>
-  window.BokchaeAdComponent = {
-      adCount: 0,
-      
-      getMent: function(cat) {
-          if (cat === 'Tarot') return "타로 카드가 전하는 메시지가 도움이 되셨나요? 정성 어린 복채(광고 클릭)는 다음에 보실 타로의 적중률을 높여주는 기운이 됩니다.";
-          if (cat === 'Saju') return "사주 명리학으로 풀어낸 오늘의 운을 잘 활용하시길 바랍니다. 복채를 나누는 마음으로 광고를 확인하시면, 막혔던 운의 흐름이 더욱 원활해질 것입니다.";
-          if (cat === 'Zodiac') return "오늘의 별자리가 당신을 향해 빛나고 있네요. 작은 나눔(광고 클릭)이 더 큰 행운이 되어 당신에게 돌아갈 거예요.";
-          return "당신의 운세에 작은 행운을 더해보세요. 복채를 나누는 마음이 더 큰 행운이 되어 돌아갑니다.";
-      },
-
-      createHtml: function(category) {
-          this.adCount++;
-          const ment = this.getMent(category);
-          return `
-          <div class="bokchae-ad-container" style="margin: 30px 0; padding: 20px 15px; border: 2px dashed #d4af37; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-              <p style="font-weight: 700; color: #b8860b; margin-bottom: 12px; font-size: 0.95rem; line-height: 1.5; word-break: keep-all;">
-                  ✨ ${ment} ✨
-              </p>
-              <div style="min-height: 100px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.02); border-radius: 8px;">
-                  <ins class="adsbygoogle"
-                       style="display:block; width:100%;"
-                       data-ad-client="ca-pub-6568940861111005"
-                       data-ad-slot="YOUR_AD_SLOT"
-                       data-ad-format="auto"
-                       data-full-width-responsive="true"></ins>
-              </div>
-          </div>
-          `;
-      },
-
-      injectScript: function() {
-          try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {}
-      }
-  };
-  </script>
-
 <style>
 /* ═══ 모바일 마스터 최적화 추가 CSS ═══ */
 
@@ -8849,9 +9144,14 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 }
 </style>
 
+<script src="js/runtime-stability.js"></script>
 <script src="js/touch-perf.js"></script>
 
 </body>
 </html>
+
+
+
+
 
 

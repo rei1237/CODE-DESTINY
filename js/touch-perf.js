@@ -58,10 +58,23 @@
   }, { passive: true });
 
   /* ── 6. Lazy Loading — Intersection Observer ── */
+  var imgObs = null;
   if ('IntersectionObserver' in window) {
+    var allImgs = document.querySelectorAll('img');
+    allImgs.forEach(function(img, idx) {
+      if (!img) return;
+      if (!img.getAttribute('loading')) {
+        // Keep the first few images eager for faster first paint.
+        img.setAttribute('loading', idx < 3 ? 'eager' : 'lazy');
+      }
+      if (!img.getAttribute('decoding')) {
+        img.setAttribute('decoding', 'async');
+      }
+    });
     var lazyImgs = document.querySelectorAll('img[loading="lazy"]');
-    var imgObs = new IntersectionObserver(function(entries) {
+    imgObs = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
+        if (!entry || !entry.target) return;
         if (entry.isIntersecting) {
           var img = entry.target;
           if (img.dataset.src) { img.src = img.dataset.src; img.removeAttribute('data-src'); }
@@ -69,7 +82,14 @@
         }
       });
     }, { rootMargin: '200px 0px' });
-    lazyImgs.forEach(function(img) { imgObs.observe(img); });
+    lazyImgs.forEach(function(img) { if (img) imgObs.observe(img); });
+
+    window.addEventListener('pagehide', function() {
+      if (imgObs) {
+        imgObs.disconnect();
+        imgObs = null;
+      }
+    }, { once: true });
   }
 
   /* ── 7. 전역 이벤트 위임 — 비활성화된 버튼 클릭 차단 ── */

@@ -1,4 +1,4 @@
-// ============================================
+﻿// ============================================
 // Face Analysis UI Controller (Vanilla JS)
 // 초상권 안내 문구 추가 & 동물 뱃지 미출력 오류 수정
 // 초정밀 안면 / 귀 관상 분석 프롬프트 고도화 적용
@@ -276,13 +276,7 @@ const appHtml = `
         <!-- 고도화된 Expert Report 컨테이너 -->
         <div id="expertReportContainer"></div>
 
-        <!-- 관상 결과 하단 광고 -->
-        <div class="ad-container" id="adPhysiognomy" style="margin-top:20px; text-align:center;">
-          <div class="ad-sponsor-text" style="font-size:0.8rem; color:#64748b; margin-bottom:8px;">🎭 관상 결과가 마음에 드셨나요? 광고 한 번 클릭해주시면 복채로 생각하고 더 좋은 서비스를 만들겠습니다! 🙏</div>
-          <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"></script>
-          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto" data-full-width-responsive="true"></ins>
-          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
+
 
         <button class="action-btn" style="width: 100%; margin-top: 15px; background: #FEE500; color: #3B1E08; border: none; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" onclick="sharePhysiognomyKakao()">💬 카카오톡으로 관상 결과 공유하기</button>
         <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px; font-size:1.05rem;" onclick="startCompatMode()">💕 상대방과 관상 궁합 보기</button>

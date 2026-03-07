@@ -58,25 +58,74 @@ function shareTarotKakao(){
   }, 1000);
 }
 function shareAstroKakao() {
-  var birth = window._ziweiBirth || {};
   var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
     ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
     : (window.USER_NAME || '나');
-  var signs = ['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리',
-               '천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
-  var sunSign = '';
-  try {
-    var c = AstroEngine.calcAll(birth.year||2000, birth.month||1, birth.day||1,
-      (birth.hour||12) + (birth.minute||0)/60, birth.lat||37.6, birth.lon||127.0, birth.tz||9);
-    sunSign = c.sun ? c.sun.sign : '';
-  } catch(e) {}
+  var section = document.getElementById('astroResult');
+  var preview = section ? _trimShareText(section.innerText, 240) : '';
   var base = window.location.href.split('?')[0];
-  var text = '✨ [코즈믹 차트 · 점성술]\n\n'
-    + name + '님의 별자리 분석 결과예요!\n'
-    + (sunSign ? '☀ 태양 별자리: ' + sunSign + '\n' : '')
-    + '\n나도 무료로 확인해보세요 👇\n' + base;
+  var text = '✨ [점성술 코즈믹 차트 결과 공유]\n\n'
+    + name + '님의 점성술 분석 결과입니다.\n'
+    + (preview ? ('\n' + preview + '\n') : '\n')
+    + '\n나도 무료로 확인하기 👇\n' + base;
   if (navigator.share) {
-    navigator.share({ title: '✨ 코즈믹 차트', text: text, url: base }).catch(function(){});
+    navigator.share({ title: '✨ 점성술 코즈믹 차트', text: text, url: base }).catch(function(){});
+    return;
+  }
+  var encoded = encodeURIComponent(text);
+  var a = document.createElement('a');
+  a.href = 'kakaotalk://send?text=' + encoded;
+  a.click();
+  setTimeout(function() {
+    copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+  }, 800);
+}
+
+function _trimShareText(raw, maxLen) {
+  var s = String(raw || '').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  return s.length > (maxLen || 220) ? s.slice(0, (maxLen || 220)) + '...' : s;
+}
+
+function shareSukuyoKakao() {
+  var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
+    ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
+    : (window.USER_NAME || '나');
+  var section = document.getElementById('sukuyoSection');
+  var preview = section ? _trimShareText(section.innerText, 240) : '';
+  var base = window.location.href.split('?')[0];
+  var text = '💫 [숙요점 결과 공유]\n\n'
+    + name + '님의 숙요점 결과입니다.\n'
+    + (preview ? ('\n' + preview + '\n') : '\n')
+    + '\n나도 무료로 확인하기 👇\n' + base;
+
+  if (navigator.share) {
+    navigator.share({ title: '💫 숙요점 결과', text: text, url: base }).catch(function(){});
+    return;
+  }
+  var encoded = encodeURIComponent(text);
+  var a = document.createElement('a');
+  a.href = 'kakaotalk://send?text=' + encoded;
+  a.click();
+  setTimeout(function() {
+    copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+  }, 800);
+}
+
+function shareZiweiKakao() {
+  var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
+    ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
+    : (window.USER_NAME || '나');
+  var section = document.getElementById('ziweiModalSection');
+  var preview = section ? _trimShareText(section.innerText, 240) : '';
+  var base = window.location.href.split('?')[0];
+  var text = '🌌 [자미두수 명반 결과 공유]\n\n'
+    + name + '님의 자미두수 결과입니다.\n'
+    + (preview ? ('\n' + preview + '\n') : '\n')
+    + '\n나도 무료로 확인하기 👇\n' + base;
+
+  if (navigator.share) {
+    navigator.share({ title: '🌌 자미두수 결과', text: text, url: base }).catch(function(){});
     return;
   }
   var encoded = encodeURIComponent(text);
