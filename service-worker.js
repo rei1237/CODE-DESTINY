@@ -1,6 +1,6 @@
 ﻿/* Service Worker - kkul-mansaeryeok\n   Cache version: v3 (Network-First strategy)\n   - v1/v2 caches are automatically deleted on activate\n*/
 
-const CACHE_NAME = 'kkul-mansaeryeok-v6';
+const CACHE_NAME = 'kkul-mansaeryeok-v7';
 
 const PRECACHE_URLS = [
   '/',

@@ -26,8 +26,8 @@
     revealObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
-          entry.target?.classList.remove(HIDDEN_CLS);
-          entry.target?.classList.add(VISIBLE_CLS);
+          if (entry.target) entry.target.classList.remove(HIDDEN_CLS);
+          if (entry.target) entry.target.classList.add(VISIBLE_CLS);
           revealObserver.unobserve(entry.target);
         }
       });
@@ -63,16 +63,16 @@
     indicatorEl.innerHTML =
       '<button class="fate-scroll-next-arrow" id="fateNextArrow" aria-label="다음 섹션으로 이동">&#8595;</button>' +
       '<span class="fate-scroll-next-label" id="fateNextLabel">다음 서비스 보기</span>';
-    document.body?.appendChild(indicatorEl);
+    if (document.body) document.body.appendChild(indicatorEl);
     indicatorLabel = document.getElementById('fateNextLabel');
 
     var arrowBtn = document.getElementById('fateNextArrow');
-    arrowBtn?.addEventListener('click', function () {
+    if (arrowBtn) arrowBtn.addEventListener('click', function () {
       if (!currentSection) return;
       var all = getSections().filter(isDisplayed);
       var idx = all.indexOf(currentSection);
-      var next = all[idx + 1] ?? null;
-      next?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var next = (idx + 1 < all.length) ? all[idx + 1] : null;
+      if (next) next.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
 
@@ -88,8 +88,8 @@
         if (!indicatorEl) return;
         if (hasNext) {
           var nextEl   = all[idx + 1];
-          var titleEl  = nextEl?.querySelector('.sec-title, .destiny-title, h3, .fortune-sec-title');
-          var titleTxt = (titleEl?.textContent ?? '').trim();
+          var titleEl  = nextEl ? nextEl.querySelector('.sec-title, .destiny-title, h3, .fortune-sec-title') : null;
+          var titleTxt = (titleEl ? titleEl.textContent : '').trim();
           if (!titleTxt) titleTxt = '다음 서비스 보기';
           if (indicatorLabel) {
             indicatorLabel.textContent = titleTxt.length > 16
@@ -124,8 +124,8 @@
           if (!el.classList.contains(VISIBLE_CLS) && !el.classList.contains(HIDDEN_CLS)) {
             el.classList.add(HIDDEN_CLS);
           }
-          revealObserver?.observe(el);
-          sectionObserver?.observe(el);
+          if (revealObserver) revealObserver.observe(el);
+          if (sectionObserver) sectionObserver.observe(el);
         }
       });
     });

@@ -10664,7 +10664,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                     b.style.borderColor = 'rgba(100,200,255,0.7)';
                     b.style.color = '#87ceeb';
                     window._szActiveCountry = code;
-                    window._szCelebFilter(_renderMIdx, document.querySelector('.sy-ctab.active')?.dataset.cat || '', document.getElementById('szCelebQ')?.value || '', null);
+                    window._szCelebFilter(_renderMIdx, (document.querySelector('.sy-ctab.active') || {dataset:{}}).dataset.cat || '', (document.getElementById('szCelebQ') || {}).value || '', null);
                 };
                 return b;
             };
@@ -10684,7 +10684,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                 btn.dataset.cat = i === 0 ? '' : c;
                 btn.textContent = (_ic[c] || (i === 0 ? '✨' : '')) + ' ' + c;
                 btn.style.cssText = 'padding:4px 10px;border-radius:20px;font-size:0.73rem;border:1px solid rgba(162,155,254,' + (i===0?'0.6':'0.3') + ');background:rgba(162,155,254,' + (i===0?'0.2':'0.05') + ');color:#c792ea;cursor:pointer;white-space:nowrap;transition:all 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:36px;';
-                btn.onclick = () => window._szCelebFilter(_renderMIdx, btn.dataset.cat, document.getElementById('szCelebQ')?.value || '', btn);
+                btn.onclick = function() { window._szCelebFilter(_renderMIdx, btn.dataset.cat, (document.getElementById('szCelebQ') || {}).value || '', btn); };
                 _catsDiv.appendChild(btn);
             });
         }
@@ -10695,7 +10695,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
             _qInp.addEventListener('input', () => {
                 clearTimeout(_szDebounceTimer);
                 _szDebounceTimer = setTimeout(() => {
-                    window._szCelebFilter(_renderMIdx, document.querySelector('.sy-ctab.active')?.dataset.cat || '', _qInp.value, null);
+                    window._szCelebFilter(_renderMIdx, (document.querySelector('.sy-ctab.active') || {dataset:{}}).dataset.cat || '', _qInp.value, null);
                 }, 300);
             });
         }

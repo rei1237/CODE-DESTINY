@@ -2059,8 +2059,8 @@ async analyze(landmarksData, expressionData) {
     const animal2 = result2.primaryAnimal;
     const emoji1 = result1.emoji;
     const emoji2 = result2.emoji;
-    const id1 = this.animalDb.animals.find(a => a.name === animal1)?.id || '';
-    const id2 = this.animalDb.animals.find(a => a.name === animal2)?.id || '';
+    const id1 = (this.animalDb.animals.find(a => a.name === animal1) || {}).id || '';
+    const id2 = (this.animalDb.animals.find(a => a.name === animal2) || {}).id || '';
 
     // 방어적 null 체크
     const feat1 = result1.extractedFeatures || {};

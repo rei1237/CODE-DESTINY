@@ -27,9 +27,9 @@
   }
 
   /* ─ 표시 / 숨김 ─ */
-  function showNav () { navBar?.classList.add('fsn-visible'); }
+  function showNav () { if (navBar) navBar.classList.add('fsn-visible'); }
   function hideNav () {
-    navBar?.classList.remove('fsn-visible');
+    if (navBar) navBar.classList.remove('fsn-visible');
     if (titleEl) titleEl.textContent = '\uc6b4\uba85\uc758 \uc9c0\ub3c4';
   }
 
@@ -109,7 +109,7 @@
         var el = m.target;
         if (el.matches && el.matches('.card, .destiny-section, .letter-box')) {
           if (getComputedStyle(el).display !== 'none') {
-            secObs?.observe(el);
+            if (secObs) secObs.observe(el);
           }
         }
       });

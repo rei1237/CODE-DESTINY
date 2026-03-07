@@ -2,6 +2,33 @@
 <html lang="ko">
 <head>
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
+  <!-- ■ 모바일 에러 추적 — onerror 배너 (디버깅 완료 후 제거) -->
+  <script>
+  (function(){
+    var errs = [];
+    function _show(msg) {
+      errs.push(msg);
+      var el = document.getElementById('_mobileErrBanner');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = '_mobileErrBanner';
+        el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:2147483647;'+
+          'background:#b00020;color:#fff;font-size:11px;padding:6px 10px;max-height:40vh;overflow:auto;'+
+          'word-break:break-all;font-family:monospace;';
+        document.body ? document.body.appendChild(el) :
+          document.addEventListener('DOMContentLoaded', function(){ document.body.appendChild(el); });
+      }
+      el.textContent = errs.slice(-8).join('\n');
+    }
+    window.onerror = function(msg, src, line, col, err) {
+      _show('[ERR] ' + (src||'').split('/').pop() + ':' + line + ' ' + msg);
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function(e) {
+      _show('[PROM] ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)));
+    });
+  })();
+  </script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
 <meta charset="UTF-8">
@@ -3638,7 +3665,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div class="normal-logo">
         <div class="pig-svg-wrap">
           <img src="https://raw.githubusercontent.com/Toss/tossface/main/dist/svg/u1F338.svg"
-               width="130" height="130" alt="벚꽃" style="display:block; border-radius: 50%; box-shadow: 0 4px 12px rgba(255,139,167,0.3);">
+               width="130" height="130" alt="벚꽃" loading="lazy" style="display:block; border-radius: 50%; box-shadow: 0 4px 12px rgba(255,139,167,0.3);">
         </div>
         <h1>연이의 꿀꿀 만세력</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
@@ -3646,7 +3673,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <div class="neo-logo">
         <div class="pig-svg-wrap">
           <img src="https://raw.githubusercontent.com/Toss/tossface/main/dist/svg/u1F43E.svg"
-               width="130" height="130" alt="동물 발바닥" style="display:block; border-radius: 50%; box-shadow: 0 4px 12px rgba(255,215,0,0.3);">
+               width="130" height="130" alt="동물 발바닥" loading="lazy" style="display:block; border-radius: 50%; box-shadow: 0 4px 12px rgba(255,215,0,0.3);">
         </div>
         <h1>쌈바의 팩폭 운세 만세력</h1>
         <p>감성 제로. 팩트만 남는다.</p>
