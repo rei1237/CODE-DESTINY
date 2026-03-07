@@ -5907,6 +5907,14 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
           touch-action: pan-y !important;
           pointer-events: none !important;
         }
+        /* 결과 확인 중: 질문 입력·열기바·상태·버튼 영역 완전 숨김
+           → touch-action:none 요소가 DOM에서 사라져 스크롤 100% 허용 */
+        .tc-wrap--answered .tc-question-row,
+        .tc-wrap--answered .tc-heat-bar-wrap,
+        .tc-wrap--answered .tc-status-msg,
+        .tc-wrap--answered .tc-shell-area {
+          display: none !important;
+        }
         .tc-shell-btn.heating {
           animation: shellVibrate .18s linear infinite, heatPulse 1.5s ease-in-out infinite;
           border-color: rgba(255,120,20,.7);
