@@ -4676,15 +4676,15 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
       <!-- 주역(周易) 64괘 전체화면 — 거북점 UI -->
       <!-- 네비바: position:absolute (스크롤 밖) / 콘텐츠: 별도 overflow:auto 영역 — iOS 스크롤 간섭 없음 -->
-      <div id="juyukModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#080401; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
-        <!-- 네비게이션 바 (sticky — 스크롤 중에도 항상 상단 고정) -->
-        <div id="juyukNavBar" style="position:sticky; top:0; left:0; right:0; width:100%; z-index:100000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(8,4,1,0.97); border-bottom:1px solid rgba(180,130,30,0.3);">
+      <div id="juyukModalOverlay" style="display:none; width:100%; background:#080401;">
+        <!-- 네비게이션 바 -->
+        <div id="juyukNavBar" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(8,4,1,0.97); border-bottom:1px solid rgba(180,130,30,0.3);">
           <button onclick="closeJuyukModal()" aria-label="홈으로" style="display:flex; align-items:center; gap:5px; background:transparent; border:none; color:rgba(220,185,80,0.9); font-family:'Gowun Dodum',serif; font-size:0.88rem; font-weight:700; cursor:pointer; padding:10px 4px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; letter-spacing:0.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
           <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(255,200,70,0.65); letter-spacing:2.5px; pointer-events:none;">龜趺神占 · 거북점</div>
           <div style="width:72px;"></div>
         </div>
-        <!-- 콘텐츠 래퍼 (overlay가 스크롤 컨테이너 — 브라우저 기본 스크롤 동작) -->
-        <div id="juyukModalSheet" style="position:relative; width:100%; box-sizing:border-box; word-break:keep-all; overflow-wrap:break-word;">
+        <!-- 콘텐츠 래퍼 -->
+        <div id="juyukModalSheet" style="width:100%; box-sizing:border-box; word-break:keep-all; overflow-wrap:break-word;">
           <!-- 콘텐츠 (max-width 중앙정렬) -->
           <div style="width:100%; max-width:700px; margin:0 auto; box-sizing:border-box; animation:tcPageIn 0.35s cubic-bezier(0.22,1,0.36,1); padding-bottom:env(safe-area-inset-bottom,0px);">
           <!-- 거북점 메인 컨테이너 -->
@@ -4759,13 +4759,13 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       <!-- / 주역(周易) 64괘 전체화면 -->
 
       <!-- 💫 숙요점(宿曜占) 전체화면 모달 -->
-      <div id="sukuyoModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#0a0c19; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
-        <div id="sukuyoNavBar" style="position:sticky; top:0; left:0; right:0; width:100%; z-index:100000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(10,12,25,0.97); border-bottom:1px solid rgba(167,139,250,0.3);">
+      <div id="sukuyoModalOverlay" style="display:none; width:100%; background:#0a0c19;">
+        <div id="sukuyoNavBar" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(10,12,25,0.97); border-bottom:1px solid rgba(167,139,250,0.3);">
           <button onclick="closeSukuyoModal()" aria-label="홈으로" style="display:flex; align-items:center; gap:5px; background:transparent; border:none; color:rgba(180,150,255,0.9); font-family:'Gowun Dodum',serif; font-size:0.88rem; font-weight:700; cursor:pointer; padding:10px 4px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; letter-spacing:0.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
           <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(167,139,250,0.65); letter-spacing:2.5px; pointer-events:none;">💫 宿曜占 · 숙요점</div>
           <div style="width:60px;"></div>
         </div>
-        <div id="sukuyoModalSheet" style="position:relative; width:100%; box-sizing:border-box; word-break:keep-all; overflow-wrap:break-word;">
+        <div id="sukuyoModalSheet" style="width:100%; box-sizing:border-box; word-break:keep-all; overflow-wrap:break-word;">
           <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
             <div id="sukuyoNoProfile" style="display:none; text-align:center; padding:60px 20px;">
               <div style="font-size:3rem; margin-bottom:16px;">💫</div>
@@ -4781,13 +4781,13 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       </div><!-- /#sukuyoModalOverlay -->
 
       <!-- ✨ 점성술 코즈믹 차트 전체화면 모달 -->
-      <div id="astroModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#0a0a14; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
-        <div id="astroNavBar" style="position:sticky; top:0; left:0; right:0; width:100%; z-index:100000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(10,10,20,0.97); border-bottom:1px solid rgba(125,42,232,0.3);">
+      <div id="astroModalOverlay" style="display:none; width:100%; background:#0a0a14;">
+        <div id="astroNavBar" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(10,10,20,0.97); border-bottom:1px solid rgba(125,42,232,0.3);">
           <button onclick="closeAstroModal()" aria-label="홈으로" style="display:flex; align-items:center; gap:5px; background:transparent; border:none; color:rgba(160,130,255,0.9); font-family:'Gowun Dodum',serif; font-size:0.88rem; font-weight:700; cursor:pointer; padding:10px 4px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; letter-spacing:0.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
           <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(125,42,232,0.65); letter-spacing:2.5px; pointer-events:none;">✨ Cosmic Chart · 점성술</div>
           <div style="width:60px;"></div>
         </div>
-        <div id="astroModalSheet" style="position:relative; width:100%; box-sizing:border-box; word-break:keep-all; overflow-wrap:break-word;">
+        <div id="astroModalSheet" style="width:100%; box-sizing:border-box; word-break:keep-all; overflow-wrap:break-word;">
           <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
             <div id="astroNoProfile" style="display:none; text-align:center; padding:60px 20px;">
               <div style="font-size:3rem; margin-bottom:16px;">✨</div>
@@ -4806,13 +4806,13 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       </div><!-- /#astroModalOverlay -->
 
       <!-- 🌌 자미두수(紫微斗數) 전체화면 모달 -->
-      <div id="ziweiModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:#090515; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
-        <div id="ziweiModalNavBar" style="position:sticky; top:0; left:0; right:0; width:100%; z-index:100000; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(9,5,21,0.97); border-bottom:1px solid rgba(232,121,249,0.3);">
+      <div id="ziweiModalOverlay" style="display:none; width:100%; background:#090515;">
+        <div id="ziweiModalNavBar" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:0 16px; height:54px; background:rgba(9,5,21,0.97); border-bottom:1px solid rgba(232,121,249,0.3);">
           <button onclick="closeZiweiModal()" aria-label="홈으로" style="display:flex; align-items:center; gap:5px; background:transparent; border:none; color:rgba(232,121,249,0.9); font-family:'Gowun Dodum',serif; font-size:0.88rem; font-weight:700; cursor:pointer; padding:10px 4px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; letter-spacing:0.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
           <div style="font-family:'Gowun Dodum',serif; font-size:0.82rem; color:rgba(232,121,249,0.65); letter-spacing:2.5px; pointer-events:none;">🌌 紫微斗數 · 자미두수</div>
           <div style="width:60px;"></div>
         </div>
-        <div id="ziweiModalSheet" style="position:relative; width:100%; box-sizing:border-box; word-break:keep-all; overflow-wrap:break-word;">
+        <div id="ziweiModalSheet" style="width:100%; box-sizing:border-box; word-break:keep-all; overflow-wrap:break-word;">
           <div style="width:100%; max-width:700px; margin:0 auto; padding:20px 16px calc(120px + env(safe-area-inset-bottom)); box-sizing:border-box;">
             <!-- 프로필 없음 상태 -->
             <div id="ziweiNoProfile" style="display:none; text-align:center; padding:60px 20px;">
@@ -5120,14 +5120,11 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       function openSukuyoModal() {
         var overlay = document.getElementById('sukuyoModalOverlay');
         if (!overlay) return;
-        overlay.scrollTop = 0;
-        /* iOS Safari 배경 스크롤 완전 차단 */
-        if (window._perf && window._perf.lockBody) { window._perf.lockBody(); }
-        else { document.body.style.overflow = 'hidden'; }
         var s = _dpStorage();
         var profiles = s ? s.list() : [];
         var profile  = s ? s.current() : null;
         overlay.style.display = 'block';
+        setTimeout(function(){ overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
         var noProfile = document.getElementById('sukuyoNoProfile');
         var card      = document.getElementById('sukuyoCard');
         var theme = { icon:'💫', ac:'#c4b5fd', br:'167,139,250',
@@ -5146,22 +5143,18 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
       function closeSukuyoModal() {
         var o = document.getElementById('sukuyoModalOverlay'); if (o) o.style.display = 'none';
-        if (window._perf && window._perf.unlockBody) { window._perf.unlockBody(); }
-        else { document.body.style.overflow = ''; }
         _ModalProfileState.unsubscribe('sukuyo');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
       function openZiweiModal() {
         var overlay = document.getElementById('ziweiModalOverlay');
         if (!overlay) return;
-        overlay.scrollTop = 0;
-        /* iOS Safari 배경 스크롤 완전 차단 */
-        if (window._perf && window._perf.lockBody) { window._perf.lockBody(); }
-        else { document.body.style.overflow = 'hidden'; }
         var s = _dpStorage();
         var profiles = s ? s.list() : [];
         var profile  = s ? s.current() : null;
         overlay.style.display = 'block';
+        setTimeout(function(){ overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
         var noProfile = document.getElementById('ziweiNoProfile');
         var card      = document.getElementById('ziweiModalCard');
         var theme = { icon:'🌌', ac:'#e879f9', br:'232,121,249',
@@ -5179,22 +5172,18 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
       function closeZiweiModal() {
         var o = document.getElementById('ziweiModalOverlay'); if (o) o.style.display = 'none';
-        if (window._perf && window._perf.unlockBody) { window._perf.unlockBody(); }
-        else { document.body.style.overflow = ''; }
         _ModalProfileState.unsubscribe('ziwei');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
       function openAstroModal() {
         var overlay = document.getElementById('astroModalOverlay');
         if (!overlay) return;
-        overlay.scrollTop = 0;
-        /* iOS Safari 배경 스크롤 완전 차단 */
-        if (window._perf && window._perf.lockBody) { window._perf.lockBody(); }
-        else { document.body.style.overflow = 'hidden'; }
         var s = _dpStorage();
         var profiles = s ? s.list() : [];
         var profile  = s ? s.current() : null;
         overlay.style.display = 'block';
+        setTimeout(function(){ overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
         var noProfile = document.getElementById('astroNoProfile');
         var cardWrap  = document.getElementById('astroCardWrap');
         var theme = { icon:'✨', ac:'#d1c4e9', br:'125,42,232',
@@ -5212,9 +5201,8 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
       }
       function closeAstroModal() {
         var o = document.getElementById('astroModalOverlay'); if (o) o.style.display = 'none';
-        if (window._perf && window._perf.unlockBody) { window._perf.unlockBody(); }
-        else { document.body.style.overflow = ''; }
         _ModalProfileState.unsubscribe('astro');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
       </script>
 

@@ -463,7 +463,7 @@
         + '</div>'
       + '</div>'
 
-      + '<button class="tc-scroll-top-btn" onclick="(function(){var r=document.getElementById(\u0027tcResult\u0027);if(r)r.scrollTo({top:0,behavior:\u0027smooth\u0027});})()" title="맨 위로">↑ 맨 위로</button>'
+      + '<button class="tc-scroll-top-btn" onclick="(function(){var o=document.getElementById(\u0027juyukModalOverlay\u0027);if(o)window.scrollTo({top:o.offsetTop,behavior:\u0027smooth\u0027});})()" title="맨 위로">↑ 맨 위로</button>'
       + '<button class="tc-share-btn" id="tcShareBtn" onclick="tcShareResult()">📜 신탁 공유하기</button>'
       + '<button class="tc-redo-btn" onclick="tcReset()">⟳ 다시 불을 지피다</button>'
       + '<button class="tc-home-btn" onclick="closeJuyukModal()">← 홈으로 돌아가기</button>';
@@ -481,17 +481,9 @@
     }
     if (wrap) wrap.classList.add('tc-wrap--answered');
 
-    // juyukModalSheet 스크롤 컨테이너로 결과 상단으로 이동
-    var scrollSheet = document.getElementById('juyukModalSheet');
+    // 결과 표시 후 결과 상단으로 스크롤
     setTimeout(function() {
-      if (scrollSheet) {
-        var sheetRect  = scrollSheet.getBoundingClientRect();
-        var resultRect = resultEl.getBoundingClientRect();
-        var newTop = scrollSheet.scrollTop + (resultRect.top - sheetRect.top) - 20;
-        scrollSheet.scrollTo({ top: newTop, behavior: 'smooth' });
-      } else {
-        resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
   }
 

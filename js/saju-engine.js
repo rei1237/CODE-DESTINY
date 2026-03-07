@@ -5268,15 +5268,11 @@ function renderZiwei(p, natal, targetId) {
     };
 
     window._zwScrollToDetail = function() {
-      // overlay가 스크롤 컨테이너 — overlay 기준으로 스크롤
       var dp = document.getElementById('zwDetailPanel');
-      var overlay = document.getElementById('ziweiModalOverlay');
-      if (dp && overlay) {
+      if (dp) {
         requestAnimationFrame(function() {
           setTimeout(function() {
-            var rect = dp.getBoundingClientRect();
-            var overlayRect = overlay.getBoundingClientRect();
-            overlay.scrollTo({ top: overlay.scrollTop + (rect.top - overlayRect.top) - 10, behavior: 'smooth' });
+            dp.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 80);
         });
       }
@@ -11399,23 +11395,10 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
             if (bar) bar.style.width = rel.temperature + '%';
           }, 80);
 
-          // 결과로 부드럽게 스크롤 (모달 내부 / 메인 페이지 공통)
+          // 결과로 부드럽게 스크롤
           setTimeout(function() {
             try {
-              var modalSheet = document.getElementById('sukuyoModalSheet');
-              if (modalSheet && document.getElementById('sukuyoModalOverlay') &&
-                  document.getElementById('sukuyoModalOverlay').style.display !== 'none') {
-                // 모달 내부: 숙요점 모달 스크롤 컨테이너 기준
-                var offsetTop = rd.offsetTop;
-                var parent = rd.offsetParent;
-                while (parent && parent !== modalSheet) {
-                  offsetTop += parent.offsetTop;
-                  parent = parent.offsetParent;
-                }
-                modalSheet.scrollTo({ top: offsetTop - 20, behavior: 'smooth' });
-              } else {
-                rd.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
+              rd.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } catch(_e) {}
           }, 60);
 
