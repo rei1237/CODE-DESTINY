@@ -463,6 +463,7 @@
         + '</div>'
       + '</div>'
 
+      + '<button class="tc-share-btn" id="tcShareBtn" onclick="tcShareResult()">📜 신탁 공유하기</button>'
       + '<button class="tc-redo-btn" onclick="tcReset()">⟳ 다시 불을 지피다</button>';
 
     resultEl.innerHTML = html;
@@ -507,6 +508,22 @@
     if (canvas) { var ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
     _resetShell();
     _TC_STATE = 'IDLE';
+  };
+
+  window.tcShareResult = function() {
+    var hexName = document.querySelector('.tc-ink-name');
+    var name = hexName ? hexName.textContent.replace(/[『』\s]/g, '') : '신탁';
+    var qEl = document.getElementById('ichingQuestion');
+    var q = qEl && qEl.value.trim() ? '"' + qEl.value.trim() + '" — ' : '';
+    var text = '거북점 신탁: ' + q + name + '\nCode Destiny에서 확인하세요: https://code-destiny.com';
+    if (navigator.share) {
+      navigator.share({ title: '거북점 신탁 · ' + name, text: text }).catch(function(){});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function() {
+        var btn = document.getElementById('tcShareBtn');
+        if (btn) { btn.textContent = '✓ 복사됨'; setTimeout(function(){ btn.textContent = '📜 신탁 공유하기'; }, 2000); }
+      }).catch(function(){});
+    }
   };
 
   /* 하위 호환: 기존 _drawIching 연결 */
