@@ -10478,7 +10478,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                   </select>
                   <input type="time" id="sy3BirthTime" value="12:00" style="flex: 0 0 auto; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark;">
               </div>
-              <button onclick="triggerSynergyCheck('${sData ? sData.mansionIdx : 0}')" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;"> 카르마 인연 분석하기</button>
+              <button onclick="triggerSynergyCheck('${sData ? sData.mansionIdx : 0}')" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 44px;"> 카르마 인연 분석하기</button>
           </div>
         <div id="sy3Loading" class="sy-loader">우주의 먼지를 헤치며 카르마를 읽는 중...</div>
         <div id="sy3Result" style="margin-top: 15px; display: none;"></div>
@@ -11029,8 +11029,13 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
   };
 
   window.triggerSynergyCheck = function(myIdx) {
-      if(!document.getElementById('sy3BirthY')) return;
+      // ── 모바일 더블탭 / 중복 실행 방어 ──
+      if (window._sy3Running) return;
+      window._sy3Running = true;
+
+      if(!document.getElementById('sy3BirthY')) { window._sy3Running = false; return; }
       myIdx = parseInt(myIdx, 10);
+
       /* 분리 select(연도-월-일)에서 값을 읽어 YYYY-MM-DD 문자열로 조합 */
       const yVal = document.getElementById('sy3BirthY').value;
       const mVal = document.getElementById('sy3BirthM').value;
@@ -11042,75 +11047,89 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       const calType = document.getElementById('sy3CalType').value || "solar";
 
       if(!dateStr) {
+          window._sy3Running = false;
           alert('상대방의 생년월일(연도·월·일)을 모두 선택해주세요.');
           return;
       }
 
-      const parts = dateStr.split('-');
-      const tParts = timeStr.split(':');
-      let y = parseInt(parts[0],10);
-      let m = parseInt(parts[1],10);
-      let d = parseInt(parts[2],10);
-      let h = parseInt(tParts[0]||12,10);
-      let min = parseInt(tParts[1]||0,10);
-
-      let lunarObj = null;
-      let tDate = new Date(y, m-1, d, h, min, 0);
-
-      try {
-          if (calType === 'solar') {
-              lunarObj = KasiEngine.solarToLunar(tDate);
-          } else {
-              if(h >= 23) {
-                  let nextDay = new Date(tDate.getTime());
-                  nextDay.setDate(nextDay.getDate() + 1);
-                  y = nextDay.getFullYear(); m = nextDay.getMonth()+1; d = nextDay.getDate();
-              }
-              let isLeap = (calType === 'lunar_leap');
-              lunarObj = { year: y, month: m, day: d, isLeap: isLeap };
-          }
-      } catch(e) {
-          alert('음양력 변환 중 오류가 발생했습니다. 날짜를 확인해주세요.');
-          return;
-      }
-
-      // lunarObj null 방어 (KasiEngine이 예외 없이 null 반환하는 경우 처리)
-      if (!lunarObj) { alert('날짜 변환에 실패했습니다. 날짜를 다시 확인해주세요.'); return; }
-
-      let tData;
-      try { tData = calcSukuyoData(lunarObj); } catch(_ce) { tData = null; }
-      if(!tData) {
-          alert("숙요점 계산에 실패했습니다."); return;
-      }
-      const tIdx = tData.mansionIdx;
-
-      // Base-27 Distance
-      const D = (tIdx - myIdx + 27) % 27;
-      let distInfo, rel, tempInfo;
-      try {
-          distInfo = SukuyoCompatEngine.calcDistance(D);
-          rel     = SukuyoCompatEngine.resolve(D, distInfo);
-          tempInfo = SukuyoCompatEngine.tempLabel(rel.temperature);
-      } catch(_ce2) {
-          alert('인연 분석 중 오류가 발생했습니다. 다시 시도해주세요.'); return;
-      }
-
-      // ID 문자열을 변수로 저장 → setTimeout 내에서 DOM 재참조에 재사용
-      const _sy3LoadId = 'sy3Loading', _sy3ResId = 'sy3Result';
-      const loader = document.getElementById(_sy3LoadId);
-      const resDiv = document.getElementById(_sy3ResId);
-      if(!loader || !resDiv) { console.warn('[sy3] 결과 DOM 없음'); return; }
+      // ── [핵심] 로딩 UI를 계산 전에 즉각 표시 ──
+      // 이전: 계산(동기) → 로더 표시 → setTimeout 렌더링  (모바일 프리징 원인)
+      // 수정: 로더 표시 → rAF → setTimeout(0) 내에서 계산+렌더링
+      const loader = document.getElementById('sy3Loading');
+      const resDiv = document.getElementById('sy3Result');
+      if(!loader || !resDiv) { window._sy3Running = false; console.warn('[sy3] 결과 DOM 없음'); return; }
       resDiv.style.display = 'none';
       loader.style.display = 'block';
-      void loader.offsetWidth; // iOS Safari 강제 리플로우
+      void loader.offsetWidth; // iOS Safari 강제 페인트 flush
 
-      setTimeout(() => {
-        // setTimeout 내에서 DOM 재참조 — 1초 사이 DOM이 재렌더돼 detached되는 경우 방지
-        const ld = document.getElementById(_sy3LoadId);
-        const rd = document.getElementById(_sy3ResId);
+      // rAF → 브라우저가 로딩 UI를 실제로 렌더링한 직후에 계산 시작
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+        const ld = loader;
+        const rd = resDiv;
+        try {
+          const parts = dateStr.split('-');
+          const tParts = timeStr.split(':');
+          let y = parseInt(parts[0],10);
+          let m = parseInt(parts[1],10);
+          let d = parseInt(parts[2],10);
+          let h = parseInt(tParts[0]||12,10);
+          let min = parseInt(tParts[1]||0,10);
+
+          let lunarObj = null;
+          let tDate = new Date(y, m-1, d, h, min, 0);
+
+          try {
+              if (calType === 'solar') {
+                  lunarObj = KasiEngine.solarToLunar(tDate);
+              } else {
+                  if(h >= 23) {
+                      let nextDay = new Date(tDate.getTime());
+                      nextDay.setDate(nextDay.getDate() + 1);
+                      y = nextDay.getFullYear(); m = nextDay.getMonth()+1; d = nextDay.getDate();
+                  }
+                  let isLeap = (calType === 'lunar_leap');
+                  lunarObj = { year: y, month: m, day: d, isLeap: isLeap };
+              }
+          } catch(e) {
+              ld.style.display = 'none';
+              window._sy3Running = false;
+              alert('음양력 변환 중 오류가 발생했습니다. 날짜를 확인해주세요.');
+              return;
+          }
+
+          if (!lunarObj) {
+              ld.style.display = 'none';
+              window._sy3Running = false;
+              alert('날짜 변환에 실패했습니다. 날짜를 다시 확인해주세요.');
+              return;
+          }
+
+          let tData;
+          try { tData = calcSukuyoData(lunarObj); } catch(_ce) { tData = null; }
+          if(!tData) {
+              ld.style.display = 'none';
+              window._sy3Running = false;
+              alert("숙요점 계산에 실패했습니다."); return;
+          }
+          const tIdx = tData.mansionIdx;
+
+          // Base-27 Distance
+          const D = (tIdx - myIdx + 27) % 27;
+          let distInfo, rel, tempInfo;
+          try {
+              distInfo = SukuyoCompatEngine.calcDistance(D);
+              rel     = SukuyoCompatEngine.resolve(D, distInfo);
+              tempInfo = SukuyoCompatEngine.tempLabel(rel.temperature);
+          } catch(_ce2) {
+              ld.style.display = 'none';
+              window._sy3Running = false;
+              alert('인연 분석 중 오류가 발생했습니다. 다시 시도해주세요.'); return;
+          }
+
         try {
           if (ld) ld.style.display = 'none';
-          if (!rd) return;
+          if (!rd) { window._sy3Running = false; return; }
           rd.style.display = 'block';
 
           const scoreColor = rel.score >= 80 ? '#2ed573' : (rel.score >= 55 ? '#f39c12' : '#ff4757');
@@ -11255,6 +11274,8 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
             if(bar) bar.style.width = rel.temperature + '%';
           }, 80);
 
+          window._sy3Running = false;
+
         } catch(err) {
           console.error('[sy3] render err:', err);
           if (ld) ld.style.display = 'none';
@@ -11262,8 +11283,16 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
             rd.style.display = 'block';
             rd.innerHTML = '<div style="color:#ff6b81;padding:20px;text-align:center;font-family:sans-serif;">궁합 분석 중 오류가 발생했습니다.<br><br>다시 시도해 주세요.</div>';
           }
+          window._sy3Running = false;
         }
-      }, 1000);
+        } catch(outerErr) {
+          console.error('[sy3] outer err:', outerErr);
+          if (loader) loader.style.display = 'none';
+          if (resDiv) { resDiv.style.display = 'block'; resDiv.innerHTML = '<div style="color:#ff6b81;padding:20px;text-align:center;font-family:sans-serif;">궁합 분석 중 오류가 발생했습니다.<br><br>다시 시도해 주세요.</div>'; }
+          window._sy3Running = false;
+        }
+        }, 0); // setTimeout(0) — 로더 페인트 후 계산 시작
+      }); // requestAnimationFrame
   }
 
 function renderQuantumStrategy(p, natal, bazi){
