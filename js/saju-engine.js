@@ -11074,7 +11074,11 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           return;
       }
 
-      const tData = calcSukuyoData(lunarObj);
+      // lunarObj null 방어 (KasiEngine이 예외 없이 null 반환하는 경우 처리)
+      if (!lunarObj) { alert('날짜 변환에 실패했습니다. 날짜를 다시 확인해주세요.'); return; }
+
+      let tData;
+      try { tData = calcSukuyoData(lunarObj); } catch(_ce) { tData = null; }
       if(!tData) {
           alert("숙요점 계산에 실패했습니다."); return;
       }
@@ -11082,20 +11086,32 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
 
       // Base-27 Distance
       const D = (tIdx - myIdx + 27) % 27;
-      const distInfo = SukuyoCompatEngine.calcDistance(D);
-      const rel = SukuyoCompatEngine.resolve(D, distInfo);
-      const tempInfo = SukuyoCompatEngine.tempLabel(rel.temperature);
+      let distInfo, rel, tempInfo;
+      try {
+          distInfo = SukuyoCompatEngine.calcDistance(D);
+          rel     = SukuyoCompatEngine.resolve(D, distInfo);
+          tempInfo = SukuyoCompatEngine.tempLabel(rel.temperature);
+      } catch(_ce2) {
+          alert('인연 분석 중 오류가 발생했습니다. 다시 시도해주세요.'); return;
+      }
 
-      const loader = document.getElementById('sy3Loading');
-      const resDiv = document.getElementById('sy3Result');
-      if(!loader || !resDiv) return;
+      // ID 문자열을 변수로 저장 → setTimeout 내에서 DOM 재참조에 재사용
+      const _sy3LoadId = 'sy3Loading', _sy3ResId = 'sy3Result';
+      const loader = document.getElementById(_sy3LoadId);
+      const resDiv = document.getElementById(_sy3ResId);
+      if(!loader || !resDiv) { console.warn('[sy3] 결과 DOM 없음'); return; }
       resDiv.style.display = 'none';
       loader.style.display = 'block';
+      void loader.offsetWidth; // iOS Safari 강제 리플로우
 
       setTimeout(() => {
+        // setTimeout 내에서 DOM 재참조 — 1초 사이 DOM이 재렌더돼 detached되는 경우 방지
+        const ld = document.getElementById(_sy3LoadId);
+        const rd = document.getElementById(_sy3ResId);
         try {
-          loader.style.display = 'none';
-          resDiv.style.display = 'block';
+          if (ld) ld.style.display = 'none';
+          if (!rd) return;
+          rd.style.display = 'block';
 
           const scoreColor = rel.score >= 80 ? '#2ed573' : (rel.score >= 55 ? '#f39c12' : '#ff4757');
           const th = rel.theme || { bg:'rgba(20,25,35,0.8)', border:'rgba(255,107,129,0.3)', color1:'#ff6b81', color2:'#ff4757', label:'', concept:'', glowColor:'#ff6b81' };
@@ -11141,7 +11157,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
               <div style="font-size:0.9rem; line-height:1.65; color:#dfe6e9;">${p}</div>
             </div>`).join('');
 
-          resDiv.innerHTML = `
+          rd.innerHTML = `
           <div class="sy-report" style="background:rgba(8,10,18,0.95); border-radius:18px; overflow:hidden; border:1px solid ${th.border}; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family:'Gowun Dodum',sans-serif;">
 
             <!-- ══ HEADER ══ -->
@@ -11235,14 +11251,17 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
 
           // 온도 바 애니메이션 재실행
           setTimeout(() => {
-            const bar = resDiv.querySelector('[style*="transition:width"]');
+            const bar = rd ? rd.querySelector('[style*="transition:width"]') : null;
             if(bar) bar.style.width = rel.temperature + '%';
           }, 80);
 
         } catch(err) {
-          loader.style.display = 'none';
-          resDiv.style.display = 'block';
-          resDiv.innerHTML = '<div style="color:#ff6b81;padding:20px;text-align:center;font-family:sans-serif;">궁합 분석 중 오류가 발생했습니다.<br><br>다시 시도해 주세요.</div>';
+          console.error('[sy3] render err:', err);
+          if (ld) ld.style.display = 'none';
+          if (rd) {
+            rd.style.display = 'block';
+            rd.innerHTML = '<div style="color:#ff6b81;padding:20px;text-align:center;font-family:sans-serif;">궁합 분석 중 오류가 발생했습니다.<br><br>다시 시도해 주세요.</div>';
+          }
         }
       }, 1000);
   }
