@@ -12,15 +12,15 @@
   "categories": ["lifestyle", "entertainment"],
   "icons": [
     {
-      "src": "icons/samba.svg",
+      "src": "icons/samba-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/samba.svg",
+      "src": "icons/samba-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -31,7 +31,7 @@
       "short_name": "운세",
       "description": "오늘의 일일 운세 바로 확인",
       "url": "/#today",
-      "icons": [{ "src": "icons/samba.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+      "icons": [{ "src": "icons/samba-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

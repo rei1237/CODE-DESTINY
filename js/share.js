@@ -209,9 +209,13 @@ function toggleNeoMode(){
       tLabel.innerText = '🦁 팩폭 사자 쌈바 모드';
       tLabel.style.color = '#FFD700';
     }
-    /* 사자모드 manifest 교체 */
+    /* 사자모드 manifest + 아이콘 교체 */
     var manifestLink = document.querySelector('link[rel="manifest"]');
     if(manifestLink) manifestLink.setAttribute('href', 'manifest-samba.json');
+    var faviconLink = document.getElementById('pwa-favicon');
+    var appleIconLink = document.getElementById('pwa-apple-icon');
+    if(faviconLink){ faviconLink.setAttribute('href','icons/samba-192.png'); faviconLink.setAttribute('type','image/png'); }
+    if(appleIconLink) appleIconLink.setAttribute('href','icons/samba-180.png');
     /* PWA 설치 텍스트 변경 */
     var pwaLabel = document.getElementById('pwaInstallLabel');
     var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
@@ -228,9 +232,13 @@ function toggleNeoMode(){
       tLabel.innerText = '🌸 꽃돼지 연이 모드';
       tLabel.style.color = '#FF8BA7';
     }
-    /* 연이모드 manifest 복원 */
+    /* 연이모드 manifest + 아이콘 복원 */
     var manifestLink = document.querySelector('link[rel="manifest"]');
     if(manifestLink) manifestLink.setAttribute('href', 'manifest.json');
+    var faviconLink = document.getElementById('pwa-favicon');
+    var appleIconLink = document.getElementById('pwa-apple-icon');
+    if(faviconLink){ faviconLink.setAttribute('href','icons/honeypig-192.png'); faviconLink.setAttribute('type','image/png'); }
+    if(appleIconLink) appleIconLink.setAttribute('href','icons/honeypig-180.png');
     /* PWA 설치 텍스트 복원 */
     var pwaLabel = document.getElementById('pwaInstallLabel');
     var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
