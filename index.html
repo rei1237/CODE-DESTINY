@@ -4446,6 +4446,22 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
         </div>
       </div><!-- /#astroModalOverlay -->
 
+      <!-- 💌 숙요 궁합 결과 Bottom Sheet ─ sukuyoModalOverlay 위 레이어 (z-index:100001) -->
+      <div id="syCompatSheet" aria-modal="true" role="dialog"
+           onclick="if(event.target===this){this.style.display='none';document.body.style.overflow=''}"
+           style="display:none; position:fixed; inset:0; z-index:100001; background:rgba(0,0,0,0.72); touch-action:none;">
+        <div id="syCompatBody"
+             style="position:absolute; bottom:0; left:0; right:0; max-height:92dvh; max-height:92vh; background:#0a0a18; border-radius:22px 22px 0 0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding-bottom:env(safe-area-inset-bottom,20px);">
+          <!-- 상단 핸들 바 -->
+          <div style="position:sticky; top:0; z-index:2; background:#0a0a18; display:flex; justify-content:space-between; align-items:center; padding:14px 16px 12px; border-bottom:1px solid rgba(255,255,255,0.1);">
+            <span style="font-size:0.9rem; color:#c4b5fd; font-family:'Gowun Dodum',serif; font-weight:700; letter-spacing:1.5px;">💌 27宿 인연 시나스트리</span>
+            <button onclick="document.getElementById('syCompatSheet').style.display='none';document.body.style.overflow=''" aria-label="닫기"
+                    style="background:rgba(255,255,255,0.08); border:none; border-radius:50%; width:36px; height:36px; min-width:36px; color:#ccc; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">✕</button>
+          </div>
+          <div id="syCompatContent" style="padding:16px 16px 32px; box-sizing:border-box; word-break:keep-all; overflow-wrap:break-word;"></div>
+        </div>
+      </div><!-- /#syCompatSheet -->
+
       <script>
       function openSukuyoModal() {
         var overlay = document.getElementById('sukuyoModalOverlay');
@@ -7250,12 +7266,14 @@ window.addEventListener('load', function() {
 }
 
 .astral-container {
-    width: 100%; max-width: 480px; min-height: 100vh;
+    width: 100%; max-width: 480px;
+    min-height: 100dvh; /* Dynamic Viewport Height — iOS Safari 하단 UI 바 대응 */
+    min-height: 100svh; /* Small Viewport Height 폴백 */
     margin: 0 auto; position: relative;
     background: linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(10,10,15,1) 100%);
     border-left: 1px solid rgba(255,255,255,0.05);
     border-right: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 80px; /* Space for ritual bar */
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); /* 홈 인디케이터 안전 영역 */
     box-shadow: 0 0 50px rgba(0,0,0,0.8);
 }
 

@@ -4848,7 +4848,10 @@ function renderZiwei(p, natal) {
     .zw-cell {
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
+      cursor: pointer; /* iOS Safari: 비대화형 div에 click 이벤트 발화 강제 */
     }
+    /* iOS Safari: 자식 요소로 이벤트가 흡수되는 버그 방지 → 부모 .zw-cell onclick 항상 발화 */
+    .zw-cell > * { pointer-events: none; }
     .zw-cell.active {
       box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
       z-index: 10;
@@ -4952,16 +4955,17 @@ function renderZiwei(p, natal) {
         border-radius: 12px;
         overflow: hidden;
       }
-      /* 12궁 4×4 그리드 유지 — 세로 스크롤 없이 한 화면에 표시 */
+      /* 12궁 4×4 그리드 — aspect-ratio 기반 정방형, 모든 모바일 해상도 대응 */
       .zw-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(4, minmax(68px, auto));
+        grid-template-rows: repeat(4, 1fr);
         gap: 3px;
+        aspect-ratio: 1 / 1; /* 그리드 전체를 정사각형으로 고정 */
       }
       .zw-cell {
-        min-height: 68px;
-        height: auto;
+        min-height: 0;      /* aspect-ratio 기반으로 높이 자동 계산 */
+        height: 100%;
         padding: 5px 3px;
         border-radius: 7px;
         background: linear-gradient(135deg, rgba(25,30,50,0.85), rgba(10,15,30,0.95));
@@ -4972,8 +4976,8 @@ function renderZiwei(p, natal) {
       }
       .zw-center-panel {
         min-width: unset;
-        height: auto;
-        min-height: 68px;
+        height: 100%;
+        min-height: 0;
         padding: 8px 6px;
         border-radius: 10px;
         background: radial-gradient(circle, rgba(212,175,55,0.18) 0%, rgba(20,25,45,0.92) 70%);
@@ -4982,15 +4986,16 @@ function renderZiwei(p, natal) {
         flex-direction: column;
         justify-content: center;
       }
-      .zw-center-title { font-size: 0.8rem; margin-bottom: 4px; }
-      .zw-center-desc { font-size: 0.62rem; line-height: 1.4; display: block; }
-      .zw-palace-name { font-size: 0.65rem; margin-bottom: 3px; padding-bottom: 2px; }
-      .zw-star-main { font-size: 0.72rem; margin-bottom: 1px; }
-      .zw-star-aux, .zw-star-bad { font-size: 0.62rem; }
-      .zw-branch-name { font-size: 0.68rem; bottom: 2px; right: 4px; }
-      .zw-palace-gan { font-size: 0.6rem; bottom: 2px; right: 18px; }
-      .zw-dahan { font-size: 0.6rem; bottom: 2px; left: 3px; padding: 1px 3px; }
-      .zw-empty { font-size: 0.6rem; }
+      .zw-center-title { font-size: clamp(0.62rem, 2.4vw, 0.8rem); margin-bottom: 4px; }
+      .zw-center-desc { font-size: clamp(0.5rem, 1.6vw, 0.62rem); line-height: 1.4; display: block; }
+      /* 가변 폰트(clamp): 좁은 화면에서도 텍스트 넘침 방지 */
+      .zw-palace-name { font-size: clamp(0.5rem, 1.8vw, 0.65rem); margin-bottom: 3px; padding-bottom: 2px; }
+      .zw-star-main { font-size: clamp(0.54rem, 2.1vw, 0.72rem); margin-bottom: 1px; }
+      .zw-star-aux, .zw-star-bad { font-size: clamp(0.48rem, 1.7vw, 0.62rem); }
+      .zw-branch-name { font-size: clamp(0.52rem, 1.7vw, 0.68rem); bottom: 2px; right: 4px; }
+      .zw-palace-gan { font-size: clamp(0.46rem, 1.5vw, 0.6rem); bottom: 2px; right: 18px; }
+      .zw-dahan { font-size: clamp(0.46rem, 1.5vw, 0.6rem); bottom: 2px; left: 3px; padding: 1px 3px; }
+      .zw-empty { font-size: clamp(0.46rem, 1.5vw, 0.6rem); }
     }
 
 /* 퀀텀 명리 엔진 업그레이드 스타일 (Premium UX) */
@@ -11302,7 +11307,26 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약
           rd.style.display = 'block';
 
-          // 온도 바 애니메이션 재실행
+          // ── Bottom Sheet로 결과 표시 (모바일 전체화면 인연 시나스트리) ──────────
+          (function() {
+            try {
+              var _sheet = document.getElementById('syCompatSheet');
+              var _content = document.getElementById('syCompatContent');
+              if (!_sheet || !_content) return;
+              _content.innerHTML = rd.innerHTML;
+              _sheet.style.display = 'block';
+              document.body.style.overflow = 'hidden';
+              var _body = document.getElementById('syCompatBody');
+              if (_body) _body.scrollTop = 0;
+              // Bottom Sheet 내부 온도 바 애니메이션
+              setTimeout(function() {
+                var _bar = _content.querySelector('[style*="transition:width"]');
+                if (_bar) _bar.style.width = rel.temperature + '%';
+              }, 120);
+            } catch(_se) { /* Bottom Sheet 오류 무시 — 인라인 결과로 폴백 */ }
+          })();
+
+          // 온도 바 애니메이션 재실행 (인라인 폴백용)
           setTimeout(() => {
             const bar = rd ? rd.querySelector('[style*="transition:width"]') : null;
             if(bar) bar.style.width = rel.temperature + '%';
