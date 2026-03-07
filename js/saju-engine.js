@@ -4845,12 +4845,24 @@ function renderZiwei(p, natal) {
       0% { opacity: 0; transform: translateY(15px) scale(0.95); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .zw-cell:hover, .zw-cell.active {
-      transform: translateY(-2px);
+    .zw-cell {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .zw-cell.active {
       box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
       z-index: 10;
       background: rgba(212, 175, 55, 0.15);
       border-color: rgba(212, 175, 55, 0.9);
+    }
+    @media (hover: hover) {
+      .zw-cell:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        z-index: 10;
+        background: rgba(212, 175, 55, 0.15);
+        border-color: rgba(212, 175, 55, 0.9);
+      }
     }
     
     .zw-center-panel {
@@ -4932,67 +4944,53 @@ function renderZiwei(p, natal) {
     .zw-empty-state { text-align: center; color: #64748B; font-size: 1.1rem; margin: auto; padding: 40px 0;}
     .zw-empty-icon { font-size: 3rem; margin-bottom: 15px; opacity: 0.6; }
 
-    /* 모바일 반응형 조절 최적화 */
+    /* 모바일 반응형 — 12궁 그리드 구조 유지, 소형화 */
     @media (max-width: 768px) {
       .zw-dashboard { flex-direction: column; }
-      .zw-grid-wrap { 
-        padding: 5px 0 15px 0; 
-        border-radius: 12px; 
-        background: transparent; 
-        box-shadow: none; 
+      .zw-grid-wrap {
+        padding: 6px;
+        border-radius: 12px;
+        overflow: hidden;
       }
-      .zw-grid { 
-        display: flex; 
-        flex-direction: row; 
-        flex-wrap: nowrap; 
-        overflow-x: auto; 
-        scroll-snap-type: x mandatory; 
-        gap: 12px; 
-        padding: 0 15px 15px 15px; 
-        -webkit-overflow-scrolling: touch; 
+      /* 12궁 4×4 그리드 유지 — 세로 스크롤 없이 한 화면에 표시 */
+      .zw-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, minmax(68px, auto));
+        gap: 3px;
       }
-      .zw-grid::-webkit-scrollbar { height: 6px; display: none; /* 모바일 깔끔하게 숨김 */ }
-      
-      .zw-cell { 
-        min-width: 140px; 
-        height: 160px; 
-        flex-shrink: 0; 
-        scroll-snap-align: center; 
-        border-radius: 12px; 
-        padding: 12px; 
-        background: linear-gradient(135deg, rgba(25, 30, 50, 0.8), rgba(10, 15, 30, 0.9));
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      .zw-cell {
+        min-height: 68px;
+        height: auto;
+        padding: 5px 3px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, rgba(25,30,50,0.85), rgba(10,15,30,0.95));
+        border: 1px solid rgba(212,175,55,0.2);
+        overflow: hidden;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
       }
-      
-      .zw-cell-0, .zw-cell-1, .zw-cell-2, .zw-cell-3, .zw-cell-4, .zw-cell-5, 
-      .zw-cell-6, .zw-cell-7, .zw-cell-8, .zw-cell-9, .zw-cell-10, .zw-cell-11 {
-        grid-area: auto !important;
-      }
-
-      .zw-center-panel { 
-        order: -1; 
-        min-width: 180px; 
-        height: 160px; 
-        flex-shrink: 0; 
-        scroll-snap-align: center; 
-        border-radius: 16px; 
-        background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, rgba(20,25,45,0.9) 70%);
-        border: 1px solid rgba(212, 175, 55, 0.4);
+      .zw-center-panel {
+        min-width: unset;
+        height: auto;
+        min-height: 68px;
+        padding: 8px 6px;
+        border-radius: 10px;
+        background: radial-gradient(circle, rgba(212,175,55,0.18) 0%, rgba(20,25,45,0.92) 70%);
+        border: 1px solid rgba(212,175,55,0.45);
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding: 15px;
       }
-      .zw-center-title { font-size: 1.2rem; margin-bottom: 8px; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.8); }
-      .zw-center-desc { font-size: 0.85rem; line-height: 1.5; display: block; color: #EEE; }
-      
-      .zw-palace-name { font-size: 0.9rem; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
-      .zw-star-main { font-size: 0.95rem; margin-bottom: 2px; }
-      .zw-star-aux, .zw-star-bad { font-size: 0.8rem; }
-      .zw-branch-name { font-size: 0.95rem; bottom: 8px; right: 8px; }
-      .zw-palace-gan { font-size: 0.8rem; bottom: 8px; right: 30px; }
-      .zw-dahan { font-size: 0.8rem; bottom: 8px; left: 8px; padding: 2px 4px; }
+      .zw-center-title { font-size: 0.8rem; margin-bottom: 4px; }
+      .zw-center-desc { font-size: 0.62rem; line-height: 1.4; display: block; }
+      .zw-palace-name { font-size: 0.65rem; margin-bottom: 3px; padding-bottom: 2px; }
+      .zw-star-main { font-size: 0.72rem; margin-bottom: 1px; }
+      .zw-star-aux, .zw-star-bad { font-size: 0.62rem; }
+      .zw-branch-name { font-size: 0.68rem; bottom: 2px; right: 4px; }
+      .zw-palace-gan { font-size: 0.6rem; bottom: 2px; right: 18px; }
+      .zw-dahan { font-size: 0.6rem; bottom: 2px; left: 3px; padding: 1px 3px; }
+      .zw-empty { font-size: 0.6rem; }
     }
 
 /* 퀀텀 명리 엔진 업그레이드 스타일 (Premium UX) */
@@ -5170,10 +5168,26 @@ function renderZiwei(p, natal) {
       if(typeof Chart === 'undefined') {
         var s = document.createElement('script');
         s.src = "https://cdn.jsdelivr.net/npm/chart.js";
-        s.onload = function() { window._renderZwPanel(idx, pName, stars, pd); };
+        s.onload = function() {
+          window._renderZwPanel(idx, pName, stars, pd);
+          window._zwScrollToDetail();
+        };
         document.head.appendChild(s);
       } else {
         window._renderZwPanel(idx, pName, stars, pd);
+        window._zwScrollToDetail();
+      }
+    };
+
+    window._zwScrollToDetail = function() {
+      // 모바일에서 리포트 패널로 자동 스크롤
+      var dp = document.getElementById('zwDetailPanel');
+      if (dp && window.innerWidth <= 900) {
+        requestAnimationFrame(function() {
+          setTimeout(function() {
+            dp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 80);
+        });
       }
     };
 
@@ -10294,7 +10308,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-header { text-align: center; border-bottom: 1px solid rgba(180,160,255,0.2); padding-bottom: 16px; margin-bottom: 22px; }
         .sy-header h3 { margin: 0; background: linear-gradient(135deg, #e2c9ff, #ffd700, #e2c9ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size: 1.6rem; text-shadow: none; }
         .sy-card { background: rgba(30,32,55,0.85); border-radius: 12px; padding: 18px; margin-bottom: 16px; border-left: 3px solid #a78bfa; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .sy-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(120,80,220,0.15); }
+        @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(120,80,220,0.15); } }
         .sy-gauge-bg { background: rgba(255,255,255,0.08); height: 9px; border-radius: 5px; margin-top: 6px; overflow: hidden; }
         .sy-gauge-fill { height: 100%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 5px; }
         .sy-glow-text { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
@@ -10308,7 +10322,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
         @media(min-width: 600px) { .sy-grid { grid-template-columns: 1fr 1fr; } }
         .sy-natal-tab-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-        .sy-ntab { padding:5px 12px; border-radius:20px; font-size:0.78rem; border:1px solid rgba(167,139,250,0.35); background:rgba(167,139,250,0.08); color:#b8a0f0; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+        .sy-ntab { padding:5px 12px; border-radius:20px; font-size:0.78rem; border:1px solid rgba(167,139,250,0.35); background:rgba(167,139,250,0.08); color:#b8a0f0; cursor:pointer; transition:all 0.2s; white-space:nowrap; touch-action:manipulation; -webkit-tap-highlight-color:transparent; min-height:44px; display:inline-flex; align-items:center; }
         .sy-ntab.active { background:rgba(167,139,250,0.25); border-color:rgba(167,139,250,0.7); color:#e2d9ff; font-weight:bold; }
         .sy-natal-panel { display:none; animation: syFadeIn 0.4s ease; }
         .sy-natal-panel.active { display:block; }
@@ -10460,26 +10474,26 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           <div style="display: flex; flex-direction: column; gap: 10px;">
               <!-- 연도-월-일 분리 select (모바일 브라우저에서도 정확히 연도-월-일 순서로 표시) -->
               <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px;">
-                <select id="sy3BirthY" style="padding: 8px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 0.88rem; text-align: center;">
+                <select id="sy3BirthY" style="padding: 10px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; text-align: center; min-height: 44px;">
                   <option value="">연도</option>
                   ${(function(){ let o=''; for(let y=new Date().getFullYear(); y>=1920; y--) o+=`<option value="${y}">${y}년</option>`; return o; })()}
                 </select>
-                <select id="sy3BirthM" style="padding: 8px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 0.88rem; text-align: center;">
+                <select id="sy3BirthM" style="padding: 10px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; text-align: center; min-height: 44px;">
                   <option value="">월</option>
                   ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${m}">${m}월</option>`).join('')}
                 </select>
-                <select id="sy3BirthD" style="padding: 8px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 0.88rem; text-align: center;">
+                <select id="sy3BirthD" style="padding: 10px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; text-align: center; min-height: 44px;">
                   <option value="">일</option>
                   ${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}일</option>`).join('')}
                 </select>
               </div>
               <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                  <select id="sy3CalType" style="flex: 0 0 auto; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81;">
+                  <select id="sy3CalType" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; min-height: 44px;">
                       <option value="solar">양력</option>
                       <option value="lunar">음력</option>
                       <option value="lunar_leap">음력(윤달)</option>
                   </select>
-                  <input type="time" id="sy3BirthTime" value="12:00" style="flex: 0 0 auto; padding: 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark;">
+                  <input type="time" id="sy3BirthTime" value="12:00" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark; font-size: 16px; min-height: 44px;">
               </div>
               <button onclick="triggerSynergyCheck('${sData ? sData.mansionIdx : 0}')" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 44px;"> 카르마 인연 분석하기</button>
           </div>
