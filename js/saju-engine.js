@@ -11930,32 +11930,64 @@ function renderReportDashboard() {
   var dashCard  = document.getElementById('reportDashboardCard');
   if (!container || !dashCard) return;
   dashCard.style.display = '';
-  container.innerHTML = '<div class="rpt-grid">'
-    + REPORT_CARDS.map(function(c) {
-        var errStyle = 'this.style.opacity=\'.0\';this.parentNode.style.background=\'linear-gradient(160deg,#110d28,#1a1135)\'';
-        return '<div class="rpt-card" onclick="scrollToReport(\'' + c.target + '\')" role="button" tabindex="0" aria-label="' + c.label + '" '
-          + 'style="box-shadow:0 4px 18px rgba(0,0,0,.4);" '
-          + 'onmouseenter="this.style.boxShadow=\'0 18px 44px ' + c.glow + '\';this.style.borderColor=\'' + c.accent + '55\';" '
-          + 'onmouseleave="this.style.boxShadow=\'0 4px 18px rgba(0,0,0,.4)\';this.style.borderColor=\'rgba(255,255,255,0.07)\';" '
-          + 'onfocus="this.style.boxShadow=\'0 0 0 2px ' + c.accent + '88,0 18px 44px ' + c.glow + '\'" '
-          + 'onblur="this.style.boxShadow=\'0 4px 18px rgba(0,0,0,.4)\'">'
-          + '<img class="rpt-img" src="fuctionassets/' + c.id + '.webp" alt="' + c.label + '" loading="lazy" onerror="' + errStyle + '">'
-          + '<span class="rpt-badge" style="background:' + c.accent + '22;color:' + c.accent + ';border:1px solid ' + c.accent + '44;">' + c.badge + '</span>'
-          + '<span class="rpt-arrow">↗</span>'
-          + '<div class="rpt-body">'
-          + '<div class="rpt-title">' + c.label + '</div>'
-          + '<div class="rpt-desc">' + c.desc + '</div>'
-          + '</div>'
-          + '</div>';
-      }).join('')
-    + '</div>';
-}
 
-function scrollToReport(targetId) {
-  var el = document.getElementById(targetId);
-  if (!el) return;
-  el.style.display = '';
-  setTimeout(function() {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 50);
+  /* ── 타겟 기준 중복 제거 블록 목록 생성 ── */
+  var seenTargets = {};
+  var blocks = [];
+  REPORT_CARDS.forEach(function(c) {
+    if (!seenTargets[c.target]) {
+      seenTargets[c.target] = {
+        images: [],
+        target: c.target,
+        accent: c.accent,
+        glow: c.glow
+      };
+      blocks.push(seenTargets[c.target]);
+    }
+    seenTargets[c.target].images.push({ id: c.id, label: c.label, badge: c.badge, accent: c.accent });
+  });
+
+  /* ── 그리드 HTML 생성 ── */
+  var gridHtml = '<div class="rpt-v2-grid">';
+  blocks.forEach(function(b) {
+    gridHtml += '<div class="rpt-v2-block" style="border-color:' + b.accent + '44;">';
+
+    /* 이미지 영역 — 이미지 짤림 없이 전체 표시 */
+    gridHtml += '<div class="rpt-v2-img-row">';
+    b.images.forEach(function(img) {
+      gridHtml += '<div class="rpt-v2-img-wrap">';
+      gridHtml += '<img class="rpt-v2-img" src="fuctionassets/' + img.id + '.webp" alt="' + img.label + '" loading="lazy" '
+        + 'onerror="this.parentNode.style.display=\'none\'">';
+      gridHtml += '</div>';
+    });
+    gridHtml += '</div>';
+
+    /* 배지 스트립 */
+    gridHtml += '<div class="rpt-v2-divider"></div>';
+    gridHtml += '<div class="rpt-v2-badge-strip">';
+    b.images.forEach(function(img) {
+      gridHtml += '<span class="rpt-v2-badge" style="background:' + img.accent + '22;color:' + img.accent + ';border:1px solid ' + img.accent + '44;">'
+        + img.badge + '&nbsp;' + img.label + '</span>';
+    });
+    gridHtml += '</div>';
+
+    /* 기능 콘텐츠 슬롯 */
+    gridHtml += '<div class="rpt-v2-body" id="rpt-v2-body-' + b.target + '"></div>';
+    gridHtml += '</div>';
+  });
+  gridHtml += '</div>';
+  container.innerHTML = gridHtml;
+
+  /* ── 기존 섹션을 슬롯 안으로 이동 ── */
+  blocks.forEach(function(b) {
+    var slot = document.getElementById('rpt-v2-body-' + b.target);
+    var targetEl = document.getElementById(b.target);
+    if (slot && targetEl) {
+      /* 숨겨진 섹션도 대시보드 안에서 표시 */
+      if (targetEl.style.display === 'none') {
+        targetEl.style.display = '';
+      }
+      slot.appendChild(targetEl);
+    }
+  });
 }
