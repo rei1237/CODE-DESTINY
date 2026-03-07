@@ -470,22 +470,23 @@
     resultEl.innerHTML = html;
     resultEl.classList.add('show');
 
-    // 결과 표시 후 shell 버튼의 touch-action:none 해제
-    // → 결과 화면에서 버튼 위를 스쳐 지나가는 스크롤 제스처 복원
+    // 결과 표시 후 shell 버튼 touch-action 해제 → CSS 클래스 + inline style 이중으로 완전 보장
     var shellBtn = _tcEl('tcShellBtn');
+    var wrap = _tcEl('tcWrap');
     if (shellBtn) {
-      shellBtn.style.touchAction = 'auto';
-      shellBtn.style.pointerEvents = 'none'; // 버튼 자체 클릭 방지 (리셋은 하단 버튼으로)
+      shellBtn.style.touchAction = 'pan-y';
+      shellBtn.style.pointerEvents = 'none';
     }
+    if (wrap) wrap.classList.add('tc-wrap--answered');
 
-    // overlay(juyukModalOverlay) 자체를 부드럽게 스크롤 → 결과 상단으로 이동
-    var scrollOverlay = document.getElementById('juyukModalOverlay');
+    // juyukModalSheet 스크롤 컨테이너로 결과 상단으로 이동
+    var scrollSheet = document.getElementById('juyukModalSheet');
     setTimeout(function() {
-      if (scrollOverlay) {
-        var overlayRect = scrollOverlay.getBoundingClientRect();
-        var resultRect  = resultEl.getBoundingClientRect();
-        var newTop = scrollOverlay.scrollTop + (resultRect.top - overlayRect.top) - 20;
-        scrollOverlay.scrollTo({ top: newTop, behavior: 'smooth' });
+      if (scrollSheet) {
+        var sheetRect  = scrollSheet.getBoundingClientRect();
+        var resultRect = resultEl.getBoundingClientRect();
+        var newTop = scrollSheet.scrollTop + (resultRect.top - sheetRect.top) - 20;
+        scrollSheet.scrollTo({ top: newTop, behavior: 'smooth' });
       } else {
         resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -503,10 +504,12 @@
     if (resultEl) { resultEl.classList.remove('show'); resultEl.innerHTML = ''; }
     if (btn) {
       btn.classList.remove('cracked');
-      // touch-action:none / pointer-events 원상 복구
+      // touch-action / pointer-events 원상 복구
       btn.style.touchAction = 'none';
       btn.style.pointerEvents = '';
     }
+    var wrap = _tcEl('tcWrap');
+    if (wrap) wrap.classList.remove('tc-wrap--answered');
     if (canvas) { var ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
     _resetShell();
     _TC_STATE = 'IDLE';

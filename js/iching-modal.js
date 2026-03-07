@@ -3,7 +3,8 @@ function openJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (!overlay) return;
   if (typeof tcReset === 'function') tcReset();
-  overlay.scrollTop = 0;
+  var sheet = document.getElementById('juyukModalSheet');
+  if (sheet) sheet.scrollTop = 0;
   overlay.style.display = 'block';
   setTimeout(function() {
     var inp = document.getElementById('ichingQuestion');
