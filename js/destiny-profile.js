@@ -257,6 +257,91 @@
   }
 
   /* ──────────────────────────────────────────
+     3-A. Data Injection & Execution Pipeline
+          프로필 → 폼 → 비동기 계산 실행
+  ────────────────────────────────────────── */
+  function _injectAndRun(profile) {
+    if (!profile) {
+      _toast('⚠️ 활성화된 프로필이 없습니다', 'warn');
+      return;
+    }
+    var b = profile.birth;
+    var l = profile.location;
+
+    /* 필수값 검증 */
+    if (!b || !b.year || !b.month || !b.day) {
+      _toast('⚠️ 생년월일 데이터가 없습니다. 프로필을 다시 저장하세요.', 'warn');
+      var formEl = document.querySelector('.input-section');
+      if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (!l || l.lng === undefined || l.lng === null) {
+      _toast('⚠️ 출생지 정보가 없습니다. 프로필을 다시 저장하세요.', 'warn');
+      return;
+    }
+
+    /* 시각 피드백 먼저 */
+    spawnStardust(document.getElementById('dpMasterCard'));
+    _toast('✦ ' + _esc(profile.name) + ' · 운세를 계산합니다', 'success');
+
+    /* ① 폼 데이터 주입 */
+    var nameEl = document.getElementById('nameInput');
+    if (nameEl) nameEl.value = profile.name || '';
+
+    var bdEl = document.getElementById('birthDate');
+    if (bdEl) bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
+
+    var calBtns = document.querySelectorAll('input[name="calType"]');
+    calBtns.forEach(function(btn) { btn.checked = btn.value === (b.calType || 'solar'); });
+
+    var hourEl = document.getElementById('birthHour');
+    var minEl  = document.getElementById('birthMinute');
+    if (hourEl) hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
+    if (minEl)  minEl.value  = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
+
+    /* ② 장소 선택 — tz + 경도 정밀 매칭, 폴백 tz-only */
+    var countrySel = document.getElementById('birthCountry');
+    if (countrySel && l.tz) {
+      var matched = false;
+      for (var i = 0; i < countrySel.options.length; i++) {
+        var opt = countrySel.options[i];
+        if (opt.value === l.tz && Math.abs(parseFloat(opt.getAttribute('data-long') || 0) - l.lng) < 1) {
+          countrySel.selectedIndex = i; matched = true; break;
+        }
+      }
+      if (!matched) {
+        for (var j = 0; j < countrySel.options.length; j++) {
+          if (countrySel.options[j].value === l.tz) { countrySel.selectedIndex = j; break; }
+        }
+      }
+    }
+
+    /* ③ 성별 동기화 */
+    if (window.setGender) window.setGender(profile.gender || 'F');
+    window._gender = profile.gender || 'F';
+
+    /* ④ 미리보기 갱신 */
+    if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
+    if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
+
+    /* ⑤ 비동기 실행 — RAF + 80ms: DOM 완전 반영 후 계산 */
+    requestAnimationFrame(function() {
+      setTimeout(function() {
+        try {
+          if (typeof window.checkPrivacyAndCalculate === 'function') {
+            window.checkPrivacyAndCalculate();
+          } else {
+            _toast('⚠️ 계산 모듈이 아직 로딩 중입니다. 잠시 후 다시 시도하세요.', 'warn');
+          }
+        } catch (err) {
+          console.error('[DP] 계산 실행 오류:', err);
+          _toast('⚠️ 계산 실행 중 오류가 발생했습니다', 'warn');
+        }
+      }, 80);
+    });
+  }
+
+  /* ──────────────────────────────────────────
      6. UI — Profile Constellation List (바텀 시트)
   ────────────────────────────────────────── */
   function renderProfileList() {
@@ -280,7 +365,9 @@
       var zodiac = _zodiacEmoji(b.year);
       var calLabel = b.calType === 'solar' ? '양' : (b.calType === 'lunar_leap' ? '윤' : '음');
       return '<div class="dp-list-item' + (isActive ? ' dp-list-item--active' : '') + '"'
-        + ' style="animation-delay:' + (idx * 0.07) + 's"'
+        + ' data-profile-id="' + p.id + '"'
+        + ' role="button" tabindex="0"'
+        + ' style="animation-delay:' + (idx * 0.07) + 's; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;"'
         + ' onclick="dpSelectProfile(\'' + p.id + '\')">'
         + '<div class="dp-li-left">'
           + '<div class="dp-li-avatar">' + zodiac + '</div>'
@@ -380,7 +467,7 @@
     broadcastProfileChange(p);
     dpCloseList();
     spawnStardust(document.getElementById('dpMasterCard'));
-    _toast('✦ ' + (p ? p.name : '') + ' 프로필 활성화', 'success');
+    _toast('✦ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
   };
 
   window.dpDeleteProfile = function(id) {
@@ -395,50 +482,109 @@
 
   window.dpLoadProfile = function() {
     var p = DPStorage.current();
-    if (!p) return;
-    var b = p.birth;
-    var l = p.location;
+    if (!p) { _toast('⚠️ 불러올 프로필이 없습니다', 'warn'); return; }
 
-    /* 폼에 값 채우기 */
+    var card = document.getElementById('dpMasterCard');
+    spawnStardust(card);
+
+    /* 사주 폼 동기화 (사주 실행 경로 사전 준비) */
+    var b = p.birth, l = p.location || {};
     var nameEl = document.getElementById('nameInput');
-    if (nameEl) nameEl.value = p.name;
-
+    if (nameEl) nameEl.value = p.name || '';
     var bdEl = document.getElementById('birthDate');
-    if (bdEl) {
-      bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
-    }
-
-    /* calType */
+    if (bdEl) bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
     var calBtns = document.querySelectorAll('input[name="calType"]');
-    calBtns.forEach(function(btn) { btn.checked = btn.value === b.calType; });
-
-    /* 시간 */
+    calBtns.forEach(function(btn) { btn.checked = btn.value === (b.calType || 'solar'); });
     var hourEl = document.getElementById('birthHour');
     var minEl  = document.getElementById('birthMinute');
-    if (hourEl) hourEl.value   = b.hour;
-    if (minEl)  minEl.value    = b.minute;
-
-    /* 장소 */
+    if (hourEl) hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
+    if (minEl)  minEl.value  = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
     var countrySel = document.getElementById('birthCountry');
     if (countrySel && l.tz) {
+      var matched = false;
       for (var i = 0; i < countrySel.options.length; i++) {
         var opt = countrySel.options[i];
         if (opt.value === l.tz && Math.abs(parseFloat(opt.getAttribute('data-long') || 0) - l.lng) < 1) {
-          countrySel.selectedIndex = i;
-          break;
+          countrySel.selectedIndex = i; matched = true; break;
+        }
+      }
+      if (!matched) {
+        for (var j = 0; j < countrySel.options.length; j++) {
+          if (countrySel.options[j].value === l.tz) { countrySel.selectedIndex = j; break; }
         }
       }
     }
-
-    /* 성별 */
     if (window.setGender) window.setGender(p.gender || 'F');
-
-    /* 루나 미리보기 갱신 */
-    if (window.updateLunarPreview) window.updateLunarPreview('birthDate','calType','lunarPreview');
+    window._gender = p.gender || 'F';
+    if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
     if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
+    broadcastProfileChange(p);
 
-    spawnStardust(document.getElementById('dpMasterCard'));
-    _toast('✦ 폼에 불러왔습니다', 'info');
+    /* ── 운세 유형 선택 모달 ── */
+    var zodiac   = _zodiacEmoji(b.year);
+    var calLabel = b.calType === 'solar' ? '양력' : (b.calType === 'lunar_leap' ? '음력(윤)' : '음력');
+    var dateStr  = calLabel + ' ' + b.year + '.' + String(b.month).padStart(2,'0') + '.' + String(b.day).padStart(2,'0')
+                 + '&nbsp;·&nbsp;' + String(b.hour != null ? b.hour : 12).padStart(2,'0')
+                 + ':' + String(b.minute != null ? b.minute : 0).padStart(2,'0');
+    var ov = document.createElement('div');
+    ov.className = 'dp-fsel-overlay';
+    ov.innerHTML =
+      '<div class="dp-fsel-modal">'
+      + '<div class="dp-fsel-close-btn" onclick="window._dpCloseFortuneSel()" aria-label="닫기">✕</div>'
+      + '<div class="dp-fsel-profile">'
+        + '<span class="dp-fsel-zodiac">' + zodiac + '</span>'
+        + '<div class="dp-fsel-pname">' + _esc(p.name) + '</div>'
+        + '<div class="dp-fsel-pdate">' + dateStr + '</div>'
+        + (l.label ? '<div class="dp-fsel-ploc">📍 ' + _esc(l.label) + '</div>' : '')
+      + '</div>'
+      + '<div class="dp-fsel-divider"></div>'
+      + '<div class="dp-fsel-ask">어떤 운세를 보시겠습니까?</div>'
+      + '<div class="dp-fsel-btns">'
+        + '<button class="dp-fsel-btn dp-fsel-btn--saju"   onclick="window._dpOpenFortuneType(\'saju\')"   style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🔮</span><span class="dp-fsel-btn-label">사주 풀이</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--ziwei"  onclick="window._dpOpenFortuneType(\'ziwei\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--astro"  onclick="window._dpOpenFortuneType(\'astro\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
+      + '</div>'
+      + '</div>';
+    document.body.appendChild(ov);
+    window._dpFortuneSelEl = ov;
+    requestAnimationFrame(function() { ov.classList.add('dp-fsel-overlay--in'); });
+  };
+
+  window._dpCloseFortuneSel = function() {
+    var ov = window._dpFortuneSelEl || document.querySelector('.dp-fsel-overlay');
+    if (!ov) return;
+    ov.classList.remove('dp-fsel-overlay--in');
+    setTimeout(function() { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 350);
+    window._dpFortuneSelEl = null;
+  };
+
+  window._dpOpenFortuneType = function(type) {
+    /* fsel 오버레이를 페이드아웃 후 DOM에서 완전 제거한 뒤 모달 열기
+       (backdrop-filter stacking context → iOS WebKit 화이트스크린 방지) */
+    var ov = window._dpFortuneSelEl || document.querySelector('.dp-fsel-overlay');
+    window._dpFortuneSelEl = null;
+
+    function _openTarget() {
+      if (type === 'saju') {
+        var p = DPStorage.current(); if (p) _injectAndRun(p);
+      } else if (type === 'sukuyo') {
+        if (typeof openSukuyoModal === 'function') openSukuyoModal();
+      } else if (type === 'ziwei') {
+        if (typeof openZiweiModal === 'function') openZiweiModal();
+      } else if (type === 'astro') {
+        if (typeof openAstroModal === 'function') openAstroModal();
+      }
+    }
+
+    if (!ov) { _openTarget(); return; }
+
+    /* CSS 트랜지션 후 제거 → 모달 열기 */
+    ov.classList.remove('dp-fsel-overlay--in');
+    setTimeout(function() {
+      if (ov.parentNode) ov.parentNode.removeChild(ov);
+      _openTarget();
+    }, 350);
   };
 
   window.dpScrollToForm = function() {
@@ -446,10 +592,23 @@
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  /* 외부에서 _injectAndRun 호출 — 프로필 전환 후 사주 재계산 */
+  window.dpRunWithProfile = function(profileId) {
+    var list = DPStorage.list();
+    var p = null;
+    for (var i = 0; i < list.length; i++) { if (list[i].id === profileId) { p = list[i]; break; } }
+    if (!p) return;
+    DPStorage.setCurrent(profileId);
+    _injectAndRun(p);
+  };
+
   /* ──────────────────────────────────────────
      9. 토스트
   ────────────────────────────────────────── */
   function _toast(msg, type) {
+    /* 기존 같은 타입 토스트 제거 */
+    var prev = document.querySelector('.dp-toast.dp-toast--' + (type || 'info'));
+    if (prev && prev.parentNode) prev.parentNode.removeChild(prev);
     var t = document.createElement('div');
     t.className = 'dp-toast dp-toast--' + (type || 'info');
     t.textContent = msg;
@@ -458,7 +617,7 @@
     setTimeout(function() {
       t.classList.remove('dp-toast--show');
       setTimeout(function() { if(t.parentNode) t.parentNode.removeChild(t); }, 400);
-    }, 2400);
+    }, 2600);
   }
 
   /* ──────────────────────────────────────────
@@ -475,6 +634,28 @@
     /* 오버레이 클릭으로 시트 닫기 */
     var overlay = document.getElementById('dpListOverlay');
     if (overlay) overlay.addEventListener('click', dpCloseList);
+
+    /* 모바일 터치 이벤트 위임 — iOS Safari onclick 이벤트 유실 방지 */
+    var listInner = document.getElementById('dpListInner');
+    if (listInner) {
+      var _tX = 0, _tY = 0;
+      listInner.addEventListener('touchstart', function(e) {
+        _tX = e.touches[0].clientX;
+        _tY = e.touches[0].clientY;
+      }, { passive: true });
+      listInner.addEventListener('touchend', function(e) {
+        var dx = Math.abs(e.changedTouches[0].clientX - _tX);
+        var dy = Math.abs(e.changedTouches[0].clientY - _tY);
+        /* 스크롤이 아닌 탭만 처리 (이동 10px 미만) */
+        if (dx < 10 && dy < 16) {
+          var item = e.target.closest('[data-profile-id]');
+          if (item && !e.target.closest('.dp-li-del')) {
+            var pid = item.getAttribute('data-profile-id');
+            if (pid) { e.preventDefault(); dpSelectProfile(pid); }
+          }
+        }
+      }, { passive: false });
+    }
 
     /* 폼 변경 시 카드 자동 갱신 (저장 전이라도 장소는 반영) */
     ['birthCountry'].forEach(function(id) {

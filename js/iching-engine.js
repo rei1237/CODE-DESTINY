@@ -463,12 +463,14 @@
         + '</div>'
       + '</div>'
 
+      + '<button class="tc-scroll-top-btn" onclick="(function(){var r=document.getElementById(\u0027tcResult\u0027);if(r)r.scrollTo({top:0,behavior:\u0027smooth\u0027});})()" title="맨 위로">↑ 맨 위로</button>'
       + '<button class="tc-share-btn" id="tcShareBtn" onclick="tcShareResult()">📜 신탁 공유하기</button>'
       + '<button class="tc-redo-btn" onclick="tcReset()">⟳ 다시 불을 지피다</button>'
       + '<button class="tc-home-btn" onclick="closeJuyukModal()">← 홈으로 돌아가기</button>';
 
     resultEl.innerHTML = html;
     resultEl.classList.add('show');
+    resultEl.scrollTop = 0;
 
     // 결과 표시 후 shell 버튼 touch-action 해제 → CSS 클래스 + inline style 이중으로 완전 보장
     var shellBtn = _tcEl('tcShellBtn');

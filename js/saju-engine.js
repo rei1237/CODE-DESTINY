@@ -583,6 +583,69 @@ var GENDER='F', USER_NAME='', BIRTH_YEAR=0, DAY_GAN='', JOHU_TYPE='', JOHU_SCORE
 var G_POWER=null, G_JONG=null, G_JOHU=null;
 var G_PILLARS=null, G_NATAL=null, G_BAZI=null;
 window._ziweiBirth={year:0,month:0,day:0,hour:12,minute:0};
+
+/* ── 모달 전용: 분석 페이지 이동 없이 프로필 데이터로 전역 변수 계산 ── */
+window.computeProfileForModal = function(profile) {
+  if (!profile || !profile.birth) return false;
+  var b = profile.birth, l = profile.location || {};
+  var year = b.year, month = b.month, day = b.day;
+  var hour   = (b.hour   != null) ? b.hour   : 12;
+  var minute = (b.minute != null) ? b.minute : 0;
+  var lat    = (l.lat    != null) ? l.lat    : 37.6;
+  var lng    = (l.lng    != null) ? l.lng    : 127.0;
+  var tzOff  = (l.tzOffset != null) ? l.tzOffset : 9;
+
+  /* 진태양시 보정 */
+  var corrH = hour, corrM = minute;
+  if (window.DestinyProfileManager && window.DestinyProfileManager.calcTrueSolarOffset) {
+    var offMin = window.DestinyProfileManager.calcTrueSolarOffset(lng, tzOff);
+    var total  = ((hour * 60 + minute - offMin) % 1440 + 1440) % 1440;
+    corrH = Math.floor(total / 60);
+    corrM = total % 60;
+  }
+
+  window._ziweiBirth = { year: year, month: month, day: day,
+    hour: corrH, minute: corrM, lat: lat, lon: lng, tz: tzOff };
+
+  if (typeof setGender === 'function') setGender(profile.gender || 'F');
+  GENDER = profile.gender || 'F';
+
+  if (typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return false;
+  try {
+    var solar = Solar.fromYmdHms(year, month, day, corrH, corrM, 0);
+    var bazi  = solar.getLunar().getEightChar();
+    try {
+      var _d  = new Date(year, month - 1, day, corrH, corrM);
+      var _gj = KasiEngine.getGanji(_d);
+      if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
+        bazi.getYearGan  = function() { return _gj.secha[0]; };
+        bazi.getYearZhi  = function() { return _gj.secha[1]; };
+        bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
+        bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
+        bazi.getDayGan   = function() { return _gj.iljin[0]; };
+        bazi.getDayZhi   = function() { return _gj.iljin[1]; };
+      }
+    } catch(e) { console.warn('[Modal] 정밀 간지 실패:', e); }
+
+    var yg=bazi.getYearGan(), yz=bazi.getYearZhi();
+    var mg=bazi.getMonthGan(), mz=bazi.getMonthZhi();
+    var dg=bazi.getDayGan(),   dz=bazi.getDayZhi();
+    var hg=bazi.getTimeGan(),  hz=bazi.getTimeZhi();
+    var p = {
+      y:{g:yg,j:yz,gE:(GAN[yg]||{}).e,jE:(JI[yz]||{}).e},
+      m:{g:mg,j:mz,gE:(GAN[mg]||{}).e,jE:(JI[mz]||{}).e},
+      d:{g:dg,j:dz,gE:(GAN[dg]||{}).e,jE:(JI[dz]||{}).e},
+      h:{g:hg,j:hz,gE:(GAN[hg]||{}).e,jE:(JI[hz]||{}).e}
+    };
+    var natal = calcNatalElement(p);
+    G_PILLARS = p;  G_NATAL = natal;  G_BAZI = bazi;
+    if (typeof calcPower  === 'function') G_POWER = calcPower(p);
+    return { p: p, natal: natal, bazi: bazi };
+  } catch(e) {
+    console.error('[Modal] 프로필 계산 오류:', e);
+    return false;
+  }
+};
 const ZHI_FEAT={
   '子':'쥐띠: 영리하고 순발력이 뛰어나다',
   '丑':'소띠: 근면성실하며 인내심이 강하다',
@@ -819,6 +882,7 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
 ═══════════════════════════════════════ */
 function setGender(g){
   GENDER=g;
+  window._gender=g;
   document.getElementById('btnM').classList.toggle('on',g==='M');
   document.getElementById('btnF').classList.toggle('on',g==='F');
 }
@@ -1764,7 +1828,7 @@ function startSajuCalculationFlow() {
       txtEl.innerText = '';
       txtEl.style.width = 'auto';
       txtEl.style.animation = 'sajuBlink .75s step-end infinite';
-      const _typeText = '만세력을 조율하는 중..';
+      const _typeText = '퀀텀 명리 엔진 만세력을 조율하는 중..';
       let _ti = 0;
       const _typeInterval = setInterval(function() {
         if (_ti < _typeText.length) {
@@ -1939,7 +2003,6 @@ async function calculate(){
     try { renderTenshin(p); } catch(e) { console.error('Tenshin 에러:', e); }
     try { renderJohu(johu); } catch(e) { console.error('Johu 에러:', e); }
     try { renderUkbu(p); } catch(e) { console.error('Ukbu 에러:', e); }
-    try { renderZiwei(p,natal); } catch(e) { console.error('Ziwei 에러:', e); }
     try { renderAstroInsight(); } catch(e) { console.error('AstroInsight 에러:', e); }
     try { renderSkillTree(p,natal); } catch(e) { console.error('SkillTree 에러:', e); }
     try { renderSummary(p,johu,natal); } catch(e) { console.error('Summary 에러:', e); }
@@ -1957,6 +2020,7 @@ async function calculate(){
     findSimilarCelebs(p);
     try { renderVillain(p, G_POWER); } catch(e) { console.error('Villain 에러:', e); }
     try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); }
+    try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); }
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
     document.getElementById('dwDetail').innerHTML='';
     document.getElementById('dwDetail').classList.remove('show');
@@ -4087,6 +4151,14 @@ function renderAstroInsight() {
         +'</div>'
         +'</div>'
 
+        /* ── 카카오톡 공유 버튼 ── */
+        +'<div style="margin-top:28px; padding:24px 20px; background:linear-gradient(160deg,rgba(10,8,30,0.85),rgba(20,10,55,0.85)); border:1px solid rgba(209,196,233,0.2); border-radius:18px; text-align:center;">'
+        +'<p style="font-family:\'Gowun Dodum\',serif; font-size:0.88rem; color:rgba(209,196,233,0.6); letter-spacing:1px; margin:0 0 16px;">✨ 이 코즈믹 차트를 친구와 나눠보세요</p>'
+        +'<button onclick="shareAstroKakao()" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#FEE500; color:#3B1E08; border:none; border-radius:13px; font-size:0.95rem; font-weight:800; padding:14px 28px; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; box-shadow:0 4px 18px rgba(254,229,0,0.35); transition:transform 0.15s, box-shadow 0.15s; letter-spacing:0.3px;" onmouseenter="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 6px 22px rgba(254,229,0,0.5)\';" onmouseleave="this.style.transform=\'\'; this.style.boxShadow=\'0 4px 18px rgba(254,229,0,0.35)\';" onmousedown="this.style.transform=\'scale(0.96)\';" onmouseup="this.style.transform=\'\'">'
+        +'<span style="font-size:1.2rem">💬</span> 카카오톡 공유'
+        +'</button>'
+        +'</div>'
+
         +'</div>';
 
     document.getElementById('astroResult').innerHTML = html;
@@ -4789,8 +4861,8 @@ function buildZwSummaryTableHtml(palace) {
     +'</table></div>';
 }
 
-function renderZiwei(p, natal) {
-  var mj=p.m.j;
+function renderZiwei(p, natal, targetId) {
+  var mj = (p && p.m) ? p.m.j : '';
   var pw=G_POWER,jg=G_JONG;
   var birth = window._ziweiBirth || { year:0, month:1, day:1, hour:12, minute:0 };
   var palace = calcZiweiPalaces(birth.year, birth.month, birth.day, birth.hour, birth.minute);
@@ -5158,7 +5230,7 @@ function renderZiwei(p, natal) {
     </div>
   </div>`;
 
-  var sec = document.getElementById('ziweiSection');
+  var sec = document.getElementById(targetId || 'ziweiSection');
   if(sec) sec.innerHTML = html;
 
   if(!window._handleZwClick) {
@@ -11307,30 +11379,31 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약
           rd.style.display = 'block';
 
-          // ── Bottom Sheet로 결과 표시 (모바일 전체화면 인연 시나스트리) ──────────
-          (function() {
-            try {
-              var _sheet = document.getElementById('syCompatSheet');
-              var _content = document.getElementById('syCompatContent');
-              if (!_sheet || !_content) return;
-              _content.innerHTML = rd.innerHTML;
-              _sheet.style.display = 'block';
-              document.body.style.overflow = 'hidden';
-              var _body = document.getElementById('syCompatBody');
-              if (_body) _body.scrollTop = 0;
-              // Bottom Sheet 내부 온도 바 애니메이션
-              setTimeout(function() {
-                var _bar = _content.querySelector('[style*="transition:width"]');
-                if (_bar) _bar.style.width = rel.temperature + '%';
-              }, 120);
-            } catch(_se) { /* Bottom Sheet 오류 무시 — 인라인 결과로 폴백 */ }
-          })();
-
-          // 온도 바 애니메이션 재실행 (인라인 폴백용)
-          setTimeout(() => {
-            const bar = rd ? rd.querySelector('[style*="transition:width"]') : null;
-            if(bar) bar.style.width = rel.temperature + '%';
+          // 온도 바 애니메이션 (인라인 결과)
+          setTimeout(function() {
+            var bar = rd ? rd.querySelector('[style*="transition:width"]') : null;
+            if (bar) bar.style.width = rel.temperature + '%';
           }, 80);
+
+          // 결과로 부드럽게 스크롤 (모달 내부 / 메인 페이지 공통)
+          setTimeout(function() {
+            try {
+              var modalSheet = document.getElementById('sukuyoModalSheet');
+              if (modalSheet && document.getElementById('sukuyoModalOverlay') &&
+                  document.getElementById('sukuyoModalOverlay').style.display !== 'none') {
+                // 모달 내부: 숙요점 모달 스크롤 컨테이너 기준
+                var offsetTop = rd.offsetTop;
+                var parent = rd.offsetParent;
+                while (parent && parent !== modalSheet) {
+                  offsetTop += parent.offsetTop;
+                  parent = parent.offsetParent;
+                }
+                modalSheet.scrollTo({ top: offsetTop - 20, behavior: 'smooth' });
+              } else {
+                rd.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            } catch(_e) {}
+          }, 60);
 
           window._sy3Running = false;
 
@@ -11796,4 +11869,93 @@ if(document.readyState==='loading'){
   initSelectors();
   populateCelebList();
   loadNext();
+}
+
+/* ═══════════════════════════════════════
+   STEP 11: 나의 운명 카드 → 글로벌 상태 동기화
+   destinyProfileChanged 이벤트 수신
+   → 엔진 전역 변수(_ziweiBirth, GENDER) 즉시 반영
+   → 결과 화면이 열려 있으면 자미두수·점성술·숙요점 재렌더
+═══════════════════════════════════════ */
+document.addEventListener('destinyProfileChanged', function(e) {
+  try {
+    var p = e.detail && e.detail.profile;
+    if (!p || !p.birth) return;
+    var b = p.birth;
+    var l = p.location || {};
+
+    /* ① 전역 상태 동기화 */
+    window._ziweiBirth = {
+      year: b.year, month: b.month, day: b.day,
+      hour: (b.hour !== undefined ? b.hour : 12),
+      minute: (b.minute !== undefined ? b.minute : 0),
+      lat: (l.lat !== undefined ? l.lat : 37.6),
+      lon: (l.lng !== undefined ? l.lng : 127.0),
+      tz: (l.tzOffset !== undefined ? l.tzOffset : 9)
+    };
+
+    /* ② 성별 전역 동기화 */
+    if (typeof setGender === 'function') setGender(p.gender || 'F');
+    GENDER = p.gender || 'F';
+
+    /* ③ 결과 화면이 이미 열려 있으면 핵심 섹션 재렌더 */
+    var resultPage = document.getElementById('resultPage');
+    if (resultPage && resultPage.style.display !== 'none' && G_PILLARS) {
+      try { renderAstroInsight(); }                 catch(re) { console.warn('[DP→Engine] Astro 재렌더 실패', re); }
+      try { renderSukuyo(G_PILLARS, G_NATAL, G_BAZI, null); } catch(re) { console.warn('[DP→Engine] Sukuyo 재렌더 실패', re); }
+    }
+  } catch(err) {
+    console.error('[DP→Engine] destinyProfileChanged 처리 오류:', err);
+  }
+});
+
+/* ══════════════════════════════════════════════
+   리포트 대시보드 — 10개 분석 기능 카드 UI
+   ══════════════════════════════════════════════ */
+var REPORT_CARDS = [
+  { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수',        badge:'✨ 매력',  accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard'    },
+  { id:'quntum',     label:'퀀텀 명리 전략',        desc:'합화 우선 분석 · 나의 전략 지도',      badge:'⚡ 전략',  accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard'         },
+  { id:'sajuhealth', label:'명리 헬스 리포트',      desc:'오행 균형 · 내 몸의 약점 신호',        badge:'💚 건강',  accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard'    },
+  { id:'sajuprompt', label:'사주 프롬프트',         desc:'AI 아바타 · 이상형 초상화 프롬프트',   badge:'🤖 AI',   accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'specialCharmCard'    },
+  { id:'sajurpg',    label:'인생 스킬 트리',        desc:'運命 RPG · 나의 능력치 레벨 시트',     badge:'🎮 RPG',  accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard'       },
+  { id:'tbal',       label:'극T 테스트',            desc:'The Frozen Logic · 논리의 온도',      badge:'🧊 극T',  accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard'           },
+  { id:'tetoegen',   label:'테토 vs 에겐',          desc:'사주로 보는 나의 호르몬 유형',          badge:'🌊 유형',  accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section'},
+  { id:'trip',       label:'에너지 원정 리포트',     desc:'나의 에너지 방향 · 이상적 여정지',      badge:'🗺️ 여정', accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard'     },
+  { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 유형 분석',            badge:'⚠️ 주의', accent:'#f87171', glow:'rgba(248,113,113,.55)', target:'villainCard'         },
+  { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 번호 계산',            badge:'🎱 로또',  accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard'           }
+];
+
+function renderReportDashboard() {
+  var container = document.getElementById('reportDashboard');
+  var dashCard  = document.getElementById('reportDashboardCard');
+  if (!container || !dashCard) return;
+  dashCard.style.display = '';
+  container.innerHTML = '<div class="rpt-grid">'
+    + REPORT_CARDS.map(function(c) {
+        var errStyle = 'this.style.opacity=\'.0\';this.parentNode.style.background=\'linear-gradient(160deg,#110d28,#1a1135)\'';
+        return '<div class="rpt-card" onclick="scrollToReport(\'' + c.target + '\')" role="button" tabindex="0" aria-label="' + c.label + '" '
+          + 'style="box-shadow:0 4px 18px rgba(0,0,0,.4);" '
+          + 'onmouseenter="this.style.boxShadow=\'0 18px 44px ' + c.glow + '\';this.style.borderColor=\'' + c.accent + '55\';" '
+          + 'onmouseleave="this.style.boxShadow=\'0 4px 18px rgba(0,0,0,.4)\';this.style.borderColor=\'rgba(255,255,255,0.07)\';" '
+          + 'onfocus="this.style.boxShadow=\'0 0 0 2px ' + c.accent + '88,0 18px 44px ' + c.glow + '\'" '
+          + 'onblur="this.style.boxShadow=\'0 4px 18px rgba(0,0,0,.4)\'">'
+          + '<img class="rpt-img" src="fuctionassets/' + c.id + '.webp" alt="' + c.label + '" loading="lazy" onerror="' + errStyle + '">'
+          + '<span class="rpt-badge" style="background:' + c.accent + '22;color:' + c.accent + ';border:1px solid ' + c.accent + '44;">' + c.badge + '</span>'
+          + '<span class="rpt-arrow">↗</span>'
+          + '<div class="rpt-body">'
+          + '<div class="rpt-title">' + c.label + '</div>'
+          + '<div class="rpt-desc">' + c.desc + '</div>'
+          + '</div>'
+          + '</div>';
+      }).join('')
+    + '</div>';
+}
+
+function scrollToReport(targetId) {
+  var el = document.getElementById(targetId);
+  if (!el) return;
+  el.style.display = '';
+  setTimeout(function() {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
 }
