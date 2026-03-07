@@ -3334,6 +3334,15 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
   z-index:99999;transition:opacity 0.7s ease, visibility 0.7s ease;
   overflow:hidden;
 ">
+  <!-- 별빛 캔버스 (트윙클 — 데스크탑 전용) -->
+  <canvas id="splashCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.45;pointer-events:none;"></canvas>
+
+  <!-- 별똥별 5개 (CSS only, transform+opacity → GPU 오프로드, 모바일 자동 비활성) -->
+  <span class="meteor" style="top:4%;left:15%;--delay:0s;--dur:2.0s"></span>
+  <span class="meteor" style="top:10%;left:48%;--delay:0.7s;--dur:1.8s"></span>
+  <span class="meteor" style="top:2%;left:72%;--delay:1.5s;--dur:2.3s"></span>
+  <span class="meteor" style="top:20%;left:6%;--delay:0.3s;--dur:2.6s"></span>
+  <span class="meteor" style="top:1%;left:36%;--delay:2.1s;--dur:1.7s"></span>
   <!-- 콘텐츠 래퍼 -->
   <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px;">
 
@@ -3384,6 +3393,31 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
     0 0 55px rgba(165,180,252,0.22),
     0 0 110px rgba(108,99,255,0.10);
 }
+/* 별똥별 CSS 애니메이션 */
+.meteor {
+  position:absolute;
+  width:2px;
+  height:80px;
+  background:linear-gradient(to bottom,
+    transparent 0%,
+    rgba(200,220,255,0.9) 45%,
+    rgba(255,255,255,0.55) 65%,
+    transparent 100%
+  );
+  border-radius:999px;
+  transform-origin:top center;
+  transform:rotate(-42deg) translateY(-200px);
+  opacity:0;
+  animation:meteorFall var(--dur,2s) linear var(--delay,0s) infinite;
+  pointer-events:none;
+  will-change:transform,opacity;
+}
+@keyframes meteorFall {
+  0%   { transform:rotate(-42deg) translateY(-200px); opacity:0; }
+  6%   { opacity:0.95; }
+  70%  { opacity:0.65; }
+  100% { transform:rotate(-42deg) translateY(110vh);  opacity:0; }
+}
 /* ────────────────────────────────────────────────────
    모바일 성능 최적화 (pointer:coarse = 터치 스크린)
    ─ 목적: 스플래시 프리징 및 전체 렌더 지연 방지
@@ -3392,6 +3426,9 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
            pseudo-element/filter를 사용하는 것만 제거
 ──────────────────────────────────────────────────── */
 @media (pointer: coarse) {
+  /* 1. 별똥별 5개 will-change compositor layer 완전 제거 (모바일 렌더링 보호) */
+  .meteor { display: none !important; }
+
   /* 2. 진행바 shimmer 스캔 제거 (translateX pseudo-element) */
   .cs-bar-fill::after,
   .fr-battery-fill::after { animation: none !important; opacity: 0 !important; }
