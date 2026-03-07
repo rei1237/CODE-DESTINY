@@ -79,6 +79,24 @@
   }, true);
 
   /* ── 전역 노출 (페이지 내 다른 코드에서 재사용) ── */
-  window._perf = { throttle: throttle, debounce: debounce };
+  var _scrollY = 0;
+
+  /* iOS scroll-freeze 없이 body 스크롤 잠금/해제 */
+  function lockBody() {
+    _scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = '-' + _scrollY + 'px';
+    document.body.style.width = '100%';
+  }
+  function unlockBody() {
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, _scrollY);
+  }
+
+  window._perf = { throttle: throttle, debounce: debounce, lockBody: lockBody, unlockBody: unlockBody };
 
 })();

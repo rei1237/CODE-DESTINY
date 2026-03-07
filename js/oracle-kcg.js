@@ -418,7 +418,8 @@ function openKemetModal() {
   const m = document.getElementById('kemetOracleOverlay');
   if(m) {
     m.style.display = 'block';
-    document.body.style.overflow = 'hidden';
+    if (window._perf && window._perf.lockBody) window._perf.lockBody();
+    else document.body.style.overflow = 'hidden';
   }
 }
 
@@ -426,7 +427,8 @@ function closeKemetModal() {
   const m = document.getElementById('kemetOracleOverlay');
   if(m) {
     m.style.display = 'none';
-    document.body.style.overflow = ''; /* 'auto'는 body를 스크롤 컨테이너로 만들어 수직 스크롤 차단 */
+    if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
+    else document.body.style.overflow = '';
   }
   resetKemetOracle();
 }

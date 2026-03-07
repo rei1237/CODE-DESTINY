@@ -446,7 +446,8 @@
     if (sheet) {
       sheet.classList.add('dp-sheet--open');
       if (overlay) overlay.classList.add('dp-sheet--open');
-      document.body.style.overflow = 'hidden';
+      if (window._perf && window._perf.lockBody) window._perf.lockBody();
+      else document.body.style.overflow = 'hidden';
     }
   };
 
@@ -456,7 +457,8 @@
     if (sheet) {
       sheet.classList.remove('dp-sheet--open');
       if (overlay) overlay.classList.remove('dp-sheet--open');
-      document.body.style.overflow = '';
+      if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
+      else document.body.style.overflow = '';
     }
   };
 

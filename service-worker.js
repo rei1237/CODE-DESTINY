@@ -1,12 +1,12 @@
 ﻿/* Service Worker - kkul-mansaeryeok\n   Cache version: v3 (Network-First strategy)\n   - v1/v2 caches are automatically deleted on activate\n*/
 
-const CACHE_NAME = 'kkul-mansaeryeok-v5';
+const CACHE_NAME = 'kkul-mansaeryeok-v6';
 
 const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap'
 ];
 
 self.addEventListener('install', event => {
