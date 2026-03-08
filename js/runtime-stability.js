@@ -3,7 +3,9 @@
 
   var APP_ERR_BOX_ID = 'appStabilityFallback';
   var MAX_OVERLAY_MS = 8000;
+  var INIT_FALLBACK_MS = 5000;
   var overlayWatch = { startedAt: 0, active: false };
+  var _initDone = false;
 
   function now() { return Date.now(); }
 
@@ -64,6 +66,26 @@
     }
   }
 
+  function hideLoadingScreen(reason) {
+    stopBlockingOverlays(reason || 'hide-loading');
+    try { console.log('loading removed'); } catch (e) {}
+  }
+
+  function ensureMainUiVisible() {
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.display = '';
+      main.style.visibility = 'visible';
+      main.style.opacity = '1';
+    }
+    var wrap = document.querySelector('.wrap');
+    if (wrap) {
+      wrap.style.visibility = 'visible';
+      wrap.style.opacity = '1';
+    }
+    document.body.style.visibility = 'visible';
+  }
+
   function watchLoaderLifetime() {
     var loader = document.getElementById('sajuLoaderOverlay');
     if (!loader) return;
@@ -92,13 +114,22 @@
 
   function patchGlobalHandlers() {
     window.addEventListener('error', function (e) {
-      try { console.error('[runtime-stability] global error:', e.message); } catch(ex) {}
+      try {
+        var src = e && e.target && e.target.src ? e.target.src : '';
+        if (src) {
+          console.error('[runtime-stability] script load error:', src);
+        } else {
+          console.error('[runtime-stability] global error:', e && e.message ? e.message : e);
+        }
+      } catch(ex) {}
       stopBlockingOverlays('global-error');
-    });
+      ensureMainUiVisible();
+    }, true);
 
     window.addEventListener('unhandledrejection', function (e) {
       try { console.error('[runtime-stability] unhandled rejection:', e.reason); } catch(ex) {}
       stopBlockingOverlays('promise-rejection');
+      ensureMainUiVisible();
     });
   }
 
@@ -138,16 +169,58 @@
     ].forEach(wrapCriticalFn);
   }
 
+  function runSafeTask(label, fn) {
+    try {
+      var out = fn();
+      if (out && typeof out.then === 'function') {
+        return out.catch(function (err) {
+          try { console.error('[runtime-stability] task failed: ' + label, err); } catch (e) {}
+          return null;
+        });
+      }
+      return Promise.resolve(out);
+    } catch (err) {
+      try { console.error('[runtime-stability] task crashed: ' + label, err); } catch (e) {}
+      return Promise.resolve(null);
+    }
+  }
+
+  function loadCoreFeatures() {
+    return Promise.all([
+      runSafeTask('setDynamicVhVar', function () { setDynamicVhVar(); }),
+      runSafeTask('patchGlobalHandlers', function () { patchGlobalHandlers(); }),
+      runSafeTask('patchCriticalFns', function () { patchCriticalFns(); }),
+      runSafeTask('watchLoaderLifetime', function () { watchLoaderLifetime(); }),
+      runSafeTask('ensureMainUiVisible', function () { ensureMainUiVisible(); })
+    ]);
+  }
+
   function setDynamicVhVar() {
     var vh = window.innerHeight * 0.01;
     document.documentElement.style.setProperty('--app-vh', vh + 'px');
   }
 
-  function init() {
-    setDynamicVhVar();
-    patchGlobalHandlers();
-    patchCriticalFns();
-    watchLoaderLifetime();
+  async function initApp() {
+    if (_initDone) return;
+    _initDone = true;
+    try { console.log('init start'); } catch (e) {}
+
+    var hardTimeout = setTimeout(function () {
+      hideLoadingScreen('init-fallback-timeout');
+      ensureMainUiVisible();
+    }, INIT_FALLBACK_MS);
+
+    try {
+      await loadCoreFeatures();
+      try { console.log('core features loaded'); } catch (e) {}
+    } catch (err) {
+      try { console.error('[runtime-stability] initApp failed', err); } catch (e) {}
+      showFallback('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      clearTimeout(hardTimeout);
+      hideLoadingScreen('init-finally');
+      ensureMainUiVisible();
+    }
 
     // Multi-phase cleanup to ensure stale overlays never survive.
     setTimeout(stopBlockingOverlays, 2500);
@@ -170,8 +243,8 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
+    document.addEventListener('DOMContentLoaded', initApp, { once: true });
   } else {
-    init();
+    initApp();
   }
 })();

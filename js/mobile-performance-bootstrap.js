@@ -226,7 +226,7 @@ function setupFeatureCodeSplit() {
   }
 
   window.openPhysiognomyApp = async function openPhysiognomyAppProxy() {
-    await ensure('physiognomy');
+    try { await ensure('physiognomy'); } catch (e) { console.error('[mobile-bootstrap] physiognomy load failed', e); }
     if (typeof window.openPhysiognomyApp === 'function' && window.openPhysiognomyApp !== openPhysiognomyAppProxy) {
       return window.openPhysiognomyApp.apply(window, arguments);
     }
@@ -234,7 +234,7 @@ function setupFeatureCodeSplit() {
   };
 
   window.openMbtiModal = async function openMbtiModalProxy() {
-    await ensure('mbti');
+    try { await ensure('mbti'); } catch (e) { console.error('[mobile-bootstrap] mbti load failed', e); }
     if (typeof window.openMbtiModal === 'function' && window.openMbtiModal !== openMbtiModalProxy) {
       return window.openMbtiModal.apply(window, arguments);
     }
@@ -242,7 +242,7 @@ function setupFeatureCodeSplit() {
   };
 
   window.openHwatuModal = async function openHwatuModalProxy() {
-    await ensure('hwatu');
+    try { await ensure('hwatu'); } catch (e) { console.error('[mobile-bootstrap] hwatu load failed', e); }
     if (typeof window.openHwatuModal === 'function' && window.openHwatuModal !== openHwatuModalProxy) {
       return window.openHwatuModal.apply(window, arguments);
     }
@@ -265,15 +265,30 @@ function setupCoreCodeSplitHooks() {
   };
 
   wrap('calculate', (original) => async function mobileWrappedCalculate() {
-    const sajuChunk = await import('./chunks/saju-analysis.chunk.js');
-    sajuChunk.beforeCoreCalculate();
+    let sajuChunk = null;
+    try {
+      sajuChunk = await import('./chunks/saju-analysis.chunk.js');
+      if (sajuChunk && typeof sajuChunk.beforeCoreCalculate === 'function') {
+        sajuChunk.beforeCoreCalculate();
+      }
+    } catch (e) {
+      console.error('[mobile-bootstrap] saju-analysis chunk load failed', e);
+    }
     try {
       const out = await original.apply(this, arguments);
-      const extraChunk = await import('./chunks/extra-fortune.chunk.js');
-      extraChunk.bindExtraFortuneLazy();
+      try {
+        const extraChunk = await import('./chunks/extra-fortune.chunk.js');
+        if (extraChunk && typeof extraChunk.bindExtraFortuneLazy === 'function') {
+          extraChunk.bindExtraFortuneLazy();
+        }
+      } catch (e) {
+        console.error('[mobile-bootstrap] extra-fortune chunk load failed', e);
+      }
       return out;
     } finally {
-      sajuChunk.afterCoreCalculate();
+      if (sajuChunk && typeof sajuChunk.afterCoreCalculate === 'function') {
+        sajuChunk.afterCoreCalculate();
+      }
       setupLazySectionHydration();
       setupTextCollapse();
       setupImageOptimization();
@@ -281,10 +296,19 @@ function setupCoreCodeSplitHooks() {
   });
 
   wrap('runCompat', (original) => async function mobileWrappedRunCompat() {
-    const compatChunk = await import('./chunks/compat.chunk.js');
-    compatChunk.beforeCompatRender();
+    let compatChunk = null;
+    try {
+      compatChunk = await import('./chunks/compat.chunk.js');
+      if (compatChunk && typeof compatChunk.beforeCompatRender === 'function') {
+        compatChunk.beforeCompatRender();
+      }
+    } catch (e) {
+      console.error('[mobile-bootstrap] compat chunk load failed', e);
+    }
     const out = await original.apply(this, arguments);
-    compatChunk.afterCompatRender();
+    if (compatChunk && typeof compatChunk.afterCompatRender === 'function') {
+      compatChunk.afterCompatRender();
+    }
     return out;
   });
 }
