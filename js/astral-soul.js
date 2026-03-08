@@ -100,10 +100,261 @@ const ASTRAL_DATA = {
 };
 
 let selectedTotems = [];
+let __mbtiBodyLocked = false;
+
+const RITUAL_PHASE_TIMINGS = {
+    init: 100,
+    surge: 700,
+    merge: 1500,
+    burst: 2100,
+    complete: 2500,
+    finish: 3400
+};
+
+const RITUAL_PARTICLE_COLORS = ['#FFD700', '#FDB931', '#b44fff', '#fff', '#a0f0ff'];
+
+function setTokenBorderColor(tokenEl, code) {
+    tokenEl.style.borderColor = code ? getMbtiColor(code) : 'rgba(255,255,255,0.1)';
+}
+
+function setRitualButtonReady(btn) {
+    btn.disabled = false;
+    btn.innerHTML = '✨ 궁합 확인';
+    btn.removeEventListener('click', revealAstralSynergy);
+    btn.addEventListener('click', revealAstralSynergy);
+    btn.style.background = 'linear-gradient(90deg, #D4AF37 0%, #FDB931 100%)';
+    btn.style.color = '#000';
+    btn.style.cursor = 'pointer';
+    btn.style.opacity = '1';
+}
+
+function setRitualButtonPending(btn) {
+    btn.disabled = true;
+    btn.innerHTML = `${selectedTotems.length}/2 선택됨`;
+    btn.removeEventListener('click', revealAstralSynergy);
+    btn.style.background = 'rgba(255,255,255,0.1)';
+    btn.style.color = 'rgba(255,255,255,0.3)';
+    btn.style.cursor = 'not-allowed';
+    btn.style.opacity = '0.7';
+}
+
+function getRitualElements() {
+    return {
+        stage: document.getElementById('astralRitualStage'),
+        t1El: document.getElementById('ritualToken1'),
+        t2El: document.getElementById('ritualToken2'),
+        msg: document.getElementById('ritualMessage'),
+        subMsg: document.getElementById('ritualSubMsg'),
+        glow: document.getElementById('ritualBgGlow'),
+        flash: document.getElementById('ritualFlash'),
+        mirror: document.getElementById('soulMirror'),
+        mirrorInner: document.getElementById('mirrorInner'),
+        particles: document.getElementById('ritualParticles')
+    };
+}
+
+function resetRitualTokens(t1El, t2El, a1, a2) {
+    t1El.style.transition = 'none';
+    t2El.style.transition = 'none';
+
+    t1El.innerHTML = a1.animal;
+    t1El.classList.add('ritual-token--left');
+    t1El.classList.remove('ritual-token--right');
+    t1El.style.left = '8%';
+    t1El.style.top = '45%';
+    t1El.style.opacity = '1';
+    t1El.style.fontSize = '4.5rem';
+    t1El.style.transform = 'translate(-50%,-50%)';
+
+    t2El.innerHTML = a2.animal;
+    t2El.classList.add('ritual-token--right');
+    t2El.classList.remove('ritual-token--left');
+    t2El.style.left = '92%';
+    t2El.style.top = '45%';
+    t2El.style.opacity = '1';
+    t2El.style.fontSize = '4.5rem';
+    t2El.style.transform = 'translate(-50%,-50%)';
+}
+
+function resetRitualVisualState(el) {
+    el.msg.style.opacity = '0';
+    el.msg.innerHTML = '';
+    el.subMsg.style.opacity = '0';
+    el.subMsg.innerHTML = '';
+    el.flash.style.opacity = '0';
+    el.mirror.classList.remove('explode');
+    el.mirrorInner.classList.remove('active');
+    el.glow.classList.remove('active');
+    el.particles.innerHTML = '';
+}
+
+function setRitualMessage(msgEl, text, opacity) {
+    msgEl.innerHTML = text;
+    msgEl.style.opacity = opacity;
+}
+
+function phaseInit(el) {
+    el.glow.classList.add('active');
+    el.mirrorInner.classList.add('active');
+    setRitualMessage(el.msg, '영혼을 소환하는 중...', '1');
+}
+
+function phaseSurge(el) {
+    el.t1El.style.transition = 'all 0.8s cubic-bezier(0.55, 0, 1, 0.45)';
+    el.t2El.style.transition = 'all 0.8s cubic-bezier(0.55, 0, 1, 0.45)';
+    el.t1El.style.left = '35%';
+    el.t1El.style.top = '38%';
+    el.t1El.style.fontSize = '3rem';
+    el.t2El.style.left = '65%';
+    el.t2El.style.top = '38%';
+    el.t2El.style.fontSize = '3rem';
+    setRitualMessage(el.msg, '파동이 충돌한다...', '1');
+}
+
+function phaseMerge(el) {
+    el.t1El.style.transition = 'all 0.6s ease-in';
+    el.t2El.style.transition = 'all 0.6s ease-in';
+    el.t1El.style.left = '50%';
+    el.t1El.style.top = '40%';
+    el.t1El.style.opacity = '0';
+    el.t1El.style.transform = 'translate(-50%,-50%) scale(0.2)';
+    el.t2El.style.left = '50%';
+    el.t2El.style.top = '40%';
+    el.t2El.style.opacity = '0';
+    el.t2El.style.transform = 'translate(-50%,-50%) scale(0.2)';
+    setRitualMessage(el.msg, '공명이 시작된다···', '1');
+}
+
+function createRitualParticle(index, count) {
+    const p = document.createElement('div');
+    p.className = 'ritual-particle';
+
+    const size = Math.random() * 10 + 4;
+    const angle = (index / count) * 360;
+    const distance = 80 + Math.random() * 180;
+    const tx = Math.cos(angle * Math.PI / 180) * distance;
+    const ty = Math.sin(angle * Math.PI / 180) * distance;
+    const color = RITUAL_PARTICLE_COLORS[Math.floor(Math.random() * RITUAL_PARTICLE_COLORS.length)];
+
+    p.style.width = `${size}px`;
+    p.style.height = `${size}px`;
+    p.style.background = color;
+    p.style.boxShadow = `0 0 ${size * 2}px ${color}`;
+    p.style.left = `calc(50% - ${size / 2}px)`;
+    p.style.top = '38%';
+    p.style.setProperty('--tx', `${tx}px`);
+    p.style.setProperty('--ty', `${ty}px`);
+    p.style.animationDelay = `${Math.random() * 0.3}s`;
+    p.style.animationDuration = `${0.8 + Math.random() * 0.6}s`;
+
+    return p;
+}
+
+function spawnRitualParticles(container, count) {
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        container.appendChild(createRitualParticle(i, count));
+    }
+    setTimeout(() => {
+        container.innerHTML = '';
+    }, 1500);
+}
+
+function phaseBurst(el) {
+    el.mirror.classList.add('explode');
+    el.msg.style.opacity = '0';
+
+    el.flash.style.transition = 'opacity 0.15s';
+    el.flash.style.opacity = '0.9';
+    setTimeout(() => {
+        el.flash.style.opacity = '0';
+    }, 200);
+
+    spawnRitualParticles(el.particles, 40);
+}
+
+function phaseComplete(el) {
+    el.mirror.classList.remove('explode');
+    setRitualMessage(el.msg, '✦ 공명 완료 ✦', '1');
+    el.msg.style.color = '#fff';
+    el.subMsg.innerHTML = '두 영혼의 궤적이 하나의 운명으로 수렴했다';
+    el.subMsg.style.opacity = '1';
+}
+
+function runRitualTimeline(el) {
+    setTimeout(() => phaseInit(el), RITUAL_PHASE_TIMINGS.init);
+    setTimeout(() => phaseSurge(el), RITUAL_PHASE_TIMINGS.surge);
+    setTimeout(() => phaseMerge(el), RITUAL_PHASE_TIMINGS.merge);
+    setTimeout(() => phaseBurst(el), RITUAL_PHASE_TIMINGS.burst);
+    setTimeout(() => phaseComplete(el), RITUAL_PHASE_TIMINGS.complete);
+    setTimeout(() => {
+        el.stage.style.display = 'none';
+        showSynergyResult();
+    }, RITUAL_PHASE_TIMINGS.finish);
+}
+
+function bindTotemCardEvents(card, code) {
+    card.addEventListener('click', () => selectTotem(card, code));
+    card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectTotem(card, code);
+        }
+    });
+    const infoBtn = card.querySelector('.totem-info-btn');
+    if (infoBtn) {
+        infoBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            openMbtiDetail(code);
+        });
+    }
+}
+
+function bindMbtiDetailEvents(sheet, code, isSelected) {
+    const closeBtn = sheet.querySelector('.mbti-sheet-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => sheet.remove());
+    }
+
+    const tabs = sheet.querySelectorAll('.mbti-sheet-tab');
+    tabs.forEach((tab) => {
+        const panelId = tab.getAttribute('data-panel');
+        tab.addEventListener('click', () => switchMbtiTab(tab, panelId));
+    });
+
+    const selectBtn = sheet.querySelector('.mbti-select-btn');
+    if (selectBtn) {
+        selectBtn.addEventListener('click', () => {
+            if (isSelected) {
+                sheet.remove();
+                return;
+            }
+            selectTotemFromDetail(code);
+        });
+    }
+}
+
+function __lockMbtiBody() {
+    if (__mbtiBodyLocked) return;
+    __mbtiBodyLocked = true;
+    document.body.style.overflow = 'hidden';
+}
+
+function __unlockMbtiBody() {
+    if (!__mbtiBodyLocked) return;
+    __mbtiBodyLocked = false;
+    document.body.style.overflow = '';
+}
 
 function openMbtiModal() {
     const modal = document.getElementById('astralModal');
+    // 다른 모달/오류로 body가 fixed 상태로 남았을 때 스크롤 잠김 방지
+    if (window._perf && typeof window._perf.unlockBody === 'function') {
+        window._perf.unlockBody();
+    }
+    __lockMbtiBody();
     modal.style.display = 'block';
+    modal.scrollTop = 0;
     
     // Build Grid
     const grid = document.getElementById('astralGrid');
@@ -112,16 +363,25 @@ function openMbtiModal() {
     Object.keys(ASTRAL_DATA).forEach(code => {
         const item = ASTRAL_DATA[code];
         const card = document.createElement('div');
-        card.className = 'totem-card';
+                const temperament = code.includes('NF') ? 'nf'
+                    : code.includes('NT') ? 'nt'
+                    : code.includes('SJ') ? 'sj'
+                    : 'sp';
+                card.className = 'totem-card totem-card--' + temperament;
         card.setAttribute('data-code', code);
-        card.onclick = () => selectTotem(card, code);
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
         
         // Card: tap to select, info-btn to view detail
         card.innerHTML = `
             <div class="totem-icon">${item.animal}</div>
-            <div class="totem-name" style="margin-top:5px; color:rgba(255,255,255,0.9); font-weight:700; font-size:0.72rem; line-height:1.3; text-align:center; padding:0 6px;">${item.code}<br><span style='font-size:0.65rem;font-weight:400;opacity:0.7'>${item.title}</span></div>
-            <button class="totem-info-btn" onclick="event.stopPropagation(); openMbtiDetail('${code}')" title="상세보기">ⓘ</button>
+                        <div class="totem-code">${item.code}</div>
+                        <div class="totem-title">${item.title}</div>
+                        <button class="totem-info-btn" type="button" title="상세보기" aria-label="${item.code} 상세 보기">
+                            <span class="totem-info-glyph">✧</span>
+                        </button>
         `;
+        bindTotemCardEvents(card, code);
         grid.appendChild(card);
     });
     
@@ -135,7 +395,12 @@ function openMbtiModal() {
 }
 
 function closeMbtiModal() {
+    const detail = document.getElementById('mbtiDetailSheet');
+    if (detail) detail.remove();
+    const resultLayer = document.getElementById('astralResult');
+    if (resultLayer) resultLayer.style.display = 'none';
     document.getElementById('astralModal').style.display = 'none';
+    __unlockMbtiBody();
 }
 
 function selectTotem(card, code) {
@@ -186,39 +451,27 @@ function updateRitualBar() {
     t1.className = 'mini-token ' + (selectedTotems[0] ? 'filled' : 'empty');
     if (selectedTotems[0]) {
         t1.innerHTML = ASTRAL_DATA[selectedTotems[0]].animal;
-        t1.style.borderColor = getMbtiColor(selectedTotems[0]);
+        setTokenBorderColor(t1, selectedTotems[0]);
     } else {
         t1.innerHTML = '';
-        t1.style.borderColor = 'rgba(255,255,255,0.1)';
+        setTokenBorderColor(t1, '');
     }
     
     // Update Token 2
     t2.className = 'mini-token ' + (selectedTotems[1] ? 'filled' : 'empty');
     if (selectedTotems[1]) {
         t2.innerHTML = ASTRAL_DATA[selectedTotems[1]].animal;
-        t2.style.borderColor = getMbtiColor(selectedTotems[1]);
+        setTokenBorderColor(t2, selectedTotems[1]);
     } else {
         t2.innerHTML = '';
-        t2.style.borderColor = 'rgba(255,255,255,0.1)';
+        setTokenBorderColor(t2, '');
     }
     
     // Update Button State
     if (selectedTotems.length === 2) {
-        btn.disabled = false;
-        btn.innerHTML = "✨ 궁합 확인";
-        btn.onclick = revealAstralSynergy;
-        btn.style.background = 'linear-gradient(90deg, #D4AF37 0%, #FDB931 100%)';
-        btn.style.color = '#000';
-        btn.style.cursor = 'pointer';
-        btn.style.opacity = '1';
+        setRitualButtonReady(btn);
     } else {
-        btn.disabled = true;
-        btn.innerHTML = `${selectedTotems.length}/2 선택됨`;
-        btn.onclick = null;
-        btn.style.background = 'rgba(255,255,255,0.1)';
-        btn.style.color = 'rgba(255,255,255,0.3)';
-        btn.style.cursor = 'not-allowed';
-        btn.style.opacity = '0.7';
+        setRitualButtonPending(btn);
     }
 }
 
@@ -235,8 +488,8 @@ function openMbtiDetail(code) {
     sheet.id = 'mbtiDetailSheet';
     sheet.className = 'mbti-detail-sheet';
     sheet.innerHTML = `
-        <div class="mbti-sheet-hero" style="background: linear-gradient(135deg, rgba(10,10,30,0.95) 0%, rgba(20,10,35,0.95) 100%)">
-            <button class="mbti-sheet-close" onclick="document.getElementById('mbtiDetailSheet').remove()">←</button>
+        <div class="mbti-sheet-hero mbti-sheet-hero--aurora">
+            <button class="mbti-sheet-close" type="button">←</button>
             <span class="mbti-sheet-icon">${item.animal}</span>
             <div class="mbti-sheet-code">${item.code}</div>
             <div class="mbti-sheet-title">${item.title}</div>
@@ -244,21 +497,21 @@ function openMbtiDetail(code) {
         </div>
         
         <div class="mbti-sheet-tabs">
-            <div class="mbti-sheet-tab active" onclick="switchMbtiTab(this, 'soul')">🧠 성격</div>
-            <div class="mbti-sheet-tab" onclick="switchMbtiTab(this, 'path')">🎯 진로</div>
-            <div class="mbti-sheet-tab" onclick="switchMbtiTab(this, 'heart')">💘 연애</div>
+            <div class="mbti-sheet-tab active" data-panel="soul">🧠 성격</div>
+            <div class="mbti-sheet-tab" data-panel="path">🎯 진로</div>
+            <div class="mbti-sheet-tab" data-panel="heart">💘 연애</div>
         </div>
         
         <div class="mbti-sheet-panel active" data-panel="soul">${item.layer1}</div>
         <div class="mbti-sheet-panel" data-panel="path">${item.layer2}</div>
         <div class="mbti-sheet-panel" data-panel="heart">${item.layer3}</div>
         
-        <button class="mbti-select-btn${isSelected ? ' already' : ''}" 
-            onclick="${isSelected ? "document.getElementById('mbtiDetailSheet').remove()" : `selectTotemFromDetail('${code}')`}">
+        <button class="mbti-select-btn${isSelected ? ' already' : ''}" type="button">
             ${isSelected ? '✓ 이미 선택됨 (닫기)' : '이 유형 선택하기'}
         </button>
     `;
     container.appendChild(sheet);
+    bindMbtiDetailEvents(sheet, code, isSelected);
 }
 
 function switchMbtiTab(tabEl, panelId) {
@@ -288,21 +541,6 @@ function resetSelection() {
     document.getElementById('astralResult').style.display = 'none';
 }
 
-function confirmSelection(code) {
-    if (!selectedTotems.includes(code)) {
-        if (selectedTotems.length >= 2) selectedTotems.shift(); // Remove oldest
-        selectedTotems.push(code);
-    }
-    updateRitualBar();
-    // Highlight in grid
-    document.querySelectorAll('.totem-card').forEach(c => {
-        if(c.getAttribute('data-code') === code) c.classList.add('selected');
-        else if(!selectedTotems.includes(c.getAttribute('data-code'))) c.classList.remove('selected');
-    });
-    
-    closeResultLayer();
-}
-
 function closeResultLayer() {
     const resLayer = document.getElementById('astralResult');
     resLayer.style.display = 'none';
@@ -323,112 +561,109 @@ function revealAstralSynergy() {
     document.querySelector('.astral-header').style.display = 'none';
 
     // Show Ritual Stage
-    const stage = document.getElementById('astralRitualStage');
-    stage.style.display = 'flex';
-
-    const t1El    = document.getElementById('ritualToken1');
-    const t2El    = document.getElementById('ritualToken2');
-    const msg     = document.getElementById('ritualMessage');
-    const subMsg  = document.getElementById('ritualSubMsg');
-    const glow    = document.getElementById('ritualBgGlow');
-    const flash   = document.getElementById('ritualFlash');
-    const mirror  = document.getElementById('soulMirror');
-    const mirrorInner = document.getElementById('mirrorInner');
-    const particles   = document.getElementById('ritualParticles');
+    const ritual = getRitualElements();
+    ritual.stage.style.display = 'flex';
 
     const a1 = ASTRAL_DATA[selectedTotems[0]];
     const a2 = ASTRAL_DATA[selectedTotems[1]];
 
-    // Reset all
-    t1El.style.transition = 'none';
-    t2El.style.transition = 'none';
-    t1El.innerHTML = a1.animal; t1El.style.cssText = 'position:absolute;font-size:4.5rem;left:8%;top:45%;transform:translate(-50%,-50%);opacity:1;filter:drop-shadow(0 0 12px rgba(255,255,255,0.6))';
-    t2El.innerHTML = a2.animal; t2El.style.cssText = 'position:absolute;font-size:4.5rem;left:92%;top:45%;transform:translate(-50%,-50%);opacity:1;filter:drop-shadow(0 0 12px rgba(255,255,255,0.6))';
-    msg.style.opacity = '0'; msg.innerHTML = '';
-    subMsg.style.opacity = '0'; subMsg.innerHTML = '';
-    flash.style.opacity = '0';
-    mirror.classList.remove('explode');
-    mirrorInner.classList.remove('active');
-    glow.classList.remove('active');
-    particles.innerHTML = '';
+    resetRitualTokens(ritual.t1El, ritual.t2El, a1, a2);
+    resetRitualVisualState(ritual);
+    runRitualTimeline(ritual);
+}
 
-    // --- PHASE 1 (0ms): Background glow & mirror inner spin ---
-    setTimeout(() => {
-        glow.classList.add('active');
-        mirrorInner.classList.add('active');
-        msg.innerHTML = '영혼을 소환하는 중...';
-        msg.style.opacity = '1';
-    }, 100);
+function createNode(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (typeof text === 'string') node.textContent = text;
+    return node;
+}
 
-    // --- PHASE 2 (700ms): Tokens surge toward center ---
-    setTimeout(() => {
-        t1El.style.transition = 'all 0.8s cubic-bezier(0.55, 0, 1, 0.45)';
-        t2El.style.transition = 'all 0.8s cubic-bezier(0.55, 0, 1, 0.45)';
-        t1El.style.left = '35%'; t1El.style.top = '38%'; t1El.style.fontSize = '3rem';
-        t2El.style.left = '65%'; t2El.style.top = '38%'; t2El.style.fontSize = '3rem';
-        msg.innerHTML = '파동이 충돌한다...';
-    }, 700);
+function createSynergyStatsBody(statsItems) {
+    const root = createNode('div', 'synergy-stats');
+    statsItems.forEach((item) => {
+        const row = createNode('div', 'synergy-stat-row');
+        const label = createNode('span', 'synergy-stat-label', item.label);
+        const valueClass = item.highlight
+            ? 'synergy-stat-value synergy-stat-value--match'
+            : 'synergy-stat-value';
+        const value = createNode('span', valueClass, item.value);
+        row.appendChild(label);
+        row.appendChild(value);
+        root.appendChild(row);
+    });
+    return root;
+}
 
-    // --- PHASE 3 (1500ms): Tokens merge into mirror ---
-    setTimeout(() => {
-        t1El.style.transition = 'all 0.6s ease-in';
-        t2El.style.transition = 'all 0.6s ease-in';
-        t1El.style.left = '50%'; t1El.style.top = '40%'; t1El.style.opacity = '0'; t1El.style.transform = 'translate(-50%,-50%) scale(0.2)';
-        t2El.style.left = '50%'; t2El.style.top = '40%'; t2El.style.opacity = '0'; t2El.style.transform = 'translate(-50%,-50%) scale(0.2)';
-        msg.innerHTML = '공명이 시작된다···';
-    }, 1500);
+function createSynergySection(kind, icon, title, bodyContent) {
+    const section = createNode('div', `res-section-card res-section-card--${kind}`);
 
-    // --- PHASE 4 (2100ms): EXPLOSION + Particles ---
-    setTimeout(() => {
-        mirror.classList.add('explode');
-        msg.style.opacity = '0';
+    if (kind === 'key') {
+        const watermark = createNode('div', 'res-watermark', '🔑');
+        watermark.setAttribute('aria-hidden', 'true');
+        section.appendChild(watermark);
+    }
 
-        // White flash
-        flash.style.transition = 'opacity 0.15s'; flash.style.opacity = '0.9';
-        setTimeout(() => { flash.style.opacity = '0'; }, 200);
+    const head = createNode('div', 'res-section-head');
+    head.appendChild(createNode('span', 'res-section-icon', icon));
+    head.appendChild(createNode('span', '', title));
+    section.appendChild(head);
 
-        // Generate radial particles
-        const colors = ['#FFD700','#FDB931','#b44fff','#fff','#a0f0ff'];
-        for (let i = 0; i < 40; i++) {
-            const p = document.createElement('div');
-            p.className = 'ritual-particle';
-            const size = Math.random() * 10 + 4;
-            const angle = (i / 40) * 360;
-            const dist  = 80 + Math.random() * 180;
-            const tx    = Math.cos(angle * Math.PI/180) * dist;
-            const ty    = Math.sin(angle * Math.PI/180) * dist;
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            const delay = Math.random() * 0.3;
-            p.style.cssText = `
-                width:${size}px; height:${size}px;
-                background:${color};
-                box-shadow: 0 0 ${size*2}px ${color};
-                left: calc(50% - ${size/2}px);
-                top: 38%;
-                --tx: ${tx}px; --ty: ${ty}px;
-                animation-delay: ${delay}s;
-                animation-duration: ${0.8 + Math.random()*0.6}s;
-            `;
-            particles.appendChild(p);
-        }
-        setTimeout(() => { particles.innerHTML = ''; }, 1500);
-    }, 2100);
+    const body = createNode('div', 'res-section-body');
+    if (typeof bodyContent === 'string') {
+        body.innerHTML = bodyContent;
+    } else if (bodyContent instanceof Node) {
+        body.appendChild(bodyContent);
+    }
+    section.appendChild(body);
 
-    // --- PHASE 5 (2500ms): Show result message ---
-    setTimeout(() => {
-        mirror.classList.remove('explode');
-        msg.innerHTML = '✦ 공명 완료 ✦';
-        msg.style.color = '#fff';
-        msg.style.opacity = '1';
-        subMsg.innerHTML = '두 영혼의 궤적이 하나의 운명으로 수렴했다';
-        subMsg.style.opacity = '1';
-    }, 2500);
+    return section;
+}
 
-    // --- PHASE 6 (3400ms): Show Result Page ---
-    setTimeout(() => {
-        stage.style.display = 'none';
-        showSynergyResult();
-    }, 3400);
+function createSynergyResultHeader(c1, c2) {
+    const header = createNode('header', 'res-header res-header--compact');
+    const tokenRow = createNode('div', 'res-token-row');
+
+    const col1 = createNode('div', 'res-token-col');
+    col1.appendChild(createNode('div', 'res-token-animal', c1.animal));
+    col1.appendChild(createNode('div', 'res-token-code', c1.code));
+
+    const vs = createNode('div', 'res-token-vs', '⚔️');
+
+    const col2 = createNode('div', 'res-token-col');
+    col2.appendChild(createNode('div', 'res-token-animal', c2.animal));
+    col2.appendChild(createNode('div', 'res-token-code', c2.code));
+
+    tokenRow.appendChild(col1);
+    tokenRow.appendChild(vs);
+    tokenRow.appendChild(col2);
+    header.appendChild(tokenRow);
+
+    header.appendChild(createNode('h2', 'res-title res-title--bright', 'SOUL RESONANCE'));
+
+    const mbtiBadge = createNode('div', 'res-mbti res-mbti--badge');
+    mbtiBadge.appendChild(document.createTextNode(`${c1.title} `));
+    mbtiBadge.appendChild(createNode('span', 'res-and', 'AND'));
+    mbtiBadge.appendChild(document.createTextNode(` ${c2.title}`));
+    header.appendChild(mbtiBadge);
+
+    return header;
+}
+
+function createSynergyKeywordBox(title) {
+    const box = createNode('div', 'synergy-box synergy-box--premium');
+    box.appendChild(createNode('div', 'res-label res-label--center', 'CONNECTION KEYWORD'));
+    box.appendChild(createNode('div', 'res-text res-text--keyword', `"${title}"`));
+    return box;
+}
+
+function createSynergySectionGrid(synergy) {
+    const grid = createNode('div', 'res-grid-stack');
+    grid.appendChild(createSynergySection('stats', '📊', '역학 관계 스탯', createSynergyStatsBody(synergy.statsItems)));
+    grid.appendChild(createSynergySection('light', '☀️', '빛의 공명 (시너지)', synergy.pros));
+    grid.appendChild(createSynergySection('shadow', '🌑', '그림자 충돌 (갈등 요소)', synergy.cons));
+    grid.appendChild(createSynergySection('key', '💡', '관계를 위한 마스터키', synergy.advice));
+    return grid;
 }
 
 function showSynergyResult() {
@@ -439,72 +674,29 @@ function showSynergyResult() {
     
     // Set Back Button to Home
     const backBtn = resLayer.querySelector('.back-btn');
-    backBtn.onclick = closeMbtiModal;
+    backBtn.removeEventListener('click', closeMbtiModal);
+    backBtn.addEventListener('click', closeMbtiModal);
     backBtn.innerHTML = "🏠 메인화면";
 
     const resContent = document.getElementById('astralResultContent');
     const synergy = getSynergyText(c1, c2);
-    
-    resContent.innerHTML = `
-        <header class="res-header" style="margin-bottom:20px;">
-            <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-bottom:15px;">
-                <div style="text-align:center;">
-                    <div style="font-size:2.8rem; margin-bottom:5px; text-shadow:0 0 15px rgba(255,255,255,0.4);">${c1.animal}</div>
-                    <div style="font-size:0.8rem; font-weight:bold; color:var(--gold); border:1px solid var(--gold); padding:2px 8px; border-radius:12px;">${c1.code}</div>
-                </div>
-                <div style="font-size:1.5rem; opacity:0.5; padding-bottom:15px; color:#FFD700;">⚔️</div>
-                <div style="text-align:center;">
-                    <div style="font-size:2.8rem; margin-bottom:5px; text-shadow:0 0 15px rgba(255,255,255,0.4);">${c2.animal}</div>
-                    <div style="font-size:0.8rem; font-weight:bold; color:var(--gold); border:1px solid var(--gold); padding:2px 8px; border-radius:12px;">${c2.code}</div>
-                </div>
-            </div>
-            
-            <h2 class="res-title" style="font-size:1.8rem; letter-spacing:3px; color:#fff; text-shadow:0 2px 10px rgba(255,215,0,0.5);">SOUL RESONANCE</h2>
-            <div class="res-mbti" style="font-size:0.85rem; margin-top:8px; opacity:0.8; letter-spacing:1px; background:rgba(0,0,0,0.3); display:inline-block; padding:5px 15px; border-radius:20px;">${c1.title} <span style="opacity:0.5;">AND</span> ${c2.title}</div>
-        </header>
-        
-        <div class="synergy-box" style="background:linear-gradient(145deg, rgba(255,215,0,0.1), rgba(0,0,0,0.3)); border:1px solid rgba(255,215,0,0.3); backdrop-filter:blur(10px); padding:25px; border-radius:15px; margin-bottom:25px; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-            <div class="res-label" style="text-align:center; color:rgba(255,215,0,0.8); font-size:0.8rem; letter-spacing:2px; margin-bottom:12px; font-weight:bold;">CONNECTION KEYWORD</div>
-            <div class="res-text" style="text-align:center; font-weight:900; font-family:'Cinzel', serif; font-size:1.5rem; color:#fff; line-height:1.4; text-shadow:0 0 10px rgba(255,255,255,0.3);">
-                "${synergy.title}"
-            </div>
-        </div>
 
-        <div style="display:grid; gap:20px; text-align:left;">
-            <!-- 시너지 스탯 레이더망 느낌바 -->
-            <div class="res-section" style="border:1px solid rgba(255,255,255,0.1); padding:20px; background:rgba(0,0,0,0.2); border-radius:12px; margin:0;">
-                <div class="res-label" style="color:#a0f0ff; font-weight:900; margin-bottom:15px; display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:1.2rem;">📊</span> 역학 관계 스탯
-                </div>
-                ${synergy.stats}
-            </div>
+    resContent.replaceChildren();
 
-            <div class="res-section" style="border:1px solid rgba(129,199,132,0.3); padding:20px; background:linear-gradient(135deg, rgba(30,50,30,0.5), rgba(0,0,0,0.4)); border-radius:12px; margin:0; box-shadow:inset 0 0 20px rgba(129,199,132,0.05);">
-                <div class="res-label" style="color:#81C784; font-weight:900; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:1.3rem;">☀️</span> 빛의 공명 (시너지)
-                </div>
-                <div class="res-text" style="font-size:0.95rem; opacity:0.95; line-height:1.7; color:#e8f5e9;">${synergy.pros}</div>
-            </div>
-            
-            <div class="res-section" style="border:1px solid rgba(229,115,115,0.3); padding:20px; background:linear-gradient(135deg, rgba(60,30,30,0.5), rgba(0,0,0,0.4)); border-radius:12px; margin:0; box-shadow:inset 0 0 20px rgba(229,115,115,0.05);">
-                <div class="res-label" style="color:#E57373; font-weight:900; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:1.3rem;">🌑</span> 그림자 충돌 (갈등 요소)
-                </div>
-                <div class="res-text" style="font-size:0.95rem; opacity:0.95; line-height:1.7; color:#ffebee;">${synergy.cons}</div>
-            </div>
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(createSynergyResultHeader(c1, c2));
+    fragment.appendChild(createSynergyKeywordBox(synergy.title));
+    fragment.appendChild(createSynergySectionGrid(synergy));
 
-            <div class="res-section" style="border:1px solid rgba(255,215,0,0.3); padding:20px; background:linear-gradient(135deg, rgba(50,40,10,0.5), rgba(0,0,0,0.4)); border-radius:12px; margin:0; position:relative; overflow:hidden;">
-                <div style="position:absolute; right:-20px; top:-20px; font-size:5rem; opacity:0.05;">🔑</div>
-                <div class="res-label" style="color:#FFD700; font-weight:900; margin-bottom:12px; display:flex; align-items:center; gap:8px; position:relative; z-index:1;">
-                    <span style="font-size:1.3rem;">💡</span> 관계를 위한 마스터키
-                </div>
-                <div class="res-text" style="font-size:0.95rem; opacity:0.95; line-height:1.7; color:#fff8e1; position:relative; z-index:1;">${synergy.advice}</div>
-            </div>
-        </div>
-        
-        <button class="ritual-btn" style="width:100%; margin-top:40px; background:linear-gradient(45deg, #111, #222); border:1px solid #FFD700; color:#FFD700; font-family:'Montserrat', sans-serif; font-weight:bold; letter-spacing:1px; padding:15px; border-radius:8px; text-transform:uppercase; transition:all 0.3s;" onclick="resetSelection()" onmouseover="this.style.background='#FFD700'; this.style.color='#000';" onmouseout="this.style.background='linear-gradient(45deg, #111, #222)'; this.style.color='#FFD700';">↻ Realign Totems</button>
-        <div style="height:40px;"></div>
-    `;
+    const resetBtn = createNode('button', 'ritual-btn ritual-btn--reset', '↻ Realign Totems');
+    resetBtn.type = 'button';
+    fragment.appendChild(resetBtn);
+    fragment.appendChild(createNode('div', 'res-spacer'));
+    resContent.appendChild(fragment);
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetSelection);
+    }
     
     resLayer.style.display = 'block';
 }
@@ -526,7 +718,7 @@ function getSynergyText(t1, t2) {
         else diff.push(type);
     });
 
-    let title, pros, cons, advice, stats;
+    let title, pros, cons, advice, statsItems;
     
     // Create Dynamic Stats
     const matchScore = Math.floor(Math.random() * (98 - 70 + 1)) + 70; // 70~98%
@@ -534,24 +726,12 @@ function getSynergyText(t1, t2) {
     const actionScore = t1.code[3] === t2.code[3] ? '★★★★★' : '★★★☆☆';
     const convoScore = t1.code[1] === t2.code[1] ? '★★★★☆' : '★★☆☆☆';
 
-    stats = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <span style="color:#b0c4de; font-size:0.85rem;">종합 상성률</span>
-            <span style="color:#00ff41; font-weight:bold; font-family:monospace; font-size:0.9rem;">${matchScore}%</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <span style="color:#b0c4de; font-size:0.85rem;">감정/가치관 공명 (T/F)</span>
-            <span style="color:#FFD700; font-size:0.9rem;">${empathyScore}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <span style="color:#b0c4de; font-size:0.85rem;">행동/생활패턴 (J/P)</span>
-            <span style="color:#FFD700; font-size:0.9rem;">${actionScore}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-            <span style="color:#b0c4de; font-size:0.85rem;">대화/관심사 티키타카 (S/N)</span>
-            <span style="color:#FFD700; font-size:0.9rem;">${convoScore}</span>
-        </div>
-    `;
+    statsItems = [
+        { label: '종합 상성률', value: `${matchScore}%`, highlight: true },
+        { label: '감정/가치관 공명 (T/F)', value: empathyScore, highlight: false },
+        { label: '행동/생활패턴 (J/P)', value: actionScore, highlight: false },
+        { label: '대화/관심사 티키타카 (S/N)', value: convoScore, highlight: false }
+    ];
 
     // Special Combinations (Best Matches)
     const isIdeal = (
@@ -597,5 +777,5 @@ function getSynergyText(t1, t2) {
         advice = `의식적으로 상대의 취미나 관심사 세계로 한 걸음 걸어 들어가 보는 연습을 하세요. 다름을 적당히 '방치'하는 것이 아니라, 적극적으로 '경험'해볼 때 서로의 프리즘이 겹쳐지며 훨씬 다채롭고 단단한 관계가 형성됩니다.`;
     }
 
-    return { title, pros, cons, advice, stats };
+    return { title, pros, cons, advice, statsItems };
 }

@@ -277,7 +277,16 @@
      3-A. Data Injection & Execution Pipeline
           프로필 → 폼 → 비동기 계산 실행
   ────────────────────────────────────────── */
-  function _injectAndRun(profile) {
+  function _fortuneStartMessage(profileName, type) {
+    var safeName = _esc(profileName || '');
+    if (type === 'saju')   return '✦ ' + safeName + ' · 사주 풀이를 시작합니다';
+    if (type === 'sukuyo') return '✦ ' + safeName + ' · 숙요점 분석을 준비합니다';
+    if (type === 'ziwei')  return '✦ ' + safeName + ' · 자미두수 명반을 여는 중입니다';
+    if (type === 'astro')  return '✦ ' + safeName + ' · 점성술 코즈믹 차트를 준비합니다';
+    return '✦ ' + safeName + ' · 운세 분석을 시작합니다';
+  }
+
+  function _injectAndRun(profile, fortuneType) {
     if (!profile) {
       _toast('⚠️ 활성화된 프로필이 없습니다', 'warn');
       return;
@@ -299,7 +308,7 @@
 
     /* 시각 피드백 먼저 */
     spawnStardust(document.getElementById('dpMasterCard'));
-    _toast('✦ ' + _esc(profile.name) + ' · 운세를 계산합니다', 'success');
+    _toast(_fortuneStartMessage(profile.name, fortuneType || 'saju'), 'success');
 
     /* ① 폼 데이터 주입 */
     var nameEl = document.getElementById('nameInput');
@@ -368,41 +377,64 @@
     if (!container) return;
 
     if (list.length === 0) {
-      container.innerHTML = '<div class="dp-list-empty">아직 저장된 프로필이 없습니다.<br><small>아래 폼을 입력 후 \'저장\' 버튼을 누르세요.</small></div>';
+      container.innerHTML = '<div class="dp-list-empty">교체할 프로필이 없습니다.<br><small>아래 폼을 입력 후 \'저장\' 버튼을 눌러주세요.</small></div>';
       return;
     }
 
-    container.innerHTML = list.map(function(p, idx) {
-      var isActive = p.id === currId;
-      var b = p.birth;
-      var l = p.location;
-      var tso = calcTrueSolarOffset(l.lng, l.tzOffset);
-      var corrected = applyTrueSolarOffset(b.hour, b.minute, tso);
-      var tsStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
-      var zodiac = _zodiacEmoji(b.year);
-      var calLabel = b.calType === 'solar' ? '양' : (b.calType === 'lunar_leap' ? '윤' : '음');
-      return '<div class="dp-list-item' + (isActive ? ' dp-list-item--active' : '') + '"'
-        + ' data-profile-id="' + p.id + '"'
-        + ' role="button" tabindex="0"'
-        + ' style="animation-delay:' + (idx * 0.07) + 's; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;"'
-        + ' onclick="dpSelectProfile(\'' + p.id + '\')">'
-        + '<div class="dp-li-left">'
-          + '<div class="dp-li-avatar">' + zodiac + '</div>'
-          + '<div class="dp-li-body">'
-            + '<div class="dp-li-name">' + _esc(p.name)
-              + (isActive ? ' <span class="dp-li-current-badge">현재</span>' : '')
-              + (p.gender === 'M'
-                ? ' <span style="font-size:0.65rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">&#9794;</span>'
-                : ' <span style="font-size:0.65rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">&#9792;</span>')
+    // Render placeholder first to prevent blank modal during slower mobile paints.
+    container.innerHTML = '<div class="dp-list-empty">프로필 목록을 불러오는 중...</div>';
+
+    requestAnimationFrame(function() {
+      try {
+        container.innerHTML = list.map(function(p, idx) {
+          var safe = p || {};
+          var b = safe.birth || {};
+          var l = safe.location || {};
+          var safeHour = (typeof b.hour === 'number') ? b.hour : 12;
+          var safeMinute = (typeof b.minute === 'number') ? b.minute : 0;
+          var safeLng = (typeof l.lng === 'number') ? l.lng : 127.0;
+          var safeTzOffset = (typeof l.tzOffset === 'number') ? l.tzOffset : 9;
+          var safeYear = (typeof b.year === 'number') ? b.year : new Date().getFullYear();
+          var safeMonth = (typeof b.month === 'number') ? b.month : 1;
+          var safeDay = (typeof b.day === 'number') ? b.day : 1;
+
+          var isActive = safe.id === currId;
+          var tso = calcTrueSolarOffset(safeLng, safeTzOffset);
+          var corrected = applyTrueSolarOffset(safeHour, safeMinute, tso);
+          var tsStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
+          var zodiac = _zodiacEmoji(safeYear);
+          var calLabel = b.calType === 'solar' ? '양' : (b.calType === 'lunar_leap' ? '윤' : '음');
+          var pid = safe.id || ('broken_' + idx);
+          var pname = safe.name || '이름 없음';
+          var locLabel = l.label || '출생지 미지정';
+
+          return '<div class="dp-list-item' + (isActive ? ' dp-list-item--active' : '') + '"'
+            + ' data-profile-id="' + pid + '"'
+            + ' role="button" tabindex="0"'
+            + ' style="animation-delay:' + (idx * 0.07) + 's; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;"'
+            + ' onclick="dpSelectProfile(\'' + pid + '\')">'
+            + '<div class="dp-li-left">'
+              + '<div class="dp-li-avatar">' + zodiac + '</div>'
+              + '<div class="dp-li-body">'
+                + '<div class="dp-li-name">' + _esc(pname)
+                  + (isActive ? ' <span class="dp-li-current-badge">현재</span>' : '')
+                  + (safe.gender === 'M'
+                    ? ' <span style="font-size:0.65rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">&#9794;</span>'
+                    : ' <span style="font-size:0.65rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">&#9792;</span>')
+                + '</div>'
+                + '<div class="dp-li-meta">[' + calLabel + '] ' + safeYear + '.' + safeMonth + '.' + safeDay
+                  + ' · 진태양시 ' + tsStr + '</div>'
+                + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
+              + '</div>'
             + '</div>'
-            + '<div class="dp-li-meta">[' + calLabel + '] ' + b.year + '.' + b.month + '.' + b.day
-              + ' · 진태양시 ' + tsStr + '</div>'
-            + '<div class="dp-li-loc">📍 ' + _esc(l.label) + '</div>'
-          + '</div>'
-        + '</div>'
-        + '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + p.id + '\')" aria-label="삭제">✕</button>'
-      + '</div>';
-    }).join('');
+            + '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + pid + '\')" aria-label="삭제">✕</button>'
+          + '</div>';
+        }).join('');
+      } catch (err) {
+        console.error('[DP] renderProfileList failed', err);
+        container.innerHTML = '<div class="dp-list-empty">프로필 목록을 표시할 수 없습니다.<br><small>새로고침 후 다시 시도해주세요.</small></div>';
+      }
+    });
   }
 
   /* ──────────────────────────────────────────
@@ -453,16 +485,34 @@
     renderMasterCard(DPStorage.current());
     renderProfileList();
     broadcastProfileChange(saved);
-    _toast('✦ 프로필이 저장되었습니다', 'success');
+    _toast('귀사는 귀중한 개인정보를 수집하지 않으며, 생년월일 정보는 오직 고객님의 로컬 데이터(기기 브라우저)에만 저장됩니다.', 'privacy');
   };
 
   window.dpOpenList = function() {
-    renderProfileList();
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
+    var scroller = sheet ? sheet.querySelector('.dp-list-scroll') : null;
+    if (!sheet || !overlay) {
+      console.error('[DP] list modal elements missing');
+      return;
+    }
+
+    // Open modal frame first so users never see only a backdrop without a container.
+    sheet.classList.add('dp-sheet--open');
+    overlay.classList.add('dp-sheet--open');
+
+    try {
+      renderProfileList();
+      if (scroller) scroller.scrollTop = 0;
+    } catch (err) {
+      console.error('[DP] openList render failed', err);
+      var container = document.getElementById('dpListInner');
+      if (container) {
+        container.innerHTML = '<div class="dp-list-empty">프로필 로딩 중 문제가 발생했습니다.<br><small>잠시 후 다시 시도해주세요.</small></div>';
+      }
+    }
+
     if (sheet) {
-      sheet.classList.add('dp-sheet--open');
-      if (overlay) overlay.classList.add('dp-sheet--open');
       if (!_isMobileViewport()) {
         _bodyLocked = true;
         if (window._perf && window._perf.lockBody) window._perf.lockBody();
@@ -597,12 +647,19 @@
 
     function _openTarget() {
       if (type === 'saju') {
-        var p = DPStorage.current(); if (p) _injectAndRun(p);
+        var p = DPStorage.current();
+        if (p) _injectAndRun(p, 'saju');
       } else if (type === 'sukuyo') {
+        var pSukuyo = DPStorage.current();
+        if (pSukuyo) _toast(_fortuneStartMessage(pSukuyo.name, 'sukuyo'), 'success');
         if (typeof openSukuyoModal === 'function') openSukuyoModal();
       } else if (type === 'ziwei') {
+        var pZiwei = DPStorage.current();
+        if (pZiwei) _toast(_fortuneStartMessage(pZiwei.name, 'ziwei'), 'success');
         if (typeof openZiweiModal === 'function') openZiweiModal();
       } else if (type === 'astro') {
+        var pAstro = DPStorage.current();
+        if (pAstro) _toast(_fortuneStartMessage(pAstro.name, 'astro'), 'success');
         if (typeof openAstroModal === 'function') openAstroModal();
       }
     }
@@ -629,7 +686,7 @@
     for (var i = 0; i < list.length; i++) { if (list[i].id === profileId) { p = list[i]; break; } }
     if (!p) return;
     DPStorage.setCurrent(profileId);
-    _injectAndRun(p);
+    _injectAndRun(p, 'saju');
   };
 
   /* ──────────────────────────────────────────
@@ -667,6 +724,13 @@
     /* 오버레이 클릭으로 시트 닫기 */
     var overlay = document.getElementById('dpListOverlay');
     if (overlay) overlay.addEventListener('click', dpCloseList);
+    var sheet = document.getElementById('dpListSheet');
+    if (sheet) {
+      sheet.addEventListener('click', function(e) {
+        // Keep inner clicks from being interpreted as backdrop close interactions.
+        e.stopPropagation();
+      });
+    }
 
     var card = document.getElementById('dpMasterCard');
     if (card) {

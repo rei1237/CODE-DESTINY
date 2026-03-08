@@ -8,6 +8,33 @@ function __isMobile() {
   return window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
+function __scheduleIdle(work, timeout) {
+  const idle = window.requestIdleCallback || function(cb) {
+    return setTimeout(function() {
+      cb({ didTimeout: false, timeRemaining: function() { return 0; } });
+    }, 16);
+  };
+  return idle(work, { timeout: timeout || 800 });
+}
+
+function __runChunked(list, worker, chunkSize) {
+  const arr = Array.from(list || []);
+  const size = chunkSize || 24;
+  let idx = 0;
+
+  function step() {
+    const end = Math.min(idx + size, arr.length);
+    for (; idx < end; idx++) {
+      try { worker(arr[idx], idx); } catch (e) { console.error('[mobile-bootstrap] chunk worker failed', e); }
+    }
+    if (idx < arr.length) {
+      setTimeout(step, 0);
+    }
+  }
+
+  step();
+}
+
 function __loadScriptOnce(src) {
   if (!src) return Promise.reject(new Error('missing src'));
   const normSrc = src.replace(/^\.\//, '');
@@ -74,14 +101,14 @@ function setupImageOptimization() {
     document.head.appendChild(st);
   }
 
-  imgs.forEach((img, idx) => {
+  __runChunked(imgs, (img, idx) => {
     if (!img.getAttribute('loading')) img.setAttribute('loading', idx < 2 ? 'eager' : 'lazy');
     if (!img.getAttribute('decoding')) img.setAttribute('decoding', 'async');
     if (!img.getAttribute('fetchpriority')) img.setAttribute('fetchpriority', idx < 2 ? 'high' : 'low');
     if (!img.classList.contains('img-ph') && !img.complete) img.classList.add('img-ph');
     img.addEventListener('load', () => img.classList.remove('img-ph'), { passive: true, once: true });
     img.addEventListener('error', () => img.classList.remove('img-ph'), { passive: true, once: true });
-  });
+  }, 28);
 }
 
 function setupGpuSafety() {
@@ -103,7 +130,7 @@ function setupGpuSafety() {
 
 function setupTextCollapse() {
   const targets = document.querySelectorAll('.prem-text,.feature-card__detail-text,.res-text,.q-explanation,.compat-fact-body,.compat-advice-body');
-  targets.forEach((el) => {
+  __runChunked(targets, (el) => {
     if (!el || el.dataset.collapsedReady === '1') return;
     const txt = (el.textContent || '').trim();
     if (txt.length < 240) return;
@@ -129,7 +156,7 @@ function setupTextCollapse() {
     }, { passive: true });
 
     el.insertAdjacentElement('afterend', btn);
-  });
+  }, 20);
 }
 
 function setupLazySectionHydration() {
@@ -138,7 +165,7 @@ function setupLazySectionHydration() {
     'skillTreeCard',
     'energyCoordCard',
     'healthReportCard',
-    'lottoCard',
+    // lottoCard has runtime-bound button handlers; keep DOM stable to preserve interactions.
     'egyptCard',
     'hormone-vibe-section',
     'tTestCard',
@@ -189,6 +216,18 @@ function setupLazySectionHydration() {
     section.dataset.lazyHydrated = '1';
   }
 
+  if (!('IntersectionObserver' in window)) {
+    heavyIds.forEach((id) => {
+      const section = document.getElementById(id);
+      if (!section) return;
+      if (getComputedStyle(section).display !== 'none') {
+        prime(section);
+        hydrate(section);
+      }
+    });
+    return;
+  }
+
   io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
@@ -211,19 +250,28 @@ function setupLazySectionHydration() {
 
   const resultPage = document.getElementById('resultPage');
   if (resultPage) {
+    let syncTimer = null;
     const mo = new MutationObserver(() => {
-      heavyIds.forEach((id) => {
-        const section = document.getElementById(id);
-        if (!section) return;
-        if (section.dataset.lazyPrimed === '1' || section.dataset.lazyHydrated === '1') return;
-        if (getComputedStyle(section).display === 'none') return;
-        prime(section);
-      });
-      setupTextCollapse();
-      setupImageOptimization();
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => {
+        heavyIds.forEach((id) => {
+          const section = document.getElementById(id);
+          if (!section) return;
+          if (section.dataset.lazyPrimed === '1' || section.dataset.lazyHydrated === '1') return;
+          if (getComputedStyle(section).display === 'none') return;
+          prime(section);
+        });
+        __scheduleIdle(() => {
+          setupTextCollapse();
+          setupImageOptimization();
+        }, 1200);
+      }, 90);
     });
     mo.observe(resultPage, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
-    __addCleanup(() => mo.disconnect());
+    __addCleanup(() => {
+      clearTimeout(syncTimer);
+      mo.disconnect();
+    });
   }
 
   __addCleanup(() => {
@@ -272,10 +320,9 @@ function setupFeatureCodeSplit() {
     return null;
   };
 
-  const idle = window.requestIdleCallback || function(cb) { return setTimeout(cb, 1200); };
-  idle(() => {
+  __scheduleIdle(() => {
     ensure('physiognomy').catch(() => {});
-  });
+  }, 1600);
 }
 
 function setupCoreCodeSplitHooks() {

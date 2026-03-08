@@ -6,25 +6,14 @@
   var INIT_FALLBACK_MS = 5000;
   var overlayWatch = { startedAt: 0, active: false };
   var _initDone = false;
+  var _longTaskCount = 0;
 
   function now() { return Date.now(); }
 
   function showFallback(msg) {
-    var text = msg || '콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
-    var el = document.getElementById(APP_ERR_BOX_ID);
-    if (!el) {
-      el = document.createElement('div');
-      el.id = APP_ERR_BOX_ID;
-      el.style.cssText = 'position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:2147483646;'
-        + 'background:rgba(18,20,30,.94);color:#fff;border:1px solid rgba(255,255,255,.2);'
-        + 'padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.45;max-width:90vw;text-align:center;';
-      document.body.appendChild(el);
-    }
-    el.textContent = text;
-    setTimeout(function () {
-      var cur = document.getElementById(APP_ERR_BOX_ID);
-      if (cur && cur.parentNode) cur.parentNode.removeChild(cur);
-    }, 7000);
+    // Disabled per UX request: do not show runtime fallback toasts.
+    var cur = document.getElementById(APP_ERR_BOX_ID);
+    if (cur && cur.parentNode) cur.parentNode.removeChild(cur);
   }
 
   function hardHide(el, removeNode) {
@@ -61,14 +50,11 @@
       hardHide(loader, false);
     }
 
-    if (reason) {
-      showFallback('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-    }
+    if (reason) showFallback();
   }
 
   function hideLoadingScreen(reason) {
     stopBlockingOverlays(reason || 'hide-loading');
-    try { console.log('loading removed'); } catch (e) {}
   }
 
   function ensureMainUiVisible() {
@@ -143,14 +129,14 @@
         if (res && typeof res.then === 'function') {
           return res.catch(function (err) {
             try { console.error('[runtime-stability] async ' + name + ' failed', err); } catch (e) {}
-            showFallback('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+            showFallback();
             return null;
           });
         }
         return res;
       } catch (err) {
         try { console.error('[runtime-stability] sync ' + name + ' failed', err); } catch (e) {}
-        showFallback('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+        showFallback();
         return null;
       }
     };
@@ -195,15 +181,74 @@
     ]);
   }
 
+  function installSafeFetch() {
+    if (window.__appSafeFetch) return;
+    window.__appSafeFetch = function(url, opts) {
+      var options = opts || {};
+      var timeoutMs = typeof options.timeout === 'number' ? options.timeout : 8000;
+      var controller = null;
+      var timer = null;
+      var fetchOpts = Object.assign({}, options);
+      delete fetchOpts.timeout;
+
+      if (typeof AbortController !== 'undefined') {
+        controller = new AbortController();
+        fetchOpts.signal = controller.signal;
+        timer = setTimeout(function() {
+          try { controller.abort(); } catch (e) {}
+        }, timeoutMs);
+      }
+
+      return fetch(url, fetchOpts)
+        .finally(function() {
+          if (timer) clearTimeout(timer);
+        })
+        .catch(function(err) {
+          try { console.error('[runtime-stability] safeFetch failed:', url, err); } catch (e) {}
+          return null;
+        });
+    };
+  }
+
+  function monitorLongTasks() {
+    if (!('PerformanceObserver' in window)) return;
+    try {
+      var obs = new PerformanceObserver(function(list) {
+        var entries = list.getEntries();
+        _longTaskCount += entries.length;
+        if (_longTaskCount >= 5) {
+          document.documentElement.classList.add('runtime-safe-lite');
+        }
+        entries.forEach(function(entry) {
+          if (entry && entry.duration > 50) {
+            try { console.warn('[runtime-stability] long task detected:', Math.round(entry.duration) + 'ms'); } catch (e) {}
+          }
+        });
+      });
+      obs.observe({ type: 'longtask', buffered: true });
+      window.addEventListener('pagehide', function () {
+        try { obs.disconnect(); } catch (e) {}
+      }, { once: true });
+    } catch (e) {}
+  }
+
   function setDynamicVhVar() {
     var vh = window.innerHeight * 0.01;
     document.documentElement.style.setProperty('--app-vh', vh + 'px');
   }
 
+  function installRuntimeSafeStyles() {
+    var id = 'runtimeSafeLiteStyle';
+    if (document.getElementById(id)) return;
+    var st = document.createElement('style');
+    st.id = id;
+    st.textContent = '.runtime-safe-lite *:not(#sajuLoaderOverlay):not(#sajuLoaderOverlay *){animation-duration:0.01ms!important;transition-duration:0.01ms!important;}';
+    document.head.appendChild(st);
+  }
+
   async function initApp() {
     if (_initDone) return;
     _initDone = true;
-    try { console.log('init start'); } catch (e) {}
 
     var hardTimeout = setTimeout(function () {
       hideLoadingScreen('init-fallback-timeout');
@@ -212,10 +257,12 @@
 
     try {
       await loadCoreFeatures();
-      try { console.log('core features loaded'); } catch (e) {}
+      installSafeFetch();
+      installRuntimeSafeStyles();
+      monitorLongTasks();
     } catch (err) {
       try { console.error('[runtime-stability] initApp failed', err); } catch (e) {}
-      showFallback('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      showFallback();
     } finally {
       clearTimeout(hardTimeout);
       hideLoadingScreen('init-finally');

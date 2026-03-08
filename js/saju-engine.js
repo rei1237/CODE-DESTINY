@@ -8,6 +8,33 @@ var CDN_URLS=[
   'https://unpkg.com/lunar-javascript/lunar.min.js'
 ];
 var tried=0;
+var __libReady = false;
+var __libLoading = false;
+
+function _setRunButtonToRetry() {
+  var btnEl = document.getElementById('run-btn');
+  if (!btnEl) return;
+  btnEl.disabled = false;
+  btnEl.textContent = '🔄 라이브러리 다시 시도';
+  btnEl.onclick = function() {
+    retrySajuLibraryLoad();
+  };
+}
+
+window.retrySajuLibraryLoad = function() {
+  if (__libLoading) return;
+  tried = 0;
+  __libReady = false;
+  __libLoading = true;
+
+  var btnEl = document.getElementById('run-btn');
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.textContent = '🔄 라이브러리 재시도 중...';
+  }
+
+  loadNext();
+};
 
 function _hideLibOverlay(forceRemove) {
   var ov = document.getElementById('lib-overlay');
@@ -20,17 +47,10 @@ function _hideLibOverlay(forceRemove) {
 }
 
 function _showEngineFallbackNotice(msg) {
+  // Disabled per UX request: do not show engine fallback toasts.
   var id = 'engineFallbackNotice';
   var old = document.getElementById(id);
   if (old && old.parentNode) old.parentNode.removeChild(old);
-  var box = document.createElement('div');
-  box.id = id;
-  box.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:2147483646;'
-    + 'background:rgba(20,20,30,.94);color:#f5f5f5;border:1px solid rgba(255,255,255,.18);'
-    + 'padding:10px 14px;border-radius:10px;font-size:12px;max-width:88vw;line-height:1.5;text-align:center;';
-  box.textContent = msg || '콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
-  document.body.appendChild(box);
-  setTimeout(function(){ if (box && box.parentNode) box.parentNode.removeChild(box); }, 7000);
 }
 
 /**
@@ -132,14 +152,17 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
 };
 
 function loadNext(){
+  __libLoading = true;
   if(tried>=CDN_URLS.length){
+    __libLoading = false;
     var msgEl = document.getElementById('lib-msg');
     var subEl = document.getElementById('lib-sub');
     var btnEl = document.getElementById('run-btn');
     if (msgEl) msgEl.textContent='❌ 라이브러리 로드 실패';
     if (subEl) subEl.textContent='새로고침 후 다시 시도해주세요';
-    if (btnEl) btnEl.textContent='⚠️ 로드 실패 (새로고침)';
+    if (btnEl) btnEl.textContent='⚠️ 로드 실패 (다시 시도)';
     setTimeout(function(){ _hideLibOverlay(true); }, 900);
+    _setRunButtonToRetry();
     _showEngineFallbackNotice('일부 라이브러리 로딩에 실패했습니다. 기본 화면은 계속 이용할 수 있습니다.');
     return;
   }
@@ -147,9 +170,27 @@ function loadNext(){
   var sub = document.getElementById('lib-sub');
   if (sub) sub.textContent='CDN '+(tried+1)+'/'+CDN_URLS.length+' 시도 중...';
   tried++;
+  var done = false;
   var s=document.createElement('script');s.src=url;s.async=false;
-  s.onload=function(){waitForSolar(0);};
-  s.onerror=function(){loadNext();};
+  var failTimer = setTimeout(function(){
+    if (done) return;
+    done = true;
+    try { if (s && s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
+    loadNext();
+  }, 6000);
+
+  s.onload=function(){
+    if (done) return;
+    done = true;
+    clearTimeout(failTimer);
+    waitForSolar(0);
+  };
+  s.onerror=function(){
+    if (done) return;
+    done = true;
+    clearTimeout(failTimer);
+    loadNext();
+  };
   document.head.appendChild(s);
 }
 function waitForSolar(n){
@@ -158,9 +199,15 @@ function waitForSolar(n){
   else{setTimeout(function(){waitForSolar(n+1);},100);}
 }
 function onLibReady(){
+  __libLoading = false;
+  __libReady = true;
   _hideLibOverlay(false);
   var btn=document.getElementById('run-btn');
-  if (btn) { btn.disabled=false;btn.textContent='🐷 사주 분석하기'; }
+  if (btn) {
+    btn.disabled=false;
+    btn.textContent='🐷 사주 분석하기';
+    btn.onclick = checkPrivacyAndCalculate;
+  }
 }
 
 /* 라이브러리 오버레이 잔존 방지: 15초 경과 시 강제 해제 */
@@ -1826,88 +1873,20 @@ function agreeAndCalculate() {
 
 function startSajuCalculationFlow() {
   if(typeof Solar==='undefined'||typeof Solar.fromYmdHms!=='function'){
+    if (!__libLoading && !__libReady) {
+      retrySajuLibraryLoad();
+    }
     alert('라이브러리가 아직 로딩 중입니다. 잠시 후 다시 시도해주세요 🐷');return;
   }
   var bd=document.getElementById('birthDate').value;
   if(!bd){alert('생년월일을 입력하세요');return;}
 
-  const overlay = document.getElementById('sajuLoaderOverlay');
-  if (!overlay) {
-    try { calculate(); } catch (e) {
-      console.error('[saju] calculate failed without loader overlay', e);
-      _showEngineFallbackNotice('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-    }
-    return;
+  // 만세력 책 로더 기능 제거: 클릭 즉시 계산 실행
+  try {
+    calculate();
+  } catch (calcErr) {
+    console.error('[saju] calculate flow failed', calcErr);
   }
-  overlay.style.display = 'flex';
-
-  requestAnimationFrame(() => {
-    overlay.classList.add('show');
-
-    // 천간·지지 한자 파티클 (명리 용어)
-    const hanjas = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸',
-                    '子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-    const pContainer = document.getElementById('hanjaParticleContainer');
-    if (pContainer) {
-      pContainer.innerHTML = '';
-      for (let i = 0; i < 15; i++) {
-        const span = document.createElement('span');
-        span.className = 'hanja-char';
-        span.innerText = hanjas[Math.floor(Math.random() * hanjas.length)];
-        span.style.left = (20 + Math.random() * 60) + '%';
-        span.style.top  = (40 + Math.random() * 40) + '%';
-        span.style.fontSize = (1.2 + Math.random() * 1.5) + 'rem';
-        span.style.animation = 'hanjaFloat ' + (1.5 + Math.random()) + 's ease-out forwards ' + (Math.random() * 0.5) + 's';
-        pContainer.appendChild(span);
-      }
-    }
-
-    // 타이핑 애니메이션
-    const txtEl = document.getElementById('sajuLoadingTxt');
-    if (txtEl) {
-      txtEl.innerText = '';
-      txtEl.style.width = 'auto';
-      txtEl.style.animation = 'sajuBlink .75s step-end infinite';
-      const _typeText = '만세력을 조율하는 중...';
-      let _ti = 0;
-      const _typeInterval = setInterval(function() {
-        if (_ti < _typeText.length) {
-          txtEl.innerText += _typeText[_ti++];
-        } else {
-          clearInterval(_typeInterval);
-        }
-      }, 95);
-    }
-
-    // 계산 + 최소 표시 시간(2600ms) 병렬 실행 / 최소 런타임: 3400ms
-    var _hardStop = setTimeout(function() {
-      var _stuck = document.getElementById('sajuLoaderOverlay');
-      if (_stuck) {
-        _stuck.classList.remove('show');
-        setTimeout(() => { _stuck.style.display = 'none'; }, 50);
-      }
-      _showEngineFallbackNotice('결과 렌더링이 지연되어 기본 화면으로 복귀했습니다. 다시 시도해주세요.');
-    }, 22000);
-
-    setTimeout(async () => {
-      try {
-        await Promise.all([
-          calculate(),
-          new Promise(resolve => setTimeout(resolve, 2600))
-        ]);
-      } catch (calcErr) {
-        console.error('[saju] calculate flow failed', calcErr);
-        _showEngineFallbackNotice('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-      } finally {
-        clearTimeout(_hardStop);
-        var _lo = document.getElementById('sajuLoaderOverlay');
-        if (_lo) {
-          _lo.classList.remove('show');
-          setTimeout(() => { _lo.style.display = 'none'; }, 50);
-        }
-      }
-    }, 800);
-  });
 }
 
 /* ═══════════════════════════════════════
@@ -2854,13 +2833,10 @@ function renderJohu(johu) {
         
         <!-- 한난조습 설명 아코디언 영역 -->
         <div style="margin-bottom: 20px;">
-            <div onclick="const content = document.getElementById('johuExplanation'); const icon = document.getElementById('johuAccordionIcon'); if(content.style.display === 'none'){ content.style.display = 'block'; content.style.opacity = 1; content.style.transform = 'translateY(0)'; icon.style.transform = 'rotate(180deg)'; } else { content.style.display = 'none'; content.style.opacity = 0; content.style.transform = 'translateY(-10px)'; icon.style.transform = 'rotate(0deg)'; }" style="display: flex; justify-content: space-between; align-items: center; background: #607D8B; color: white; padding: 12px 18px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s ease;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.2rem;"></span>
-                    <span style="font-weight: 700; font-size: 0.95rem;">'한난조습(寒暖燥濕)'이란 무엇인가요?(▼ 클릭하여 자세히 보기)</span>
-                </div>
-                <span id="johuAccordionIcon" style="transition: transform 0.3s; font-size: 0.8rem;"></span>
-            </div>
+          <button type="button" class="johu-info-btn" onclick="const content = document.getElementById('johuExplanation'); const icon = document.getElementById('johuAccordionIcon'); if(content.style.display === 'none'){ content.style.display = 'block'; content.style.opacity = 1; content.style.transform = 'translateY(0)'; icon.style.transform = 'rotate(180deg)'; } else { content.style.display = 'none'; content.style.opacity = 0; content.style.transform = 'translateY(-10px)'; icon.style.transform = 'rotate(0deg)'; }">
+            <span class="johu-info-btn__label">한난조습이란 무엇인가요?</span>
+            <span id="johuAccordionIcon" class="johu-info-btn__icon">▼</span>
+          </button>
             
             <div id="johuExplanation" style="display: none; opacity: 0; transform: translateY(-10px); transition: opacity 0.3s ease, transform 0.3s ease; background: #F8FDFF; border: 1px solid #CFD8DC; border-radius: 12px; padding: 20px; margin-top: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <p style="margin: 0 0 16px 0; line-height: 1.6; color: #455A64; font-size: 0.9rem;">
@@ -4972,6 +4948,20 @@ var ZW_GUNG_DEF={
   '복덕궁':'정신 행복·여유·내면세계',
   '부모궁':'부모·윗사람·문서운'
 };
+var ZW_GUNG_BRIEF={
+  '명궁':'나는 어떤 사람인지, 인생의 기본 성향을 보여줍니다.',
+  '형제궁':'가까운 인간관계에서의 협업 방식과 소통 결을 보여줍니다.',
+  '부처궁':'연애·결혼·동반자 관계에서의 기대와 패턴을 보여줍니다.',
+  '자녀궁':'창의성, 결과물 생산력, 돌봄 에너지의 방향을 보여줍니다.',
+  '재백궁':'돈을 벌고 쓰는 습관, 수입 구조의 특징을 보여줍니다.',
+  '질액궁':'체력/컨디션의 약점과 관리 포인트를 보여줍니다.',
+  '천이궁':'이동, 환경 변화, 외부 무대에서의 적응력을 보여줍니다.',
+  '노복궁':'동료·부하·협력자와 함께 일하는 방식을 보여줍니다.',
+  '관록궁':'커리어 방향, 사회적 목표, 성취 전략을 보여줍니다.',
+  '전택궁':'주거·자산·생활 기반을 안정시키는 성향을 보여줍니다.',
+  '복덕궁':'멘탈 회복력, 마음의 여유, 행복 감각을 보여줍니다.',
+  '부모궁':'윗사람·가족·문서 인연에서의 흐름을 보여줍니다.'
+};
 var ZW_STAR_KW={
   '자미':'권위·지도','천기':'지혜·변통','태양':'명성·발산','무곡':'결단·재력',
   '천동':'평화·복덕','염정':'열정·통제','천부':'포용·저장','태음':'직관·심미',
@@ -5070,8 +5060,6 @@ function buildZwSummaryTableHtml(palace) {
 }
 
 function renderZiwei(p, natal, targetId) {
-  var mj = (p && p.m) ? p.m.j : '';
-  var pw=G_POWER,jg=G_JONG;
   var birth = window._ziweiBirth || { year:0, month:1, day:1, hour:12, minute:0 };
   var palace = calcZiweiPalaces(birth.year, birth.month, birth.day, birth.hour, birth.minute);
   window._currentZiweiData = palace;
@@ -5082,7 +5070,9 @@ function renderZiwei(p, natal, targetId) {
       display: flex;
       flex-direction: column;
       gap: 20px;
-      margin-top: 15px;
+      margin: 15px auto 0;
+      width: 100%;
+      max-width: 1240px;
       font-family: 'Pretendard', sans-serif;
     }
     
@@ -5094,7 +5084,7 @@ function renderZiwei(p, natal, targetId) {
       box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
       position: relative;
       min-width: 0; /* flex child 오버플로우 방지 */
-      overflow-x: auto; /* 모바일 협소 화면에서 4칸 그리드 수평 스크롤 허용 */
+      overflow: hidden;
       -webkit-overflow-scrolling: touch;
     }
     .zw-grid {
@@ -5102,6 +5092,7 @@ function renderZiwei(p, natal, targetId) {
       grid-template-columns: repeat(4, 1fr);
       grid-template-rows: repeat(4, minmax(85px, auto));
       gap: 5px;
+      width: 100%;
     }
     
     .zw-cell {
@@ -5113,7 +5104,7 @@ function renderZiwei(p, natal, targetId) {
       padding: 8px; /* 다국어 텍스트 대응 여백 확장 */
       display: flex;
       flex-direction: column;
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, background-color 0.24s ease;
       cursor: pointer;
       min-height: 100px;
       height: 100%;
@@ -5141,6 +5132,10 @@ function renderZiwei(p, natal, targetId) {
       background: rgba(212, 175, 55, 0.15);
       border-color: rgba(212, 175, 55, 0.9);
     }
+    .zw-cell:focus-visible {
+      outline: 2px solid rgba(250, 204, 21, 0.9);
+      outline-offset: 1px;
+    }
     @media (hover: hover) {
       .zw-cell:hover {
         transform: translateY(-2px);
@@ -5161,14 +5156,13 @@ function renderZiwei(p, natal, targetId) {
       text-align: center;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
-      animation: zw-glow 4s infinite alternate;
+      /* 지속 깜박임 대신 고정 광원 효과로 안정화 */
+      box-shadow:
+        inset 0 0 30px rgba(212,175,55,0.26),
+        0 0 22px rgba(212,175,55,0.2);
       color: #fff;
       padding: 10px;
       word-break: keep-all; /* 번역 대응 */
-    }
-    @keyframes zw-glow {
-      0% { box-shadow: 0 0 10px rgba(138, 43, 226, 0.1) inset; }
-      100% { box-shadow: 0 0 40px rgba(212,175,55,0.3) inset; }
     }
     
     .zw-cell-5 { grid-area: 1/1; } /* 巳 */
@@ -5204,13 +5198,15 @@ function renderZiwei(p, natal, targetId) {
       -webkit-backdrop-filter: blur(15px);
       border: 1px solid rgba(138, 43, 226, 0.3);
       border-radius: 16px;
-      padding: 24px;
+      padding: clamp(16px, 2.2vw, 24px);
       color: #E2E8F0;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       display: flex;
       flex-direction: column;
       gap: 12px;
       position: relative;
+      line-height: 1.65;
+      scroll-margin-top: 72px;
     }
     
     .zw-dp-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 4px; }
@@ -5227,8 +5223,63 @@ function renderZiwei(p, natal, targetId) {
     .badge-good { background: rgba(129,212,250,0.2); color: #81D4FA; padding: 2px 7px; border-radius: 4px; font-size:0.75rem; }
     .badge-bad { background: rgba(255,82,82,0.2); color: #FF5252; padding: 2px 7px; border-radius: 4px; font-size:0.75rem; }
     
-    .zw-empty-state { text-align: center; color: #64748B; font-size: 1.1rem; margin: auto; padding: 40px 0;}
+    .zw-empty-state { text-align: center; color: #64748B; font-size: clamp(0.95rem, 1.8vw, 1.1rem); margin: auto; padding: 40px 0;}
     .zw-empty-icon { font-size: 3rem; margin-bottom: 15px; opacity: 0.6; }
+
+    .zw-insight-layout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+      margin-top: 15px;
+    }
+    .zw-radar-col {
+      flex: 1 1 280px;
+      min-width: 260px;
+      max-width: 360px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 12px;
+      padding: 15px;
+      box-sizing: border-box;
+      border: 1px solid rgba(148,163,184,0.16);
+    }
+    .zw-radar-caption {
+      font-size: 0.8rem;
+      color: #94A3B8;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .zw-radar-canvas-wrap {
+      position: relative;
+      height: min(56vw, 280px);
+      min-height: 210px;
+      width: 100%;
+    }
+    .zw-report-col {
+      flex: 2 1 340px;
+      min-width: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @media (min-width: 1100px) {
+      .zw-dashboard {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+      .zw-grid-wrap {
+        flex: 1.12;
+      }
+      .zw-detail-panel {
+        flex: 1;
+      }
+      .zw-radar-col {
+        position: sticky;
+        top: 14px;
+      }
+    }
 
     /* 모바일 반응형 — 12궁 그리드 구조 유지, 소형화 */
     @media (max-width: 768px) {
@@ -5236,7 +5287,7 @@ function renderZiwei(p, natal, targetId) {
       .zw-grid-wrap {
         padding: 6px;
         border-radius: 12px;
-        overflow: hidden;
+        overflow-x: auto;
       }
       /* 12궁 4×4 그리드 — aspect-ratio 기반 정방형, 모든 모바일 해상도 대응 */
       .zw-grid {
@@ -5279,6 +5330,25 @@ function renderZiwei(p, natal, targetId) {
       .zw-palace-gan { font-size: clamp(0.46rem, 1.5vw, 0.6rem); bottom: 2px; right: 18px; }
       .zw-dahan { font-size: clamp(0.46rem, 1.5vw, 0.6rem); bottom: 2px; left: 3px; padding: 1px 3px; }
       .zw-empty { font-size: clamp(0.46rem, 1.5vw, 0.6rem); }
+      .zw-radar-col { min-width: 0; max-width: none; }
+      .zw-radar-canvas-wrap { height: min(70vw, 260px); min-height: 200px; }
+      .zw-detail-panel { padding: 14px; border-radius: 12px; }
+      .zw-insight-layout { gap: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .zw-cell {
+        animation: none !important;
+        opacity: 1;
+      }
+      .zw-cell,
+      .zw-cell:hover,
+      .zw-report-section,
+      .zw-dashboard,
+      .zw-detail-panel {
+        transition: none !important;
+        transform: none !important;
+      }
     }
 
 /* 퀀텀 명리 엔진 업그레이드 스타일 (Premium UX) */
@@ -5395,7 +5465,7 @@ function renderZiwei(p, natal, targetId) {
     if (pZhi === palace.meng) dName = '🌟 ' + dName;
     if (pZhi === palace.shen) dName = dName + ' (신)';
 
-    html += '<div class="zw-cell zw-cell-'+i+'" style="'+highlight+'; animation-delay: '+(i*0.06)+'s;" onclick="window._handleZwClick('+i+', this)">';
+    html += '<div class="zw-cell zw-cell-'+i+'" role="button" tabindex="0" aria-label="'+dName+' 상세 해석 보기" style="'+highlight+'; animation-delay: '+(i*0.06)+'s;" onclick="window._handleZwClick('+i+', this)">';
     html += '<div class="zw-palace-name">' + dName + '</div>';
     html += '<div class="zw-stars-wrap">';
     if(st.main.length > 0) {
@@ -5627,20 +5697,36 @@ var mainSt = extractMains(getPStars(pName));
         var auxSt = extractAux(getPStars(pName));
 
         var dTitle = pName;
-        if (ZHI_LIST[idx] === pd.meng) dTitle = ' 명궁: ' + dTitle;
+        if (ZHI_LIST[idx] === pd.meng && pName !== '명궁') dTitle = '명궁: ' + dTitle;
         if (ZHI_LIST[idx] === pd.shen) dTitle = dTitle + ' (신궁)';
 
-        var stHtml = '';
-        if(stars.main.length) stHtml += '<span style="color:#FFD700;font-weight:900;">'+stars.main.join(', ')+'</span>';
-        else stHtml += '<span style="color:#888;font-style:italic">공궁(空宮)</span>';
-        
-        var auxJoin = stars.aux.length ? stars.aux.join(', ') : '없음';
-        var badJoin = stars.bad.length ? stars.bad.join(', ') : '없음';
+        var uniqueList = function(list) {
+          var seen = Object.create(null);
+          var out = [];
+          (list || []).forEach(function(v) {
+            if (!v) return;
+            var key = String(v);
+            if (seen[key]) return;
+            seen[key] = 1;
+            out.push(key);
+          });
+          return out;
+        };
+        var mainClean = uniqueList(extractMains(stars));
+        var auxClean = uniqueList(extractAux(stars));
+        var badClean = uniqueList(extractBad(stars));
+        var stHtml = mainClean.length
+          ? '<span style="color:#FFD700;font-weight:900;">' + mainClean.join(' · ') + '</span>'
+          : '<span style="color:#888;font-style:italic">공궁(空宮)</span>';
+        var auxJoin = auxClean.length ? auxClean.join(' · ') : '없음';
+        var badJoin = badClean.length ? badClean.join(' · ') : '없음';
+        var palaceBrief = ZW_GUNG_BRIEF[pName] || ZW_GUNG_DEF[pName] || '해당 궁의 흐름을 확인하세요.';
 
         var sec1 = '<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">' +
           '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">🗺️ [당신을 비추는 별의 지도]</h2>' +
           '<ul style="line-height: 1.8; margin: 0; padding-left: 20px;">' +
             '<li><b>조회하신 궁:</b> ' + dTitle + '</li>' +
+            '<li><b>궁 특징:</b> ' + palaceBrief + '</li>' +
             '<li><b>주요 주성:</b> ' + stHtml + '</li>' +
             '<li><b>핵심 길성/흉성:</b> ' + auxJoin + ' / ' + badJoin + '</li>' +
           '</ul>' +
@@ -5654,24 +5740,72 @@ var mainSt = extractMains(getPStars(pName));
           + '</div>';
 
         var curDaHan = (pd.daHan && pd.daHan[idx]) ? pd.daHan[idx] : "알 수 없음";
-        var daHanDesc = "";
+        var curSihua = [];
+        if (pd.sihuaData) {
+          for (var shName in pd.sihuaData) {
+            var shObj = pd.sihuaData[shName];
+            if (shObj && shObj.palaceIdx === idx) curSihua.push({ star: shName, type: shObj.type });
+          }
+        }
+        var hasHwagi = curSihua.some(function(s){ return s.type === '화기'; });
+        var hasHwarok = curSihua.some(function(s){ return s.type === '화록'; });
+        var hasHwakwon = curSihua.some(function(s){ return s.type === '화권'; });
+        var hasHwakwa = curSihua.some(function(s){ return s.type === '화과'; });
+
+        var goodAuxStars = ['천괴','천월','좌보','우필','문창','문곡','녹존','천마'];
+        var curGoodAux = auxSt.filter(function(s){ return goodAuxStars.indexOf(s) >= 0; });
+
+        var coreLaw = '';
         if (mainSt.length > 0) {
-            daHanDesc = "현재 들어온 대운은 " + mainSt.join(', ') + "의 영향을 강하게 받는 시기입니다. 당신의 뚜렷한 주관과 에너지가 발휘되며 ";
-            if(badSt.length > 0) daHanDesc += badSt.join(', ') + " 등 흉성의 개입으로 예상치 못한 지연이나 마찰이 생길 수 있으니 신중하고 보수적인 접근이 요구됩니다.";
-            else daHanDesc += "주변 상황도 비교적 안정적으로 뒷받침되는 시기입니다. 도약의 발판으로 삼으세요.";
+          var coreMain = mainSt.slice(0, 2).join(' · ');
+          var coreKw = ZW_STAR_KW[mainSt[0]] || mainSt[0];
+          coreLaw = '<b>주성법:</b> ' + coreMain + ' 중심 대한으로, <b>' + coreKw + '</b> 테마가 사건의 중심축이 됩니다.';
         } else {
-            daHanDesc = "현재 들어온 대운은 주재하는 별이 없는 공궁(空宮)의 시기입니다. 고정된 틀이 없으므로 주변 상황과 대궁의 에너지에 따라 유연하게 카멜레온처럼 변신할 수 있는 무한한 가능성의 시기입니다. 뚜렷한 목표보다는 상황에 흐름을 맡기는 것이 유리할 수 있습니다.";
+          coreLaw = '<b>공궁법:</b> 공궁 대한은 대궁/환경 변수의 영향이 크므로, 고정 전략보다 상황 대응력이 성패를 가릅니다.';
+        }
+
+        var sihuaText = curSihua.length
+          ? '<b>사화법:</b> ' + curSihua.map(function(s){ return s.star + ' ' + s.type; }).join(' · ')
+          : '<b>사화법:</b> 이 궁에는 강한 사화 직접 작용이 약해 기본기와 루틴이 성과를 좌우합니다.';
+
+        var goodPoint = '';
+        if (hasHwarok || hasHwakwa || curGoodAux.length > 0) {
+          goodPoint = '귀인·명예·성과 회수 흐름이 살아납니다. 문서/평판/추천 네트워크를 활용하면 실익 전환이 빠릅니다.';
+        } else if (hasHwakwon || mainSt.length > 0) {
+          goodPoint = '주도권을 잡을수록 운이 열립니다. 우선순위를 명확히 두고 한 축을 깊게 밀면 결과가 납니다.';
+        } else {
+          goodPoint = '변화 적응력 자체가 장점입니다. 유연한 선택과 타이밍 조절이 복을 키웁니다.';
+        }
+
+        var cautionPoint = '';
+        if (hasHwagi || badSt.length > 0) {
+          cautionPoint = '화기/흉성 영향으로 말실수·계약 누락·과속 결정에서 손실이 나기 쉽습니다. 감정적 결단과 무리한 확장은 금물입니다.';
+        } else {
+          cautionPoint = '큰 흉의 압박은 약하지만, 방심으로 인한 루틴 붕괴가 기회를 놓치게 만듭니다. 꾸준함을 유지하세요.';
+        }
+
+        var actionTip = '';
+        if (hasHwagi) {
+          actionTip = '중요 계약은 2중 검토, 금전은 분할 집행, 인간관계는 "기록+확인" 원칙으로 운 손실을 줄이세요.';
+        } else if (hasHwarok || hasHwakwon || hasHwakwa) {
+          actionTip = '이번 대한의 키워드(재물·권한·명예)를 한 가지 목표로 수렴해 실행하면 체감 성과가 크게 납니다.';
+        } else {
+          actionTip = '월 단위 체크포인트를 정해 작은 성취를 누적하면 후반 운세가 안정적으로 상승합니다.';
         }
 
         var sec3 = '<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">' +
           '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">🌊 [클릭한 궁의 대운 운기]</h2>' +
-          '<p style="line-height: 1.7; margin: 0; font-size: 0.95rem;">' +
-            '<b>해당 궁의 대운 나이:</b> ' + curDaHan + '세 (' + pName + ' 운기)<br><br>' +
-            daHanDesc +
-          '</p>' +
+          '<div style="line-height: 1.7; margin: 0; font-size: 0.92rem; color:#e2e8f0;">' +
+            '<div style="margin-bottom:8px;"><b>해당 궁의 대운 나이:</b> ' + curDaHan + '세 (' + pName + ' 운기)</div>' +
+            '<div style="margin-bottom:8px;">' + coreLaw + '</div>' +
+            '<div style="margin-bottom:10px;">' + sihuaText + '</div>' +
+            '<div style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);padding:9px 10px;border-radius:8px;margin-bottom:8px;">✅ <b>좋은 점:</b> ' + goodPoint + '</div>' +
+            '<div style="background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.35);padding:9px 10px;border-radius:8px;margin-bottom:8px;">⚠️ <b>주의할 점:</b> ' + cautionPoint + '</div>' +
+            '<div style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.35);padding:9px 10px;border-radius:8px;">🧭 <b>운세 조언:</b> ' + actionTip + '</div>' +
+          '</div>' +
         '</div>';
 
-        // ── Module 1: 생애 총론 ──
+        // ── 생애 총론 ──
         var STAR_DAHAN_KW = {
           '자미':'제왕의 기상으로 명예를 향해 나아가는 구조',
           '천기':'두뇌와 기획으로 쉼없이 진화하는 구조',
@@ -5703,7 +5837,7 @@ var mainSt = extractMains(getPStars(pName));
           }
         }
         var sec_grand = '<div style="background:linear-gradient(135deg,rgba(88,28,220,0.15),rgba(20,10,50,0.8));padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.3);">'
-          +'<h2 style="color:#F9A8D4;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(249,168,212,0.3);padding-bottom:8px;">🌟 [Module 1] 생애 총론(生涯 總論)</h2>'
+          +'<h2 style="color:#F9A8D4;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(249,168,212,0.3);padding-bottom:8px;">🌟 생애 총론(生涯 總論)</h2>'
           +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.88rem;margin-bottom:12px;">'
             +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">⚡ 오행국</div><div style="color:#fbbf24;font-weight:700;">'+(pd.juInfo||'-')+'</div></div>'
             +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">🔄 대한 진행</div><div style="color:#a78bfa;font-weight:700;">'+dirText+'</div></div>'
@@ -5717,7 +5851,7 @@ var mainSt = extractMains(getPStars(pName));
           +'</div>'
         +'</div>';
 
-        // ── Module 2: 12대한 타임라인 ──
+        // ── 12대한 타임라인 ──
         var PALACE_DAHAN_THEME = {
           '명궁':{icon:'🎭',kw:'자아 확립·독립 의지의 전성기'},
           '형제궁':{icon:'🤝',kw:'동료·협력자의 조력이 운명을 바꾸는 시기'},
@@ -5766,12 +5900,12 @@ var mainSt = extractMains(getPStars(pName));
           });
         }
         var sec_dahan = '<div style="background:rgba(15,15,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.25);">'
-          +'<h2 style="color:#6EE7B7;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(110,231,183,0.3);padding-bottom:8px;">⏳ [Module 2] 대한(大限) 12단계 타임라인</h2>'
+          +'<h2 style="color:#6EE7B7;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(110,231,183,0.3);padding-bottom:8px;">⏳ 대한(大限) 12단계 타임라인</h2>'
           +'<p style="font-size:0.78rem;color:#94a3b8;margin:0 0 10px;">각 대한은 약 10년 주기. <span style="color:#4ade80;">■</span>=화록(길기), <span style="color:#f87171;">■</span>=화기(흉기) 시기.</p>'
           +dahanTimelineHtml
         +'</div>';
 
-        // ── Module 3: 인생의 3대 변곡점 ──
+        // ── 인생의 3대 변곡점 ──
         var pivots = [];
         if (pd.daHanList && pd.sihuaData) {
           pd.daHanList.forEach(function(dh) {
@@ -5818,7 +5952,7 @@ var mainSt = extractMains(getPStars(pName));
           pivotHtml = '<div style="color:#94a3b8;font-size:0.88rem;text-align:center;padding:12px;">전체 대한에서 특별한 화사(四化) 충돌이 감지되지 않았습니다. 균형 잡힌 대한 흐름이 예상됩니다.</div>';
         }
         var sec_pivot = '<div style="background:rgba(15,10,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(248,113,113,0.2);">'
-          +'<h2 style="color:#FCA5A5;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(252,165,165,0.3);padding-bottom:8px;">🔱 [Module 3] 인생의 3대 변곡점</h2>'
+          +'<h2 style="color:#FCA5A5;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(252,165,165,0.3);padding-bottom:8px;">🔱 인생의 3대 변곡점</h2>'
           +'<p style="font-size:0.78rem;color:#94a3b8;margin:0 0 10px;">화사(四化) 충돌과 주성 배치를 기반으로 산출된 핵심 전환점입니다.</p>'
           +pivotHtml
         +'</div>';
@@ -5859,7 +5993,7 @@ var mainSt = extractMains(getPStars(pName));
           '<h1 style="text-align:center; color:#C084FC; font-size:1.5rem; border-bottom:2px solid #8B5CF6; padding-bottom:15px; margin-bottom:20px;">' +
             '자미두수 천명(天命) 종합 리포트' +
           '</h1>' +
-          sec1 + sec2 + sec_grand + sec3 + sec_dahan + sec_pivot + sec4 +
+          sec1 + sec3 + sec2 + sec_grand + sec_dahan + sec_pivot + sec4 +
         '</div>';
 
         var radarBaseLabels = {psy:['잠재력','리더십','회복탄력성','창의성','스트레스'],rel:['인복','결속력','이성매력','관계확장','마찰도'],fin:['수익창출','자산보존','직업안정','돌파력','파재손실'],time:['활동력','적응력','명예운','변화지수','돌발변수'],well:['신체강건','멘탈케어','면역력','행복지수','불안도']};   
@@ -5872,17 +6006,17 @@ var mainSt = extractMains(getPStars(pName));
         var r4 = Math.min(100, 55 + (pName==='천이궁'||pName==='관록궁'?30:0));
         var r5 = Math.min(100, 20 + bCnt*25);
 
-        var panelHtml = "<div style=\"display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start; margin-top:15px;\">" +
-"  <div style=\"flex: 1 1 240px; min-width:240px; max-width:100%; background:rgba(0,0,0,0.25); border-radius:12px; padding:15px; box-sizing:border-box;\">" +
-"    <div style=\"font-size:0.8rem; color:#94A3B8; text-align:center; margin-bottom:5px;\">" + pName + " 에너지 스펙트럼</div>" +
-"    <div style=\"position:relative; height:240px; width:100%;\">" +
-"      <canvas id=\"zwRadarChart\"></canvas>" +
-"    </div>" +
-"  </div>" +
-"  <div style=\"flex: 2 1 240px; display:flex; flex-direction:column; overflow:hidden; min-width:240px; width:100%;\">" +
-"    " + contentHtml +
-"  </div>" +
-"</div>";
+        var panelHtml = "<div class=\"zw-insight-layout\">" +
+      "  <div class=\"zw-radar-col\">" +
+      "    <div class=\"zw-radar-caption\">" + pName + " 에너지 스펙트럼</div>" +
+      "    <div class=\"zw-radar-canvas-wrap\">" +
+      "      <canvas id=\"zwRadarChart\"></canvas>" +
+      "    </div>" +
+      "  </div>" +
+      "  <div class=\"zw-report-col\">" +
+      "    " + contentHtml +
+      "  </div>" +
+      "</div>";
 
         var wrapper = document.getElementById("zwDetailPanel");
         wrapper.innerHTML = panelHtml;
@@ -10148,6 +10282,7 @@ function renderLottoNumbers(natal, bazi){
 
   area.innerHTML=html;
   card.style.display='block';
+  syncReportHeightFromNode(card);
 
   /* 히스토리 카운트 표시 */
   var histEl=document.getElementById('lottoHistCount');
@@ -10186,7 +10321,9 @@ function renderLottoNumbers(natal, bazi){
     setTimeout(function() {
       drawBtn.style.display = 'none';
       resultArea.classList.add('show');
+      syncReportHeightFromNode(card);
       setTimeout(function() {
+        syncReportHeightFromNode(card);
         resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 300);
     }, delay + 500);
@@ -10202,7 +10339,6 @@ function renderLottoNumbers(natal, bazi){
     redrawBtn.onclick = function(){
       _lottoDrawCount++;
       renderLottoNumbers(natal, bazi);
-    renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null);
       /* 다시 뽑기 시에는 애니메이션 바로 실행 */
       setTimeout(function(){
         var newDrawBtn = document.getElementById('lottoDrawBtn');
@@ -10210,6 +10346,8 @@ function renderLottoNumbers(natal, bazi){
       }, 100);
     };
   }
+
+  setTimeout(function(){ syncReportHeightFromNode(card); }, 80);
 }
 
 
@@ -12151,7 +12289,9 @@ function renderReportDashboard() {
   /* ── 그리드 HTML 생성 ── */
   var gridHtml = '<div class="rpt-v2-grid">';
   blocks.forEach(function(b) {
-    gridHtml += '<div class="rpt-v2-block" style="border-color:' + b.accent + '44;">';
+    var sectionId = 'rpt-v2-section-' + b.target;
+    var titleId = 'rpt-v2-title-' + b.target;
+    gridHtml += '<section class="rpt-v2-block fortune-section" id="' + sectionId + '" aria-labelledby="' + titleId + '" style="border-color:' + b.accent + '44;">';
 
     /* 이미지 영역 — 이미지 짤림 없이 전체 표시 */
     gridHtml += '<div class="rpt-v2-img-row">';
@@ -12165,7 +12305,7 @@ function renderReportDashboard() {
 
     /* 카드 헤더 + CTA */
     gridHtml += '<div class="rpt-v2-head">';
-    gridHtml += '<h4 class="rpt-v2-title">' + b.title + '</h4>';
+    gridHtml += '<h3 id="' + titleId + '" class="sec-title rpt-v2-title">' + b.title + '</h3>';
     gridHtml += '<p class="rpt-v2-preview">' + b.preview + '</p>';
     gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
     gridHtml += '<button class="rpt-v2-toggle-btn" type="button" onclick="toggleReportFeatureCard(this)" aria-expanded="false" data-label="' + b.cta + '">';
@@ -12180,7 +12320,7 @@ function renderReportDashboard() {
     /* 기능 콘텐츠 슬롯 */
     gridHtml += '<div class="rpt-v2-body" id="rpt-v2-body-' + b.target + '"></div>';
     gridHtml += '</div></div>';
-    gridHtml += '</div>';
+    gridHtml += '</section>';
   });
   gridHtml += '</div>';
   container.innerHTML = gridHtml;
@@ -12199,16 +12339,48 @@ function renderReportDashboard() {
   });
 }
 
+function syncReportBlockHeight(block) {
+  if (!block || !block.classList || !block.classList.contains('open')) return;
+  var detail = block.querySelector('.rpt-v2-detail');
+  var inner = block.querySelector('.rpt-v2-detail-inner');
+  if (!detail || !inner) return;
+  detail.style.setProperty('--rpt-open-height', (inner.scrollHeight + 6) + 'px');
+}
+
+function syncReportHeightFromNode(node) {
+  if (!node || !node.closest) return;
+  var block = node.closest('.rpt-v2-block');
+  syncReportBlockHeight(block);
+}
+
 function toggleReportFeatureCard(btn) {
   var block = btn.closest('.rpt-v2-block');
   if (!block) return;
   var open = block.classList.toggle('open');
   btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   var detail = block.querySelector('.rpt-v2-detail');
-  if (detail) detail.setAttribute('aria-hidden', open ? 'false' : 'true');
+  if (detail) {
+    detail.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open) {
+      syncReportBlockHeight(block);
+    } else {
+      detail.style.setProperty('--rpt-open-height', '0px');
+    }
+  }
   var label = btn.querySelector('.rpt-v2-toggle-label');
   var arrow = btn.querySelector('.rpt-v2-toggle-arrow');
   if (label) label.textContent = open ? '닫기' : (btn.dataset.label || '자세히 보기');
   if (arrow) arrow.textContent = open ? '▲' : '▼';
+
+  if (open) {
+    requestAnimationFrame(function(){ syncReportBlockHeight(block); });
+    setTimeout(function(){ syncReportBlockHeight(block); }, 220);
+  }
 }
+
+window.addEventListener('resize', function() {
+  document.querySelectorAll('.rpt-v2-block.open').forEach(function(block) {
+    syncReportBlockHeight(block);
+  });
+}, { passive: true });
 

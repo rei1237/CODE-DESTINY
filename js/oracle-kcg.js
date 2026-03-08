@@ -458,11 +458,6 @@ function startKemetOracle() {
   kcgInitCircle();
 }
 
-function getRandomGods(count) {
-  const shuffled = [...KEMET_GODS].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-}
-
 function showKemetSpread(userInput, selectedIndices) {
   var cardStage = document.getElementById('kemetCardStage');
   var resultDiv = document.getElementById('kemetResult');
