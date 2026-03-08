@@ -242,7 +242,18 @@
     if (document.getElementById(id)) return;
     var st = document.createElement('style');
     st.id = id;
-    st.textContent = '.runtime-safe-lite *:not(#sajuLoaderOverlay):not(#sajuLoaderOverlay *){animation-duration:0.01ms!important;transition-duration:0.01ms!important;}';
+    st.textContent = ''
+      + '.runtime-safe-lite .smoke-layer,'
+      + '.runtime-safe-lite .flickering-lamp,'
+      + '.runtime-safe-lite .saju-vortex,'
+      + '.runtime-safe-lite .saju-vortex::before,'
+      + '.runtime-safe-lite .saju-vortex::after,'
+      + '.runtime-safe-lite .ritual-particle{animation:none !important;}'
+      + '.runtime-safe-lite .tarot-focus-overlay,'
+      + '.runtime-safe-lite .astral-modal-overlay,'
+      + '.runtime-safe-lite .dp-sheet,'
+      + '.runtime-safe-lite .card{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}'
+      + '.runtime-safe-lite .orb{display:none !important;}';
     document.head.appendChild(st);
   }
 

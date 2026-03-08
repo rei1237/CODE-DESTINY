@@ -388,6 +388,25 @@ function applyNeoTexts(){
   }
 }
 
+function enforceThemeToggleSticky() {
+  var wrap = document.querySelector('.theme-switch-wrapper');
+  if (!wrap) return;
+
+  // Avoid transformed ancestor issues on some mobile browsers.
+  if (wrap.parentElement !== document.body) {
+    document.body.appendChild(wrap);
+  }
+
+  wrap.style.position = 'fixed';
+  wrap.style.left = 'auto';
+  wrap.style.right = 'max(12px, env(safe-area-inset-right, 0px))';
+  wrap.style.bottom = 'max(10px, env(safe-area-inset-bottom, 0px))';
+  wrap.style.top = 'auto';
+  wrap.style.transform = 'none';
+  wrap.style.zIndex = '2147483000';
+  wrap.style.pointerEvents = 'auto';
+}
+
 window.addEventListener('load',function(){
   if(typeof window.calculate==='function'){
     var _orig=window.calculate;
@@ -406,6 +425,13 @@ window.addEventListener('load',function(){
     document.body.classList.add(NEO_MODE ? 'theme-neo' : 'theme-pig');
     if(NEO_MODE) document.body.classList.add('neo-mode');
   }
+
+  enforceThemeToggleSticky();
+  window.addEventListener('resize', enforceThemeToggleSticky, { passive: true });
+  window.addEventListener('scroll', enforceThemeToggleSticky, { passive: true });
+  window.addEventListener('orientationchange', function() {
+    setTimeout(enforceThemeToggleSticky, 80);
+  }, { passive: true });
 });
 
 function subscribeEmail() {
