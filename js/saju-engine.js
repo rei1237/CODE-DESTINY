@@ -8,6 +8,20 @@ var CDN_URLS=[
   'https://unpkg.com/lunar-javascript/lunar.min.js'
 ];
 var tried=0;
+var CDN_LOAD_TIMEOUT_MS = 3500;
+var _cdnBootLocked = false;
+
+function triggerLibRetry(){
+  console.log('[loader] manual retry requested');
+  tried = 0;
+  _cdnBootLocked = false;
+  var btn = document.getElementById('run-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '🔄 라이브러리 재로딩 중...';
+  }
+  loadNext();
+}
 
 function _hideLibOverlay(forceRemove) {
   var ov = document.getElementById('lib-overlay');
@@ -132,14 +146,20 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
 };
 
 function loadNext(){
+  if (_cdnBootLocked) return;
   console.log('[loader] API/CDN loading attempt', tried + 1, '/', CDN_URLS.length);
   if(tried>=CDN_URLS.length){
+    _cdnBootLocked = true;
     var msgEl = document.getElementById('lib-msg');
     var subEl = document.getElementById('lib-sub');
     var btnEl = document.getElementById('run-btn');
     if (msgEl) msgEl.textContent='❌ 라이브러리 로드 실패';
     if (subEl) subEl.textContent='새로고침 후 다시 시도해주세요';
-    if (btnEl) btnEl.textContent='⚠️ 로드 실패 (새로고침)';
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.textContent='🔁 라이브러리 다시 로드';
+      btnEl.onclick = triggerLibRetry;
+    }
     setTimeout(function(){ _hideLibOverlay(true); }, 900);
     _showEngineFallbackNotice('일부 라이브러리 로딩에 실패했습니다. 기본 화면은 계속 이용할 수 있습니다.');
     return;
@@ -149,8 +169,28 @@ function loadNext(){
   if (sub) sub.textContent='CDN '+(tried+1)+'/'+CDN_URLS.length+' 시도 중...';
   tried++;
   var s=document.createElement('script');s.src=url;s.async=false;
-  s.onload=function(){waitForSolar(0);};
-  s.onerror=function(){loadNext();};
+  var settled = false;
+  var timeoutId = setTimeout(function(){
+    if (settled) return;
+    settled = true;
+    try { if (s && s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
+    console.warn('[loader] CDN load timeout:', url);
+    loadNext();
+  }, CDN_LOAD_TIMEOUT_MS);
+
+  s.onload=function(){
+    if (settled) return;
+    settled = true;
+    clearTimeout(timeoutId);
+    waitForSolar(0);
+  };
+  s.onerror=function(){
+    if (settled) return;
+    settled = true;
+    clearTimeout(timeoutId);
+    console.warn('[loader] CDN load failed:', url);
+    loadNext();
+  };
   document.head.appendChild(s);
 }
 function waitForSolar(n){
@@ -160,9 +200,14 @@ function waitForSolar(n){
 }
 function onLibReady(){
   console.log('[loader] API loaded (Solar ready)');
+  _cdnBootLocked = true;
   _hideLibOverlay(false);
   var btn=document.getElementById('run-btn');
-  if (btn) { btn.disabled=false;btn.textContent='🐷 사주 분석하기'; }
+  if (btn) {
+    btn.disabled=false;
+    btn.onclick = checkPrivacyAndCalculate;
+    btn.textContent='🐷 사주 분석하기';
+  }
 }
 
 /* 라이브러리 오버레이 잔존 방지: 15초 경과 시 강제 해제 */
