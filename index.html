@@ -533,6 +533,7 @@ img, canvas, svg, video {
   box-sizing: border-box;
 }
 
+
 .theme-switch-wrapper {
   position: fixed;
   bottom: 30px;
@@ -1484,7 +1485,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .hg-box li{font-size:.8rem;color:#6B4F66;line-height:1.65;margin-bottom:3px}
 .hg-summary{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 4px}
 /* ─── 리포트 대시보드 v2 ─── */
-.rpt-v2-grid{display:flex;flex-direction:column;gap:20px}
+.rpt-v2-grid{display:flex;flex-direction:column;gap:150px}
 .rpt-v2-block{border-radius:22px;overflow:hidden;background:rgba(10,8,28,.92);
   border:1px solid rgba(255,255,255,.08);box-shadow:0 6px 36px rgba(0,0,0,.55)}
 .rpt-v2-img-row{display:flex;width:100%}
@@ -3099,7 +3100,7 @@ body.neo-mode .monthly-label { color: #64748b; }
 .feature-card-grid {
   display: flex;
   flex-direction: column;
-  gap: 120px;
+  gap: 150px;
   margin-top: 120px;
   margin-bottom: 120px;
 }
@@ -4292,6 +4293,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         border-radius:24px 24px 0 0;
         padding:36px 24px 40px;
         width:100%; max-width:480px;
+        max-height:80dvh; overflow-y:auto;
         box-shadow:0 -8px 60px rgba(130,60,255,0.28);
         transform:translateY(100%);
         transition:transform 0.38s cubic-bezier(0.22,1,0.36,1);
@@ -9090,14 +9092,14 @@ select.inp { min-height: 48px; cursor: pointer; }
 
 /* 7. feature-card 가로모드/소형기기 */
 @media (max-width: 380px) {
-  .feature-card-grid { gap: 120px; }
+  .feature-card-grid { gap: 150px; }
   .feature-card__title { font-size: 0.9rem; }
   .feature-card__desc { font-size: 0.75rem; }
 }
 
 @media (max-width: 768px) {
   .feature-card-grid {
-    gap: 120px;
+    gap: 150px;
     margin-top: 120px;
     margin-bottom: 120px;
   }

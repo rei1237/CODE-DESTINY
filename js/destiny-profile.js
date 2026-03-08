@@ -66,6 +66,9 @@
     }
   }
 
+  /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
+  var _bodyLocked = false;
+
   function _resolveEventElement(target) {
     if (!target) return null;
     if (target.nodeType === 1) return target;
@@ -461,6 +464,7 @@
       sheet.classList.add('dp-sheet--open');
       if (overlay) overlay.classList.add('dp-sheet--open');
       if (!_isMobileViewport()) {
+        _bodyLocked = true;
         if (window._perf && window._perf.lockBody) window._perf.lockBody();
         else document.body.style.overflow = 'hidden';
       }
@@ -474,8 +478,11 @@
       sheet.classList.remove('dp-sheet--open');
       if (overlay) overlay.classList.remove('dp-sheet--open');
     }
-    if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
-    else document.body.style.overflow = '';
+    if (_bodyLocked) {
+      _bodyLocked = false;
+      if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
+      else document.body.style.overflow = '';
+    }
 
     /* lockBody 잔여 스타일 강제 정리 (모바일 fullscreen 고착 방지) */
     document.body.style.position = '';

@@ -89,8 +89,8 @@
     hideSplash();
   } else {
     window.addEventListener('load', hideSplash, { once: true });
-    /* 긴급 해제: 모바일은 12초, 데스크탑은 8초 후 강제 종료 */
-    setTimeout(hideSplash, isMobile ? 12000 : 8000);
+    /* 긴급 해제: 모바일은 5초, 데스크탑은 5초 후 강제 종료 */
+    setTimeout(hideSplash, isMobile ? 5000 : 5000);
     /* 페이지 복귀 시 잔존 오버레이 제거 */
     window.addEventListener('pageshow', hideSplash, { once: true });
   }

@@ -2,7 +2,7 @@
   'use strict';
 
   var APP_ERR_BOX_ID = 'appStabilityFallback';
-  var MAX_OVERLAY_MS = 18000;
+  var MAX_OVERLAY_MS = 8000;
   var overlayWatch = { startedAt: 0, active: false };
 
   function now() { return Date.now(); }
