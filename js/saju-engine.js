@@ -11,17 +11,8 @@ var tried=0;
 var CDN_LOAD_TIMEOUT_MS = 3500;
 var _cdnBootLocked = false;
 
-function _diag(name, data){
-  try {
-    if (window.__appDiag && typeof window.__appDiag.mark === 'function') {
-      window.__appDiag.mark(name, data);
-    }
-  } catch (e) {}
-}
-
 function triggerLibRetry(){
   console.log('[loader] manual retry requested');
-  _diag('cdn.retry.manual');
   tried = 0;
   _cdnBootLocked = false;
   var btn = document.getElementById('run-btn');
@@ -40,7 +31,6 @@ function _hideLibOverlay(forceRemove) {
   if (forceRemove && ov.parentNode) {
     ov.parentNode.removeChild(ov);
   }
-  _diag('overlay.lib.hidden', { forceRemove: !!forceRemove });
 }
 
 function _showEngineFallbackNotice(msg) {
@@ -157,7 +147,6 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
 
 function loadNext(){
   if (_cdnBootLocked) return;
-  _diag('cdn.try', { index: tried + 1, total: CDN_URLS.length });
   console.log('[loader] API/CDN loading attempt', tried + 1, '/', CDN_URLS.length);
   if(tried>=CDN_URLS.length){
     _cdnBootLocked = true;
@@ -173,7 +162,6 @@ function loadNext(){
     }
     setTimeout(function(){ _hideLibOverlay(true); }, 900);
     _showEngineFallbackNotice('일부 라이브러리 로딩에 실패했습니다. 기본 화면은 계속 이용할 수 있습니다.');
-    _diag('cdn.exhausted');
     return;
   }
   var url=CDN_URLS[tried];
@@ -187,7 +175,6 @@ function loadNext(){
     settled = true;
     try { if (s && s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
     console.warn('[loader] CDN load timeout:', url);
-    _diag('cdn.timeout', { url: url });
     loadNext();
   }, CDN_LOAD_TIMEOUT_MS);
 
@@ -195,7 +182,6 @@ function loadNext(){
     if (settled) return;
     settled = true;
     clearTimeout(timeoutId);
-    _diag('cdn.loaded', { url: url });
     waitForSolar(0);
   };
   s.onerror=function(){
@@ -203,7 +189,6 @@ function loadNext(){
     settled = true;
     clearTimeout(timeoutId);
     console.warn('[loader] CDN load failed:', url);
-    _diag('cdn.error', { url: url });
     loadNext();
   };
   document.head.appendChild(s);
@@ -215,7 +200,6 @@ function waitForSolar(n){
 }
 function onLibReady(){
   console.log('[loader] API loaded (Solar ready)');
-  _diag('api.solar.ready');
   _cdnBootLocked = true;
   _hideLibOverlay(false);
   var btn=document.getElementById('run-btn');
@@ -1889,9 +1873,7 @@ function agreeAndCalculate() {
 
 function startSajuCalculationFlow() {
   console.log('[loader] startSajuCalculationFlow: begin');
-  _diag('calc.flow.start');
   if(typeof Solar==='undefined'||typeof Solar.fromYmdHms!=='function'){
-    _diag('calc.flow.blocked.solar-not-ready');
     alert('라이브러리가 아직 로딩 중입니다. 잠시 후 다시 시도해주세요 🐷');return;
   }
   var bd=document.getElementById('birthDate').value;
@@ -1902,7 +1884,6 @@ function startSajuCalculationFlow() {
     try { calculate(); } catch (e) {
       console.error('[saju] calculate failed without loader overlay', e);
       _showEngineFallbackNotice('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-      _diag('calc.flow.error.no-overlay', { message: e && e.message ? e.message : 'unknown' });
     }
     return;
   }
@@ -1912,7 +1893,6 @@ function startSajuCalculationFlow() {
   requestAnimationFrame(() => {
     overlay.classList.add('show');
     console.log('[loader] saju loader shown');
-    _diag('overlay.saju.shown');
 
     // 천간·지지 한자 파티클 (명리 용어)
     const hanjas = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸',
@@ -1958,14 +1938,12 @@ function startSajuCalculationFlow() {
         _stuck.style.pointerEvents = 'none';
       }
       console.warn('[loader] saju loader hard-timeout (5s)');
-      _diag('overlay.saju.timeout', { ms: 5000 });
       _showEngineFallbackNotice('결과 렌더링이 지연되어 기본 화면으로 복귀했습니다. 다시 시도해주세요.');
     }, 5000);
 
     setTimeout(async () => {
       try {
         console.log('[loader] calculation started');
-        _diag('calc.started');
         var _calcPromise = Promise.resolve().then(function() { return calculate(); });
         var _minUiDelay = new Promise(function(resolve){ setTimeout(resolve, 1800); });
         var _timeoutGuard = new Promise(function(_, reject){
@@ -1977,10 +1955,8 @@ function startSajuCalculationFlow() {
           _timeoutGuard
         ]);
         console.log('[loader] calculation finished');
-        _diag('calc.finished');
       } catch (calcErr) {
         console.error('[loader] calculate flow failed', calcErr);
-        _diag('calc.failed', { message: calcErr && calcErr.message ? calcErr.message : 'unknown' });
         _showEngineFallbackNotice('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
       } finally {
         clearTimeout(_hardStop);
@@ -1991,7 +1967,6 @@ function startSajuCalculationFlow() {
           _lo.style.pointerEvents = 'none';
         }
         console.log('[loader] Loading removed (saju overlay hidden)');
-        _diag('overlay.saju.hidden');
       }
     }, 200);
   });
