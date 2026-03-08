@@ -3923,7 +3923,7 @@ function renderAstroInsight() {
       4:'금성-화성이 삼합 성향이라 애정 표현과 행동 조율이 안정적으로 맞물립니다.',
       6:'금성-화성이 대립 축이라 상호 보완 잠재력은 크지만 감정 과열 시 거리 조절이 필요합니다.'
     };
-    var vmCalcFallback = vmFallbackByGap[venusMarsSignGap] || ('금성과 화성의 사인 간격은 '+(venusMarsSignGap*30)+'°로, 관계는 단계적 조율형으로 작동합니다.');
+    var vmCalcFallback = vmFallbackByGap[venusMarsSignGap] || ('금성과 화성의 사인 간격은 '+(venusMarsSignGap*30)+'°로, <br>관계는 단계적 조율형으로 작동합니다.');
 
     var masterInsight = '';
 
@@ -4283,10 +4283,10 @@ function renderAstroInsight() {
       var retro = (pn !== 'Sun' && pn !== 'Moon' && chart.planets[pn] && chart.planets[pn].retro) ? ' Rx' : '';
       placementRows.push(
         '<tr>'
-        +'<td style="padding:6px 8px;color:#cbd5e1;">'+planetKr[pn]+'</td>'
-        +'<td style="padding:6px 8px;color:#e2e8f0;">'+_fmtLon(lon)+retro+'</td>'
-        +'<td style="padding:6px 8px;color:#bae6fd;">'+(hPlacidus ? (hPlacidus+'H') : '-')+'</td>'
-        +'<td style="padding:6px 8px;color:#bbf7d0;">'+(hWhole ? (hWhole+'H') : '-')+'</td>'
+        +'<td class="astro-col-planet" style="color:#cbd5e1;">'+planetKr[pn]+'</td>'
+        +'<td class="astro-col-longitude" style="color:#e2e8f0;">'+_fmtLon(lon)+retro+'</td>'
+        +'<td class="astro-col-placidus" style="color:#bae6fd;">'+(hPlacidus ? (hPlacidus+'H') : '-')+'</td>'
+        +'<td class="astro-col-whole" style="color:#bbf7d0;">'+(hWhole ? (hWhole+'H') : '-')+'</td>'
         +'</tr>'
       );
     });
@@ -4352,14 +4352,14 @@ function renderAstroInsight() {
       +'<div class="astro-subhead" style="color:#D4AF37;">👑 Precision Insight (계산 기반 요약)</div>'
       +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
       +'<p><b class="precision-headline">[정체성 축<wbr>: 태양·달·상승궁]</b><br>'
-      +'태양 <b>'+sunSign+'</b>, 달 <b>'+moonSign+'</b>, 상승궁 <b>'+ascSign+'</b> 조합이 핵심 성격 구조를 만듭니다. '
-      +'태양 하우스 '+sunHousePair+'는 의식적 목표, 달 하우스 '+moonHousePair+'는 정서 복구 패턴, 상승궁은 첫 반응 스타일을 규정합니다.</p>'
-      +'<p><b class="precision-headline">[관계·행동 축<wbr>: 금성·화성]</b><br>'
-      +'금성 <b>'+venusSign+'</b>('+venusHousePair+')은 애정 표현 방식, 화성 <b>'+marsSign+'</b>('+marsHousePair+')은 갈등/추진 방식을 보여줍니다. '
+      +'태양 <br>'+sunSign+'</br>, 달 <br>'+moonSign+'</br>, 상승궁 <br>'+ascSign+'</br> 조합이 핵심 성격 구조를 만듭니다.<br>' 
+      +'태양 하우스 '+sunHousePair+'는 의식적 목표, 달 하우스 <br> '+moonHousePair+'는 정서 복구 패턴, <br>상승궁은 첫 반응 스타일을 규정합니다.<br></p>'
+      +'<p><b class="precision-headline">[관계·행동 축: 금성·화성]</b><br>'
+      +'금성 <br>'+venusSign+'</br>('+venusHousePair+')은 애정 표현 방식, 화성 <br>'+marsSign+'</br>('+marsHousePair+')은 갈등/추진 방식을 보여줍니다. <br>'
       +(vmAspect || vmCalcFallback)+'</p>'
       +'<p><b class="precision-headline">[목표·운용 축<wbr>: MC·토성·포르투나<wbr>/스피릿]</b><br>'
-      +'MC <b>'+mcSign+'</b>는 커리어 브랜드 방향, 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')은 검증 과제를 뜻합니다. '
-      +'포르투나 <b>'+fortunaSign+'</b>('+fortunaHousePair+')는 성과 회수 포인트, 스피릿 <b>'+spiritSign+'</b>('+spiritHousePair+')은 장기 소명 포인트입니다.</p>'
+      +'MC <b>'+mcSign+'</b>는 커리어 브랜드 방향, 토성 <br>'+saturnSign+'</br>('+saturnHousePair+')은 검증 과제를 뜻합니다. '
+      +'포르투나 <br>'+fortunaSign+'</br>('+fortunaHousePair+')는 성과 회수 포인트, 스피릿 <br>'+spiritSign+'</br>('+spiritHousePair+')은 장기 소명 포인트입니다.</p>'
       +'</div></div>';
 
     var tightAspectText = majorAspectRows.length ? majorAspectRows[0].text : '타이트 주요각 없음';
@@ -4441,13 +4441,14 @@ function renderAstroInsight() {
         +'<div class="astro-subhead">📌 0. 정밀 계산 배치 요약 (Longitudes · Houses · Aspects)</div>'
         +'<div class="astro-desc">'
         +'<p>아래 표는 이번 개편 계산식(UTC 환산, 경도 보정, Asc/MC 재계산, Placidus/Whole Sign 병기)에 기반한 실제 배치입니다.</p>'
-        +'<div style="overflow-x:auto;border:1px solid rgba(148,163,184,0.2);border-radius:10px;margin:10px 0;">'
-        +'<table style="width:100%;border-collapse:collapse;font-size:0.83rem;min-width:520px;">'
+        +'<div class="table-wrapper" style="border:1px solid rgba(148,163,184,0.2);border-radius:10px;margin:10px 0;">'
+        +'<table class="astro-table" style="font-size:0.83rem;">'
+        +'<colgroup><col><col><col><col></colgroup>'
         +'<thead><tr style="background:rgba(30,41,59,0.6);">'
-        +'<th style="text-align:left;padding:7px 8px;color:#94a3b8;">행성</th>'
-        +'<th style="text-align:left;padding:7px 8px;color:#94a3b8;">정확 경도(황도)</th>'
-        +'<th style="text-align:left;padding:7px 8px;color:#94a3b8;">Placidus</th>'
-        +'<th style="text-align:left;padding:7px 8px;color:#94a3b8;">Whole Sign</th>'
+        +'<th style="text-align:left;color:#94a3b8;">행성</th>'
+        +'<th style="text-align:left;color:#94a3b8;">정확 경도(황도)</th>'
+        +'<th style="text-align:left;color:#94a3b8;">Placidus</th>'
+        +'<th style="text-align:left;color:#94a3b8;">Whole Sign</th>'
         +'</tr></thead>'
         +'<tbody>'+placementRows.join('')+'</tbody>'
         +'</table>'

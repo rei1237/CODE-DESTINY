@@ -3095,6 +3095,35 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     #acc-astro-body .astro-desc b {
       color: #fca5a5;
     }
+    #acc-astro-body .table-wrapper {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #acc-astro-body .astro-table {
+      width: 100%;
+      max-width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+    #acc-astro-body .astro-table col {
+      width: 25%;
+    }
+    #acc-astro-body .astro-table th,
+    #acc-astro-body .astro-table td {
+      padding: 7px 8px;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      vertical-align: top;
+    }
+    #acc-astro-body .astro-table .astro-col-longitude {
+      overflow-wrap: anywhere;
+    }
+    #acc-astro-body #astroBodyWrap table {
+      max-width: 100%;
+    }
     #acc-astro-body .precision-insight-card {
       width: 100%;
       max-width: 100%;
@@ -6403,6 +6432,165 @@ select.inp { min-height: 48px; cursor: pointer; }
     margin-top: 20px;
     margin-bottom: 120px;
     padding: 16px;
+  }
+}
+
+/* 7.5 점성술(코즈믹 차트) 모바일 최적화 */
+@media (max-width: 768px) {
+  #acc-astro-body .astro-body.cosmic-theme {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  #acc-astro-body .astro-section {
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+  }
+
+  #acc-astro-body .astro-subhead {
+    font-size: 0.98rem;
+    line-height: 1.35;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: keep-all;
+  }
+
+  #acc-astro-body .astro-tags {
+    gap: 6px;
+  }
+
+  #acc-astro-body .astro-tag {
+    padding: 4px 9px;
+    font-size: 0.72rem;
+    max-width: 100%;
+  }
+
+  #acc-astro-body .astro-planet,
+  #acc-astro-body .astro-house,
+  #acc-astro-body .astro-desc,
+  #acc-astro-body .astro-desc p,
+  #acc-astro-body .astro-desc li,
+  #acc-astro-body .astro-core,
+  #acc-astro-body .expert-msg,
+  #acc-astro-body .neo-bubble,
+  #acc-astro-body .yeon-bubble {
+    font-size: 0.86rem;
+    line-height: 1.62;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  #acc-astro-body #astroBodyWrap,
+  #acc-astro-body #astroBodyWrap * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #acc-astro-body #astroBodyWrap {
+    overflow-x: hidden;
+  }
+
+  #acc-astro-body #astroBodyWrap table {
+    font-size: 0.76rem;
+    max-width: 100%;
+  }
+
+  #acc-astro-body #astroBodyWrap th,
+  #acc-astro-body #astroBodyWrap td {
+    padding: 5px 6px !important;
+    white-space: nowrap;
+  }
+
+  #acc-astro-body .astro-table {
+    font-size: 0.81rem;
+  }
+
+  #acc-astro-body .astro-table th,
+  #acc-astro-body .astro-table td {
+    padding: 6px !important;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  #acc-astro-body #astroBodyWrap input,
+  #acc-astro-body #astroBodyWrap select,
+  #acc-astro-body #astroBodyWrap button,
+  #acc-astro-body #astroBodyWrap textarea {
+    width: 100% !important;
+    min-height: 42px;
+    font-size: 16px !important;
+  }
+
+  #acc-astro-body #astroBodyWrap [id^="asDirect_"] {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #acc-astro-body #astroBodyWrap #astroCtryTabs,
+  #acc-astro-body #astroBodyWrap #astroCatTabs,
+  #acc-astro-body #astroBodyWrap #astroSyCelebs,
+  #acc-astro-body #astroBodyWrap #astroCosmicTwins {
+    gap: 6px;
+  }
+
+  #acc-astro-body #astroBodyWrap .celeb-tab-btn,
+  #acc-astro-body #astroBodyWrap .celeb-btn,
+  #acc-astro-body #astroBodyWrap .sz-country-tab,
+  #acc-astro-body #astroBodyWrap .ctg-btn,
+  #acc-astro-body #astroBodyWrap .lang-btn {
+    min-height: 40px;
+    padding: 7px 10px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #acc-astro-body .astro-body.cosmic-theme {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  #acc-astro-body .astro-section {
+    padding: 10px;
+  }
+
+  #acc-astro-body .astro-subhead {
+    font-size: 0.92rem;
+  }
+
+  #acc-astro-body .astro-tag {
+    font-size: 0.68rem;
+    padding: 3px 8px;
+  }
+
+  #acc-astro-body .astro-desc,
+  #acc-astro-body .astro-desc p,
+  #acc-astro-body .astro-core {
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  #acc-astro-body #astroBodyWrap ul,
+  #acc-astro-body #astroBodyWrap ol {
+    padding-left: 16px;
+  }
+
+  #acc-astro-body #astroBodyWrap [style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  #acc-astro-body #astroBodyWrap [style*="min-width:120px"],
+  #acc-astro-body #astroBodyWrap [style*="min-width:130px"],
+  #acc-astro-body #astroBodyWrap [style*="width:120px"],
+  #acc-astro-body #astroBodyWrap [style*="width:110px"] {
+    min-width: 0 !important;
+    width: 100% !important;
+    flex: 1 1 100% !important;
   }
 }
 
