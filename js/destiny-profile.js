@@ -12,39 +12,6 @@
   var KEY_LIST = NS + '.list';
   var KEY_CURR = NS + '.current';
 
-  /* dp-sheet 전용 body lock 상태 (fixed-body 충돌 방지) */
-  var _dpSheetBodyLocked = false;
-  var _dpSheetBodyLockPrev = {
-    bodyOverflow: '',
-    bodyTouchAction: '',
-    htmlOverflow: '',
-    htmlOverscroll: ''
-  };
-
-  function lockDpSheetBody() {
-    if (_dpSheetBodyLocked) return;
-    _dpSheetBodyLocked = true;
-    _dpSheetBodyLockPrev.bodyOverflow = document.body.style.overflow || '';
-    _dpSheetBodyLockPrev.bodyTouchAction = document.body.style.touchAction || '';
-    _dpSheetBodyLockPrev.htmlOverflow = document.documentElement.style.overflow || '';
-    _dpSheetBodyLockPrev.htmlOverscroll = document.documentElement.style.overscrollBehavior || '';
-
-    /* position:fixed 잠금은 iOS에서 bottom sheet와 충돌하므로 사용하지 않음 */
-    document.documentElement.style.overflow = 'hidden';
-    document.documentElement.style.overscrollBehavior = 'none';
-    document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
-  }
-
-  function unlockDpSheetBody() {
-    if (!_dpSheetBodyLocked) return;
-    _dpSheetBodyLocked = false;
-    document.body.style.overflow = _dpSheetBodyLockPrev.bodyOverflow;
-    document.body.style.touchAction = _dpSheetBodyLockPrev.bodyTouchAction;
-    document.documentElement.style.overflow = _dpSheetBodyLockPrev.htmlOverflow;
-    document.documentElement.style.overscrollBehavior = _dpSheetBodyLockPrev.htmlOverscroll;
-  }
-
   /* ──────────────────────────────────────────
      1. Storage Module
   ────────────────────────────────────────── */
@@ -227,7 +194,7 @@
                 : '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.45);color:#f9a8d4;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9792; 여성</span>')
             + '</div>'
           + '</div>'
-          + '<button class="dp-mc-list-btn" type="button" data-dp-action="open-list" aria-label="프로필 목록" style="touch-action:manipulation">'
+          + '<button class="dp-mc-list-btn" onclick="dpOpenList()" aria-label="프로필 목록" style="touch-action:manipulation">'
             + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
           + '</button>'
         + '</div>'
@@ -258,7 +225,7 @@
             + '<span class="dp-mc-info-val">' + l.lng.toFixed(1) + '°</span>'
           + '</div>'
         + '</div>'
-        + '<button class="dp-mc-load-btn" type="button" data-dp-action="load-profile" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
+        + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
       + '</div>';
   }
 
@@ -476,17 +443,23 @@
     renderProfileList();
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
-    if (sheet) sheet.classList.add('dp-sheet--open');
-    if (overlay) overlay.classList.add('dp-sheet--open');
-    lockDpSheetBody();
+    if (sheet) {
+      sheet.classList.add('dp-sheet--open');
+      if (overlay) overlay.classList.add('dp-sheet--open');
+      if (window._perf && window._perf.lockBody) window._perf.lockBody();
+      else document.body.style.overflow = 'hidden';
+    }
   };
 
   window.dpCloseList = function() {
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
-    if (sheet) sheet.classList.remove('dp-sheet--open');
-    if (overlay) overlay.classList.remove('dp-sheet--open');
-    unlockDpSheetBody();
+    if (sheet) {
+      sheet.classList.remove('dp-sheet--open');
+      if (overlay) overlay.classList.remove('dp-sheet--open');
+      if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
+      else document.body.style.overflow = '';
+    }
   };
 
   window.dpSelectProfile = function(id) {
@@ -666,26 +639,6 @@
     /* 오버레이 클릭으로 시트 닫기 */
     var overlay = document.getElementById('dpListOverlay');
     if (overlay) overlay.addEventListener('click', dpCloseList);
-
-    /* 모바일에서 카드 버튼 탭 안정화 */
-    function _handleCardAction(e) {
-      var btn = e.target && e.target.closest ? e.target.closest('[data-dp-action]') : null;
-      if (!btn) return;
-
-      var action = btn.getAttribute('data-dp-action');
-      if (action === 'open-list') {
-        e.preventDefault();
-        e.stopPropagation();
-        dpOpenList();
-      }
-      if (action === 'load-profile') {
-        e.preventDefault();
-        e.stopPropagation();
-        dpLoadProfile();
-      }
-    }
-    document.addEventListener('click', _handleCardAction);
-    document.addEventListener('touchend', _handleCardAction, { passive: false });
 
     /* 모바일 터치 이벤트 위임 — iOS Safari onclick 이벤트 유실 방지 */
     var listInner = document.getElementById('dpListInner');
