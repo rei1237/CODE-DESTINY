@@ -1,11 +1,19 @@
 (function(){
   var _splashDone = false;
   var SPLASH_MAX_MS = 5000;
+  function diag(name, data) {
+    try {
+      if (window.__appDiag && typeof window.__appDiag.mark === 'function') {
+        window.__appDiag.mark(name, data);
+      }
+    } catch (e) {}
+  }
   console.log('[loader] App init start (splash bootstrap)');
-  /* -- ��ġ ��� �Ǻ� (�����/�º���) -- */
+  diag('splash.init.start');
+  /* -- 기기 환경 판별 (모바일/데스크탑) -- */
   var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
-  /* -- ���� ĵ���� (����ũž ���� -- ������� RAF ���� ����) -- */
+  /* -- 별빛 캔버스 (데스크탑 전용: 모바일 RAF 부하 방지) -- */
   var cvs = document.getElementById('splashCanvas');
   var rafId;
   if (cvs && !isMobile) {
@@ -13,7 +21,7 @@
       var ctx = cvs.getContext('2d');
       if (!ctx) throw new Error('canvas-context-unavailable');
       cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-      /* �� ����: 5���� ���� */
+      /* 별 개수: 5개로 제한 */
       var stars = Array.from({length: 5}, function() {
         return {
           x: Math.random() * cvs.width,
@@ -38,21 +46,22 @@
       drawStars();
     } catch (e) {
       console.warn('[loader] splash canvas disabled:', e);
+      diag('splash.canvas.disabled', { message: e && e.message ? e.message : 'unknown' });
       cvs.style.display = 'none';
     }
   } else if (cvs) {
-    /* �����: ĵ���� ���� (compositor ���̾� ����) */
+    /* 모바일: 캔버스 비활성화 (compositor 레이어 부하 방지) */
     cvs.style.display = 'none';
   }
 
-  /* -- �ȳ� ���� ��ȯ -- */
+  /* -- 안내 문구 순환 -- */
   var msgs = [
-    '�ϴ��� ���ڸ��� ����� ���� ���ĵǴ� ��...',
-    '�������� ���� ����� ���� �մ� ��...',
-    '����� �������ڸ� �м��ϴ� ��...',
-    'Ÿ�� ī�尡 ����� �̾߱⸦ ��ٸ��ϴ�...',
-    '������ ����� ��� ��� ��ġ�� ��...',
-    '������ �ӻ��̴� ������ ����� �ص� ��...'
+    '하늘의 별자리를 조용히 정렬하는 중...',
+    '오행의 흐름을 부드럽게 맞추는 중...',
+    '당신의 운명 좌표를 분석하는 중...',
+    '타로 카드가 전할 이야기를 준비하는 중...',
+    '오늘의 행운과 조언을 정리하는 중...',
+    '잠시만요, 결과 화면을 곧 열어드릴게요...'
   ];
   var mi = 0;
   var msgEl = document.getElementById('splashMsg');
@@ -69,7 +78,7 @@
     }, 350);
   }, 1800);
 
-  /* -- �ε� �� ���� -- */
+  /* -- 로딩 바 진행 -- */
   var bar = document.getElementById('splashBar');
   var barVal = 0;
   var barTimer = setInterval(function() {
@@ -78,7 +87,7 @@
     if (barVal >= 90) clearInterval(barTimer);
   }, 350);
 
-  /* -- ������ �ε� �Ϸ� -> ���÷��� ���� -- */
+  /* -- 초기 로딩 완료 -> 스플래시 숨김 -- */
   function hideSplash() {
     if (_splashDone) return;
     _splashDone = true;
@@ -93,14 +102,19 @@
     }
     if (rafId) cancelAnimationFrame(rafId);
     console.log('[loader] Loading removed (splash hidden)');
+    diag('splash.hidden');
   }
 
   if (document.readyState === 'complete') {
     hideSplash();
   } else {
     window.addEventListener('load', hideSplash, { once: true });
+    diag('splash.wait-load');
     /* 5초 강제 해제: 어떤 실패에서도 로더가 영구 고정되지 않게 보장 */
-    setTimeout(hideSplash, SPLASH_MAX_MS);
+    setTimeout(function(){
+      diag('splash.timeout.force-hide', { ms: SPLASH_MAX_MS });
+      hideSplash();
+    }, SPLASH_MAX_MS);
     /* 페이지 복귀 시 잔존 오버레이 제거 */
     window.addEventListener('pageshow', hideSplash, { once: true });
   }
