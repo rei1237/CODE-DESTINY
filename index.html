@@ -3569,14 +3569,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   /* 0. position:fixed 장식 배경 제거 → iOS Safari 스크롤 시 GPU 재페인트로 인한 흰화면 방지 */
   body::before, body::after { display: none !important; }
 
-  /* 0-1. contain/layout 격리 해제: iOS Safari 흰화면 리페인트 버그 회피 */
-  .wrap,
-  .feature-card,.ts-card,.prem-box,.palace-block {
-    contain: none !important;
-  }
-
-  html, body { min-height: 100dvh; }
-  body { overflow-x: hidden; }
+  /* 0-1. wrap CSS containment → repaint 범위 제한 */
+  .wrap { contain: layout; }
 
   /* 1. 별똥별 5개 will-change compositor layer 완전 제거 (모바일 렌더링 보호) */
   .meteor { display: none !important; }
@@ -3598,26 +3592,6 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   .ec-icon,
   .lc-icon,
   .qm-icon { filter: none !important; }
-
-  /* 6. compositor layer 남용 축소 */
-  .saju-book,.saju-vortex,.orb,
-  .feature-card,.dw-item,.ts-card,
-  .sy-gauge-fill,.sy-talent-fill,
-  .tarot-card,.oracle-card-m,
-  .kcg-star,
-  [style*="will-change"] {
-    will-change: auto !important;
-    transform: translateZ(0);
-  }
-
-  /* 7. 모바일에서 전체화면 fixed + blur 조합 완화 */
-  #tarotModalOverlay,
-  #kemetOracleOverlay,
-  .tarot-focus-overlay,
-  .astral-modal-overlay {
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
 }
 </style>
 

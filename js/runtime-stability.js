@@ -30,7 +30,6 @@
     el.style.display = 'none';
     el.style.visibility = 'hidden';
     el.style.opacity = '0';
-    el.style.pointerEvents = 'none';
     el.classList.remove('show');
     el.classList.add('done');
     if (removeNode && el.parentNode) {
@@ -80,15 +79,6 @@
   }
 
   function patchGlobalHandlers() {
-    var prevOnError = window.onerror;
-    window.onerror = function () {
-      stopBlockingOverlays('window-onerror');
-      if (typeof prevOnError === 'function') {
-        try { return prevOnError.apply(this, arguments); } catch (e) {}
-      }
-      return false;
-    };
-
     window.addEventListener('error', function () {
       stopBlockingOverlays('global-error');
     });
@@ -119,13 +109,10 @@
     [
       'calculate',
       'startSajuCalculationFlow',
-      'checkPrivacyAndCalculate',
       'renderSummary',
       'renderZiwei',
       'renderAstroInsight',
-      'renderSukuyo',
-      'renderDaewun',
-      'renderReportDashboard'
+      'renderSukuyo'
     ].forEach(wrapCriticalFn);
   }
 
