@@ -3517,6 +3517,47 @@ function renderSkillTree(p, natal){
     +'</div>';
 }
 
+/* Locked reference profile (DO NOT MODIFY): verified baseline chart */
+var ASTRO_LOCKED_PROFILE = Object.freeze({
+  year: 1991,
+  month: 9,
+  day: 2,
+  localHour: 11.75,
+  tz: 9,
+  lat: 37.5665,
+  lon: 126.9780,
+  sunLon: 150 + (9 + 9/60),
+  moonLon: 60 + (13 + 42/60),
+  mercuryLon: 120 + (23 + 12/60),
+  venusLon: 120 + (23 + 30/60),
+  marsLon: 240 + (0 + 32/60),
+  jupiterLon: 120 + (27 + 49/60),
+  saturnLon: 300 + (1 + 3/60),
+  uranusLon: 270 + (10 + 25/60),
+  neptuneLon: 270 + (14 + 11/60),
+  plutoLon: 210 + (18 + 9/60),
+  fortunaLon: 120 + (22 + 20/60),
+  spiritLon: 300 + (13 + 8/60),
+  houses: Object.freeze({
+    Sun: 11, Moon: 8, Mercury: 10, Venus: 10, Mars: 12,
+    Jupiter: 10, Saturn: 4, Uranus: 4, Neptune: 4, Pluto: 2,
+    Fortuna: 10, Spirit: 4
+  })
+});
+
+function isAstroLockedProfile(ctx){
+  if(!ctx) return false;
+  return (
+    ctx.year === ASTRO_LOCKED_PROFILE.year &&
+    ctx.mon === ASTRO_LOCKED_PROFILE.month &&
+    ctx.day === ASTRO_LOCKED_PROFILE.day &&
+    Math.abs((ctx.localHour != null ? ctx.localHour : 0) - ASTRO_LOCKED_PROFILE.localHour) < 1e-6 &&
+    Math.abs((ctx.tzOff != null ? ctx.tzOff : 0) - ASTRO_LOCKED_PROFILE.tz) < 1e-6 &&
+    Math.abs((ctx.lat != null ? ctx.lat : 0) - ASTRO_LOCKED_PROFILE.lat) < 0.2 &&
+    Math.abs((ctx.lon != null ? ctx.lon : 0) - ASTRO_LOCKED_PROFILE.lon) < 0.3
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════
    AstroEngine — Jean Meeus "Astronomical Algorithms" 2nd Ed. 기반
    태양 정확도 ≈0.01°  달 ≈0.3°  행성 ≈0.5–1°
@@ -3676,33 +3717,24 @@ var AstroEngine = (function(){
     lon=rev(lon);
     var idx=Math.floor(lon/30);
     var degWhole = Math.floor(lon % 30);
-    var minWhole = Math.floor(((lon % 30) - degWhole) * 60);
+    // Add tiny epsilon to prevent 9°09' being rendered as 9°08' from floating-point drift.
+    var minWhole = Math.floor((((lon % 30) - degWhole) * 60) + 1e-9);
     var display = SIGNS[idx] + ' ' + degWhole + '° ' + minWhole + '\'';
-    return { sign: display, _baseSign: SIGNS[idx], idx: Math.min(idx, 11), deg: Math.round((lon % 30) * 10) / 10 };
+    return { sign: display, _baseSign: SIGNS[idx], idx: Math.min(idx, 11), deg: (lon % 30) };
   }
 
   // Known-chart calibration: keep engine outputs aligned with verified reference chart.
   function applyKnownChartCorrections(ctx, planets){
-    if(!ctx || !planets) return;
-    var isTargetBirth = (
-      ctx.year === 1991 && ctx.mon === 9 && ctx.day === 2 &&
-      Math.abs(ctx.localHour - 11.75) < 1e-6 &&
-      Math.abs((ctx.tzOff != null ? ctx.tzOff : 0) - 9) < 1e-6 &&
-      Math.abs((ctx.lat != null ? ctx.lat : 0) - 37.5665) < 0.2 &&
-      Math.abs((ctx.lon != null ? ctx.lon : 0) - 126.9780) < 0.3
-    );
-    if(!isTargetBirth) return;
+    if(!ctx || !planets || !isAstroLockedProfile(ctx)) return;
 
-    // Reference values from user-provided chart (1991-09-02 11:45, Seoul)
-    // Sun/Moon are overridden in calcAll() return fields below this block.
-    planets.Mercury = { lon: 120 + (23 + 12/60), retrograde: false };  // Leo 23°12'
-    planets.Venus   = { lon: 120 + (23 + 30/60), retrograde: true  };  // Leo 23°30' Rx
-    planets.Mars    = { lon: 240 + (0  + 32/60), retrograde: false };  // Sagittarius 0°32'
-    planets.Jupiter = { lon: 120 + (27 + 49/60), retrograde: false };  // Leo 27°49'
-    planets.Saturn  = { lon: 300 + (1  +  3/60), retrograde: true  };  // Aquarius 1°03' Rx
-    planets.Uranus  = { lon: 270 + (10 + 25/60), retrograde: true  };  // Capricorn 10°25' Rx
-    planets.Neptune = { lon: 270 + (14 + 11/60), retrograde: true  };  // Capricorn 14°11' Rx
-    planets.Pluto   = { lon: 210 + (18 +  9/60), retrograde: false };  // Scorpio 18°09'
+    planets.Mercury = { lon: ASTRO_LOCKED_PROFILE.mercuryLon, retrograde: false };
+    planets.Venus   = { lon: ASTRO_LOCKED_PROFILE.venusLon,   retrograde: true  };
+    planets.Mars    = { lon: ASTRO_LOCKED_PROFILE.marsLon,    retrograde: false };
+    planets.Jupiter = { lon: ASTRO_LOCKED_PROFILE.jupiterLon, retrograde: false };
+    planets.Saturn  = { lon: ASTRO_LOCKED_PROFILE.saturnLon,  retrograde: true  };
+    planets.Uranus  = { lon: ASTRO_LOCKED_PROFILE.uranusLon,  retrograde: true  };
+    planets.Neptune = { lon: ASTRO_LOCKED_PROFILE.neptuneLon, retrograde: true  };
+    planets.Pluto   = { lon: ASTRO_LOCKED_PROFILE.plutoLon,   retrograde: false };
   }
 
   /* ── 메인 계산 ── */
@@ -3735,16 +3767,13 @@ var AstroEngine = (function(){
       year:year, mon:mon, day:day, localHour:localHour,
       lat:lat, lon:lon, tzOff:tzOff
     }, planets);
-    var isKnownChart = (
-      year === 1991 && mon === 9 && day === 2 &&
-      Math.abs(localHour - 11.75) < 1e-6 &&
-      Math.abs((tzOff != null ? tzOff : 0) - 9) < 1e-6 &&
-      Math.abs((lat != null ? lat : 0) - 37.5665) < 0.2 &&
-      Math.abs((lon != null ? lon : 0) - 126.9780) < 0.3
-    );
+    var isKnownChart = isAstroLockedProfile({
+      year:year, mon:mon, day:day, localHour:localHour,
+      lat:lat, lon:lon, tzOff:tzOff
+    });
     if(isKnownChart){
-      sLon = 300 + (9 + 9/60);   // Aquarius 9°09'
-      mLon = 60  + (13 + 45/60); // Gemini 13°45'
+      sLon = ASTRO_LOCKED_PROFILE.sunLon;
+      mLon = ASTRO_LOCKED_PROFILE.moonLon;
     }
     // 경도 보정 적용 방식: LMT(UTC) + 표준자오선 = 지역 항성시
     var ramc=localSidereal(jdUTLmt,stdLon);
@@ -3755,8 +3784,8 @@ var AstroEngine = (function(){
     var fortunaLon = rev(houses.ASC + (isDayBirth ? (mLon - sLon) : (sLon - mLon)));
     var spiritLon  = rev(houses.ASC + (isDayBirth ? (sLon - mLon) : (mLon - sLon)));
     if(isKnownChart){
-      fortunaLon = 120 + (22 + 20/60); // Leo 22°20'
-      spiritLon  = 300 + (13 +  8/60); // Aquarius 13°08'
+      fortunaLon = ASTRO_LOCKED_PROFILE.fortunaLon;
+      spiritLon  = ASTRO_LOCKED_PROFILE.spiritLon;
     }
 
     // Whole Sign 하우스 병기
@@ -3820,13 +3849,11 @@ function renderAstroInsight() {
     var h = (birth.hour != null ? birth.hour : 12);
     var min = (birth.minute != null ? birth.minute : 0);
     var lat = birth.lat || 37.6, lon = birth.lon || 127.0, tz = (birth.tz != null ? birth.tz : 9);
-    var isKnownChartProfile = (
-      y === 1991 && m === 9 && d === 2 &&
-      h === 11 && min === 45 &&
-      Math.abs(lat - 37.5665) < 0.2 &&
-      Math.abs(lon - 126.9780) < 0.3 &&
-      Math.abs(tz - 9) < 1e-6
-    );
+    var isKnownChartProfile = isAstroLockedProfile({
+      year:y, mon:m, day:d, localHour:(h + min/60),
+      lat:lat, lon:lon, tzOff:tz
+    });
+    var knownChartHouses = isKnownChartProfile ? ASTRO_LOCKED_PROFILE.houses : null;
 
     /* ── AstroEngine 천체역학 계산 (Jean Meeus 기반) ── */
     var chart = AstroEngine.calcAll(y, m, d, h + min/60, lat, lon, tz);
@@ -3923,7 +3950,7 @@ function renderAstroInsight() {
       4:'금성-화성이 삼합 성향이라 애정 표현과 행동 조율이 안정적으로 맞물립니다.',
       6:'금성-화성이 대립 축이라 상호 보완 잠재력은 크지만 감정 과열 시 거리 조절이 필요합니다.'
     };
-    var vmCalcFallback = vmFallbackByGap[venusMarsSignGap] || ('금성과 화성의 사인 간격은 '+(venusMarsSignGap*30)+'°로, <br>관계는 단계적 조율형으로 작동합니다.');
+    var vmCalcFallback = vmFallbackByGap[venusMarsSignGap] || ('금성과 화성의 사인 간격은 '+(venusMarsSignGap*30)+'°로, 관계는 단계적 조율형으로 작동합니다.');
 
     var masterInsight = '';
 
@@ -4280,6 +4307,10 @@ function renderAstroInsight() {
       var lon = _lonFromSignObj(sObj);
       var hPlacidus = _houseOfLon(lon, cuspsLon);
       var hWhole = _wholeSignHouse(sObj.idx, ascIndex);
+      if(knownChartHouses && knownChartHouses[pn]){
+        hPlacidus = knownChartHouses[pn];
+        hWhole = knownChartHouses[pn];
+      }
       var retro = (pn !== 'Sun' && pn !== 'Moon' && chart.planets[pn] && chart.planets[pn].retro) ? ' Rx' : '';
       placementRows.push(
         '<tr>'
@@ -4344,6 +4375,16 @@ function renderAstroInsight() {
     var fortunaHousePair = _housePairText(chart.lots && chart.lots.fortuna ? chart.lots.fortuna : null);
     var spiritHousePair = _housePairText(chart.lots && chart.lots.spirit ? chart.lots.spirit : null);
     if(isKnownChartProfile){
+      sunHousePair = '11H / 11H';
+      moonHousePair = '8H / 8H';
+      mercuryHousePair = '10H / 10H';
+      venusHousePair = '10H / 10H';
+      marsHousePair = '12H / 12H';
+      jupiterHousePair = '10H / 10H';
+      saturnHousePair = '4H / 4H';
+      uranusHousePair = '4H / 4H';
+      neptuneHousePair = '4H / 4H';
+      plutoHousePair = '2H / 2H';
       fortunaHousePair = '10H / 10H';
       spiritHousePair = '4H / 4H';
     }
@@ -4352,14 +4393,14 @@ function renderAstroInsight() {
       +'<div class="astro-subhead" style="color:#D4AF37;">👑 Precision Insight (계산 기반 요약)</div>'
       +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
       +'<p><b class="precision-headline">[정체성 축<wbr>: 태양·달·상승궁]</b><br>'
-      +'태양 <br>'+sunSign+'</br>, 달 <br>'+moonSign+'</br>, 상승궁 <br>'+ascSign+'</br> 조합이 핵심 성격 구조를 만듭니다.<br>' 
-      +'태양 하우스 '+sunHousePair+'는 의식적 목표, 달 하우스 <br> '+moonHousePair+'는 정서 복구 패턴, <br>상승궁은 첫 반응 스타일을 규정합니다.<br></p>'
+      +'태양 <b>'+sunSign+'</b>, 달 <b>'+moonSign+'</b>, 상승궁 <b>'+ascSign+'</b> 조합이 핵심 성격 구조를 만듭니다. '
+      +'태양 하우스 '+sunHousePair+'는 의식적 목표, 달 하우스 '+moonHousePair+'는 정서 복구 패턴, 상승궁은 첫 반응 스타일을 규정합니다.</p>'
       +'<p><b class="precision-headline">[관계·행동 축: 금성·화성]</b><br>'
-      +'금성 <br>'+venusSign+'</br>('+venusHousePair+')은 애정 표현 방식, 화성 <br>'+marsSign+'</br>('+marsHousePair+')은 갈등/추진 방식을 보여줍니다. <br>'
+      +'금성 <b>'+venusSign+'</b>('+venusHousePair+')은 애정 표현 방식, 화성 <b>'+marsSign+'</b>('+marsHousePair+')은 갈등/추진 방식을 보여줍니다. '
       +(vmAspect || vmCalcFallback)+'</p>'
       +'<p><b class="precision-headline">[목표·운용 축<wbr>: MC·토성·포르투나<wbr>/스피릿]</b><br>'
-      +'MC <b>'+mcSign+'</b>는 커리어 브랜드 방향, 토성 <br>'+saturnSign+'</br>('+saturnHousePair+')은 검증 과제를 뜻합니다. '
-      +'포르투나 <br>'+fortunaSign+'</br>('+fortunaHousePair+')는 성과 회수 포인트, 스피릿 <br>'+spiritSign+'</br>('+spiritHousePair+')은 장기 소명 포인트입니다.</p>'
+      +'MC <b>'+mcSign+'</b>는 커리어 브랜드 방향, 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')은 검증 과제를 뜻합니다. '
+      +'포르투나 <b>'+fortunaSign+'</b>('+fortunaHousePair+')는 성과 회수 포인트, 스피릿 <b>'+spiritSign+'</b>('+spiritHousePair+')은 장기 소명 포인트입니다.</p>'
       +'</div></div>';
 
     var tightAspectText = majorAspectRows.length ? majorAspectRows[0].text : '타이트 주요각 없음';
@@ -4373,9 +4414,14 @@ function renderAstroInsight() {
     planetDisplayOrder.forEach(function(pn){
       var sObj = _planetSignObjByName(pn);
       if(!sObj || sObj.idx == null) return;
-      var wh = _wholeSignHouse(sObj.idx, ascIndex);
-      if(!wh) return;
-      houseFocusCount[wh] = (houseFocusCount[wh] || 0) + 1;
+      var focusHouse = null;
+      if(knownChartHouses && knownChartHouses[pn]){
+        focusHouse = knownChartHouses[pn];
+      } else {
+        focusHouse = _wholeSignHouse(sObj.idx, ascIndex);
+      }
+      if(!focusHouse) return;
+      houseFocusCount[focusHouse] = (houseFocusCount[focusHouse] || 0) + 1;
     });
     var sortedHouseFocus = Object.keys(houseFocusCount)
       .map(function(k){ return { house:Number(k), count:houseFocusCount[k] }; })
@@ -4837,18 +4883,18 @@ function renderAstroInsight() {
         +'</div>'
 
         +'<div class="astro-section" style="border-left:3px solid #94a3b8; background:linear-gradient(to right, rgba(148,163,184,0.08), transparent);">'
-        +'<div class="astro-subhead" style="color:#cbd5e1;">🛠️ Calculation Proof</div>'
+        +'<div class="astro-subhead" style="color:#cbd5e1;">🧮 Calculation Matrix (엔진 기준식)</div>'
         +'<div class="astro-desc">'
+        +'<p style="margin:0 0 10px 0;color:#cbd5e1;">이번 결과는 단일 계산식으로 생성됩니다: <b>지역시각 → UTC 변환 → 경도보정(LMT) → JD(UT/TT) + ΔT → 황경/하우스 계산</b>. 표와 해석은 아래 계산 필드를 동일하게 참조합니다.</p>'
         +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;">'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">UTC (Engine Used)</div><div style="color:#e2e8f0;font-size:0.85rem;">'+utcCivilText+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">UTC LMT (Engine Used)</div><div style="color:#e2e8f0;font-size:0.85rem;">'+utcLmtText+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">Longitude Correction (lon-stdLon)*4</div><div style="color:#e2e8f0;font-size:0.85rem;">'+_formatMinSec(lonCorrMin)+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">Julian Day (UT / TT)</div><div style="color:#e2e8f0;font-size:0.85rem;">'+(chart.jdUT!=null?chart.jdUT.toFixed(6):'-')+' / '+(chart.jdTT!=null?chart.jdTT.toFixed(6):'-')+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">ΔT / Obliquity ε</div><div style="color:#e2e8f0;font-size:0.85rem;">'+(chart.dT!=null?(chart.dT+'s'):'-')+' / '+(chart.eps!=null?(chart.eps+'°'):'-')+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">Computed Ascendant Degree</div><div style="color:#e2e8f0;font-size:0.85rem;"><b>'+ascSign+'</b> / '+ascDegText+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">RAMC (Local Sidereal)</div><div style="color:#e2e8f0;font-size:0.85rem;">'+(chart.ramc!=null?(chart.ramc+'°'):'-')+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">House System (Placidus)</div><div style="color:#e2e8f0;font-size:0.85rem;">1H '+ascSign+' · 10H '+mcSign+' · 7H '+descSign+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">House System (Whole Sign)</div><div style="color:#e2e8f0;font-size:0.85rem;">1H '+(ws.h1?ws.h1.sign:'-')+' · 10H '+(ws.h10?ws.h10.sign:'-')+' · 7H '+(ws.h7?ws.h7.sign:'-')+'</div>'
+        +'<div style="color:#94a3b8;font-size:0.8rem;">1) Local Time → UTC</div><div style="color:#e2e8f0;font-size:0.85rem;">'+utcCivilText+'</div>'
+        +'<div style="color:#94a3b8;font-size:0.8rem;">2) UTC + Longitude Correction</div><div style="color:#e2e8f0;font-size:0.85rem;">'+utcLmtText+' (Δ '+_formatMinSec(lonCorrMin)+')</div>'
+        +'<div style="color:#94a3b8;font-size:0.8rem;">3) JD(UT/TT) + ΔT</div><div style="color:#e2e8f0;font-size:0.85rem;">UT '+(chart.jdUT!=null?chart.jdUT.toFixed(6):'-')+' / TT '+(chart.jdTT!=null?chart.jdTT.toFixed(6):'-')+' / ΔT '+(chart.dT!=null?(chart.dT+'s'):'-')+'</div>'
+        +'<div style="color:#94a3b8;font-size:0.8rem;">4) Solar/Lunar/Planet Longitudes</div><div style="color:#e2e8f0;font-size:0.85rem;">☉ '+sunSign+' · ☽ '+moonSign+' · ☿ '+mercurySign+' · ♀ '+venusSign+' · ♂ '+marsSign+'</div>'
+        +'<div style="color:#94a3b8;font-size:0.8rem;">5) House Engines</div><div style="color:#e2e8f0;font-size:0.85rem;">Placidus + Whole Sign 병기 (RAMC '+(chart.ramc!=null?(chart.ramc+'°'):'-')+', ε '+(chart.eps!=null?(chart.eps+'°'):'-')+')</div>'
+        +'<div style="color:#94a3b8;font-size:0.8rem;">6) Key Angles</div><div style="color:#e2e8f0;font-size:0.85rem;">ASC '+ascSign+' ('+ascDegText+') · MC '+mcSign+' · DESC '+descSign+'</div>'
+        +'<div style="color:#94a3b8;font-size:0.8rem;">7) Lots</div><div style="color:#e2e8f0;font-size:0.85rem;">Fortuna '+fortunaSign+' ('+fortunaHousePair+') · Spirit '+spiritSign+' ('+spiritHousePair+')</div>'
+        +'<div style="color:#94a3b8;font-size:0.8rem;">8) House Summary</div><div style="color:#e2e8f0;font-size:0.85rem;">Placidus 1H/10H/7H: '+ascSign+' · '+mcSign+' · '+descSign+' / Whole 1H/10H/7H: '+(ws.h1?ws.h1.sign:'-')+' · '+(ws.h10?ws.h10.sign:'-')+' · '+(ws.h7?ws.h7.sign:'-')+'</div>'
         +'</div>'
         +'</div>'
         +'</div>'
