@@ -210,32 +210,18 @@ function closeIosModal() {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(function(reg) {
-        try { reg.update(); } catch (e) {}
-
-        if (reg.waiting) {
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        }
-
-        reg.addEventListener('updatefound', function () {
-          var installing = reg.installing;
-          if (!installing) return;
-          installing.addEventListener('statechange', function () {
-            if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-              installing.postMessage({ type: 'SKIP_WAITING' });
-            }
-          });
-        });
-
-        var refreshed = false;
-        navigator.serviceWorker.addEventListener('controllerchange', function () {
-          if (refreshed) return;
-          refreshed = true;
-          window.location.reload();
-        });
+    navigator.serviceWorker.getRegistrations()
+      .then(function(regs) {
+        return Promise.all((regs || []).map(function(reg) { return reg.unregister(); }));
       })
-      .catch(function(err) {  });
+      .then(function() {
+        if (window.caches && typeof window.caches.keys === 'function') {
+          return window.caches.keys().then(function(keys) {
+            return Promise.all((keys || []).map(function(key) { return window.caches.delete(key); }));
+          });
+        }
+      })
+      .catch(function() {});
   });
 }
 
