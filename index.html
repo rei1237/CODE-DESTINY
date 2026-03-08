@@ -1,6 +1,8 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
+     crossorigin="anonymous"></script>
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
   <!-- ■ 모바일 에러 추적 — onerror 배너 (디버깅 완료 후 제거) -->
   <script>
@@ -3097,8 +3099,9 @@ body.neo-mode .monthly-label { color: #64748b; }
 .feature-card-grid {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin-top: 18px;
+  gap: 120px;
+  margin-top: 120px;
+  margin-bottom: 120px;
 }
 .feature-card {
   position: relative;
@@ -3114,6 +3117,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  margin-bottom: 0;
 }
 .feature-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,0,0,0.14); }
 .feature-card:active { transform: scale(0.98); }
@@ -3152,7 +3156,7 @@ body.neo-mode .monthly-label { color: #64748b; }
 }
 
 .feature-card__body {
-  padding: 16px 18px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -3289,11 +3293,33 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 .feature-card--open .feature-card__detail { grid-template-rows: 1fr; }
 .feature-card__detail-inner { overflow: hidden; min-height: 0; }
 .feature-card__detail-content {
-  padding: 14px 18px 18px;
+  padding: 16px 20px 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   border-top: 1px solid rgba(0,0,0,0.07);
+}
+
+.post-saju-services-intro {
+  margin-top: 20px;
+  margin-bottom: 120px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,183,178,.35);
+  background: linear-gradient(135deg, rgba(255,245,248,.92), rgba(255,250,241,.94));
+  box-shadow: 0 4px 14px rgba(255,139,167,.14);
+}
+.post-saju-services-intro strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: .9rem;
+  color: #b23a63;
+}
+.post-saju-services-intro span {
+  display: block;
+  font-size: .8rem;
+  line-height: 1.65;
+  color: #6b7280;
 }
 .feature-card__detail-text {
   font-size: 0.82rem;
@@ -3892,7 +3918,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-mc-inner { position: relative; z-index: 1; padding: 16px 16px 14px; }
       /* ── 헤더 ── */
-      .dp-mc-header { display: flex; align-items: flex-start; gap: 12px; }
+      .dp-mc-header { display: flex; align-items: flex-start; gap: 12px; position: relative; z-index: 6; }
       .dp-mc-avatar {
         width: 50px; height: 50px; border-radius: 50%;
         background: linear-gradient(135deg, rgba(255,215,0,0.13) 0%, rgba(140,80,255,0.13) 100%);
@@ -3921,9 +3947,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-mc-list-btn {
         background: rgba(255,215,0,0.07); border: 1px solid rgba(255,215,0,0.18);
-        color: rgba(255,215,0,0.55); width: 34px; height: 34px; border-radius: 10px;
+        color: rgba(255,215,0,0.55); width: 44px; height: 44px; border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; flex-shrink: 0;
+        position: relative; z-index: 7;
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
         transition: background 0.2s, color 0.2s, border-color 0.2s;
       }
@@ -4125,6 +4152,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         flex: 1; overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         padding: 12px 14px 30px;
+      }
+      @media (max-width: 768px) {
+        .dp-sheet { max-height: 62dvh; max-height: 62vh; }
+        .dp-list-scroll { padding-bottom: 16px; }
       }
       .dp-list-empty {
         text-align: center; padding: 30px 20px;
@@ -4672,6 +4703,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         ✦ 이 정보를 나의 운명 카드에 저장
       </button>
       <button class="btn-main" id="run-btn" onclick="checkPrivacyAndCalculate()" disabled>🔄 라이브러리 로딩 중...</button>
+      <div class="post-saju-services-intro" role="note" aria-live="polite">
+        <strong>✨ 사주 팔자 이외의 신비한 운세 서비스</strong>
+        <span>아래에는 AI 동물 관상, MBTI 동물 궁합, 타로, 화투점 등 다양한 운세 콘텐츠가 준비되어 있어요. 스크롤하며 원하는 서비스로 편하게 이어서 즐겨보세요.</span>
+      </div>
       
       <!-- ═══ 부가 기능 카드 그리드 ═══ -->
       <div class="feature-card-grid">
@@ -9055,9 +9090,25 @@ select.inp { min-height: 48px; cursor: pointer; }
 
 /* 7. feature-card 가로모드/소형기기 */
 @media (max-width: 380px) {
-  .feature-card-grid { gap: 10px; }
+  .feature-card-grid { gap: 120px; }
   .feature-card__title { font-size: 0.9rem; }
   .feature-card__desc { font-size: 0.75rem; }
+}
+
+@media (max-width: 768px) {
+  .feature-card-grid {
+    gap: 120px;
+    margin-top: 120px;
+    margin-bottom: 120px;
+  }
+  .feature-card {
+    margin-bottom: 0;
+  }
+  .post-saju-services-intro {
+    margin-top: 20px;
+    margin-bottom: 120px;
+    padding: 16px;
+  }
 }
 
 /* 8. 라디오 버튼 터치 영역 확장 */

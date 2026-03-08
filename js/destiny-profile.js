@@ -58,6 +58,20 @@
     }
   };
 
+  function _isMobileViewport() {
+    try {
+      return window.matchMedia('(max-width: 900px)').matches;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function _resolveEventElement(target) {
+    if (!target) return null;
+    if (target.nodeType === 1) return target;
+    return target.parentElement || null;
+  }
+
   /* ──────────────────────────────────────────
      2. 진태양시(True Solar Time) 보정
         KST 기준: 표준 자오선 135도
@@ -446,8 +460,10 @@
     if (sheet) {
       sheet.classList.add('dp-sheet--open');
       if (overlay) overlay.classList.add('dp-sheet--open');
-      if (window._perf && window._perf.lockBody) window._perf.lockBody();
-      else document.body.style.overflow = 'hidden';
+      if (!_isMobileViewport()) {
+        if (window._perf && window._perf.lockBody) window._perf.lockBody();
+        else document.body.style.overflow = 'hidden';
+      }
     }
   };
 
@@ -457,9 +473,14 @@
     if (sheet) {
       sheet.classList.remove('dp-sheet--open');
       if (overlay) overlay.classList.remove('dp-sheet--open');
-      if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
-      else document.body.style.overflow = '';
     }
+    if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
+    else document.body.style.overflow = '';
+
+    /* lockBody 잔여 스타일 강제 정리 (모바일 fullscreen 고착 방지) */
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
   };
 
   window.dpSelectProfile = function(id) {
@@ -640,6 +661,19 @@
     var overlay = document.getElementById('dpListOverlay');
     if (overlay) overlay.addEventListener('click', dpCloseList);
 
+    var card = document.getElementById('dpMasterCard');
+    if (card) {
+      /* 모바일에서 onclick 유실되는 경우를 대비해 터치 핸들러를 추가한다. */
+      card.addEventListener('touchend', function(e) {
+        var targetEl = _resolveEventElement(e.target);
+        if (!targetEl) return;
+        var menuBtn = targetEl.closest('.dp-mc-list-btn');
+        if (!menuBtn) return;
+        e.preventDefault();
+        dpOpenList();
+      }, { passive: false });
+    }
+
     /* 모바일 터치 이벤트 위임 — iOS Safari onclick 이벤트 유실 방지 */
     var listInner = document.getElementById('dpListInner');
     if (listInner) {
@@ -653,8 +687,10 @@
         var dy = Math.abs(e.changedTouches[0].clientY - _tY);
         /* 스크롤이 아닌 탭만 처리 (이동 10px 미만) */
         if (dx < 10 && dy < 16) {
-          var item = e.target.closest('[data-profile-id]');
-          if (item && !e.target.closest('.dp-li-del')) {
+          var targetEl = _resolveEventElement(e.target);
+          if (!targetEl) return;
+          var item = targetEl.closest('[data-profile-id]');
+          if (item && !targetEl.closest('.dp-li-del')) {
             var pid = item.getAttribute('data-profile-id');
             if (pid) { e.preventDefault(); dpSelectProfile(pid); }
           }
