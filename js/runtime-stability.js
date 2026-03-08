@@ -2,7 +2,7 @@
   'use strict';
 
   var APP_ERR_BOX_ID = 'appStabilityFallback';
-  var MAX_OVERLAY_MS = 5000;
+  var MAX_OVERLAY_MS = 18000;
   var overlayWatch = { startedAt: 0, active: false };
 
   function now() { return Date.now(); }
@@ -47,7 +47,6 @@
     }
 
     if (reason) {
-      try { console.warn('[runtime-stability] forced overlay release:', reason); } catch (e) {}
       showFallback('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
     }
   }
@@ -122,7 +121,6 @@
   }
 
   function init() {
-    try { console.log('[runtime-stability] init'); } catch (e) {}
     setDynamicVhVar();
     patchGlobalHandlers();
     patchCriticalFns();
@@ -130,7 +128,8 @@
 
     // Multi-phase cleanup to ensure stale overlays never survive.
     setTimeout(stopBlockingOverlays, 2500);
-    setTimeout(stopBlockingOverlays, 5000);
+    setTimeout(stopBlockingOverlays, 7000);
+    setTimeout(stopBlockingOverlays, 14000);
 
     window.addEventListener('resize', function () {
       setDynamicVhVar();
