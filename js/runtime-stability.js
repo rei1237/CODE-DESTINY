@@ -4,6 +4,38 @@
   var APP_ERR_BOX_ID = 'appStabilityFallback';
   var MAX_OVERLAY_MS = 5000;
   var overlayWatch = { startedAt: 0, active: false };
+  var DIAG_MAX = 120;
+
+  function setupDiag() {
+    if (window.__appDiag && typeof window.__appDiag.mark === 'function') return;
+    var enabled = /[?&]debugLoader=1/.test(location.search)
+      || /[?&]debug=1/.test(location.search)
+      || window.localStorage.getItem('debugLoader') === '1';
+    window.__appDiag = {
+      enabled: enabled,
+      events: [],
+      mark: function (name, data) {
+        var evt = {
+          t: Date.now(),
+          name: name,
+          data: data || null
+        };
+        this.events.push(evt);
+        if (this.events.length > DIAG_MAX) this.events.shift();
+        if (this.enabled) {
+          try { console.log('[diag]', name, data || ''); } catch (e) {}
+        }
+      }
+    };
+  }
+
+  function diag(name, data) {
+    try {
+      if (window.__appDiag && typeof window.__appDiag.mark === 'function') {
+        window.__appDiag.mark(name, data);
+      }
+    } catch (e) {}
+  }
 
   function now() { return Date.now(); }
 
@@ -39,6 +71,7 @@
   }
 
   function stopBlockingOverlays(reason) {
+    diag('overlay.force-release', { reason: reason || 'none' });
     hardHide(document.getElementById('codeSplash'), true);
     hardHide(document.getElementById('lib-overlay'), false);
 
@@ -82,6 +115,7 @@
   function patchGlobalHandlers() {
     var prevOnError = window.onerror;
     window.onerror = function () {
+      diag('error.window-onerror');
       stopBlockingOverlays('window-onerror');
       if (typeof prevOnError === 'function') {
         try { return prevOnError.apply(this, arguments); } catch (e) {}
@@ -90,10 +124,12 @@
     };
 
     window.addEventListener('error', function () {
+      diag('error.event');
       stopBlockingOverlays('global-error');
     });
 
     window.addEventListener('unhandledrejection', function () {
+      diag('error.unhandledrejection');
       stopBlockingOverlays('promise-rejection');
     });
   }
@@ -135,6 +171,8 @@
   }
 
   function init() {
+    setupDiag();
+    diag('runtime.init.start', { ua: navigator.userAgent, width: window.innerWidth, height: window.innerHeight });
     try { console.log('[runtime-stability] init'); } catch (e) {}
     setDynamicVhVar();
     patchGlobalHandlers();
@@ -155,9 +193,12 @@
     }, { passive: true });
 
     window.addEventListener('pageshow', function () {
+      diag('runtime.pageshow');
       patchCriticalFns();
       setTimeout(stopBlockingOverlays, 250);
     });
+
+    diag('runtime.init.end');
   }
 
   if (document.readyState === 'loading') {
