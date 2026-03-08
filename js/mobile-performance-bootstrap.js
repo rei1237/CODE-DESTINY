@@ -10,6 +10,29 @@ function __isMobile() {
 
 function __loadScriptOnce(src) {
   if (!src) return Promise.reject(new Error('missing src'));
+  const normSrc = src.replace(/^\.\//, '');
+
+  // If script is already in DOM (static or dynamic), reuse it.
+  const allScripts = Array.from(document.querySelectorAll('script[src]'));
+  const existingBySrc = allScripts.find((s) => {
+    try {
+      const cur = (s.getAttribute('src') || '').replace(/^\.\//, '');
+      return cur === normSrc || cur.endsWith('/' + normSrc);
+    } catch (e) {
+      return false;
+    }
+  });
+  if (existingBySrc) {
+    if (existingBySrc.dataset.loaded === '1' || existingBySrc.readyState === 'complete') {
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      existingBySrc.addEventListener('load', () => resolve(), { once: true });
+      existingBySrc.addEventListener('error', () => reject(new Error('load failed: ' + src)), { once: true });
+      setTimeout(() => resolve(), 0);
+    });
+  }
+
   const existing = document.querySelector('script[data-dyn-src="' + src + '"]');
   if (existing && existing.dataset.loaded === '1') return Promise.resolve();
   if (existing && existing.dataset.loading === '1') {
@@ -21,10 +44,10 @@ function __loadScriptOnce(src) {
 
   return new Promise((resolve, reject) => {
     const s = document.createElement('script');
-    s.src = src;
+    s.src = normSrc;
     s.defer = true;
     s.async = true;
-    s.dataset.dynSrc = src;
+    s.dataset.dynSrc = normSrc;
     s.dataset.loading = '1';
     s.onload = () => {
       s.dataset.loading = '0';
