@@ -477,12 +477,18 @@ body::after{
 #lib-sub{font-size:.8rem;color:#bbb}
 
 /* ─── 공통 카드 ─── */
+:root {
+  --ui-space-8: 8px;
+  --ui-space-16: 16px;
+  --ui-space-24: 24px;
+  --ui-space-32: 32px;
+}
 .card{background:var(--card-glass, var(--card-bg, #fff));border-radius:var(--radius-lg, 20px);padding:22px;
-  box-shadow:var(--card-shadow, 0 2px 24px rgba(255,139,167,.1));border:1px solid var(--border-color, rgba(255,183,178,.15));margin-bottom:var(--spacing-md, 16px); transition: background 0.4s ease, border-color 0.4s ease;backdrop-filter:blur(6px) saturate(110%);-webkit-backdrop-filter:blur(6px) saturate(110%);}
+  box-shadow:var(--card-shadow, 0 2px 24px rgba(255,139,167,.1));border:1px solid var(--border-color, rgba(255,183,178,.15));margin-bottom:var(--ui-space-24, 24px); transition: background 0.4s ease, border-color 0.4s ease;backdrop-filter:blur(6px) saturate(110%);-webkit-backdrop-filter:blur(6px) saturate(110%);}
 /* 마우스 기기에서만 풀 블러 적용 (터치 기기 GPU 절약) */
 @media (pointer: fine) { .card { backdrop-filter:blur(10px) saturate(120%); -webkit-backdrop-filter:blur(10px) saturate(120%); } }
 @media (min-width: 768px){
-  .card{padding:18px}
+  .card{padding:20px}
 }
 @media (max-width: 480px){
   .card{padding:16px}
@@ -509,10 +515,14 @@ img, canvas, svg, video {
   box-sizing: border-box;
   overflow-x: hidden;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-24, 24px);
 }
 #resultPage > * {
   width: 100%;
   max-width: 100%;
+  margin: 0;
 }
 #inputPage,
 #resultPage,
@@ -529,7 +539,11 @@ img, canvas, svg, video {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  margin-bottom: 0;
 }
+#resultPage .prem-box + .prem-box { margin-top: var(--ui-space-16, 16px); }
+#resultPage .prem-box button,
+#resultPage .prem-box .btn-sub { margin-top: var(--ui-space-16, 16px) !important; }
 
 .theme-switch-wrapper {
   position: fixed;
@@ -954,9 +968,9 @@ input:checked + .slider .paw-pad {
 .palace-note{font-size:.72rem;margin-top:7px;font-style:italic}
 
 /* ─── 프리미엄 분석 박스 ─── */
-.prem-box{background:#FAFAFA;border:1px solid #EEE;border-radius:12px;padding:16px;margin-top:12px}
+.prem-box{background:#FAFAFA;border:1px solid #EEE;border-radius:12px;padding:16px;margin-top:16px}
 .prem-title{display:block;font-weight:700;color:#333;font-size:.88rem;
-  border-left:3px solid var(--pink);padding-left:9px;margin-bottom:10px}
+  border-left:3px solid var(--pink);padding-left:9px;margin-bottom:12px}
 .prem-text{font-size:.88rem;color:#555;line-height:1.78}
 .hl{background:rgba(255,183,178,.2);padding:0 4px;font-weight:700;color:#D84315;border-radius:3px}
 .tip-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
@@ -2469,7 +2483,7 @@ body.neo-mode .neo-logo{display:flex!important}
   background: linear-gradient(135deg, #fffafa, #ffe4e8);
   border: 1px solid rgba(255,139,167,0.4);
   box-shadow: 0 4px 15px rgba(255,139,167,0.1);
-  padding: 24px 20px;
+  padding: 20px;
 }
 body.neo-mode .fortune-card {
   background: linear-gradient(135deg, #0f172a, #1a2336);
@@ -3097,8 +3111,8 @@ body.neo-mode .monthly-label { color: #64748b; }
 .feature-card-grid {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  margin-top: 22px;
+  gap: 24px;
+  margin-top: 24px;
   padding: 4px 0 8px;
 }
 .feature-card {
@@ -3153,25 +3167,25 @@ body.neo-mode .monthly-label { color: #64748b; }
 }
 
 .feature-card__body {
-  padding: 18px 20px;
+  padding: 16px 20px 20px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 4px;
+  justify-content: flex-start;
+  gap: 0;
   flex: 1;
 }
 .feature-card__title {
   font-size: 1.05rem;
   font-weight: 800;
   color: #1e293b;
-  margin: 0 0 6px;
+  margin: 0 0 10px;
   line-height: 1.3;
 }
 .feature-card__desc {
   font-size: 0.8rem;
   color: #64748b;
-  margin: 0 0 14px;
-  line-height: 1.6;
+  margin: 0 0 16px;
+  line-height: 1.65;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -3294,7 +3308,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
   padding: 16px 20px 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   border-top: 1px solid rgba(0,0,0,0.07);
 }
 .feature-card__detail-text {
@@ -3338,17 +3352,17 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
 @media (max-width: 768px) {
   .feature-card-grid {
-    gap: 16px;
-    margin-top: 16px;
+    gap: 24px;
+    margin-top: 24px;
     padding: 2px 0 6px;
   }
   .feature-card { border-radius: 18px; }
-  .feature-card__body { padding: 14px 15px 16px; }
-  .feature-card__detail-content { padding: 14px 15px 16px; gap: 9px; }
+  .feature-card__body { padding: 16px; }
+  .feature-card__detail-content { padding: 16px; gap: 16px; }
 }
 
 @media (max-width: 480px) {
-  .feature-card-grid { gap: 14px; }
+  .feature-card-grid { gap: 24px; }
   .feature-card { border-radius: 16px; }
 }
 
@@ -3939,13 +3953,20 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-mc-list-btn {
         background: rgba(255,215,0,0.07); border: 1px solid rgba(255,215,0,0.18);
-        color: rgba(255,215,0,0.55); width: 34px; height: 34px; border-radius: 10px;
+        color: rgba(255,215,0,0.55); width: 44px; height: 44px; border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; flex-shrink: 0;
+        position: relative; z-index: 8; pointer-events: auto;
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
         transition: background 0.2s, color 0.2s, border-color 0.2s;
       }
+      .dp-mc-list-btn svg { width: 18px; height: 18px; }
       .dp-mc-list-btn:active { background: rgba(255,215,0,0.18); color: #FFD700; border-color: rgba(255,215,0,0.4); }
+      @media (max-width: 480px) {
+        .dp-mc-list-btn {
+          width: 48px; height: 48px; border-radius: 14px;
+        }
+      }
       .dp-mc-divider {
         height: 1px;
         background: linear-gradient(90deg, transparent, rgba(255,215,0,0.22), rgba(160,120,255,0.15), transparent);
@@ -9073,7 +9094,7 @@ select.inp { min-height: 48px; cursor: pointer; }
 
 /* 7. feature-card 가로모드/소형기기 */
 @media (max-width: 380px) {
-  .feature-card-grid { gap: 12px; }
+  .feature-card-grid { gap: 24px; }
   .feature-card__title { font-size: 0.9rem; }
   .feature-card__desc { font-size: 0.75rem; }
 }
