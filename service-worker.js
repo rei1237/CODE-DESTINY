@@ -34,6 +34,8 @@ self.addEventListener('activate', event => {
 /* Network-First: always try network, fall back to cache */
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  // Keep crawler-critical files network-direct to avoid stale/fallback responses.
+  if (event.request.url.includes('/ads.txt') || event.request.url.includes('/robots.txt') || event.request.url.includes('/sitemap.xml')) return;
   if (event.request.url.includes('pagead') || event.request.url.includes('google-analytics')) return;
   if (event.request.url.includes('emailjs') || event.request.url.includes('api.')) return;
 

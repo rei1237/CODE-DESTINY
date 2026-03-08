@@ -3,6 +3,7 @@
 
 User-agent: *
 Allow: /
+Allow: /ads.txt
 Disallow: /sudda/
 Disallow: /icons/
 
@@ -15,6 +16,7 @@ Crawl-delay: 1
 # Google specific
 User-agent: Googlebot
 Allow: /
+Allow: /ads.txt
 Disallow: /sudda/
 
 # Google Image crawler (이미지 검색 색인 최적화)
