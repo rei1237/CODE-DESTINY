@@ -266,8 +266,8 @@ function toggleNeoMode(){
     setTimeout(function(){glitchWrap.classList.remove('run');},600);
   }
 
-  body.classList.add('neo-glitch-active');
-  setTimeout(function(){body.classList.remove('neo-glitch-active');},550);
+  // Keep glitch effect isolated to the dedicated overlay wrapper.
+  // Body-wide glitch animation can override transform styles on many UI nodes.
   
   var cb = document.getElementById('themeCheckbox');
   if(cb && cb.checked !== NEO_MODE) {
