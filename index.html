@@ -8209,7 +8209,9 @@ window.addEventListener('load', function() {
 </script>
 <script type="text/javascript" async src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-<!-- Optional feature scripts are lazy-loaded by mobile-performance-bootstrap.js -->
+<!-- 관상 분석 스크립트 추가 -->
+<script src="AnalysisEngine.js"></script>
+<script src="PhysiognomyUI.js"></script>
 
 <div class="modal" id="tsModal" onclick="closeModal(event)">
   <div class="modal-box" onclick="event.stopPropagation()">
@@ -8972,7 +8974,10 @@ window.addEventListener('load', function() {
 
 </style>
 
-<!-- MBTI/Hwatu/Physiognomy are code-split and loaded on demand -->
+<script src="js/astral-soul.js"></script>
+
+<!-- 타짜 화투점 -->
+<script src="HwatuFortune.js"></script>
 <style>
 /* ═══ 모바일 마스터 최적화 추가 CSS ═══ */
 
@@ -9147,7 +9152,6 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 }
 </style>
 
-<script type="module" src="js/mobile-performance-bootstrap.js"></script>
 <script src="js/runtime-stability.js"></script>
 <script src="js/touch-perf.js"></script>
 
