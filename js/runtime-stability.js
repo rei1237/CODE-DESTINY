@@ -38,8 +38,21 @@
   }
 
   function stopBlockingOverlays(reason) {
-    hardHide(document.getElementById('codeSplash'), true);
-    hardHide(document.getElementById('lib-overlay'), false);
+    if (window._perf && typeof window._perf.unlockBody === 'function') {
+      window._perf.unlockBody();
+    }
+
+    var splash = document.getElementById('codeSplash');
+    if (splash) {
+      splash.style.display = 'none';
+      if (splash.parentNode) splash.parentNode.removeChild(splash);
+    }
+
+    var libOv = document.getElementById('lib-overlay');
+    if (libOv) {
+      libOv.style.display = 'none';
+      if (libOv.parentNode) libOv.parentNode.removeChild(libOv);
+    }
 
     var loader = document.getElementById('sajuLoaderOverlay');
     if (loader) {
@@ -78,11 +91,13 @@
   }
 
   function patchGlobalHandlers() {
-    window.addEventListener('error', function () {
+    window.addEventListener('error', function (e) {
+      try { console.error('[runtime-stability] global error:', e.message); } catch(ex) {}
       stopBlockingOverlays('global-error');
     });
 
-    window.addEventListener('unhandledrejection', function () {
+    window.addEventListener('unhandledrejection', function (e) {
+      try { console.error('[runtime-stability] unhandled rejection:', e.reason); } catch(ex) {}
       stopBlockingOverlays('promise-rejection');
     });
   }
@@ -93,9 +108,17 @@
 
     var wrapped = function () {
       try {
-        return fn.apply(this, arguments);
+        var res = fn.apply(this, arguments);
+        if (res && typeof res.then === 'function') {
+          return res.catch(function (err) {
+            try { console.error('[runtime-stability] async ' + name + ' failed', err); } catch (e) {}
+            showFallback('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+            return null;
+          });
+        }
+        return res;
       } catch (err) {
-        try { console.error('[runtime-stability] ' + name + ' failed', err); } catch (e) {}
+        try { console.error('[runtime-stability] sync ' + name + ' failed', err); } catch (e) {}
         showFallback('콘텐츠를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
         return null;
       }

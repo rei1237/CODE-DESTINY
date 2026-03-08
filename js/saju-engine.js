@@ -14,7 +14,7 @@ function _hideLibOverlay(forceRemove) {
   if (!ov) return;
   ov.style.display = 'none';
   ov.classList.add('done');
-  if (forceRemove && ov.parentNode) {
+  if (ov.parentNode) {
     ov.parentNode.removeChild(ov);
   }
 }
@@ -1884,7 +1884,7 @@ function startSajuCalculationFlow() {
       var _stuck = document.getElementById('sajuLoaderOverlay');
       if (_stuck) {
         _stuck.classList.remove('show');
-        _stuck.style.display = 'none';
+        setTimeout(() => { _stuck.style.display = 'none'; }, 50);
       }
       _showEngineFallbackNotice('결과 렌더링이 지연되어 기본 화면으로 복귀했습니다. 다시 시도해주세요.');
     }, 22000);
@@ -1903,7 +1903,7 @@ function startSajuCalculationFlow() {
         var _lo = document.getElementById('sajuLoaderOverlay');
         if (_lo) {
           _lo.classList.remove('show');
-          _lo.style.display = 'none';
+          setTimeout(() => { _lo.style.display = 'none'; }, 50);
         }
       }
     }, 800);

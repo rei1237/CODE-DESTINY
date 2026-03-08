@@ -23,26 +23,30 @@
 
   function initReveal() {
     if (!('IntersectionObserver' in window)) return;
-    revealObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          if (entry.target) entry.target.classList.remove(HIDDEN_CLS);
-          if (entry.target) entry.target.classList.add(VISIBLE_CLS);
-          revealObserver.unobserve(entry.target);
+    try {
+      revealObserver = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && entry.target) {
+            entry.target.classList.remove(HIDDEN_CLS);
+            entry.target.classList.add(VISIBLE_CLS);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        root: null,
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.07
+      });
+
+      getSections().forEach(function (el) {
+        if (el && !el.classList.contains(VISIBLE_CLS)) {
+          el.classList.add(HIDDEN_CLS);
+          revealObserver.observe(el);
         }
       });
-    }, {
-      root: null,
-      rootMargin: '0px 0px -50px 0px',
-      threshold: 0.07
-    });
-
-    getSections().forEach(function (el) {
-      if (!el.classList.contains(VISIBLE_CLS)) {
-        el.classList.add(HIDDEN_CLS);
-        revealObserver.observe(el);
-      }
-    });
+    } catch(e) {
+      console.error('[revealObserver] fail:', e);
+    }
   }
 
   /* ── 2. 다음 섹션 인디케이터 ── */
@@ -80,37 +84,42 @@
 
   function initSectionTracker() {
     if (!('IntersectionObserver' in window)) return;
-    sectionObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        currentSection = entry.target;
-        var all = getSections().filter(isDisplayed);
-        var idx = all.indexOf(currentSection);
-        var hasNext = idx !== -1 && idx < all.length - 1;
-        if (!indicatorEl) return;
-        if (hasNext) {
-          var nextEl   = all[idx + 1];
-          var titleEl  = nextEl ? nextEl.querySelector('.sec-title, .destiny-title, h3, .fortune-sec-title') : null;
-          var titleTxt = (titleEl ? titleEl.textContent : '').trim();
-          if (!titleTxt) titleTxt = '다음 서비스 보기';
-          if (indicatorLabel) {
-            indicatorLabel.textContent = titleTxt.length > 16
-              ? titleTxt.slice(0, 15) + '\u2026'
-              : titleTxt;
+    try {
+      sectionObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting || !entry.target) return;
+          currentSection = entry.target;
+          var all = getSections().filter(isDisplayed);
+          var idx = all.indexOf(currentSection);
+          var hasNext = idx !== -1 && idx < all.length - 1;
+          if (!indicatorEl) return;
+          if (hasNext) {
+            var nextEl   = all[idx + 1];
+            if(!nextEl) return;
+            var titleEl  = nextEl.querySelector('.sec-title, .destiny-title, h3, .fortune-sec-title');
+            var titleTxt = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
+            if (!titleTxt) titleTxt = '다음 서비스 보기';
+            if (indicatorLabel) {
+              indicatorLabel.textContent = titleTxt.length > 16
+                ? titleTxt.slice(0, 15) + '\u2026'
+                : titleTxt;
+            }
+            indicatorEl.classList.add('fate-scroll-next-visible');
+          } else {
+            indicatorEl.classList.remove('fate-scroll-next-visible');
           }
-          indicatorEl.classList.add('fate-scroll-next-visible');
-        } else {
-          indicatorEl.classList.remove('fate-scroll-next-visible');
-        }
+        });
+      }, {
+        rootMargin: '-22% 0px -22% 0px',
+        threshold: 0
       });
-    }, {
-      rootMargin: '-22% 0px -22% 0px',
-      threshold: 0
-    });
 
-    getSections().filter(isDisplayed).forEach(function (el) {
-      sectionObserver.observe(el);
-    });
+      getSections().filter(isDisplayed).forEach(function (el) {
+        if(el) sectionObserver.observe(el);
+      });
+    } catch(e) {
+      console.error('[sectionObserver] fail:', e);
+    }
   }
 
   /* ── 3. 나중에 display:none → 표시되는 섹션 관찰 ── */

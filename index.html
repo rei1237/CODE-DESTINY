@@ -421,8 +421,8 @@ button[onclick*="close"], button[aria-label*="닫"] {
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 body{background-color:#FFF5F8;background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
-  min-height:100vh;min-height:calc(var(--app-vh, 1vh) * 100);min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
-  overscroll-behavior-y:contain;
+  min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
+  overscroll-behavior-y:none;
   -webkit-overflow-scrolling:touch;
 }
 body::before{
@@ -2763,7 +2763,6 @@ body.neo-mode .monthly-label { color: #64748b; }
     transform: translateY(36px);
     transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
                 transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: opacity, transform;
   }
   .fate-scroll-section-visible {
     opacity: 1 !important;
@@ -3661,9 +3660,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     position: fixed; inset: 0; background: radial-gradient(circle at center, #1b1725 0%, #050505 100%);
     z-index: 9999999; display: none; align-items: center; justify-content: center; flex-direction: column;
     color: #e5c07b; font-family: 'Noto Serif KR', serif; overflow: hidden;
-    opacity: 0; transition: opacity 0.5s ease;
   }
-  #sajuLoaderOverlay.show { opacity: 1; }
+  #sajuLoaderOverlay.show { display: flex !important; }
 
   /* 중앙 책(만세력) 3D 컨테이너 */
   .saju-book-wrapper {
@@ -9168,12 +9166,11 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   min-height: 44px;
 }
 
-/* 13. GPU 가속 — 애니메이션 레이어 */
+/* 13. GPU 가속 — 애니메이션 레이어 (모바일 화이트스크린 방지를 위해 will-change 남용 제거) */
 .saju-book,.saju-vortex,.orb,
 .feature-card,.dw-item,.ts-card,
 .sy-gauge-fill,.sy-talent-fill,
 .tarot-card,.oracle-card-m {
-  will-change: transform;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }

@@ -100,9 +100,12 @@
 
   /* ── 전역 노출 (페이지 내 다른 코드에서 재사용) ── */
   var _scrollY = 0;
+  var _isBodyLocked = false;
 
   /* iOS scroll-freeze 없이 body 스크롤 잠금/해제 */
   function lockBody() {
+    if (_isBodyLocked) return;
+    _isBodyLocked = true;
     _scrollY = window.pageYOffset || document.documentElement.scrollTop;
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
@@ -110,6 +113,8 @@
     document.body.style.width = '100%';
   }
   function unlockBody() {
+    if (!_isBodyLocked) return;
+    _isBodyLocked = false;
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
