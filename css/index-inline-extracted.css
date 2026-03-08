@@ -3095,6 +3095,52 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     #acc-astro-body .astro-desc b {
       color: #fca5a5;
     }
+    #acc-astro-body .precision-insight-card {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      white-space: normal;
+    }
+    #acc-astro-body .precision-insight-card .astro-subhead {
+      display: block;
+      line-height: 1.4;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    #acc-astro-body .precision-insight-card .astro-desc,
+    #acc-astro-body .precision-insight-card .astro-desc p {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    #acc-astro-body .precision-insight-card .precision-headline {
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      display: inline;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    #acc-astro-body .precision-insight-card,
+    #acc-astro-body .precision-insight-card * {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 480px) {
+      #acc-astro-body .precision-insight-card .astro-desc {
+        line-height: 1.65;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-all;
+      }
+    }
 
 /* --- block 3 --- */
   /* 모달 시트 — 브라우저 네이티브 스크롤바 사용, 레이아웃 점프 방지 */
