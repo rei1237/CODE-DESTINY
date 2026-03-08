@@ -210,7 +210,7 @@ function closeIosModal() {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register('/service-worker.js?v=8')
       .then(function(reg) {  })
       .catch(function(err) {  });
   });
