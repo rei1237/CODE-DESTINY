@@ -10,6 +10,8 @@
   var decoEls    = [];
   var secObs     = null;
   var rafId      = null;
+  var progressBound = false;
+  var progressHandler = null;
   var isNeo      = false;
 
   /* ─ 모드 동기화 ─ */
@@ -66,19 +68,31 @@
 
   /* ─ 스크롤 진행률 리본 ─ */
   function startProgress () {
-    if (rafId) cancelAnimationFrame(rafId);
-    function tick () {
+    if (progressBound) return;
+    var lastTs = 0;
+    progressHandler = function () {
+      var nowTs = Date.now();
+      if (nowTs - lastTs < 66) return; // ~15fps throttle is enough for progress UI
+      lastTs = nowTs;
       var st  = window.pageYOffset || document.documentElement.scrollTop;
       var dh  = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       var pct = dh > 0 ? Math.min(100, (st / dh) * 100) : 0;
       if (progressEl) progressEl.style.width = pct + '%';
-      rafId = requestAnimationFrame(tick);
-    }
-    tick();
+    };
+    progressBound = true;
+    window.addEventListener('scroll', progressHandler, { passive: true });
+    window.addEventListener('resize', progressHandler, { passive: true });
+    progressHandler();
   }
 
   function stopProgress () {
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    if (progressBound && progressHandler) {
+      window.removeEventListener('scroll', progressHandler);
+      window.removeEventListener('resize', progressHandler);
+    }
+    progressBound = false;
+    progressHandler = null;
     if (progressEl) progressEl.style.width = '0%';
   }
 
