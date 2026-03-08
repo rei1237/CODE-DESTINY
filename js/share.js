@@ -211,30 +211,7 @@ function closeIosModal() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('/service-worker.js')
-      .then(function(reg) {
-        try { reg.update(); } catch (e) {}
-
-        if (reg.waiting) {
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        }
-
-        reg.addEventListener('updatefound', function () {
-          var installing = reg.installing;
-          if (!installing) return;
-          installing.addEventListener('statechange', function () {
-            if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-              installing.postMessage({ type: 'SKIP_WAITING' });
-            }
-          });
-        });
-
-        var refreshed = false;
-        navigator.serviceWorker.addEventListener('controllerchange', function () {
-          if (refreshed) return;
-          refreshed = true;
-          window.location.reload();
-        });
-      })
+      .then(function(reg) {  })
       .catch(function(err) {  });
   });
 }
