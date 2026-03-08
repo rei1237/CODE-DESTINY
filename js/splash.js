@@ -1,5 +1,7 @@
 (function(){
   var _splashDone = false;
+  var SPLASH_MAX_MS = 5000;
+  console.log('[loader] App init start (splash bootstrap)');
   /* -- ��ġ ��� �Ǻ� (�����/�º���) -- */
   var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
@@ -7,31 +9,37 @@
   var cvs = document.getElementById('splashCanvas');
   var rafId;
   if (cvs && !isMobile) {
-    var ctx = cvs.getContext('2d');
-    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-    /* �� ����: 5���� ���� */
-    var stars = Array.from({length: 5}, function() {
-      return {
-        x: Math.random() * cvs.width,
-        y: Math.random() * cvs.height,
-        r: Math.random() * 1.5 + 0.5,
-        a: Math.random() * Math.PI * 2,
-        speed: Math.random() * 0.008 + 0.003
-      };
-    });
-    function drawStars() {
-      ctx.clearRect(0, 0, cvs.width, cvs.height);
-      stars.forEach(function(s) {
-        s.a += s.speed;
-        var alpha = (Math.sin(s.a) * 0.5 + 0.5) * 0.8 + 0.1;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(200,210,255,' + alpha + ')';
-        ctx.fill();
+    try {
+      var ctx = cvs.getContext('2d');
+      if (!ctx) throw new Error('canvas-context-unavailable');
+      cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+      /* �� ����: 5���� ���� */
+      var stars = Array.from({length: 5}, function() {
+        return {
+          x: Math.random() * cvs.width,
+          y: Math.random() * cvs.height,
+          r: Math.random() * 1.5 + 0.5,
+          a: Math.random() * Math.PI * 2,
+          speed: Math.random() * 0.008 + 0.003
+        };
       });
-      rafId = requestAnimationFrame(drawStars);
+      function drawStars() {
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        stars.forEach(function(s) {
+          s.a += s.speed;
+          var alpha = (Math.sin(s.a) * 0.5 + 0.5) * 0.8 + 0.1;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(200,210,255,' + alpha + ')';
+          ctx.fill();
+        });
+        rafId = requestAnimationFrame(drawStars);
+      }
+      drawStars();
+    } catch (e) {
+      console.warn('[loader] splash canvas disabled:', e);
+      cvs.style.display = 'none';
     }
-    drawStars();
   } else if (cvs) {
     /* �����: ĵ���� ���� (compositor ���̾� ����) */
     cvs.style.display = 'none';
@@ -79,18 +87,20 @@
     if (bar) bar.style.width = '100%';
     var splash = document.getElementById('codeSplash');
     if (splash) {
+      splash.style.pointerEvents = 'none';
       splash.style.display = 'none';
       if (splash.parentNode) splash.parentNode.removeChild(splash);
     }
     if (rafId) cancelAnimationFrame(rafId);
+    console.log('[loader] Loading removed (splash hidden)');
   }
 
   if (document.readyState === 'complete') {
     hideSplash();
   } else {
     window.addEventListener('load', hideSplash, { once: true });
-    /* 긴급 해제: 모바일은 12초, 데스크탑은 8초 후 강제 종료 */
-    setTimeout(hideSplash, isMobile ? 12000 : 8000);
+    /* 5초 강제 해제: 어떤 실패에서도 로더가 영구 고정되지 않게 보장 */
+    setTimeout(hideSplash, SPLASH_MAX_MS);
     /* 페이지 복귀 시 잔존 오버레이 제거 */
     window.addEventListener('pageshow', hideSplash, { once: true });
   }
