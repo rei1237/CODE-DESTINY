@@ -3597,6 +3597,44 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
 <script src="js/splash.js"></script>
 
+<script>
+  (function () {
+    function isMobileEnv() {
+      return window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+    }
+
+    function forceReleaseLoaders(reason) {
+      var ids = ['codeSplash', 'lib-overlay', 'sajuLoaderOverlay'];
+      ids.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0';
+        el.style.visibility = 'hidden';
+        el.style.display = 'none';
+        el.classList.remove('show');
+        el.classList.add('done');
+      });
+      console.warn('[mobile-loader] forced release:', reason || 'unknown');
+    }
+
+    function initMobileLoaderWatchdog() {
+      if (!isMobileEnv()) return;
+      console.log('[mobile-loader] mobile init start');
+      setTimeout(function () { forceReleaseLoaders('mobile-5s-watchdog'); }, 5000);
+      window.addEventListener('pageshow', function () {
+        setTimeout(function () { forceReleaseLoaders('mobile-pageshow-safety'); }, 300);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMobileLoaderWatchdog, { once: true });
+    } else {
+      initMobileLoaderWatchdog();
+    }
+  })();
+</script>
+
 <!-- 스크롤 복원 자동 처리 방지 (모바일 중단 스크롤 문제 구조적 해결) -->
 <script>
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
