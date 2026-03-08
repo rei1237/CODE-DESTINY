@@ -3097,13 +3097,12 @@ body.neo-mode .monthly-label { color: #64748b; }
 .feature-card-grid {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  margin-top: 22px;
-  padding: 4px 0 8px;
+  gap: 18px;
+  margin-top: 18px;
 }
 .feature-card {
   position: relative;
-  border-radius: 22px;
+  border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -3153,11 +3152,10 @@ body.neo-mode .monthly-label { color: #64748b; }
 }
 
 .feature-card__body {
-  padding: 18px 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
   flex: 1;
 }
 .feature-card__title {
@@ -3170,8 +3168,8 @@ body.neo-mode .monthly-label { color: #64748b; }
 .feature-card__desc {
   font-size: 0.8rem;
   color: #64748b;
-  margin: 0 0 14px;
-  line-height: 1.6;
+  margin: 0 0 12px;
+  line-height: 1.55;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -3291,10 +3289,10 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 .feature-card--open .feature-card__detail { grid-template-rows: 1fr; }
 .feature-card__detail-inner { overflow: hidden; min-height: 0; }
 .feature-card__detail-content {
-  padding: 16px 20px 20px;
+  padding: 14px 18px 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   border-top: 1px solid rgba(0,0,0,0.07);
 }
 .feature-card__detail-text {
@@ -3335,22 +3333,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 .feature-card--ziwei .feature-card__launch   { background: linear-gradient(135deg, #2b0545, #c026d3); }
 body.neo-mode .feature-card__detail-content { border-top-color: rgba(255,255,255,0.07); }
 body.neo-mode .feature-card__detail-text { color: #94a3b8; }
-
-@media (max-width: 768px) {
-  .feature-card-grid {
-    gap: 16px;
-    margin-top: 16px;
-    padding: 2px 0 6px;
-  }
-  .feature-card { border-radius: 18px; }
-  .feature-card__body { padding: 14px 15px 16px; }
-  .feature-card__detail-content { padding: 14px 15px 16px; gap: 9px; }
-}
-
-@media (max-width: 480px) {
-  .feature-card-grid { gap: 14px; }
-  .feature-card { border-radius: 16px; }
-}
 
   </style>
 
@@ -9073,7 +9055,7 @@ select.inp { min-height: 48px; cursor: pointer; }
 
 /* 7. feature-card 가로모드/소형기기 */
 @media (max-width: 380px) {
-  .feature-card-grid { gap: 12px; }
+  .feature-card-grid { gap: 10px; }
   .feature-card__title { font-size: 0.9rem; }
   .feature-card__desc { font-size: 0.75rem; }
 }
