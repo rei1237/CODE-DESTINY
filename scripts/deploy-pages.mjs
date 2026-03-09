@@ -1,16 +1,5 @@
 import { spawnSync } from "node:child_process";
 
-// In Cloudflare Pages CI, deployment/upload is handled by the platform.
-// Running wrangler pages deploy again can fail due to token scope differences.
-if (
-  process.env.CF_PAGES === "1" ||
-  process.env.CF_PAGES === "true" ||
-  process.env.CLOUDFLARE_PAGES === "1"
-) {
-  console.log("[deploy-pages] Cloudflare Pages CI detected. Skipping wrangler pages deploy.");
-  process.exit(0);
-}
-
 const projectName =
   process.env.CF_PAGES_PROJECT_NAME ||
   process.env.CLOUDFLARE_PAGES_PROJECT_NAME ||
@@ -39,10 +28,36 @@ const args = [
 
 console.log(`[deploy-pages] project=${projectName} branch=${branch}`);
 
-const result = spawnSync(npxCmd, args, {
-  stdio: "inherit",
-  shell: false,
-});
+function runDeploy(env) {
+  return spawnSync(npxCmd, args, {
+    stdio: "inherit",
+    shell: false,
+    env,
+  });
+}
+
+const isPagesCi =
+  process.env.CF_PAGES === "1" ||
+  process.env.CF_PAGES === "true" ||
+  process.env.CLOUDFLARE_PAGES === "1";
+
+let result;
+
+if (isPagesCi && process.env.CLOUDFLARE_API_TOKEN) {
+  // Some CI setups inject a low-scope token that breaks Pages deploy.
+  // First try without overriding token to allow platform/default auth.
+  const envWithoutToken = { ...process.env };
+  delete envWithoutToken.CLOUDFLARE_API_TOKEN;
+  console.log("[deploy-pages] CF Pages CI detected. Trying deploy without CLOUDFLARE_API_TOKEN override...");
+  result = runDeploy(envWithoutToken);
+
+  if (result.status !== 0) {
+    console.log("[deploy-pages] Retry with CLOUDFLARE_API_TOKEN...");
+    result = runDeploy(process.env);
+  }
+} else {
+  result = runDeploy(process.env);
+}
 
 if (typeof result.status === "number") {
   process.exit(result.status);

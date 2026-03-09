@@ -21,15 +21,12 @@ Use this project with OpenNext on Cloudflare Workers.
 ## Required Cloudflare Build Settings
 
 - Build command: `npm run build:cf`
-- Do not set a Deploy command when using Cloudflare Pages auto-deploy.
 - `wrangler.jsonc` provides `pages_build_output_dir: .open-next/assets`, so Pages can publish automatically after a successful build.
 
 If your project is still configured with a Pages Deploy command, this also works:
 
 - Build command: `npm run build`
-- Deploy command: leave empty (recommended)
-
-Why: if Deploy command only runs a build script, logs can show success but no actual publish step occurs.
+- Deploy command: `npm run build:cf:static`
 
 And these files should exist:
 
@@ -41,7 +38,7 @@ And these files should exist:
 If logs show `Authentication error [code: 10000]` during deploy command:
 
 - Cause: `wrangler pages deploy` is trying to call Cloudflare API from CI with a token that lacks required Pages permissions.
-- Fix in this repo: `scripts/deploy-pages.mjs` auto-detects Cloudflare Pages CI and skips manual `wrangler pages deploy`.
+- Fix in this repo: `scripts/deploy-pages.mjs` auto-detects Cloudflare Pages CI and retries deploy without `CLOUDFLARE_API_TOKEN` first.
 - Recommendation: remove unnecessary custom API tokens from Pages build environment unless explicitly required.
 
 ## Required Environment Variables
