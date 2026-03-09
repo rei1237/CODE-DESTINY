@@ -938,51 +938,106 @@
       <!-- Dream Ledger 모달 -->
       <div id="dreamModalOverlay" class="dream-ledger-overlay" style="display:none;">
         <div class="dream-ledger-shell" role="dialog" aria-modal="true" aria-labelledby="dreamLedgerTitle">
-          <button class="dream-ledger-close" data-action="closeDreamModal" aria-label="Dream Ledger 닫기">✕</button>
+          <button class="dream-ledger-close" data-action="closeDreamModal" aria-label="드림 타로 닫기">✕</button>
 
-          <div class="dream-ledger-hero">
-            <p class="dream-ledger-kicker">NOCTURNE ARCHIVE</p>
-            <h2 id="dreamLedgerTitle">Dream Ledger</h2>
-            <p class="dream-ledger-sub">밤의 상징을 읽어 내일의 선택을 비추는 해몽 리포트</p>
+          <div class="dream-ledger-ambience" aria-hidden="true">
+            <div class="dream-ledger-stars"></div>
+            <div class="dream-ledger-bookshelf"></div>
           </div>
 
-          <div class="dream-ledger-controls">
-            <label for="dreamInput" class="dream-ledger-label">기억나는 꿈을 자유롭게 적어주세요</label>
-            <textarea id="dreamInput" class="dream-ledger-input" placeholder="예: 낯선 기차역에서 늦은 열차를 놓치고, 하늘에서 파란 고래가 떠다녔어요."></textarea>
+          <header class="dream-ledger-hero">
+            <p class="dream-ledger-kicker">Whispering Star-Library</p>
+            <h2 id="dreamLedgerTitle">무의식의 마법 상점: 드림 타로</h2>
+            <p class="dream-ledger-sub">꿈보다 해몽이다~</p>
+          </header>
+
+          <section class="dream-ledger-wizard" aria-live="polite">
+            <div class="dream-wizard-avatar" aria-hidden="true">
+              <span class="dream-wizard-hat">✦</span>
+              <span class="dream-wizard-face">◕‿◕</span>
+              <span class="dream-wizard-wand">🪄</span>
+            </div>
+            <div class="dream-wizard-dialogue">
+              <p id="dreamWizardLine">반갑습니다, 무의식의 여행자여.</p>
+              <p id="dreamEntrancePrompt">누가(또는 무엇이) 어떤 행동을 했고, 그래서 당신이 어떤 감정을 느꼈는지 순서대로 적어주세요. 그 세 열쇠로 운명의 카드를 엽니다.</p>
+            </div>
+          </section>
+
+          <section class="dream-ledger-controls">
+            <label for="dreamInput" class="dream-ledger-label">마법의 양피지</label>
+            <textarea id="dreamInput" class="dream-ledger-input" placeholder="예: 강아지가 나를 따라오며 문을 열었고, 나는 안심하면서도 조금 불안했어"></textarea>
             <div class="dream-ledger-actions">
-              <button class="dream-ledger-btn dream-ledger-btn--primary" data-action="startDreamReading">해몽 시작</button>
+              <button class="dream-ledger-btn dream-ledger-btn--primary" data-action="startDreamReading">의식 시작</button>
               <button class="dream-ledger-btn" data-action="closeDreamModal">메인으로</button>
             </div>
-          </div>
+          </section>
 
           <div id="dreamLoader" class="dream-ledger-loader" style="display:none;">
-            <div class="dream-ledger-orbit"></div>
-            <p id="dreamLoaderText">별자리 기록실에서 꿈의 파장을 수집 중...</p>
+            <div class="dream-crystal" aria-hidden="true"></div>
+            <p id="dreamLoaderText">수정구슬이 꿈의 파장을 수집 중입니다...</p>
           </div>
 
-          <div id="dreamResultWrap" class="dream-ledger-result" style="display:none;">
+          <section id="dreamResultWrap" class="dream-ledger-result" style="display:none;">
             <article id="dreamResultCard" class="dream-ledger-card">
               <header class="dream-ledger-card-head">
-                <h3 id="dreamCardTitle">Tonight's Dream Ledger</h3>
+                <h3 id="dreamCardTitle">Whispering Dream Spread</h3>
                 <p id="dreamCardSummary"></p>
+                <div id="dreamKeywordChips" class="dream-keyword-chips"></div>
               </header>
 
-              <section class="dream-block" data-dream-stage="1">
-                <h4>[꿈의 풍경]</h4>
-                <p id="dreamSceneText" class="dream-block-text"></p>
-                <button class="dream-fog" data-action="revealDreamStage" data-action-args="1">안개 걷어내기</button>
-              </section>
+              <div class="dream-card-ritual-head">
+                <p>카드는 한 장씩만 모습을 드러냅니다. 현재 카드를 열고 해석을 읽은 뒤 다음 단계로 이동하세요.</p>
+              </div>
 
-              <section class="dream-block" data-dream-stage="2">
-                <h4>[운명의 상징]</h4>
-                <p id="dreamSymbolText" class="dream-block-text"></p>
-                <button class="dream-fog" data-action="revealDreamStage" data-action-args="2">상징 해독하기</button>
-              </section>
+              <div class="dream-stage-nav" id="dreamStageTabs" aria-label="드림 타로 단계">
+                <button type="button" class="dream-stage-tab is-active" data-stage-tab="1">1. 기원</button>
+                <button type="button" class="dream-stage-tab" data-stage-tab="2">2. 전언</button>
+                <button type="button" class="dream-stage-tab" data-stage-tab="3">3. 지침</button>
+              </div>
 
-              <section class="dream-block" data-dream-stage="3">
-                <h4>[현실로의 메아리]</h4>
-                <p id="dreamEchoText" class="dream-block-text"></p>
-                <button class="dream-fog" data-action="revealDreamStage" data-action-args="3">메시지 받기</button>
+              <div class="dream-card-carousel" id="dreamCardRail" aria-label="드림 타로 카드 캐러셀">
+                <button class="dream-ritual-card" data-action="revealDreamStage" data-action-args="1" data-dream-stage="1" aria-label="첫 번째 카드 열기">
+                  <span class="dream-ritual-card-inner">
+                    <span class="dream-ritual-card-back">Root</span>
+                    <span class="dream-ritual-card-front">
+                      <span class="dream-card-illustration" id="dreamCardArt1" aria-hidden="true"></span>
+                      <span class="dream-card-name" id="dreamCardName1">[카드 1]</span>
+                      <span class="dream-card-symbol" id="dreamCardSymbol1">✦</span>
+                      <span class="dream-card-step">숨겨진 근원</span>
+                    </span>
+                  </span>
+                </button>
+
+                <button class="dream-ritual-card" data-action="revealDreamStage" data-action-args="2" data-dream-stage="2" aria-label="두 번째 카드 열기">
+                  <span class="dream-ritual-card-inner">
+                    <span class="dream-ritual-card-back">Message</span>
+                    <span class="dream-ritual-card-front">
+                      <span class="dream-card-illustration" id="dreamCardArt2" aria-hidden="true"></span>
+                      <span class="dream-card-name" id="dreamCardName2">[카드 2]</span>
+                      <span class="dream-card-symbol" id="dreamCardSymbol2">✦</span>
+                      <span class="dream-card-step">현재의 전언</span>
+                    </span>
+                  </span>
+                </button>
+
+                <button class="dream-ritual-card" data-action="revealDreamStage" data-action-args="3" data-dream-stage="3" aria-label="세 번째 카드 열기">
+                  <span class="dream-ritual-card-inner">
+                    <span class="dream-ritual-card-back">Guidance</span>
+                    <span class="dream-ritual-card-front">
+                      <span class="dream-card-illustration" id="dreamCardArt3" aria-hidden="true"></span>
+                      <span class="dream-card-name" id="dreamCardName3">[카드 3]</span>
+                      <span class="dream-card-symbol" id="dreamCardSymbol3">✦</span>
+                      <span class="dream-card-step">내일의 지침</span>
+                    </span>
+                  </span>
+                </button>
+              </div>
+
+              <section class="dream-stage-panel">
+                <h4 id="dreamStageTitle">카드를 열어 숨겨진 문장을 확인하세요.</h4>
+                <p id="dreamStageText" class="dream-block-text"></p>
+                <p id="dreamFinalSpell" class="dream-final-spell"></p>
+                <button id="dreamNextStageBtn" class="dream-ledger-btn dream-stage-next" data-action="nextDreamStage" style="display:none;">다음 메시지 보기</button>
               </section>
             </article>
 
@@ -991,7 +1046,7 @@
               <button class="dream-ledger-btn" data-action="dreamShareCard">공유하기</button>
               <button class="dream-ledger-btn" data-action="dreamReset">다른 꿈 해몽</button>
             </div>
-          </div>
+          </section>
         </div>
       </div>
 
