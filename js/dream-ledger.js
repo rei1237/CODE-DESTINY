@@ -112,7 +112,20 @@
       if (nameEl) nameEl.textContent = '[' + (card.card_name || '미지의 상징') + '] 카드';
       if (symbolEl) symbolEl.textContent = card.symbol || '✦';
       if (artEl) {
-        artEl.style.backgroundImage = makeKeywordArt(card.card_name || '상징', card.symbol || '✦');
+        if (card.tarot_image_url) {
+          (function (el, url, keyword, sym) {
+            var probe = new Image();
+            probe.onload = function () {
+              el.style.backgroundImage = 'url("' + url + '")';
+            };
+            probe.onerror = function () {
+              el.style.backgroundImage = makeKeywordArt(keyword, sym);
+            };
+            probe.src = url;
+          })(artEl, card.tarot_image_url, card.card_name || '상징', card.symbol || '✦');
+        } else {
+          artEl.style.backgroundImage = makeKeywordArt(card.card_name || '상징', card.symbol || '✦');
+        }
       }
     }
   }
@@ -158,9 +171,25 @@
     return { title: '3단계 · 지침', text: state.reading.echo };
   }
 
+  function normalizedFinalSpell(reading) {
+    var raw = reading && reading.finalSpell ? String(reading.finalSpell) : '';
+    var cleaned = raw
+      .replace(/^\s*오늘의\s*행운\s*주문\s*:\s*/i, '')
+      .replace(/^\s*오늘의\s*주문\s*:\s*/i, '')
+      .replace(/^\s*행운\s*주문\s*:\s*/i, '')
+      .trim();
+    return cleaned || '나는 오늘의 용기를 내일의 길로 바꾼다.';
+  }
+
   window.openDreamModal = function openDreamModal() {
     var overlay = $('dreamModalOverlay');
     if (!overlay) return;
+
+    // Always enter through the question input step, not the previous result state.
+    if (typeof window.dreamReset === 'function') {
+      window.dreamReset();
+    }
+
     overlay.style.display = 'block';
     setBodyLock(true);
     window.requestAnimationFrame(function () {
@@ -168,6 +197,20 @@
     });
     syncInputEnergy();
     setWizardLine('반갑습니다, 무의식의 여행자여.');
+
+    // On mobile, move viewport to the input area and open keyboard quickly.
+    window.setTimeout(function () {
+      var input = $('dreamInput');
+      if (!input) return;
+      try {
+        input.focus({ preventScroll: false });
+      } catch (_) {
+        input.focus();
+      }
+      if (typeof input.scrollIntoView === 'function') {
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 120);
   };
 
   window.closeDreamModal = function closeDreamModal() {
@@ -285,7 +328,7 @@
     if (s === 1) setWizardLine('안개 너머의 근원을 보셨군요. 이제 두 번째 카드를 열어 현재의 전언을 들으세요.');
     if (s === 2) setWizardLine('좋습니다. 마지막 카드가 내일의 운행 규칙을 알려줄 것입니다.');
     if (s === 3) {
-      $('dreamFinalSpell').textContent = '오늘의 행운 주문: ' + (state.reading.finalSpell || '나는 오늘의 용기를 내일의 길로 바꾼다.');
+      $('dreamFinalSpell').textContent = '오늘의 행운 주문: ' + normalizedFinalSpell(state.reading);
       setWizardLine('모든 해석은 치유를 향합니다. 꿈보다 해몽이다~');
     }
   };
@@ -336,7 +379,7 @@
       '[숨겨진 근원] ' + state.reading.scene,
       '[현재의 전언] ' + state.reading.symbol,
       '[내일의 지침] ' + state.reading.echo,
-      '행운 주문: ' + (state.reading.finalSpell || '')
+      '행운 주문: ' + normalizedFinalSpell(state.reading)
     ].join('\n\n');
   }
 

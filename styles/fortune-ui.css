@@ -180,15 +180,15 @@ img.img-fallback-broken {
   position: fixed !important;
   left: auto;
   right: max(12px, env(safe-area-inset-right, 0px));
-  top: calc(52px + env(safe-area-inset-top, 0px));
-  bottom: auto;
-  transform: translateX(calc(100% - 62px));
-  z-index: 700;
+  top: auto;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  transform: none;
+  z-index: 2147483000;
   display: flex;
   align-items: center;
   gap: 8px;
   max-width: min(300px, calc(100vw - 20px));
-  pointer-events: none;
+  pointer-events: auto;
   isolation: isolate;
   background: color-mix(in srgb, var(--card-bg, #fff) 90%, transparent);
   padding: 6px 10px;
@@ -206,7 +206,6 @@ img.img-fallback-broken {
 
 .theme-switch-wrapper:hover,
 .theme-switch-wrapper:focus-within {
-  transform: translateX(0);
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.22);
 }
 
@@ -1399,6 +1398,12 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
     0 10px 20px rgba(8, 14, 30, 0.22);
   opacity: 0;
   transform: scale(0.92) translateY(6px);
+}
+
+.dream-ritual-card.is-open .dream-card-illustration {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0) saturate(1.05);
 }
 
 .dream-ritual-card.is-open.is-revealing .dream-card-illustration {

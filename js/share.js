@@ -235,12 +235,10 @@ function fallbackCopy(text,msg){
    NEO MODE — 팩폭 사자 쌈바 퍼소나 시스템
 ═══════════════════════════════════════ */
 var NEO_MODE=false;
-var THEME_TOGGLE_DISABLE_MS = 12000;
 var THEME_PERF_PROBE_MS = 1200;
 var THEME_AUTO_LITE_FPS = 46;
 var THEME_AUTO_LITE_LONGTASK_COUNT = 2;
 var THEME_AUTO_LITE_LONGTASK_MAX = 120;
-var _themeToggleAutoDisableTimer = null;
 var _themeToggleInFlight = false;
 var _themeToggleUnlockTimer = null;
 var _themeToggleApplyTextRaf = 0;
@@ -398,18 +396,9 @@ function setThemeToggleEnabled(enabled){
   }
 }
 
-function clearThemeToggleAutoDisableTimer(){
-  if(_themeToggleAutoDisableTimer){
-    clearTimeout(_themeToggleAutoDisableTimer);
-    _themeToggleAutoDisableTimer = null;
-  }
-}
-
 function scheduleThemeToggleAutoDisable(){
-  clearThemeToggleAutoDisableTimer();
-  _themeToggleAutoDisableTimer = setTimeout(function(){
-    setThemeToggleEnabled(false);
-  }, THEME_TOGGLE_DISABLE_MS);
+  // Auto-hide disabled by request: keep the theme toggle always visible.
+  setThemeToggleEnabled(true);
 }
 
 function isHomePageVisible(){

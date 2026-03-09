@@ -666,7 +666,10 @@ window.computeProfileForModal = function(profile) {
   var minute = (b.minute != null) ? b.minute : 0;
   var lat    = (l.lat    != null) ? l.lat    : 37.6;
   var lng    = (l.lng    != null) ? l.lng    : 127.0;
-  var tzOff  = (l.tzOffset != null) ? l.tzOffset : 9;
+  var baseTzOff = (l.baseTzOffset != null) ? l.baseTzOffset : ((l.tzOffset != null) ? l.tzOffset : 9);
+  var tzName = l.tz || 'Asia/Seoul';
+  var resolvedTz = resolveBirthTimezoneOffset(year, month, day, hour, minute, tzName, baseTzOff);
+  var tzOff  = resolvedTz.tzOffsetHours;
 
   // 점성술은 표준시(민간시각) 기준으로 계산한다.
   window._astroBirth = {
@@ -1032,9 +1035,61 @@ function getTenGod(dayGan,target){
   return({0:samePol?'비견':'겁재',1:samePol?'식신':'상관',2:samePol?'편재':'정재',3:samePol?'편관':'정관',4:samePol?'편인':'정인'})[diff]||'?';
 }
 
+function parseTimeZoneOffsetName(name) {
+  if (!name) return null;
+  var m = String(name).match(/(?:GMT|UTC)([+-])(\d{1,2})(?::?(\d{2}))?/i);
+  if (!m) return null;
+  var sign = m[1] === '-' ? -1 : 1;
+  var hh = parseInt(m[2], 10) || 0;
+  var mm = parseInt(m[3] || '0', 10) || 0;
+  return sign * (hh + mm / 60);
+}
+
+function getTimeZoneOffsetHoursAtDate(year, month, day, hour, minute, tz, fallbackOffsetHours) {
+  var fallback = (typeof fallbackOffsetHours === 'number' && !isNaN(fallbackOffsetHours)) ? fallbackOffsetHours : 9;
+  if (!tz || typeof Intl === 'undefined' || typeof Intl.DateTimeFormat !== 'function') return fallback;
+  try {
+    var probeUtc = new Date(Date.UTC(year, (month || 1) - 1, day || 1, hour || 12, minute || 0, 0));
+    var fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'shortOffset'
+    });
+    var parts = fmt.formatToParts(probeUtc);
+    var tzName = '';
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].type === 'timeZoneName') {
+        tzName = parts[i].value || '';
+        break;
+      }
+    }
+    var parsed = parseTimeZoneOffsetName(tzName);
+    return parsed == null ? fallback : parsed;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function resolveBirthTimezoneOffset(year, month, day, hour, minute, tz, baseOffsetHours) {
+  var base = (typeof baseOffsetHours === 'number' && !isNaN(baseOffsetHours)) ? baseOffsetHours : 9;
+  var effective = getTimeZoneOffsetHoursAtDate(year, month, day, hour, minute, tz, base);
+  var dstMinutes = Math.round((effective - base) * 60);
+  return {
+    tzOffsetHours: effective,
+    baseOffsetHours: base,
+    dstMinutes: dstMinutes,
+    isDstApplied: dstMinutes !== 0
+  };
+}
+
 // 출생지 선택 정확도 향상: 국가 단위가 아닌 주/도시 단위 IANA 타임존 적용
 var BIRTH_PLACE_GROUPS = [
-  { label:'대한민국 (광역시/도시)', places:[
+  { label:'대한민국 (시/군 단위)', places:[
     {label:'대한민국 · 서울', tz:'Asia/Seoul', lon:126.9780, lat:37.5665, tzOff:9, def:true},
     {label:'대한민국 · 부산', tz:'Asia/Seoul', lon:129.0756, lat:35.1796, tzOff:9},
     {label:'대한민국 · 인천', tz:'Asia/Seoul', lon:126.7052, lat:37.4563, tzOff:9},
@@ -1042,8 +1097,36 @@ var BIRTH_PLACE_GROUPS = [
     {label:'대한민국 · 광주', tz:'Asia/Seoul', lon:126.8526, lat:35.1595, tzOff:9},
     {label:'대한민국 · 대전', tz:'Asia/Seoul', lon:127.3845, lat:36.3504, tzOff:9},
     {label:'대한민국 · 울산', tz:'Asia/Seoul', lon:129.3114, lat:35.5384, tzOff:9},
+    {label:'대한민국 · 경기도 · 성남시', tz:'Asia/Seoul', lon:127.1267, lat:37.4200, tzOff:9},
+    {label:'대한민국 · 경기도 · 용인시', tz:'Asia/Seoul', lon:127.1776, lat:37.2411, tzOff:9},
+    {label:'대한민국 · 경기도 · 고양시', tz:'Asia/Seoul', lon:126.8320, lat:37.6584, tzOff:9},
+    {label:'대한민국 · 경기도 · 화성시', tz:'Asia/Seoul', lon:126.8312, lat:37.1995, tzOff:9},
+    {label:'대한민국 · 경기도 · 양평군', tz:'Asia/Seoul', lon:127.4870, lat:37.4918, tzOff:9},
+    {label:'대한민국 · 경기도 · 가평군', tz:'Asia/Seoul', lon:127.5107, lat:37.8315, tzOff:9},
+    {label:'대한민국 · 강원특별자치도 · 춘천시', tz:'Asia/Seoul', lon:127.7298, lat:37.8813, tzOff:9},
+    {label:'대한민국 · 강원특별자치도 · 강릉시', tz:'Asia/Seoul', lon:128.8761, lat:37.7519, tzOff:9},
+    {label:'대한민국 · 강원특별자치도 · 평창군', tz:'Asia/Seoul', lon:128.3904, lat:37.3705, tzOff:9},
     {label:'대한민국 · 수원', tz:'Asia/Seoul', lon:127.0286, lat:37.2636, tzOff:9},
+    {label:'대한민국 · 충청북도 · 청주시', tz:'Asia/Seoul', lon:127.4890, lat:36.6424, tzOff:9},
+    {label:'대한민국 · 충청북도 · 충주시', tz:'Asia/Seoul', lon:127.9259, lat:36.9910, tzOff:9},
+    {label:'대한민국 · 충청북도 · 제천시', tz:'Asia/Seoul', lon:128.1940, lat:37.1326, tzOff:9},
+    {label:'대한민국 · 충청남도 · 천안시', tz:'Asia/Seoul', lon:127.1522, lat:36.8151, tzOff:9},
+    {label:'대한민국 · 충청남도 · 공주시', tz:'Asia/Seoul', lon:127.1190, lat:36.4465, tzOff:9},
+    {label:'대한민국 · 충청남도 · 서산시', tz:'Asia/Seoul', lon:126.4522, lat:36.7849, tzOff:9},
     {label:'대한민국 · 전주', tz:'Asia/Seoul', lon:127.1480, lat:35.8242, tzOff:9},
+    {label:'대한민국 · 전라북도 · 군산시', tz:'Asia/Seoul', lon:126.7368, lat:35.9677, tzOff:9},
+    {label:'대한민국 · 전라북도 · 남원시', tz:'Asia/Seoul', lon:127.3903, lat:35.4164, tzOff:9},
+    {label:'대한민국 · 전라남도 · 목포시', tz:'Asia/Seoul', lon:126.3922, lat:34.8118, tzOff:9},
+    {label:'대한민국 · 전라남도 · 여수시', tz:'Asia/Seoul', lon:127.6622, lat:34.7604, tzOff:9},
+    {label:'대한민국 · 전라남도 · 해남군', tz:'Asia/Seoul', lon:126.5989, lat:34.5742, tzOff:9},
+    {label:'대한민국 · 경상북도 · 포항시', tz:'Asia/Seoul', lon:129.3435, lat:36.0190, tzOff:9},
+    {label:'대한민국 · 경상북도 · 안동시', tz:'Asia/Seoul', lon:128.7294, lat:36.5684, tzOff:9},
+    {label:'대한민국 · 경상북도 · 경주시', tz:'Asia/Seoul', lon:129.2247, lat:35.8562, tzOff:9},
+    {label:'대한민국 · 경상남도 · 창원시', tz:'Asia/Seoul', lon:128.6811, lat:35.2285, tzOff:9},
+    {label:'대한민국 · 경상남도 · 진주시', tz:'Asia/Seoul', lon:128.1076, lat:35.1799, tzOff:9},
+    {label:'대한민국 · 경상남도 · 거창군', tz:'Asia/Seoul', lon:127.9099, lat:35.6867, tzOff:9},
+    {label:'대한민국 · 제주특별자치도 · 제주시', tz:'Asia/Seoul', lon:126.5312, lat:33.4996, tzOff:9},
+    {label:'대한민국 · 제주특별자치도 · 서귀포시', tz:'Asia/Seoul', lon:126.5600, lat:33.2541, tzOff:9},
     {label:'대한민국 · 제주', tz:'Asia/Seoul', lon:126.5312, lat:33.4996, tzOff:9}
   ]},
   { label:'미국 (주/도시)', places:[
@@ -1147,6 +1230,7 @@ function populateBirthCountrySelector() {
       opt.setAttribute('data-long', String(p.lon));
       opt.setAttribute('data-lat', String(p.lat));
       opt.setAttribute('data-tz', String(p.tzOff));
+      opt.setAttribute('data-base-tz', String(p.tzOff));
       var key = [p.tz, String(p.lon), String(p.lat)].join('|');
       if (p.def) defaultKey = key;
       og.appendChild(opt);
@@ -1193,25 +1277,44 @@ function updateCorrectedTimePreview(){
   
   if(!countrySel || !infoDiv) return;
 
-  var bLong = parseFloat(countrySel.options[countrySel.selectedIndex].getAttribute('data-long'));
-  var isKorea = (countrySel.value === 'Asia/Seoul');
-  
-  if(isKorea && bLong === 127.0) {
-    infoDiv.style.display = 'block';
-    infoDiv.innerHTML = '🇰🇷 <b>한국 표준시(서울 기준)</b>가 적용됩니다. (과거 서머타임 자동 계산)';
-  } else {
-    infoDiv.style.display = 'block';
-    
-    var stdLong = isKorea ? 135.0 : bLong; // 임시 프리뷰용 (정확한 표준시는 날짜에 따라 달라짐)
-    var desc = '';
-    if(isKorea) {
-      desc = `한국 표준 자오선(135도) 대비 실제 경도(${bLong}도)에 따른 시간 보정이 적용됩니다. (약 ${Math.round((bLong - 135) * 4)}분 예상)`;
-    } else {
-       desc = `해외 출생의 경우, 해당 국가의 표준시와 정확한 경도(${bLong}도)를 기준으로 현지 진태양시가 자동 변환되어 적용됩니다.`;
-    }
-    
-    infoDiv.innerHTML = `🌍 장소 맞춤 보정 대기 중<br><span style="font-size:0.75rem;">${desc}</span>`;
+  var opt = countrySel.options[countrySel.selectedIndex];
+  if (!opt) return;
+
+  var bLong = parseFloat(opt.getAttribute('data-long'));
+  var baseTz = parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9');
+  var birthDate = (document.getElementById('birthDate') || {}).value || '';
+  var birthHour = parseInt((document.getElementById('birthHour') || {}).value || '12', 10);
+  var birthMinute = parseInt((document.getElementById('birthMinute') || {}).value || '0', 10);
+
+  var y = 2000, m = 1, d = 1;
+  if (birthDate) {
+    var parts = birthDate.split('-');
+    y = parseInt(parts[0], 10) || y;
+    m = parseInt(parts[1], 10) || m;
+    d = parseInt(parts[2], 10) || d;
   }
+
+  var resolved = resolveBirthTimezoneOffset(
+    y, m, d,
+    isNaN(birthHour) ? 12 : birthHour,
+    isNaN(birthMinute) ? 0 : birthMinute,
+    countrySel.value,
+    isNaN(baseTz) ? 9 : baseTz
+  );
+
+  var effTz = resolved.tzOffsetHours;
+  var stdLong = effTz * 15;
+  var lngOffsetMin = Math.round((stdLong - bLong) * 4);
+  var dstText = resolved.isDstApplied
+    ? ('DST ' + (resolved.dstMinutes > 0 ? '+' : '') + resolved.dstMinutes + '분 적용')
+    : 'DST 미적용';
+
+  infoDiv.style.display = 'block';
+  infoDiv.innerHTML = '🌍 <b>시간 보정 미리보기</b><br>'
+    + '<span style="font-size:0.75rem;">기준 UTC' + (effTz >= 0 ? '+' : '') + effTz
+    + ' (표준 UTC' + (resolved.baseOffsetHours >= 0 ? '+' : '') + resolved.baseOffsetHours + ', ' + dstText + ')<br>'
+    + '표준자오선 ' + stdLong.toFixed(2) + '° vs 실제경도 ' + bLong.toFixed(4) + '° → 경도 보정 '
+    + (lngOffsetMin >= 0 ? '+' : '') + lngOffsetMin + '분</span>';
 }
 
 /* ═══════════════════════════════════════
@@ -2115,34 +2218,37 @@ async function calculate(){
   var bTz = countrySel ? countrySel.value : 'Asia/Seoul';
   var opt = countrySel ? countrySel.options[countrySel.selectedIndex] : null;
   var bLong = opt ? parseFloat(opt.getAttribute('data-long')) : 127.0;
+  var bLat  = opt ? parseFloat(opt.getAttribute('data-lat'))  : 37.6;
+  var bBaseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9') : 9;
+  var tzResolved = resolveBirthTimezoneOffset(year, month, day, hour, minute, bTz, bBaseTzOff);
+  var bTzOff = tzResolved.tzOffsetHours;
+  var stdLong = bTzOff * 15;
+  var lngOffsetMinutes = Math.round((stdLong - bLong) * 4);
 
   var correctedHour = hour, correctedMinute = minute;
   var correctionMsg = "";
-  var resultObj = null;
-
-  if(typeof luxon !== 'undefined' && typeof TimeCorrectionService !== 'undefined') {
-    var isoDate = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}T${inputTimeStr}`;
-    resultObj = TimeCorrectionService.calculateTrueSolarTime(isoDate, bTz, bLong);
-    
-    var timeParts = resultObj.finalAdjustedTime.split(':');
-    correctedHour = parseInt(timeParts[0], 10);
-    correctedMinute = parseInt(timeParts[1], 10);
-    
-    var isKorea = (bTz==='Asia/Seoul');
-    var stdLong = isKorea ? TimeCorrectionService.getKoreanStandardMeridian(isoDate) : (bLong - (resultObj.offsetDetails.longitudeOffset / 4)); // 약식 계산
-    
-    correctionMsg = `[시간 보정 내역] 입력시간: ${inputTimeStr} → 보정시간: ${resultObj.finalAdjustedTime}<br>` + 
-                    `▸ 출생지: ${opt ? opt.text : bTz}<br>` +
-                    `▸ 경도 보정: ${resultObj.offsetDetails.longitudeOffset}분 (기준경도 ${stdLong}° vs 실제경도 ${bLong}°)<br>` +
-                    `▸ 서머타임(DST) 적용: ${resultObj.offsetDetails.dstOffset}분<br>` +
-                    `▸ 총 보정 시간: ${resultObj.offsetDetails.totalCorrection}분`;
-    if(resultObj.offsetDetails.isKoreaHistoricalStandardMeridianChangeApplied) {
-      correctionMsg += `<br><span style="color:#e11d48;font-size:0.8rem;">* 이 시기의 한국은 127.5도를 표준 자오선으로 사용했습니다.</span>`;
+  var resultObj = {
+    finalAdjustedTime: '',
+    offsetDetails: {
+      longitudeOffset: lngOffsetMinutes,
+      dstOffset: tzResolved.dstMinutes,
+      totalCorrection: lngOffsetMinutes,
+      isDstApplied: tzResolved.isDstApplied,
+      baseOffsetHours: tzResolved.baseOffsetHours,
+      effectiveOffsetHours: tzResolved.tzOffsetHours
     }
-  }
+  };
+  var correctedTotal = ((hour * 60 + minute - lngOffsetMinutes) % 1440 + 1440) % 1440;
+  correctedHour = Math.floor(correctedTotal / 60);
+  correctedMinute = correctedTotal % 60;
+  resultObj.finalAdjustedTime = String(correctedHour).padStart(2, '0') + ':' + String(correctedMinute).padStart(2, '0');
 
-  var bLat  = opt ? parseFloat(opt.getAttribute('data-lat'))  : 37.6;
-  var bTzOff= opt ? parseFloat(opt.getAttribute('data-tz'))   : 9;
+  correctionMsg = `[시간 보정 내역] 입력시간: ${inputTimeStr} → 보정시간: ${resultObj.finalAdjustedTime}<br>`
+                + `▸ 출생지: ${opt ? opt.text : bTz}<br>`
+                + `▸ 시간대: UTC${bTzOff >= 0 ? '+' : ''}${bTzOff} (표준 UTC${tzResolved.baseOffsetHours >= 0 ? '+' : ''}${tzResolved.baseOffsetHours})<br>`
+                + `▸ 경도 보정: ${lngOffsetMinutes}분 (기준경도 ${stdLong}° vs 실제경도 ${bLong}°)<br>`
+                + `▸ 서머타임(DST) 적용: ${tzResolved.dstMinutes}분<br>`
+                + `▸ 총 보정 시간: ${lngOffsetMinutes}분`;
 
   // 점성술 계산 전용 원본(표준시) 출생 데이터
   window._astroBirth={year:year,month:month,day:day,hour:hour,minute:minute,lat:bLat,lon:bLong,tz:bTzOff};
@@ -3586,47 +3692,6 @@ function renderSkillTree(p, natal){
     +'</div>';
 }
 
-/* Locked reference profile (DO NOT MODIFY): verified baseline chart */
-var ASTRO_LOCKED_PROFILE = Object.freeze({
-  year: 1991,
-  month: 9,
-  day: 2,
-  localHour: 11.75,
-  tz: 9,
-  lat: 37.5665,
-  lon: 126.9780,
-  sunLon: 150 + (9 + 9/60),
-  moonLon: 60 + (13 + 42/60),
-  mercuryLon: 120 + (23 + 12/60),
-  venusLon: 120 + (23 + 30/60),
-  marsLon: 240 + (0 + 32/60),
-  jupiterLon: 120 + (27 + 49/60),
-  saturnLon: 300 + (1 + 3/60),
-  uranusLon: 270 + (10 + 25/60),
-  neptuneLon: 270 + (14 + 11/60),
-  plutoLon: 210 + (18 + 9/60),
-  fortunaLon: 120 + (22 + 20/60),
-  spiritLon: 300 + (13 + 8/60),
-  houses: Object.freeze({
-    Sun: 11, Moon: 8, Mercury: 10, Venus: 10, Mars: 12,
-    Jupiter: 10, Saturn: 4, Uranus: 4, Neptune: 4, Pluto: 2,
-    Fortuna: 10, Spirit: 4
-  })
-});
-
-function isAstroLockedProfile(ctx){
-  if(!ctx) return false;
-  return (
-    ctx.year === ASTRO_LOCKED_PROFILE.year &&
-    ctx.mon === ASTRO_LOCKED_PROFILE.month &&
-    ctx.day === ASTRO_LOCKED_PROFILE.day &&
-    Math.abs((ctx.localHour != null ? ctx.localHour : 0) - ASTRO_LOCKED_PROFILE.localHour) < 1e-6 &&
-    Math.abs((ctx.tzOff != null ? ctx.tzOff : 0) - ASTRO_LOCKED_PROFILE.tz) < 1e-6 &&
-    Math.abs((ctx.lat != null ? ctx.lat : 0) - ASTRO_LOCKED_PROFILE.lat) < 0.2 &&
-    Math.abs((ctx.lon != null ? ctx.lon : 0) - ASTRO_LOCKED_PROFILE.lon) < 0.3
-  );
-}
-
 /* ═══════════════════════════════════════════════════════════════
    AstroEngine — Jean Meeus "Astronomical Algorithms" 2nd Ed. 기반
    태양 정확도 ≈0.01°  달 ≈0.3°  행성 ≈0.5–1°
@@ -3710,38 +3775,158 @@ var AstroEngine = (function(){
     return 2*Math.atan2(Math.sqrt(1+e)*Math.sin(E/2),Math.sqrt(1-e)*Math.cos(E/2))*R2D;
   }
 
-  /* ── 행성 황경 (VSOP87 L0+L1 mean, 케플러 보정, 정확도 0.5–1°) ── */
-  var PLANET_ELEMS=[
-    // name, L0, dL/T(deg/cent), M0, dM/T, e, wl(근일점+승교점), wlRate
-    ['Mercury',252.250906,149474.0722491,174.7948,149472.5159,0.20563175,77.4578,573.567],
-    ['Venus',  181.979801, 58519.2130302, 50.4161, 58517.8039,0.00677192,131.5637,109.30],
-    ['Mars',   355.433275, 19141.6964746, 19.3730, 19140.2973,0.09340065,336.0602,1217.18],
-    ['Jupiter', 34.351519,  3036.3027748, 20.9202,  3034.9057,0.04849485, 14.3311,1036.33],
-    ['Saturn',  50.077444,  1223.5110686,317.9144,  1222.1138,0.05550825, 93.0572, 619.67],
-    ['Uranus', 314.055005,   429.8640561,142.5905,   428.7277,0.04629590,173.0052,  37.33],
-    ['Neptune',304.348665,   219.8833092,267.7685,   219.8854,0.00898809, 48.1237, 124.16],
-    ['Pluto',  238.928810,   144.9600000, 14.8600,   144.9600,0.24882000,224.0170,  35.90]
-  ];
+  /* ── 행성 황경 (저궤도 요소 + 지구중심 변환, 하드코딩 없이 계산) ── */
+  var ORBITAL_ELEMENTS={
+    Mercury:{N:[48.3313,3.24587e-5],i:[7.0047,5.0e-8],w:[29.1241,1.01444e-5],a:[0.387098,0],e:[0.205635,5.59e-10],M:[168.6562,4.0923344368]},
+    Venus:{N:[76.6799,2.4659e-5],i:[3.3946,2.75e-8],w:[54.8910,1.38374e-5],a:[0.72333,0],e:[0.006773,-1.302e-9],M:[48.0052,1.6021302244]},
+    Earth:{N:[0,0],i:[0,0],w:[282.9404,4.70935e-5],a:[1.0,0],e:[0.016709,-1.151e-9],M:[356.0470,0.9856002585]},
+    Mars:{N:[49.5574,2.11081e-5],i:[1.8497,-1.78e-8],w:[286.5016,2.92961e-5],a:[1.523688,0],e:[0.093405,2.516e-9],M:[18.6021,0.5240207766]},
+    Jupiter:{N:[100.4542,2.76854e-5],i:[1.3030,-1.557e-7],w:[273.8777,1.64505e-5],a:[5.20256,0],e:[0.048498,4.469e-9],M:[19.8950,0.0830853001]},
+    Saturn:{N:[113.6634,2.3898e-5],i:[2.4886,-1.081e-7],w:[339.3939,2.97661e-5],a:[9.55475,0],e:[0.055546,-9.499e-9],M:[316.9670,0.0334442282]},
+    Uranus:{N:[74.0005,1.3978e-5],i:[0.7733,1.9e-8],w:[96.6612,3.0565e-5],a:[19.18171,-1.55e-8],e:[0.047318,7.45e-9],M:[142.5905,0.011725806]},
+    Neptune:{N:[131.7806,3.0173e-5],i:[1.77,-2.55e-7],w:[272.8461,-6.027e-6],a:[30.05826,3.313e-8],e:[0.008606,2.15e-9],M:[260.2471,0.005995147]},
+    Pluto:{N:[110.30347,0],i:[17.14175,0],w:[113.76329,0],a:[39.48168677,0],e:[0.24880766,0],M:[14.53,0.00396]}
+  };
 
-  function planetPositions(jdTT){
-    var T=(jdTT-2451545.0)/36525;
+  function daysFromJ2000(jd){
+    return jd - 2451543.5;
+  }
+
+  function solveEccentricAnomaly(Mdeg,e){
+    var M=rev(Mdeg)*D2R;
+    var E=M + e*Math.sin(M)*(1+e*Math.cos(M));
+    for(var i=0;i<15;i++){
+      var dE=(E - e*Math.sin(E) - M)/(1 - e*Math.cos(E));
+      E-=dE;
+      if(Math.abs(dE) < 1e-10) break;
+    }
+    return E;
+  }
+
+  function sinDeg(x){ return Math.sin(x*D2R); }
+  function cosDeg(x){ return Math.cos(x*D2R); }
+
+  function heliocentricRect(name,d){
+    var el=ORBITAL_ELEMENTS[name];
+    var N=rev(el.N[0] + el.N[1]*d)*D2R;
+    var i=rev(el.i[0] + el.i[1]*d)*D2R;
+    var w=rev(el.w[0] + el.w[1]*d)*D2R;
+    var a=el.a[0] + el.a[1]*d;
+    var e=el.e[0] + el.e[1]*d;
+    var M=rev(el.M[0] + el.M[1]*d);
+    var E=solveEccentricAnomaly(M,e);
+
+    var xv=a*(Math.cos(E)-e);
+    var yv=a*(Math.sqrt(1-e*e)*Math.sin(E));
+    var v=Math.atan2(yv,xv);
+    var r=Math.sqrt(xv*xv + yv*yv);
+
+    var xh=r*(Math.cos(N)*Math.cos(v+w)-Math.sin(N)*Math.sin(v+w)*Math.cos(i));
+    var yh=r*(Math.sin(N)*Math.cos(v+w)+Math.cos(N)*Math.sin(v+w)*Math.cos(i));
+    var zh=r*(Math.sin(v+w)*Math.sin(i));
+    return {x:xh,y:yh,z:zh};
+  }
+
+  function rectToSpherical(rect){
+    var r=Math.sqrt(rect.x*rect.x + rect.y*rect.y + rect.z*rect.z);
+    var lon=rev(Math.atan2(rect.y,rect.x)*R2D);
+    var lat=Math.atan2(rect.z,Math.sqrt(rect.x*rect.x + rect.y*rect.y))*R2D;
+    return {lon:lon,lat:lat,r:r};
+  }
+
+  function sphericalToRect(lon,lat,r){
+    var lr=lon*D2R, br=lat*D2R;
+    var cb=Math.cos(br);
+    return {
+      x:r*Math.cos(lr)*cb,
+      y:r*Math.sin(lr)*cb,
+      z:r*Math.sin(br)
+    };
+  }
+
+  // Schlyter-style perturbation corrections (degrees) for better minute-level agreement.
+  function perturbPlanetLon(name,d,meanAnomaly){
+    var Ms=rev(ORBITAL_ELEMENTS.Earth.M[0] + ORBITAL_ELEMENTS.Earth.M[1]*d);
+    var Mv=rev(ORBITAL_ELEMENTS.Venus.M[0] + ORBITAL_ELEMENTS.Venus.M[1]*d);
+    var Mm=rev(ORBITAL_ELEMENTS.Mars.M[0] + ORBITAL_ELEMENTS.Mars.M[1]*d);
+    var Mj=rev(ORBITAL_ELEMENTS.Jupiter.M[0] + ORBITAL_ELEMENTS.Jupiter.M[1]*d);
+    var Msa=rev(ORBITAL_ELEMENTS.Saturn.M[0] + ORBITAL_ELEMENTS.Saturn.M[1]*d);
+    var Mu=rev(ORBITAL_ELEMENTS.Uranus.M[0] + ORBITAL_ELEMENTS.Uranus.M[1]*d);
+
+    var dLon=0;
+    if(name==='Mercury'){
+      dLon += 0.00204*cosDeg(5*Mv - 2*meanAnomaly + 12.220);
+      dLon += 0.00103*cosDeg(2*Mv - meanAnomaly - 160.692);
+      dLon += 0.00091*cosDeg(2*Mv - 3*meanAnomaly + 37.003);
+      dLon += 0.00078*cosDeg(5*Mv - 3*meanAnomaly + 10.137);
+    } else if(name==='Venus'){
+      dLon += 0.00313*cosDeg(2*Ms - 2*meanAnomaly - 148.225);
+      dLon += 0.00198*cosDeg(3*Ms - 3*meanAnomaly + 2.565);
+      dLon += 0.00136*cosDeg(Ms - meanAnomaly - 119.107);
+      dLon += 0.00096*cosDeg(3*Ms - 2*meanAnomaly - 135.912);
+      dLon += 0.00082*cosDeg(Mj - meanAnomaly - 208.087);
+    } else if(name==='Mars'){
+      dLon += 0.00705*cosDeg(Mj - Mm - 48.958);
+      dLon += 0.00607*cosDeg(2*Mj - Mm - 188.350);
+      dLon += 0.00445*cosDeg(2*Mj - 2*Mm - 191.897);
+      dLon += 0.00388*cosDeg(Mm - 2*Mj + 20.495);
+      dLon += 0.00238*cosDeg(Ms - Mm + 158.638);
+      dLon += 0.00204*cosDeg(2*Ms - Mm + 154.093);
+      dLon += 0.00177*cosDeg(Mm - Mv + 179.531);
+      dLon += 0.00136*cosDeg(2*Ms - 2*Mm + 95.528);
+      dLon += 0.00104*cosDeg(Mj + 17.618);
+      dLon += 0.00083*cosDeg(2*Mj - Mv + 8.479);
+      dLon += 0.00053*cosDeg(Mj - 2*Mm + 121.551);
+      dLon += 0.00043*cosDeg(2*Ms - Mv + 129.152);
+      dLon += 0.00026*cosDeg(Ms + Mj - Mm + 168.229);
+    } else if(name==='Jupiter'){
+      dLon += -0.332*sinDeg(2*Mj - 5*Msa - 67.6);
+      dLon += -0.056*sinDeg(2*Mj - 2*Msa + 21);
+      dLon += 0.042*sinDeg(3*Mj - 5*Msa + 21);
+      dLon += -0.036*sinDeg(Mj - 2*Msa);
+      dLon += 0.022*cosDeg(Mj - Msa);
+      dLon += 0.023*sinDeg(2*Mj - 3*Msa + 52);
+      dLon += -0.016*sinDeg(Mj - 5*Msa - 69);
+    }
+    return dLon;
+  }
+
+  function correctedHeliocentricRect(name,d){
+    var rect=heliocentricRect(name,d);
+    if(name==='Pluto' || name==='Saturn' || name==='Uranus' || name==='Neptune' || name==='Earth') return rect;
+    var sph=rectToSpherical(rect);
+    var meanAnomaly=rev(ORBITAL_ELEMENTS[name].M[0] + ORBITAL_ELEMENTS[name].M[1]*d);
+    var corrLon=rev(sph.lon + perturbPlanetLon(name,d,meanAnomaly));
+    return sphericalToRect(corrLon,sph.lat,sph.r);
+  }
+
+  function geocentricPlanetLon(jdUT,name){
+    var d=daysFromJ2000(jdUT);
+    var earth=heliocentricRect('Earth',d);
+    var p=correctedHeliocentricRect(name,d);
+
+    var xg=p.x-earth.x;
+    var yg=p.y-earth.y;
+    var zg=p.z-earth.z;
+
+    // Light-time correction improves fast-moving planets (especially inner planets).
+    var delta=Math.sqrt(xg*xg + yg*yg + zg*zg);
+    var ltDays=delta*0.0057755183;
+    if(ltDays>1e-6){
+      var pLt=correctedHeliocentricRect(name,d-ltDays);
+      xg=pLt.x-earth.x;
+      yg=pLt.y-earth.y;
+    }
+    return rev(Math.atan2(yg,xg)*R2D);
+  }
+
+  function planetPositions(jdUT){
     var res={};
-    PLANET_ELEMS.forEach(function(p){
-      var name=p[0];
-      var L=rev(p[1]+p[2]*T);
-      var M=rev(p[3]+p[4]*T);
-      var e=p[5];
-      var wl=rev(p[6]+p[7]*T/3600);
-      var nu=kepler(M,e);
-      var lon=rev(nu+wl);
-      // 지구 황경으로 정방향/역방향 보정 (외행성)
-      var T1=(jdTT-1-2451545.0)/36525;
-      var L1=rev(p[1]+p[2]*T1);
-      var motion=rev(L-L1+360); if(motion>180) motion-=360;
-      var earthL=sunLon(jdTT), earthL1=sunLon(jdTT-1);
-      var relNow=rev(lon-earthL), relPrev=rev(lon-motion-earthL1);
-      var relMotion=rev(relNow-relPrev+360); if(relMotion>180) relMotion-=360;
-      res[name]={lon:lon, retrograde:(relMotion<0)};
+    ['Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'].forEach(function(name){
+      var nowLon=geocentricPlanetLon(jdUT,name);
+      var prevLon=geocentricPlanetLon(jdUT-1,name);
+      var drift=rev(nowLon - prevLon + 180) - 180;
+      res[name]={lon:nowLon, retrograde:(drift<0)};
     });
     return res;
   }
@@ -3792,20 +3977,6 @@ var AstroEngine = (function(){
     return { sign: display, _baseSign: SIGNS[idx], idx: Math.min(idx, 11), deg: (lon % 30) };
   }
 
-  // Known-chart calibration: keep engine outputs aligned with verified reference chart.
-  function applyKnownChartCorrections(ctx, planets){
-    if(!ctx || !planets || !isAstroLockedProfile(ctx)) return;
-
-    planets.Mercury = { lon: ASTRO_LOCKED_PROFILE.mercuryLon, retrograde: false };
-    planets.Venus   = { lon: ASTRO_LOCKED_PROFILE.venusLon,   retrograde: true  };
-    planets.Mars    = { lon: ASTRO_LOCKED_PROFILE.marsLon,    retrograde: false };
-    planets.Jupiter = { lon: ASTRO_LOCKED_PROFILE.jupiterLon, retrograde: false };
-    planets.Saturn  = { lon: ASTRO_LOCKED_PROFILE.saturnLon,  retrograde: true  };
-    planets.Uranus  = { lon: ASTRO_LOCKED_PROFILE.uranusLon,  retrograde: true  };
-    planets.Neptune = { lon: ASTRO_LOCKED_PROFILE.neptuneLon, retrograde: true  };
-    planets.Pluto   = { lon: ASTRO_LOCKED_PROFILE.plutoLon,   retrograde: false };
-  }
-
   /* ── 메인 계산 ── */
   function calcAll(year,mon,day,localHour,lat,lon,tzOff){
     // UTC = 표준시 기준 현지 시각 - 표준시 오프셋
@@ -3831,19 +4002,7 @@ var AstroEngine = (function(){
     var eps=obliquity(T);
     var sLon=sunLon(jdTT);
     var mLon=moonLon(jdTT);
-    var planets=planetPositions(jdTT);
-    applyKnownChartCorrections({
-      year:year, mon:mon, day:day, localHour:localHour,
-      lat:lat, lon:lon, tzOff:tzOff
-    }, planets);
-    var isKnownChart = isAstroLockedProfile({
-      year:year, mon:mon, day:day, localHour:localHour,
-      lat:lat, lon:lon, tzOff:tzOff
-    });
-    if(isKnownChart){
-      sLon = ASTRO_LOCKED_PROFILE.sunLon;
-      mLon = ASTRO_LOCKED_PROFILE.moonLon;
-    }
+    var planets=planetPositions(jdUT);
     // 경도 보정 적용 방식: LMT(UTC) + 표준자오선 = 지역 항성시
     var ramc=localSidereal(jdUTLmt,stdLon);
     var houses=placidusHouses(ramc,lat,eps);
@@ -3852,10 +4011,6 @@ var AstroEngine = (function(){
     var isDayBirth = (localHour >= 6 && localHour < 18);
     var fortunaLon = rev(houses.ASC + (isDayBirth ? (mLon - sLon) : (sLon - mLon)));
     var spiritLon  = rev(houses.ASC + (isDayBirth ? (sLon - mLon) : (mLon - sLon)));
-    if(isKnownChart){
-      fortunaLon = ASTRO_LOCKED_PROFILE.fortunaLon;
-      spiritLon  = ASTRO_LOCKED_PROFILE.spiritLon;
-    }
 
     // Whole Sign 하우스 병기
     var ascIdx=Math.floor(rev(houses.ASC)/30);
@@ -3905,6 +4060,279 @@ var AstroEngine = (function(){
 })();
 /* ═══════════════════════════ END AstroEngine ═══════════════════════════════ */
 
+  /* High-Precision wrapper with SwissEph interface + structured natal JSON output */
+  (function(){
+    var LegacyAstroEngine = AstroEngine;
+    var PLANET_ORDER = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+    var DEFAULT_ORBS = { conjunction:8, opposition:8, trine:7, square:7, sextile:5, quincunx:3 };
+
+    function revDeg(x){ return ((x % 360) + 360) % 360; }
+    function angularDistance(a,b){ var d=Math.abs(revDeg(a)-revDeg(b)); return d>180 ? 360-d : d; }
+
+    function calcJulianDayUTC(year, month, day, hourUTC){
+      if(month<=2){ year-=1; month+=12; }
+      var A=Math.floor(year/100), B=2-A+Math.floor(A/4);
+      return Math.floor(365.25*(year+4716))+Math.floor(30.6001*(month+1))+day+(hourUTC/24)+B-1524.5;
+    }
+
+    function calcDeltaTSeconds(y){
+      if (LegacyAstroEngine && typeof LegacyAstroEngine.deltaT === 'function') return LegacyAstroEngine.deltaT(y);
+      if(y<2050){var u=y-2000;return 62.92+0.32217*u+0.005589*u*u;}
+      return 69;
+    }
+
+    function normalizeLocalToUTC(year, month, day, localHour, tzOffset){
+      var utcHour = localHour - tzOffset;
+      var yy=year, mm=month, dd=day;
+      if(utcHour<0){
+        utcHour+=24; dd-=1;
+        if(dd<1){
+          mm-=1; if(mm<1){mm=12;yy-=1;}
+          var md=[0,31,(yy%4===0&&(yy%100!==0||yy%400===0))?29:28,31,30,31,30,31,31,30,31,30,31];
+          dd=md[mm];
+        }
+      }
+      if(utcHour>=24){ utcHour-=24; dd+=1; }
+      return { year:yy, month:mm, day:dd, utcHour:utcHour };
+    }
+
+    function inferWholeSignHouse(ascLon, bodyLon){
+      var ascSign=Math.floor(revDeg(ascLon)/30), bodySign=Math.floor(revDeg(bodyLon)/30);
+      return ((bodySign-ascSign+12)%12)+1;
+    }
+
+    function computeAspects(planetsDeg, orbs){
+      var orb=Object.assign({}, DEFAULT_ORBS, orbs||{});
+      var defs=[
+        {name:'Conjunction',angle:0,orb:orb.conjunction},
+        {name:'Sextile',angle:60,orb:orb.sextile},
+        {name:'Square',angle:90,orb:orb.square},
+        {name:'Trine',angle:120,orb:orb.trine},
+        {name:'Quincunx',angle:150,orb:orb.quincunx},
+        {name:'Opposition',angle:180,orb:orb.opposition}
+      ];
+      var keys=Object.keys(planetsDeg||{}), out=[];
+      for(var i=0;i<keys.length;i++){
+        for(var j=i+1;j<keys.length;j++){
+          var p1=keys[i],p2=keys[j],dist=angularDistance(planetsDeg[p1],planetsDeg[p2]);
+          for(var k=0;k<defs.length;k++){
+            var a=defs[k], delta=Math.abs(dist-a.angle);
+            if(delta<=a.orb){
+              out.push({p1:p1,p2:p2,aspect:a.name,exact:a.angle,orb:Number(delta.toFixed(4)),distance:Number(dist.toFixed(4))});
+              break;
+            }
+          }
+        }
+      }
+      return out;
+    }
+
+    function buildPlanetJson(chart){
+      var out=[];
+      var ascLon=chart.asc&&chart.asc.idx!=null ? (chart.asc.idx*30+(chart.asc.deg||0)) : 0;
+      var degrees={ Sun:chart.sun.idx*30+(chart.sun.deg||0), Moon:chart.moon.idx*30+(chart.moon.deg||0) };
+      out.push({planet:'Sun',degree:Number(degrees.Sun.toFixed(4)),house:inferWholeSignHouse(ascLon,degrees.Sun),is_retrograde:false});
+      out.push({planet:'Moon',degree:Number(degrees.Moon.toFixed(4)),house:inferWholeSignHouse(ascLon,degrees.Moon),is_retrograde:false});
+      PLANET_ORDER.slice(2).forEach(function(name){
+        var p=chart.planets&&chart.planets[name];
+        if(!p||!p.sign)return;
+        var lon=p.sign.idx*30+(p.sign.deg||0);
+        degrees[name]=lon;
+        out.push({planet:name,degree:Number(lon.toFixed(4)),house:inferWholeSignHouse(ascLon,lon),is_retrograde:!!p.retro});
+      });
+      return { planets:out, degrees:degrees };
+    }
+
+    function sweValueAt(res, idx){
+      if(!res) return null;
+      if(Array.isArray(res)) return res[idx];
+      if(Array.isArray(res.data)) return res.data[idx];
+      if(Array.isArray(res.xx)) return res.xx[idx];
+      if(Array.isArray(res.return)) return res.return[idx];
+      if(Array.isArray(res.result)) return res.result[idx];
+      if(typeof res.longitude === 'number' && idx===0) return res.longitude;
+      if(typeof res.speedLongitude === 'number' && idx===3) return res.speedLongitude;
+      return null;
+    }
+
+    function safeNumber(v, fallback){
+      var n = Number(v);
+      return isNaN(n) ? fallback : n;
+    }
+
+    function callSweCalcUt(swe, jdUT, planetId, flags){
+      try {
+        var fn = swe.swe_calc_ut || swe.calc_ut;
+        if (typeof fn !== 'function') return null;
+        var r = fn.call(swe, jdUT, planetId, flags);
+        if (r != null) return r;
+      } catch(e) {}
+      return null;
+    }
+
+    function callSweHouses(swe, jdUT, lat, lon, houseSystem){
+      var hsys = (houseSystem || 'P');
+      try {
+        if (typeof swe.swe_houses_ex === 'function') {
+          var rh = swe.swe_houses_ex(jdUT, 0, lat, lon, hsys);
+          if (rh) return rh;
+        }
+      } catch(e) {}
+      try {
+        if (typeof swe.swe_houses === 'function') {
+          var r = swe.swe_houses(jdUT, lat, lon, hsys);
+          if (r) return r;
+        }
+      } catch(e2) {}
+      return null;
+    }
+
+    function mapPlanetId(swe, name){
+      var key = {
+        Sun:'SE_SUN', Moon:'SE_MOON', Mercury:'SE_MERCURY', Venus:'SE_VENUS', Mars:'SE_MARS',
+        Jupiter:'SE_JUPITER', Saturn:'SE_SATURN', Uranus:'SE_URANUS', Neptune:'SE_NEPTUNE', Pluto:'SE_PLUTO'
+      }[name];
+      return swe && typeof swe[key] === 'number' ? swe[key] : null;
+    }
+
+    function buildSwissChartFromRaw(raw, housesRaw, jdUT, jdTT, dt, houseSystem){
+      var lonBy = {};
+      var planets = {};
+
+      PLANET_ORDER.forEach(function(name){
+        var p = raw[name];
+        if (!p) return;
+        var lon = revDeg(safeNumber(sweValueAt(p,0), 0));
+        var speed = safeNumber(sweValueAt(p,3), 0);
+        lonBy[name] = lon;
+        if (name !== 'Sun' && name !== 'Moon') {
+          planets[name] = { sign: LegacyAstroEngine.toSign(lon), retro: speed < 0 };
+        }
+      });
+
+      var ascLon = null, mcLon = null;
+      if (housesRaw) {
+        if (Array.isArray(housesRaw.ascmc)) {
+          ascLon = housesRaw.ascmc[0];
+          mcLon = housesRaw.ascmc[1];
+        } else if (Array.isArray(housesRaw.ascendant)) {
+          ascLon = housesRaw.ascendant[0];
+        }
+        if (housesRaw.ascendant != null && !Array.isArray(housesRaw.ascendant)) ascLon = housesRaw.ascendant;
+        if (housesRaw.mc != null) mcLon = housesRaw.mc;
+        if (housesRaw.midheaven != null) mcLon = housesRaw.midheaven;
+      }
+      if (ascLon == null || mcLon == null) {
+        return null;
+      }
+
+      var asc = LegacyAstroEngine.toSign(revDeg(ascLon));
+      var mc  = LegacyAstroEngine.toSign(revDeg(mcLon));
+      var wsCusps=[];
+      for (var i=0;i<12;i++) wsCusps.push(revDeg((asc.idx + i) * 30));
+
+      return {
+        jdUT: jdUT,
+        jdTT: jdTT,
+        dT: Math.round(dt),
+        deltaT: Number(dt.toFixed(3)),
+        sun: LegacyAstroEngine.toSign(lonBy.Sun || 0),
+        moon: LegacyAstroEngine.toSign(lonBy.Moon || 0),
+        asc: asc,
+        mc: mc,
+        desc: LegacyAstroEngine.toSign(revDeg((ascLon || 0) + 180)),
+        ic: LegacyAstroEngine.toSign(revDeg((mcLon || 0) + 180)),
+        planets: planets,
+        wholeSign:{
+          h1:LegacyAstroEngine.toSign(wsCusps[0]), h2:LegacyAstroEngine.toSign(wsCusps[1]), h3:LegacyAstroEngine.toSign(wsCusps[2]),
+          h4:LegacyAstroEngine.toSign(wsCusps[3]), h5:LegacyAstroEngine.toSign(wsCusps[4]), h6:LegacyAstroEngine.toSign(wsCusps[5]),
+          h7:LegacyAstroEngine.toSign(wsCusps[6]), h8:LegacyAstroEngine.toSign(wsCusps[7]), h9:LegacyAstroEngine.toSign(wsCusps[8]),
+          h10:LegacyAstroEngine.toSign(wsCusps[9]), h11:LegacyAstroEngine.toSign(wsCusps[10]), h12:LegacyAstroEngine.toSign(wsCusps[11])
+        },
+        natal: { meta: { precisionMode: 'swisseph', houseSystem: houseSystem || 'P' } }
+      };
+    }
+
+    // SwissEph adapter entrypoint.
+    function trySwissEphChart(input){
+      var swe=window.swisseph||window.Swe||window.swe||null;
+      if(!swe) return null;
+      try{
+        if(typeof swe.calc_ut!=='function' && typeof swe.swe_calc_ut!=='function') return null;
+        var flagSpeed = (typeof swe.SEFLG_SPEED === 'number') ? swe.SEFLG_SPEED : 256;
+        var flagSwiss = (typeof swe.SEFLG_SWIEPH === 'number') ? swe.SEFLG_SWIEPH : 2;
+        var flags = flagSpeed | flagSwiss;
+
+        var raw = {};
+        for (var i=0;i<PLANET_ORDER.length;i++) {
+          var name = PLANET_ORDER[i];
+          var pid = mapPlanetId(swe, name);
+          if (pid == null) return null;
+          var pRes = callSweCalcUt(swe, input.jdUT, pid, flags);
+          if (!pRes) return null;
+          raw[name] = pRes;
+        }
+
+        var housesRaw = callSweHouses(swe, input.jdUT, input.lat, input.lon, input.houseSystem || 'P');
+        var built = buildSwissChartFromRaw(raw, housesRaw, input.jdUT, input.jdTT, input.deltaT || 0, input.houseSystem || 'P');
+        return built;
+      }catch(e){
+        return null;
+      }
+    }
+
+    function calcAll(year,mon,day,localHour,lat,lon,tzOff,options){
+      var opts=options||{};
+      var strictPrecision = (window.ASTRO_STRICT_PRECISION !== undefined) ? !!window.ASTRO_STRICT_PRECISION : false;
+      var n=normalizeLocalToUTC(year,mon,day,localHour,tzOff||0);
+      var jdUT=calcJulianDayUTC(n.year,n.month,n.day,n.utcHour);
+      var dt=calcDeltaTSeconds(year + (mon-0.5)/12);
+      var jdTT=jdUT + dt/86400;
+
+      var swiss=trySwissEphChart({year:year,month:mon,day:day,localHour:localHour,lat:lat,lon:lon,tzOff:tzOff,jdUT:jdUT,jdTT:jdTT,deltaT:dt,houseSystem:opts.houseSystem||'P'});
+      if(!swiss && strictPrecision){
+        throw new Error('High-precision astrology requires Swiss Ephemeris adapter. Set window.ASTRO_STRICT_PRECISION=false to temporarily allow legacy fallback.');
+      }
+      var base=swiss || LegacyAstroEngine.calcAll(year,mon,day,localHour,lat,lon,tzOff);
+      var structured=buildPlanetJson(base);
+
+      base.jdUT=jdUT;
+      base.jdTT=jdTT;
+      base.deltaT=Number(dt.toFixed(3));
+      base.natal={
+        meta:{
+          precisionMode: swiss ? 'swisseph' : 'legacy-fallback',
+          houseSystem: opts.houseSystem || 'P',
+          geocodingSpec:{ provider:'Nominatim|Google|Mapbox', input:'{ city, region, country }', output:'{ lat, lon, iana_tz }' }
+        },
+        planets: structured.planets,
+        aspects: computeAspects(structured.degrees, opts.orbs || {})
+      };
+      return base;
+    }
+
+    AstroEngine = {
+      calcAll: calcAll,
+      toSign: LegacyAstroEngine.toSign,
+      deltaT: calcDeltaTSeconds,
+      toNatalJSON: function(year,mon,day,localHour,lat,lon,tzOff,options){
+        var chart=calcAll(year,mon,day,localHour,lat,lon,tzOff,options);
+        var mode = chart && chart.natal && chart.natal.meta ? chart.natal.meta.precisionMode : '';
+        if (mode !== 'swisseph') {
+          throw new Error('toNatalJSON requires SwissEph mode. precisionMode=' + (mode || 'unknown'));
+        }
+        return {
+          meta: chart.natal.meta,
+          jdUT: Number(chart.jdUT.toFixed(6)),
+          jdTT: Number(chart.jdTT.toFixed(6)),
+          deltaT: chart.deltaT,
+          data: chart.natal.planets,
+          aspects: chart.natal.aspects
+        };
+      }
+    };
+  })();
+
 const astrologer = {
     signs: ['양자리(♈)', '황소자리(♉)', '쌍둥이자리(♊)', '게자리(♋)', '사자자리(♌)', '처녀자리(♍)', '천칭자리(♎)', '전갈자리(♏)', '사수자리(♐)', '염소자리(♑)', '물병자리(♒)', '물고기자리(♓)'],
     elements: ['불(Fire)', '흙(Earth)', '공기(Air)', '물(Water)'],
@@ -3912,24 +4340,51 @@ const astrologer = {
   houses: ['1 하우스 (자아/외모)', '2 하우스 (가치/재물)', '3 하우스 (소통/학습)', '4 하우스 (뿌리/가정)', '5 하우스 (창조/연애)', '6 하우스 (노동/건강)', '7 하우스 (관계/파트너)', '8 하우스 (변환/공유자산)', '9 하우스 (철학/확장)', '10 하우스 (성취/천직)', '11 하우스 (비전/네트워크)', '12 하우스 (무의식/영성)']
 };
 
+function calcAstroApiChartOrThrow(year, month, day, localHour, lat, lon, tz, houseSystem) {
+  var hs = houseSystem || (window.ASTRO_HOUSE_SYSTEM || 'P');
+  var chart = AstroEngine.calcAll(year, month, day, localHour, lat, lon, tz, { houseSystem: hs });
+  var mode = chart && chart.natal && chart.natal.meta ? chart.natal.meta.precisionMode : 'unknown';
+  if (mode !== 'swisseph') {
+    throw new Error('SwissEph API 결과가 준비되지 않았습니다. precisionMode=' + mode);
+  }
+  return chart;
+}
+
+function renderAstroApiUnavailable(reason) {
+  var area = document.getElementById('astroResult');
+  if (!area) return;
+  var msg = String(reason || 'SwissEph API 초기화 실패')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  area.innerHTML = ''
+    + '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap">'
+    + '<div class="astro-section" style="border-left:4px solid #ef4444;background:rgba(15,23,42,0.7);">'
+    + '<div class="astro-subhead" style="color:#fda4af;">🛰 점성술 API 연결 대기</div>'
+    + '<div class="astro-desc" style="line-height:1.7;">'
+    + '<p style="margin:0;">점성술은 SwissEph API 기반 계산만 표시하도록 설정되어 있습니다.</p>'
+    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">원인: ' + msg + '</p>'
+    + '</div></div></div>';
+}
+
 function renderAstroInsight() {
   var birth = window._astroBirth || window._ziweiBirth || { year:2000, month:1, day:1, hour:12, minute:0, lat:37.6, lon:127.0, tz:9 };
     var y = birth.year, m = birth.month, d = birth.day;
     var h = (birth.hour != null ? birth.hour : 12);
     var min = (birth.minute != null ? birth.minute : 0);
     var lat = birth.lat || 37.6, lon = birth.lon || 127.0, tz = (birth.tz != null ? birth.tz : 9);
-    var isKnownChartProfile = isAstroLockedProfile({
-      year:y, mon:m, day:d, localHour:(h + min/60),
-      lat:lat, lon:lon, tzOff:tz
-    });
-    var knownChartHouses = isKnownChartProfile ? ASTRO_LOCKED_PROFILE.houses : null;
-
     /* ── AstroEngine 천체역학 계산 (Jean Meeus 기반) ── */
-    var chart = AstroEngine.calcAll(y, m, d, h + min/60, lat, lon, tz);
+    var houseSystem = (window.ASTRO_HOUSE_SYSTEM || 'P');
+    var chart, chartNow;
+    try {
+      chart = calcAstroApiChartOrThrow(y, m, d, h + min / 60, lat, lon, tz, houseSystem);
+      var now = new Date();
+      chartNow = calcAstroApiChartOrThrow(now.getFullYear(), now.getMonth() + 1, now.getDate(), 12, lat, lon, tz, houseSystem);
+    } catch (apiErr) {
+      renderAstroApiUnavailable(apiErr && apiErr.message ? apiErr.message : apiErr);
+      return;
+    }
 
     /* ── 현재 날짜 목성 트랜짓 (실시간) ── */
     var now = new Date();
-    var chartNow = AstroEngine.calcAll(now.getFullYear(), now.getMonth()+1, now.getDate(), 12, lat, lon, tz);
     var jupiterTransit = chartNow.planets.Jupiter.sign.sign;
     var jupiterIndex = (chartNow.planets.Jupiter && chartNow.planets.Jupiter.sign && chartNow.planets.Jupiter.sign.idx != null)
       ? chartNow.planets.Jupiter.sign.idx : 0;
@@ -4376,10 +4831,6 @@ function renderAstroInsight() {
       var lon = _lonFromSignObj(sObj);
       var hPlacidus = _houseOfLon(lon, cuspsLon);
       var hWhole = _wholeSignHouse(sObj.idx, ascIndex);
-      if(knownChartHouses && knownChartHouses[pn]){
-        hPlacidus = knownChartHouses[pn];
-        hWhole = knownChartHouses[pn];
-      }
       var retro = (pn !== 'Sun' && pn !== 'Moon' && chart.planets[pn] && chart.planets[pn].retro) ? ' Rx' : '';
       placementRows.push(
         '<tr>'
@@ -4443,33 +4894,19 @@ function renderAstroInsight() {
     var plutoHousePair = _housePairText(_planetSignObjByName('Pluto'));
     var fortunaHousePair = _housePairText(chart.lots && chart.lots.fortuna ? chart.lots.fortuna : null);
     var spiritHousePair = _housePairText(chart.lots && chart.lots.spirit ? chart.lots.spirit : null);
-    if(isKnownChartProfile){
-      sunHousePair = '11H / 11H';
-      moonHousePair = '8H / 8H';
-      mercuryHousePair = '10H / 10H';
-      venusHousePair = '10H / 10H';
-      marsHousePair = '12H / 12H';
-      jupiterHousePair = '10H / 10H';
-      saturnHousePair = '4H / 4H';
-      uranusHousePair = '4H / 4H';
-      neptuneHousePair = '4H / 4H';
-      plutoHousePair = '2H / 2H';
-      fortunaHousePair = '10H / 10H';
-      spiritHousePair = '4H / 4H';
-    }
 
     masterInsight = '<div class="astro-section precision-insight-card" style="border-left:4px solid #D4AF37; background:linear-gradient(to right, rgba(212,175,55,0.05), transparent); margin-bottom:20px;">'
-      +'<div class="astro-subhead" style="color:#D4AF37;">👑 Precision Insight (계산 기반 요약)</div>'
+      +'<div class="astro-subhead" style="color:#D4AF37;">✨ 내 별자리 3줄 핵심 요약</div>'
       +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
-      +'<p><b class="precision-headline">[정체성 축<wbr>: 태양·달·상승궁]</b><br>'
-      +'태양 <b>'+sunSign+'</b>, 달 <b>'+moonSign+'</b>, 상승궁 <b>'+ascSign+'</b> 조합이 핵심 성격 구조를 만듭니다. '
-      +'태양 하우스 '+sunHousePair+'는 의식적 목표, 달 하우스 '+moonHousePair+'는 정서 복구 패턴, 상승궁은 첫 반응 스타일을 규정합니다.</p>'
-      +'<p><b class="precision-headline">[관계·행동 축: 금성·화성]</b><br>'
-      +'금성 <b>'+venusSign+'</b>('+venusHousePair+')은 애정 표현 방식, 화성 <b>'+marsSign+'</b>('+marsHousePair+')은 갈등/추진 방식을 보여줍니다. '
+      +'<p><b class="precision-headline">🌞 나는 어떤 사람인가?</b><br>'
+      +'태양 <b>'+sunSign+'</b>은 내가 살아가며 빛나는 방식, 달 <b>'+moonSign+'</b>은 혼자 있을 때 가장 편안한 모습, 상승궁 <b>'+ascSign+'</b>은 처음 만난 사람에게 풍기는 첫인상입니다. '
+      +'이 세 가지가 합쳐져 "이 사람 왠지 좋아"를 만들어냅니다.</p>'
+      +'<p><b class="precision-headline">💕 사랑할 때는?</b><br>'
+      +'금성 <b>'+venusSign+'</b>('+venusHousePair+')은 좋아하는 사람에게 보이는 매력 포인트, 화성 <b>'+marsSign+'</b>('+marsHousePair+')은 끌림이 생겼을 때 행동하는 방식입니다. '
       +(vmAspect || vmCalcFallback)+'</p>'
-      +'<p><b class="precision-headline">[목표·운용 축<wbr>: MC·토성·포르투나<wbr>/스피릿]</b><br>'
-      +'MC <b>'+mcSign+'</b>는 커리어 브랜드 방향, 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')은 검증 과제를 뜻합니다. '
-      +'포르투나 <b>'+fortunaSign+'</b>('+fortunaHousePair+')는 성과 회수 포인트, 스피릿 <b>'+spiritSign+'</b>('+spiritHousePair+')은 장기 소명 포인트입니다.</p>'
+      +'<p><b class="precision-headline">🏆 커리어와 돈은?</b><br>'
+      +'천정(MC) <b>'+mcSign+'</b>이 사회적으로 빛나는 방향, 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')은 꾸준히 갈고닦아야 할 진짜 실력 구간입니다. '
+      +'행운 포인트(포르투나) <b>'+fortunaSign+'</b>('+fortunaHousePair+')에서 진짜 결실이, 소명(스피릿) <b>'+spiritSign+'</b>('+spiritHousePair+')에서 깊은 기쁨이 생겨납니다.</p>'
       +'</div></div>';
 
     var tightAspectText = majorAspectRows.length ? majorAspectRows[0].text : '타이트 주요각 없음';
@@ -4484,11 +4921,7 @@ function renderAstroInsight() {
       var sObj = _planetSignObjByName(pn);
       if(!sObj || sObj.idx == null) return;
       var focusHouse = null;
-      if(knownChartHouses && knownChartHouses[pn]){
-        focusHouse = knownChartHouses[pn];
-      } else {
-        focusHouse = _wholeSignHouse(sObj.idx, ascIndex);
-      }
+      focusHouse = _wholeSignHouse(sObj.idx, ascIndex);
       if(!focusHouse) return;
       houseFocusCount[focusHouse] = (houseFocusCount[focusHouse] || 0) + 1;
     });
@@ -4552,16 +4985,16 @@ function renderAstroInsight() {
       +'현재 태양-달 축은 <b>'+axisGapDesc+'</b>(사인 간격 '+(axisGap*30)+'°)이며, '+imbalanceText+' '
       +'우세 양식은 '+modalityNames[modalityDominant]+'입니다. 따라서 <b>'+sunStrategy+'</b>를 '+topHouseTopic+' 영역에서 우선 실행하면 성과 일관성이 높아집니다.';
 
-  var html = '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap">' + masterInsight
-        +'<div class="astro-subhead">📌 0. 정밀 계산 배치 요약 (Longitudes · Houses · Aspects)</div>'
+    var html = '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap">' + masterInsight
+      +'<div class="astro-subhead">� 0. 내 탄생 별자리 지도</div>'
         +'<div class="astro-desc">'
-        +'<p>아래 표는 이번 개편 계산식(UTC 환산, 경도 보정, Asc/MC 재계산, Placidus/Whole Sign 병기)에 기반한 실제 배치입니다.</p>'
+      +'<p>태어난 순간, 하늘에서 각 행성이 어느 별자리에 있었는지를 보여주는 나만의 우주 지도입니다. 하우스(1H~12H) 번호는 그 행성 에너지가 인생 어느 영역에서 터지는지를 알려줍니다.</p>'
         +'<div class="table-wrapper" style="border:1px solid rgba(148,163,184,0.2);border-radius:10px;margin:10px 0;">'
         +'<table class="astro-table" style="font-size:0.83rem;">'
         +'<colgroup><col><col><col><col></colgroup>'
         +'<thead><tr style="background:rgba(30,41,59,0.6);">'
         +'<th style="text-align:left;color:#94a3b8;">행성</th>'
-        +'<th style="text-align:left;color:#94a3b8;">정확 경도(황도)</th>'
+        +'<th style="text-align:left;color:#94a3b8;">행성 위치(황도)</th>'
         +'<th style="text-align:left;color:#94a3b8;">Placidus</th>'
         +'<th style="text-align:left;color:#94a3b8;">Whole Sign</th>'
         +'</tr></thead>'
@@ -4577,37 +5010,37 @@ function renderAstroInsight() {
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 1. 심층 페르소나 (계산값 기반 해석)</div>'
+        +'<div class="astro-subhead">🌟 1. 나는 어떤 캐릭터인가?</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">☀ 태양</span> <span class="astro-planet">'+sunSign+'</span>'+sunDeg
         +' <span class="astro-tag">☽ 달</span> <span class="astro-planet">'+moonSign+'</span>'+moonDeg
         +' <span class="astro-tag">↑ Asc 상승궁</span> <span class="astro-planet">'+ascSign+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
-        +'<p><b>[핵심 자아의 발현]</b><br>'+sunCoreInterpretation+'</p>'
-        +'<p><b>[정서와 무의식의 그림자]</b><br>'+moonSign+' 달은 정서 복구 메커니즘의 중심축이며, 하우스 배치(Placidus/Whole) '+moonHousePair+'에서 감정 반응 패턴이 드러납니다. 스트레스 상황에서는 이 하우스 주제로 본능적으로 회귀해 자가 안정화를 시도합니다.</p>'
-        +'<p>상승궁(Ascendant) <b>'+ascSign+'</b>은 초기 인상과 행동 트리거를 규정합니다. 태양 하우스 '+sunHousePair+', 달 하우스 '+moonHousePair+'의 조합은 의식적 선택(태양)과 무의식적 반응(달)의 간극을 보여주며, 현재 축 유형은 <b>'+axisGapDesc+'</b>(사인 간격 '+(axisGap*30)+'°)로 분류됩니다.</p>'
+        +'<p><b>☀️ 태양 — 나의 진짜 빛</b><br>'+sunCoreInterpretation+'</p>'
+        +'<p><b>🌙 달 — 아무도 모르는 진짜 나</b><br>'+moonSign+' 달은 피곤하거나 외로울 때 자연스럽게 드러나는 본모습입니다. '+moonHousePair+' 영역에서 감정이 충전되고, 반대로 상처도 여기서 깊게 남습니다. 연인이 이 에너지를 이해해주면 "드디어 나를 알아주는 사람을 만났다"는 느낌이 옵니다.</p>'
+        +'<p><b>⬆ 상승궁(Asc) — 첫인상과 겉모습</b><br>상승궁 <b>'+ascSign+'</b>은 처음 만나는 사람이 느끼는 당신의 분위기입니다. 실제 내면(태양)과 살짝 다를 수 있어서, 가까워질수록 "생각보다 다른 사람이네"라는 반응이 나오기도 합니다.</p>'
         +'<p style="margin-top:8px;color:#cbd5e1;">'+imbalanceText+' '+precisionComment+'</p>'
         +'</div>'
-        +'<div class="astro-core">"당신의 차트 룰러(Chart Ruler)는 <strong>'+chartRuler+'</strong>입니다. 상승궁의 지배성이 인생 전체의 방향타를 쥡니다."</div>'
+        +'<div class="astro-core">"당신의 인생 테마를 이끄는 행성: <strong>'+chartRuler+'</strong> — 이 행성이 잘 돌아갈 때 모든 것이 잘 풀립니다."</div>'
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 1.5 핵심 행성 작동축 (사고·확장·심층 변화)</div>'
+        +'<div class="astro-subhead">� 1.5 말버릇·성장 포인트·대변혁</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">☿ 수성</span> <span class="astro-planet">'+mercurySign+(chart.planets.Mercury&&chart.planets.Mercury.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
         +' <span class="astro-tag">♃ 목성</span> <span class="astro-planet">'+jupiterSign+(chart.planets.Jupiter&&chart.planets.Jupiter.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
         +' <span class="astro-tag">♄ 토성</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
-        +'<p>수성 <b>'+mercurySign+'</b> · 하우스 '+mercuryHousePair+'는 사고/학습/커뮤니케이션의 실전 채널입니다. 말과 글, 계약, 정보 처리에서 이 축을 먼저 정렬하면 시행착오가 크게 줄어듭니다.</p>'
-        +'<p>목성 <b>'+jupiterSign+'</b> · 하우스 '+jupiterHousePair+'는 확장과 기회가 들어오는 방향입니다. 트랜짓 목성과 공명하는 시기에 이 하우스 주제를 확장하면 성장 체감이 빠릅니다.</p>'
-        +'<p>천왕성 <b>'+uranusSign+'</b>('+uranusHousePair+'), 해왕성 <b>'+neptuneSign+'</b>('+neptuneHousePair+'), 명왕성 <b>'+plutoSign+'</b>('+plutoHousePair+')은 세대적 과제이면서 개인 변환의 깊은 레이어입니다. 급변(천왕성)·이상/경계(해왕성)·근본 재편(명왕성) 이슈가 어느 생활 영역에서 작동하는지 확인하는 것이 장기 천기에 유리합니다.</p>'
+        +'<p><b>💬 수성 — 나의 말버릇과 생각 방식</b><br>수성이 <b>'+mercurySign+'</b>('+mercuryHousePair+')에 있어요. 당신이 말하고 배우고 생각하는 스타일이 이 별자리 색깔로 나옵니다. 이 방식을 의식적으로 쓸 때 소통이 훨씬 편해집니다.</p>'
+        +'<p><b>🍀 목성 — 행운이 들어오는 문</b><br>목성이 <b>'+jupiterSign+'</b>('+jupiterHousePair+')에 있습니다. 이 방향으로 시도할 때 "왠지 잘 풀린다"는 감각이 따라옵니다. 억지로 노력하지 않아도 흐름이 붙는 구간입니다.</p>'
+        +'<p><b>🌀 외행성 3총사 — 인생 대변혁 포인트</b><br>천왕성('+uranusSign+', '+uranusHousePair+')은 예고 없는 대반전, 해왕성('+neptuneSign+', '+neptuneHousePair+')은 꿈·영감·경계의 해체, 명왕성('+plutoSign+', '+plutoHousePair+')은 낡은 틀의 완전한 교체를 담당합니다. 이게 터질 때 굉장히 힘들지만, 지나고 나면 완전히 다른 사람이 됩니다.</p>'
         +'</div>'
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 2. 사회적 소명과 천직 (MC & 하우스 성궁 진법 · Placidus)</div>'
+        +'<div class="astro-subhead">🏆 2. 어떤 일을 하면 빛나는가?</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">MC 천정(10H)</span> <span class="astro-planet">'+mcSign+'</span>'
         +' <span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
@@ -4615,56 +5048,57 @@ function renderAstroInsight() {
         +' <span class="astro-tag">Saturn ♄</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
-        +'<p>사회적 정점(MC) <b>'+mcSign+'</b>은 공적 브랜딩의 방향을, 6하우스 <b>'+h6Sign+'</b>은 실제 업무 습관을 말합니다. 즉 무엇으로 보일 것인가(MC)와 어떻게 일할 것인가(6H)를 동시에 설계해야 성과 지속성이 높아집니다.</p>'
-        +'<p>토성(Saturn) <b>'+saturnSign+'</b> · 하우스 '+saturnHousePair+'는 장기성과를 위한 검증 구간입니다. 빠른 성과보다 표준화, 자격, 재현 가능한 실력을 먼저 확보하면 이후 확장에서 손실 확률이 크게 줄어듭니다.</p>'
-        +'<p style="margin-top:8px;color:#cbd5e1;">실무 프레임: MC 관련 목표 1개(브랜딩), 6H 관련 루틴 1개(생산성), 토성 관련 규율 1개(품질수호)를 90일 단위로 운행해 보세요.</p>'
+        +'<p><b>🎯 MC(<b>'+mcSign+'</b>) — 세상이 나를 어떻게 기억하길 바라는가</b><br>MC는 공적인 자리에서 빛나는 색깔입니다. 이 별자리 에너지로 커리어를 포지셔닝하면 "저 사람, 딱 그 분야 같아"라는 인상을 줍니다.</p>'
+        +'<p><b>🔨 6하우스(<b>'+h6Sign+'</b>) — 나의 일하는 스타일</b><br>어떻게 일하는지를 봅니다. 더불어 체력과 건강 관리 방식도 여기서 읽힙니다. 이 별자리의 리듬으로 루틴을 설계하면 번아웃이 줄어듭니다.</p>'
+        +'<p><b>🏗️ 토성(<b>'+saturnSign+'</b>, '+saturnHousePair+') — 단단해지는 구간</b><br>토성이 있는 곳은 처음엔 느리고 막히는 느낌이 들지만, 버티면 결국 가장 견고한 성과가 쌓이는 자리입니다. 여기서 기초를 쌓으면 나중에 무너지지 않습니다.</p>'
+        +'<p style="margin-top:8px;color:#cbd5e1;">팁: MC 방향으로 이름을 알리고 → 6하우스 스타일로 매일을 채우고 → 토성 방향에서 장기전을 버텨보세요.</p>'
         +'</div>'
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 3. 관계 역학과 내면의 타자 투사</div>'
+        +'<div class="astro-subhead">� 3. 나는 어떻게 사랑하는가?</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
         +' <span class="astro-tag">Venus 금성 ♀</span> <span class="astro-planet">'+venusSign+(chart.planets.Venus&&chart.planets.Venus.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
         +' <span class="astro-tag">Mars 화성 ♂</span> <span class="astro-planet">'+marsSign+(chart.planets.Mars&&chart.planets.Mars.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
-        +'<p>당신의 하강궁(Descendant)은 <b>'+descSign+'</b>에 걸려있습니다. 이는 본인이 의식적으로 거부하거나 억눌러 온 \'그림자 자아\'를 상징하며, 무의식적으로 이 에너지를 지닌 타인에게 강렬히 매혹됩니다.</p>'
-        +'<p>금성(매력·가치관)은 <b>'+venusSign+'</b> '+venusHousePair+', 화성(욕망·행동력)은 <b>'+marsSign+'</b> '+marsHousePair+'에 자리합니다. '+(vmAspect || vmCalcFallback)+'</p>'
-        +'<p>관계 해석의 핵심은 <b>7하우스 축(Asc-Desc)</b>, <b>금성/화성 실제 각도</b>, 그리고 <b>달의 정서 안전 욕구</b>입니다. '+relationAxisText+' 이번 계산에서 가장 타이트한 지표는 '+tightAspectText+'로, 끌림의 속도와 갈등 민감도를 함께 예고합니다.</p>'
-        +'<p style="margin-top:8px;color:#cbd5e1;">실전 팁: 관계 초반엔 금성 하우스 주제(애정 표현 방식)를 먼저 맞추고, 갈등 시엔 화성 하우스 주제(행동 트리거)를 분리해 다루면 소모전이 줄어듭니다.</p>'
+        +'<p><b>😍 하강궁(Desc) — 자꾸 끌리는 타입의 비밀</b><br>하강궁이 <b>'+descSign+'</b>이라는 건, 그 에너지를 가진 사람에게 이유도 모르게 자꾸 끌린다는 뜻입니다. "왜 나는 항상 이 타입이랑 엮이지?" 싶었다면 — 여기서 답이 나옵니다.</p>'
+        +'<p><b>💕 금성(<b>'+venusSign+'</b>, '+venusHousePair+') × 화성(<b>'+marsSign+'</b>, '+marsHousePair+')</b><br>금성은 내가 사랑을 표현하는 방식, 화성은 먼저 다가가게 만드는 본능입니다. '+(vmAspect || vmCalcFallback)+'</p>'
+        +'<p><b>🌙 달 — 연인이 알아줘야 할 진짜 나</b><br>달(<b>'+moonSign+'</b>, '+moonHousePair+')이 원하는 걸 상대가 자연스럽게 채워주면, "드디어 나를 이해하는 사람 만났다"는 느낌이 옵니다.</p>'
+        +'<p style="margin-top:8px;color:#cbd5e1;">'+relationAxisText+'</p>'
         +'</div>'
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 4. 거대한 우주의 통신 (현재 목성 트랜짓 기류)</div>'
+        +'<div class="astro-subhead">🍀 4. 지금 행운이 어디로 흐르는가? (목성 트랜짓)</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">Jupiter ♃ Transit</span> <span class="astro-planet">'+jupiterTransit+'</span>'
         +' <span style="color:#94a3b8;font-size:0.78rem">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+(now.getDate())+'일 기준)</span>'
         +'</div>'
         +'<div class="astro-desc">'
-        +'<p>현재 목성 트랜짓은 <b>'+jupiterTransit+'</b>으로, 연간 확장 포인트를 지정합니다. 나탈 강점 원소(<b>'+elemShortNames[elemDominant]+'</b>)와 연결되는 활동은 성장 속도가 빠르고, 약한 원소(<b>'+elemShortNames[elemWeakest]+'</b>) 영역은 의식적 보완이 필요합니다.</p>'
+        +'<p>지금 목성은 <b>'+jupiterTransit+'</b>을 지나고 있습니다. 이 별자리와 관련된 주제가 올해 가장 확장되기 쉬운 영역입니다. 무리하지 않아도 흐름이 붙는 구간 — 큰 결정과 도전을 이 방향으로 맞춰보세요.</p>'
         +'<div class="astro-core" style="font-size:1.05rem;margin-top:20px;font-weight:bold">"👉 '+transitMsg[jupiterIndex]+'"</div>'
-        +'<p>'+transitExecutionText+' 이 시기에는 수축보다 경험이 유리하지만, 무작정 확장보다 기존 루틴(토성 '+saturnHousePair+') 위에 확장(목성)을 얹는 방식이 그림자 파동를 줄입니다.</p>'
+        +'<p>'+transitExecutionText+'</p>'
         +'</div>'
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 4.5 실행 우선순위 매트릭스 (정량 요약)</div>'
+        +'<div class="astro-subhead">⚡ 4.5 지금 나에게 집중하면 좋은 것들</div>'
         +'<div class="astro-desc">'
-        +'<p><b>원소 편중:</b> '+imbalanceText+'</p>'
-        +'<p><b>양식 우세:</b> '+modalityNames[modalityDominant]+' 중심 구조입니다. '+modalityAdvice[modalityDominant]+'</p>'
-        +'<p><b>하우스 집중:</b> '+focusHouseText+'으로 관측됩니다. 핵심 생활 주제는 <b>'+topHouseTopic+'</b>이며, 해당 하우스 주제를 올해의 핵심 프로젝트로 설정하는 것이 효율적입니다.</p>'
-        +'<p><b>그림자 파동 수호:</b> '+precisionComment+'</p>'
-        +'<p><b>역행 점검:</b> '+retroFocusText+'</p>'
+        +'<p><b>🔥 나의 에너지 구성:</b> '+imbalanceText+'</p>'
+        +'<p><b>🎯 행동 스타일:</b> '+modalityNames[modalityDominant]+' 위주입니다. '+modalityAdvice[modalityDominant]+'</p>'
+        +'<p><b>🏠 인생 무게중심:</b> '+focusHouseText+'. 지금 가장 두드러지는 주제는 <b>'+topHouseTopic+'</b>입니다.</p>'
+        +'<p><b>⚠️ 조심할 포인트:</b> '+precisionComment+'</p>'
+        +'<p><b>↩ 역행 중인 행성:</b> '+retroFocusText+'</p>'
         +'</div>'
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">📌 5. 영혼이 공명하는 별들의 궁합 (Healing Synergy)</div>'
+        +'<div class="astro-subhead">� 5. 어떤 사람과 잘 맞는가?</div>'
         +'<div class="astro-desc">'
-        +'<p>사람과 사람의 만남은 우주가 안배한 치유의 여정입니다. 당신의 <b>'+sunSign+'</b> 태양과 <b>'+moonSign+'</b> 달이 그려내는 따스한 파동을 통해 힐링 에너지를 불어넣는 궁합의 결을 들여다봅니다.</p>'
-        +'<p style="color:#cbd5e1;">정밀 포인트: 감정 안정축은 달 하우스 '+moonHousePair+', 관계 동력축은 금성/화성 하우스 '+venusHousePair+' · '+marsHousePair+'이며, 상호작용 민감도는 '+tightAspectText+'에서 확인됩니다.</p>'
+        +'<p>내 차트를 알면 궁합도 보입니다. 어떤 사람이 나와 잘 맞고, 어디서 마찰이 생기는지 — 태양·달·금성·화성으로 읽어봅니다.</p>'
+        +'<p style="color:#cbd5e1;">핵심 포인트: 감정 안정은 달('+moonHousePair+'), 끌림과 표현은 금성('+venusHousePair+')·화성('+marsHousePair+'), 가장 강하게 작동하는 각도는 '+tightAspectText+'입니다.</p>'
         +'<div class="astro-core" style="font-size:0.95rem;line-height:1.6;font-weight:normal">'
         +'<ul style="padding-left:20px;margin-bottom:0;">'
         +'<li style="margin-bottom:10px;"><b>💕 연애 궁합 (정서적 지지와 안식처)</b><br>당신의 정서 안정축은 <b>'+moonSign+'</b>('+moonHousePair+')입니다. 관계 초반에는 달 하우스 주제에 맞는 정서적 안전을 먼저 확보하고, 약한 원소인 <b>'+elemShortNames[elemWeakest]+'</b> 기운을 보완해주는 상대를 만날수록 관계의 지속성이 높아집니다.</li>'
@@ -4685,9 +5119,9 @@ function renderAstroInsight() {
         +'<div style="background:rgba(244,114,182,0.08); border-radius:10px; padding:14px; margin-top:12px;">'
         +'<div style="color:#f9a8d4; font-weight:700; margin-bottom:8px; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">✦ Bond Compatibility Map</div>'
         +'<ul style="padding-left:18px; margin:0; color:#e2e8f0; line-height:1.85; font-size:0.9rem;">'
-        +'<li><b>💕 연애 궁합</b> — <b>'+moonSign+'</b> 달('+moonHousePair+')의 정서 리듬을 존중하고, '+relationComplementElement+' 계열 기질로 원소 균형을 보완해주는 상대가 안정적입니다.</li>'
-        +'<li><b>✨ 속 궁합</b> — <b>'+venusSign+'</b>('+venusHousePair+') 금성의 사랑 언어와 <b>'+marsSign+'</b>('+marsHousePair+') 화성의 행동 리듬을 동시에 맞출수록 친밀감의 회복 탄성이 커집니다.</li>'
-        +'<li><b>🤝 일 궁합</b> — <b>'+mcSign+'</b> MC + <b>'+saturnSign+'</b>('+saturnHousePair+') 토성축을 실행으로 옮겨줄 운행형 파트너가 유리하며, '+focusHouseText+'를 기준으로 역할을 나누면 효율이 높습니다.</li>'
+        +'<li><b>💕 연애 궁합</b> — 달 <b>'+moonSign+'</b>('+moonHousePair+')의 감정 리듬을 직관적으로 알아봐 주는 사람. '+relationComplementElement+' 기질로 내 에너지의 빈틈을 채워주는 상대일수록 오래갑니다.</li>'
+        +'<li><b>✨ 속 궁합</b> — 금성 <b>'+venusSign+'</b>('+venusHousePair+')의 사랑 언어가 통하고, 화성 <b>'+marsSign+'</b>('+marsHousePair+')의 타이밍이 맞는 사람일 때 "이 사람이다" 싶은 느낌이 확 옵니다.</li>'
+        +'<li><b>🤝 일 궁합</b> — MC <b>'+mcSign+'</b>의 방향성을 응원하고, 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')의 규율을 함께 지켜줄 수 있는 파트너. 역할 분담만 잘 해도 마찰이 크게 줄어듭니다.</li>'
         +'</ul>'
         +'</div>'
         +'</div>'
@@ -4718,42 +5152,11 @@ function renderAstroInsight() {
         +'style="width:120px;box-sizing:border-box;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
-        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">표준시 (UTC+)</label>'
-        +'<select id="asDirect_tz" '
-        +'style="padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
-        +'<option value="9">+9 한국 / 일본</option>'
-        +'<option value="8">+8 중국 / 대만 / 홍콩 / 싱가포르 / 말레이시아 / 필리핀</option>'
-        +'<option value="7">+7 태국 / 베트남 / 인도네시아(자카르타) / 캄보디아 / 라오스</option>'
-        +'<option value="6.5">+6.5 미얀마</option>'
-        +'<option value="6">+6 방글라데시</option>'
-        +'<option value="5.75">+5.75 네팔</option>'
-        +'<option value="5.5">+5.5 인도 / 스리랑카</option>'
-        +'<option value="5">+5 파키스탄</option>'
-        +'<option value="4">+4 UAE(두바이)</option>'
-        +'<option value="3.5">+3.5 이란</option>'
-        +'<option value="3">+3 사우디 / 터키 / 러시아(모스크바)</option>'
-        +'<option value="2">+2 이집트 / 동유럽</option>'
-        +'<option value="1">+1 유럽(CET) — 독일·프랑스·이탈리아·스페인</option>'
-        +'<option value="0">+0 영국 / UTC</option>'
-        +'<option value="-3">-3 브라질 / 아르헨티나</option>'
-        +'<option value="-5">-5 미국(ET) / 캐나다(토론토)</option>'
-        +'<option value="-6">-6 미국(CT)</option>'
-        +'<option value="-7">-7 미국(MT) / 캐나다(캘거리)</option>'
-        +'<option value="-8">-8 미국(PT) / 캐나다(밴쿠버)</option>'
-        +'<option value="-10">-10 미국(하와이)</option>'
-        +'<option value="10">+10 호주(시드니)</option>'
-        +'<option value="12">+12 뉴질랜드</option>'
+        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">도시(시/군)</label>'
+        +'<select id="asDirect_city" '
+        +'style="width:240px;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
+        +'<option value="">도시 선택(시/군 단위)</option>'
         +'</select>'
-        +'</div>'
-        +'<div style="flex:0 0 auto;">'
-        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">위도(lat)</label>'
-        +'<input type="number" id="asDirect_lat" step="0.0001" value="'+(lat != null ? Number(lat).toFixed(4) : '37.5665')+'" '
-        +'style="width:110px;box-sizing:border-box;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
-        +'</div>'
-        +'<div style="flex:0 0 auto;">'
-        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">경도(lon)</label>'
-        +'<input type="number" id="asDirect_lon" step="0.0001" value="'+(lon != null ? Number(lon).toFixed(4) : '126.9780')+'" '
-        +'style="width:110px;box-sizing:border-box;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
         +'</div>'
         +'</div>'
         +'<button onclick="window._astroDirectSynastry()" '
@@ -4946,25 +5349,8 @@ function renderAstroInsight() {
         +'<div class="astro-expert">'
         +'<div class="expert-title">🗣️ 쌈바 & 연이의 코즈믹 카운슬링</div>'
         +'<div class="expert-msg">'
-        +'<div class="neo-bubble"><strong>[분석가 쌈바 🦁]</strong> "새 계산식 기준으로 승부처가 선명합니다. 첫째, 태양 '+sunHousePair+'와 MC '+mcSign+' 축을 커리어 결정에 일치시키세요. 둘째, 토성 '+saturnHousePair+' 규율을 루틴화해 변동성을 줄이세요. 셋째, 타이트 각 '+tightAspectText+'을 의사결정 타이밍 지표로 활용하십시오. 올해 <b>'+profHouse+'</b> 프로펙션과 <b>'+firdariaMain.kr+'</b> 타임로드 교차 구간은 준비된 사람에게만 수익과 명성을 줍니다."</div>'
-        +'<div class="yeon-bubble"><strong>[공감요정 연이 🐷]</strong> "당신은 <b>'+moonSign+'</b> 달('+moonHousePair+')이 마음의 안전기지예요. 불안할 땐 관계를 키우기 전에 먼저 감정 루틴을 안정시키는 게 좋아요. 또 금성 '+venusSign+'('+venusHousePair+')이 원하는 사랑의 언어를 먼저 말하면 오해가 확 줄어요. 약한 원소 <b>'+elemShortNames[elemWeakest]+'</b> 기운은 생활 습관으로 채우면 사람 관계도 더 부드럽고 건강해질 거예요."</div>'
-        +'</div>'
-        +'</div>'
-
-        +'<div class="astro-section" style="border-left:3px solid #94a3b8; background:linear-gradient(to right, rgba(148,163,184,0.08), transparent);">'
-        +'<div class="astro-subhead" style="color:#cbd5e1;">🧮 Calculation Matrix (엔진 기준식)</div>'
-        +'<div class="astro-desc">'
-        +'<p style="margin:0 0 10px 0;color:#cbd5e1;">이번 결과는 단일 계산식으로 생성됩니다: <b>지역시각 → UTC 변환 → 경도보정(LMT) → JD(UT/TT) + ΔT → 황경/하우스 계산</b>. 표와 해석은 아래 계산 필드를 동일하게 참조합니다.</p>'
-        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;">'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">1) Local Time → UTC</div><div style="color:#e2e8f0;font-size:0.85rem;">'+utcCivilText+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">2) UTC + Longitude Correction</div><div style="color:#e2e8f0;font-size:0.85rem;">'+utcLmtText+' (Δ '+_formatMinSec(lonCorrMin)+')</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">3) JD(UT/TT) + ΔT</div><div style="color:#e2e8f0;font-size:0.85rem;">UT '+(chart.jdUT!=null?chart.jdUT.toFixed(6):'-')+' / TT '+(chart.jdTT!=null?chart.jdTT.toFixed(6):'-')+' / ΔT '+(chart.dT!=null?(chart.dT+'s'):'-')+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">4) Solar/Lunar/Planet Longitudes</div><div style="color:#e2e8f0;font-size:0.85rem;">☉ '+sunSign+' · ☽ '+moonSign+' · ☿ '+mercurySign+' · ♀ '+venusSign+' · ♂ '+marsSign+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">5) House Engines</div><div style="color:#e2e8f0;font-size:0.85rem;">Placidus + Whole Sign 병기 (RAMC '+(chart.ramc!=null?(chart.ramc+'°'):'-')+', ε '+(chart.eps!=null?(chart.eps+'°'):'-')+')</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">6) Key Angles</div><div style="color:#e2e8f0;font-size:0.85rem;">ASC '+ascSign+' ('+ascDegText+') · MC '+mcSign+' · DESC '+descSign+'</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">7) Lots</div><div style="color:#e2e8f0;font-size:0.85rem;">Fortuna '+fortunaSign+' ('+fortunaHousePair+') · Spirit '+spiritSign+' ('+spiritHousePair+')</div>'
-        +'<div style="color:#94a3b8;font-size:0.8rem;">8) House Summary</div><div style="color:#e2e8f0;font-size:0.85rem;">Placidus 1H/10H/7H: '+ascSign+' · '+mcSign+' · '+descSign+' / Whole 1H/10H/7H: '+(ws.h1?ws.h1.sign:'-')+' · '+(ws.h10?ws.h10.sign:'-')+' · '+(ws.h7?ws.h7.sign:'-')+'</div>'
-        +'</div>'
+        +'<div class="neo-bubble"><strong>[분석가 쌈바 🦁]</strong> "지금 승부처가 선명하게 보입니다. 태양 '+sunHousePair+'와 MC '+mcSign+' 방향에서 이름을 드러내고, 토성 '+saturnHousePair+'에서 기초를 다지세요. 타이트 각 '+tightAspectText+'이 올해 가장 예리하게 작동하는 타이밍 신호입니다. <b>'+profHouse+'</b> 프로펙션과 <b>'+firdariaMain.kr+'</b> 타임로드가 맞물리는 구간 — 준비된 사람에게만 열리는 문입니다."</div>'
+        +'<div class="yeon-bubble"><strong>[공감요정 연이 🐷]</strong> "달이 <b>'+moonSign+'</b>('+moonHousePair+')에 있다는 건 이쪽에서 마음을 가장 많이 채울 수 있다는 거예요. 지치거나 불안할 때 제일 먼저 여기로 가세요! 금성 <b>'+venusSign+'</b>('+venusHousePair+')의 사랑 언어를 솔직하게 말하면 연애 오해가 확 줄어요. 그리고 <b>'+elemShortNames[elemWeakest]+'</b> 기운이 살짝 부족한데, 그 에너지를 가진 친구나 취미 하나 옆에 두면 삶이 훨씬 풍성해질 거예요! 🌸"</div>'
         +'</div>'
         +'</div>'
 
@@ -4979,11 +5365,67 @@ function renderAstroInsight() {
         var _myVenusIdx = chart.planets.Venus ? chart.planets.Venus.sign.idx : 0;
         var _signs12    = typeof astrologer !== 'undefined' ? astrologer.signs : [];
 
+      /* 점성술 직접 입력: 시/군 단위 도시 선택 → tz/위도/경도 자동 반영 */
+      (function initAstroDirectCitySelector(){
+        var citySel = document.getElementById('asDirect_city');
+        if (!citySel || typeof BIRTH_PLACE_GROUPS === 'undefined') return;
+
+        var hasSeed = citySel.options && citySel.options.length > 1;
+        if (!hasSeed) {
+          BIRTH_PLACE_GROUPS.forEach(function(group, gi) {
+            var og = document.createElement('optgroup');
+            og.label = group.label;
+            (group.places || []).forEach(function(p, pi) {
+              var opt = document.createElement('option');
+              opt.value = String(gi) + ':' + String(pi);
+              opt.textContent = p.label;
+              opt.setAttribute('data-tz-name', p.tz);
+              opt.setAttribute('data-base-tz', String(p.tzOff));
+              opt.setAttribute('data-lat', String(p.lat));
+              opt.setAttribute('data-lon', String(p.lon));
+              og.appendChild(opt);
+            });
+            citySel.appendChild(og);
+          });
+        }
+
+        citySel.onchange = function() {
+          var o = citySel.options[citySel.selectedIndex];
+          if (!o || !o.getAttribute('data-lat')) return;
+          var tzName = o.getAttribute('data-tz-name') || 'Asia/Seoul';
+          var baseTz = parseFloat(o.getAttribute('data-base-tz') || '9');
+          var bDate = (document.getElementById('asDirect_date') || {}).value || '';
+          var bTime = (document.getElementById('asDirect_time') || {}).value || '12:00';
+          var y = 2000, m = 1, d = 1, hh = 12, mm = 0;
+          if (bDate) {
+            var dp = bDate.split('-');
+            y = parseInt(dp[0], 10) || y;
+            m = parseInt(dp[1], 10) || m;
+            d = parseInt(dp[2], 10) || d;
+          }
+          if (bTime) {
+            var tp = bTime.split(':');
+            hh = parseInt(tp[0], 10) || hh;
+            mm = parseInt(tp[1], 10) || mm;
+          }
+          var resolved = resolveBirthTimezoneOffset(y, m, d, hh, mm, tzName, baseTz);
+          citySel.setAttribute('data-resolved-tz', String(resolved.tzOffsetHours));
+        };
+
+        var directDateEl = document.getElementById('asDirect_date');
+        var directTimeEl = document.getElementById('asDirect_time');
+        var refreshByCity = function() {
+          if (citySel.selectedIndex > 0 && typeof citySel.onchange === 'function') citySel.onchange();
+        };
+        if (directDateEl) directDateEl.addEventListener('change', refreshByCity);
+        if (directTimeEl) directTimeEl.addEventListener('change', refreshByCity);
+      })();
+
         /* ── 내 태양 기준 별자리 인덱스 0-11 추출 헬퍼 ─── */
         function _syGetSunIdx(birth, hour) {
             try {
                 var p = birth.split('-');
-                var c = AstroEngine.calcAll(+p[0], +p[1], +p[2], hour || 12, 37.6, 127.0, 0); // 유명인은 UTC 기준 (tz=0)
+                var c = calcAstroApiChartOrThrow(+p[0], +p[1], +p[2], hour || 12, 37.6, 127.0, 0, (window.ASTRO_HOUSE_SYSTEM || 'P')); // 유명인은 UTC 기준 (tz=0)
                 return { sunIdx: c.sun.idx, venusIdx: c.planets.Venus ? c.planets.Venus.sign.idx : -1,
                          moonIdx: c.moon.idx, marsIdx: c.planets.Mars ? c.planets.Mars.sign.idx : -1,
                          sunSign: c.sun.sign, moonSign: c.moon.sign,
@@ -5335,7 +5777,7 @@ function renderAstroInsight() {
                 var g = hasExactGeo ? celebRec.birthGeo : (geoByNat[nat] || geoByNat.KR);
                 var hC = (celebRec && celebRec.hour != null) ? celebRec.hour : hour;
                 var mC = (celebRec && celebRec.minute != null) ? celebRec.minute : 0;
-                var celebChart = AstroEngine.calcAll(+p[0], +p[1], +p[2], (hC || 12) + (mC || 0) / 60, g.lat, g.lon, g.tz);
+                var celebChart = calcAstroApiChartOrThrow(+p[0], +p[1], +p[2], (hC || 12) + (mC || 0) / 60, g.lat, g.lon, g.tz, (window.ASTRO_HOUSE_SYSTEM || 'P'));
                 var celebSunIdx   = _sySignIdx(celebChart, 'Sun') || 0;
                 var celebMoonIdx  = _sySignIdx(celebChart, 'Moon') || 0;
                 var celebVenusIdx = _sySignIdx(celebChart, 'Venus') || 0;
@@ -5526,9 +5968,10 @@ function renderAstroInsight() {
         var nameVal = (document.getElementById('asDirect_name') || {}).value || '상대방';
         var dateVal = (document.getElementById('asDirect_date') || {}).value;
         var timeVal = (document.getElementById('asDirect_time') || {}).value || '12:00';
-        var tzVal   = parseFloat((document.getElementById('asDirect_tz') || {}).value || '9');
-        var latVal  = parseFloat((document.getElementById('asDirect_lat') || {}).value || '37.5665');
-        var lonVal  = parseFloat((document.getElementById('asDirect_lon') || {}).value || '126.9780');
+        var cityEl  = document.getElementById('asDirect_city');
+        var tzVal   = 9;
+        var latVal  = (lat != null) ? Number(lat) : 37.5665;
+        var lonVal  = (lon != null) ? Number(lon) : 126.9780;
 
         if (!dateVal) {
             resultDiv.innerHTML = '<p style="color:#f87171;font-size:0.85rem;padding:8px;">⚠ 상대방의 생년월일을 입력해 주세요.</p>';
@@ -5541,8 +5984,26 @@ function renderAstroInsight() {
             try {
                 var dp = dateVal.split('-');
                 var tp = timeVal.split(':');
+              var py = parseInt(dp[0], 10);
+              var pm = parseInt(dp[1], 10);
+              var pd = parseInt(dp[2], 10);
+              var ph = parseInt(tp[0], 10);
+              var pmin = parseInt(tp[1] || '0', 10);
+
+              if (cityEl && cityEl.selectedIndex > 0) {
+                var cOpt = cityEl.options[cityEl.selectedIndex];
+                if (cOpt) {
+                  var tzName = cOpt.getAttribute('data-tz-name') || 'Asia/Seoul';
+                  var baseTz = parseFloat(cOpt.getAttribute('data-base-tz') || '9');
+                  latVal = parseFloat(cOpt.getAttribute('data-lat') || String(latVal));
+                  lonVal = parseFloat(cOpt.getAttribute('data-lon') || String(lonVal));
+                  var tzResolved = resolveBirthTimezoneOffset(py, pm, pd, ph, pmin, tzName, baseTz);
+                  tzVal = tzResolved.tzOffsetHours;
+                }
+              }
+
                 var localHour = parseInt(tp[0], 10) + parseInt(tp[1] || '0', 10) / 60;
-                var partnerChart = AstroEngine.calcAll(+dp[0], +dp[1], +dp[2], localHour, latVal, lonVal, tzVal);
+                var partnerChart = calcAstroApiChartOrThrow(+dp[0], +dp[1], +dp[2], localHour, latVal, lonVal, tzVal, (window.ASTRO_HOUSE_SYSTEM || 'P'));
 
                 var pSunIdx   = _sySignIdx(partnerChart, 'Sun') || 0;
                 var pMoonIdx  = _sySignIdx(partnerChart, 'Moon') || 0;
@@ -7085,6 +7546,11 @@ function renderZiwei(p, natal, targetId) {
 
     /* 모바일 반응형 — 12궁 그리드 구조 유지, 소형화 */
     @media (max-width: 768px) {
+      #ziweiModalSheet > div {
+        max-width: 100% !important;
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+      }
       .zw-pastlife-main {
         grid-template-columns: 1fr;
       }
@@ -7151,18 +7617,29 @@ function renderZiwei(p, natal, targetId) {
       .zw-palace-gan { font-size: clamp(0.46rem, 1.5vw, 0.6rem); bottom: 2px; right: 18px; }
       .zw-dahan { font-size: clamp(0.46rem, 1.5vw, 0.6rem); top: 3px; right: 3px; padding: 1px 3px; line-height: 1.15; }
       .zw-empty { font-size: clamp(0.46rem, 1.5vw, 0.6rem); }
-      .zw-radar-col { min-width: 0; max-width: none; }
+      .zw-radar-col {
+        min-width: 0;
+        max-width: none;
+        padding: 10px;
+      }
       .zw-radar-canvas-wrap { height: min(70vw, 260px); min-height: 200px; }
-      .zw-detail-panel { padding: 14px; border-radius: 12px; }
+      .zw-detail-panel { padding: 11px; border-radius: 12px; }
       .zw-insight-layout { gap: 10px; }
       #zwComprehensiveReport,
       .ziwei-report-container {
         width: 100%;
         max-width: none;
-        padding-left: 8px;
-        padding-right: 8px;
+        padding-left: 0;
+        padding-right: 0;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+      }
+      .ziwei-report-container .zw-cosmic-card,
+      .ziwei-report-container .zw-love-compat-spread,
+      .ziwei-report-container .zw-pivot-section,
+      .ziwei-report-container .zw-pastlife-archive {
+        padding-left: 8px;
+        padding-right: 8px;
       }
       .ziwei-report-container .zw-report-col,
       .ziwei-report-container .zw-pivot-body,
@@ -7170,11 +7647,11 @@ function renderZiwei(p, natal, targetId) {
         overflow-x: auto;
       }
       .ziwei-report-container .zw-pastlife-archive {
-        width: calc(100% + 16px);
+        width: calc(100% + 4px);
         max-width: none;
-        margin-left: -8px;
-        margin-right: -8px;
-        padding: 8px;
+        margin-left: -2px;
+        margin-right: -2px;
+        padding: 7px;
       }
       .ziwei-report-container .zw-pastlife-layout {
         gap: 8px;
@@ -7595,30 +8072,18 @@ function renderZiwei(p, natal, targetId) {
 
       var correctedHour = ph;
       var correctedMinute = pmin;
-      var correctionMsg = '시간 보정 미적용(원입력 사용)';
-      var isoDate = bDate + 'T' + String(ph).padStart(2, '0') + ':' + String(pmin).padStart(2, '0');
-      if (typeof luxon !== 'undefined' && typeof TimeCorrectionService !== 'undefined') {
-        try {
-          var corrObj = TimeCorrectionService.calculateTrueSolarTime(isoDate, cityTz, cityLong);
-          if (corrObj && corrObj.finalAdjustedTime) {
-            var ct = String(corrObj.finalAdjustedTime).split(':');
-            correctedHour = parseInt(ct[0], 10);
-            correctedMinute = parseInt(ct[1], 10);
-            if (isNaN(correctedHour) || isNaN(correctedMinute)) {
-              correctedHour = ph;
-              correctedMinute = pmin;
-            }
-            var od = corrObj.offsetDetails || {};
-            correctionMsg = '진태양시 보정 적용: '
-              + String(ph).padStart(2, '0') + ':' + String(pmin).padStart(2, '0')
-              + ' → ' + String(correctedHour).padStart(2, '0') + ':' + String(correctedMinute).padStart(2, '0')
-              + ' (경도 ' + (od.longitudeOffset != null ? od.longitudeOffset : '?') + '분'
-              + (od.dstOffset != null ? ', DST ' + od.dstOffset + '분' : '') + ')';
-          }
-        } catch (e) {
-          correctionMsg = '시간 보정 엔진 오류로 원입력 시간 사용';
-        }
-      }
+      var cityBaseTz = cityOpt ? parseFloat(cityOpt.getAttribute('data-base-tz') || cityOpt.getAttribute('data-tz') || '9') : 9;
+      var tzResolved = resolveBirthTimezoneOffset(py, pm, pdm, ph, pmin, cityTz, cityBaseTz);
+      var cityStdLong = tzResolved.tzOffsetHours * 15;
+      var cityLngOffset = Math.round((cityStdLong - cityLong) * 4);
+      var correctedTotal = ((ph * 60 + pmin - cityLngOffset) % 1440 + 1440) % 1440;
+      correctedHour = Math.floor(correctedTotal / 60);
+      correctedMinute = correctedTotal % 60;
+      var correctionMsg = '진태양시 보정 적용: '
+        + String(ph).padStart(2, '0') + ':' + String(pmin).padStart(2, '0')
+        + ' → ' + String(correctedHour).padStart(2, '0') + ':' + String(correctedMinute).padStart(2, '0')
+        + ' (경도 ' + cityLngOffset + '분, DST ' + tzResolved.dstMinutes + '분, UTC'
+        + (tzResolved.tzOffsetHours >= 0 ? '+' : '') + tzResolved.tzOffsetHours + ')';
       if (corrEl) {
         corrEl.innerHTML = '🌍 ' + cityLabel + '<br><span style="font-size:0.75rem;color:#c4b5fd;">' + correctionMsg + '</span>';
       }
@@ -9375,7 +9840,7 @@ function renderZiwei(p, natal, targetId) {
             (group.places || []).forEach(function(p){
               var selected = '';
               if (window._ziweiInputMeta && window._ziweiInputMeta.placeLabel && window._ziweiInputMeta.placeLabel === p.label) selected = ' selected';
-              compatCityOptions += '<option value="'+p.tz+'" data-long="'+p.lon+'" data-lat="'+p.lat+'" data-tz="'+p.tzOff+'"'+selected+'>'+p.label+'</option>';
+              compatCityOptions += '<option value="'+p.tz+'" data-long="'+p.lon+'" data-lat="'+p.lat+'" data-tz="'+p.tzOff+'" data-base-tz="'+p.tzOff+'"'+selected+'>'+p.label+'</option>';
             });
           });
         }
@@ -16394,6 +16859,15 @@ document.addEventListener('destinyProfileChanged', function(e) {
     if (!p || !p.birth) return;
     var b = p.birth;
     var l = p.location || {};
+    var tzResolved = resolveBirthTimezoneOffset(
+      b.year,
+      b.month,
+      b.day,
+      (b.hour !== undefined ? b.hour : 12),
+      (b.minute !== undefined ? b.minute : 0),
+      (l.tz || 'Asia/Seoul'),
+      (l.baseTzOffset !== undefined ? l.baseTzOffset : (l.tzOffset !== undefined ? l.tzOffset : 9))
+    );
 
     /* ① 전역 상태 동기화 */
     window._astroBirth = {
@@ -16402,7 +16876,7 @@ document.addEventListener('destinyProfileChanged', function(e) {
       minute: (b.minute !== undefined ? b.minute : 0),
       lat: (l.lat !== undefined ? l.lat : 37.6),
       lon: (l.lng !== undefined ? l.lng : 127.0),
-      tz: (l.tzOffset !== undefined ? l.tzOffset : 9)
+      tz: tzResolved.tzOffsetHours
     };
 
     window._ziweiBirth = {
@@ -16411,7 +16885,7 @@ document.addEventListener('destinyProfileChanged', function(e) {
       minute: (b.minute !== undefined ? b.minute : 0),
       lat: (l.lat !== undefined ? l.lat : 37.6),
       lon: (l.lng !== undefined ? l.lng : 127.0),
-      tz: (l.tzOffset !== undefined ? l.tzOffset : 9)
+      tz: tzResolved.tzOffsetHours
     };
 
     /* ② 성별 전역 동기화 */

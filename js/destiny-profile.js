@@ -87,6 +87,68 @@
     return offsetMin;   /* 양수: 뒤로 당김, 음수: 앞으로 당김 */
   }
 
+  function _parseTimeZoneNameOffset(tzName) {
+    if (!tzName) return null;
+    var m = String(tzName).match(/(?:GMT|UTC)([+-])(\d{1,2})(?::?(\d{2}))?/i);
+    if (!m) return null;
+    var sign = m[1] === '-' ? -1 : 1;
+    var hh = parseInt(m[2], 10) || 0;
+    var mm = parseInt(m[3] || '0', 10) || 0;
+    return sign * (hh + mm / 60);
+  }
+
+  function getTimeZoneOffsetHoursForDate(year, month, day, hour, minute, tz, fallbackOffsetHours) {
+    var fallback = (typeof fallbackOffsetHours === 'number' && !isNaN(fallbackOffsetHours)) ? fallbackOffsetHours : 9;
+    if (!tz || typeof Intl === 'undefined' || typeof Intl.DateTimeFormat !== 'function') return fallback;
+    try {
+      var probeUtc = new Date(Date.UTC(year, (month || 1) - 1, day || 1, hour || 12, minute || 0, 0));
+      var fmt = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'shortOffset'
+      });
+      var parts = fmt.formatToParts(probeUtc);
+      var tzPart = '';
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i].type === 'timeZoneName') {
+          tzPart = parts[i].value || '';
+          break;
+        }
+      }
+      var parsed = _parseTimeZoneNameOffset(tzPart);
+      return parsed == null ? fallback : parsed;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function resolveTimezoneOffset(birth, location) {
+    birth = birth || {};
+    location = location || {};
+    var base = (typeof location.baseTzOffset === 'number' && !isNaN(location.baseTzOffset))
+      ? location.baseTzOffset
+      : ((typeof location.tzOffset === 'number' && !isNaN(location.tzOffset)) ? location.tzOffset : 9);
+    var tz = location.tz || 'Asia/Seoul';
+    var y = birth.year || 2000;
+    var m = birth.month || 1;
+    var d = birth.day || 1;
+    var h = (birth.hour != null) ? birth.hour : 12;
+    var mm = (birth.minute != null) ? birth.minute : 0;
+    var eff = getTimeZoneOffsetHoursForDate(y, m, d, h, mm, tz, base);
+    var dstMinutes = Math.round((eff - base) * 60);
+    return {
+      tzOffsetHours: eff,
+      baseOffsetHours: base,
+      dstMinutes: dstMinutes,
+      isDstApplied: dstMinutes !== 0
+    };
+  }
+
   function applyTrueSolarOffset(hour, minute, offsetMin) {
     var total = hour * 60 + minute - offsetMin;
     /* 자정 이전/이후 처리 */
@@ -142,6 +204,7 @@
     var lng  = opt ? parseFloat(opt.getAttribute('data-long') || '127') : 127.0;
     var lat  = opt ? parseFloat(opt.getAttribute('data-lat')  || '37.6'): 37.6;
     var tzOff= opt ? parseFloat(opt.getAttribute('data-tz')   || '9')   : 9;
+    var baseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || String(tzOff)) : tzOff;
     var locationLabel = opt ? opt.text : '대한민국 (서울)';
 
     if (!name || !bd) return null;
@@ -149,11 +212,24 @@
     var parts  = bd.split('-');
     var year   = parseInt(parts[0]), month = parseInt(parts[1]), day = parseInt(parts[2]);
 
+    var resolvedTz = resolveTimezoneOffset(
+      { year: year, month: month, day: day, hour: hour, minute: minute },
+      { tz: tz, tzOffset: tzOff, baseTzOffset: baseTzOff }
+    );
+
     return {
       name: name,
       gender: gender,
       birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: calType },
-      location: { label: locationLabel, tz: tz, lng: lng, lat: lat, tzOffset: tzOff }
+      location: {
+        label: locationLabel,
+        tz: tz,
+        lng: lng,
+        lat: lat,
+        tzOffset: resolvedTz.tzOffsetHours,
+        baseTzOffset: resolvedTz.baseOffsetHours,
+        dstMinutes: resolvedTz.dstMinutes
+      }
     };
   }
 
@@ -172,7 +248,8 @@
 
     var b = profile.birth;
     var l = profile.location;
-    var tso = calcTrueSolarOffset(l.lng, l.tzOffset);
+    var tzResolved = resolveTimezoneOffset(b, l);
+    var tso = calcTrueSolarOffset(l.lng, tzResolved.tzOffsetHours);
     var corrected = applyTrueSolarOffset(b.hour, b.minute, tso);
     var trueSolarStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
     var dir = tso > 0 ? '−' : '+';
@@ -399,7 +476,11 @@
           var safeDay = (typeof b.day === 'number') ? b.day : 1;
 
           var isActive = safe.id === currId;
-          var tso = calcTrueSolarOffset(safeLng, safeTzOffset);
+                var tzResolved = resolveTimezoneOffset(
+                  { year: safeYear, month: safeMonth, day: safeDay, hour: safeHour, minute: safeMinute },
+                  { tz: l.tz, tzOffset: safeTzOffset, baseTzOffset: l.baseTzOffset }
+                );
+                var tso = calcTrueSolarOffset(safeLng, tzResolved.tzOffsetHours);
           var corrected = applyTrueSolarOffset(safeHour, safeMinute, tso);
           var tsStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
           var zodiac = _zodiacEmoji(safeYear);
@@ -790,6 +871,11 @@
   }
 
   /* 외부 노출 */
-  window.DestinyProfileManager = { storage: DPStorage, calcTrueSolarOffset: calcTrueSolarOffset };
+  window.DestinyProfileManager = {
+    storage: DPStorage,
+    calcTrueSolarOffset: calcTrueSolarOffset,
+    resolveTimezoneOffset: resolveTimezoneOffset,
+    getTimeZoneOffsetHoursForDate: getTimeZoneOffsetHoursForDate
+  };
 
 })();
