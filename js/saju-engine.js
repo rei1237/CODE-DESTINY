@@ -6532,6 +6532,16 @@ function renderZiwei(p, natal, targetId) {
       font-size: 0.82rem;
       white-space: nowrap;
     }
+    .zw-persona-wuxing-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+      gap: 10px;
+      align-items: stretch;
+    }
+    .zw-persona-wuxing-left,
+    .zw-persona-wuxing-right {
+      min-width: 0;
+    }
     .zw-pastlife-archive {
       position: relative;
       border-radius: 14px;
@@ -6892,6 +6902,12 @@ function renderZiwei(p, natal, targetId) {
       .zw-radar-canvas-wrap { height: min(70vw, 260px); min-height: 200px; }
       .zw-detail-panel { padding: 14px; border-radius: 12px; }
       .zw-insight-layout { gap: 10px; }
+      .zw-persona-wuxing-grid {
+        grid-template-columns: 1fr;
+      }
+      .zw-persona-wuxing-right {
+        min-height: 240px;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -8420,13 +8436,13 @@ function renderZiwei(p, natal, targetId) {
               +'<div style="font-size:0.96rem;color:#fef3c7;font-weight:900;letter-spacing:0.01em;">당신의 타고난 오행 기운</div>'
               +'<div style="font-size:0.72rem;color:#c4b5fd;">Zi Wei Dou Shu Element Constellation</div>'
             +'</div>'
-            +'<div style="display:grid;grid-template-columns:minmax(210px,1fr) minmax(230px,2fr);gap:10px;align-items:stretch;">'
-              +'<div style="background:rgba(12,20,42,0.62);border:1px solid rgba(125,211,252,0.24);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;">'
+            +'<div class="zw-persona-wuxing-grid">'
+              +'<div class="zw-persona-wuxing-left" style="background:rgba(12,20,42,0.62);border:1px solid rgba(125,211,252,0.24);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;">'
                 +'<div style="font-size:0.84rem;color:#e2e8f0;line-height:1.68;">📚 달빛 서가의 안내자 <b style="color:#fde68a;">별술사</b>가 오행 별자리를 펼쳐 보입니다. 밝게 빛나는 별일수록 현재 명반에서 힘이 강하게 작동하는 축입니다.</div>'
                 +'<div style="font-size:1.68rem;line-height:1;">🧙✨</div>'
                 +'<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;">'+wuxingChipHtml+'</div>'
               +'</div>'
-              +'<div style="position:relative;background:radial-gradient(circle at 20% 18%,rgba(255,255,255,0.16),rgba(255,255,255,0) 35%),linear-gradient(180deg,rgba(15,23,42,0.78),rgba(17,24,39,0.78));border:1px solid rgba(196,181,253,0.3);border-radius:10px;padding:8px;min-height:280px;">'
+              +'<div class="zw-persona-wuxing-right" style="position:relative;background:radial-gradient(circle at 20% 18%,rgba(255,255,255,0.16),rgba(255,255,255,0) 35%),linear-gradient(180deg,rgba(15,23,42,0.78),rgba(17,24,39,0.78));border:1px solid rgba(196,181,253,0.3);border-radius:10px;padding:8px;min-height:280px;">'
                 +'<canvas id="zwWuXingConstellation" width="460" height="320" style="width:100%;height:100%;display:block;border-radius:8px;"></canvas>'
                 +'<div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:0.72rem;color:#fde68a;background:rgba(30,27,75,0.62);border:1px solid rgba(250,204,21,0.28);border-radius:999px;padding:2px 8px;">⛰️ 토 (Earth)</div>'
                 +'<div style="position:absolute;top:58px;right:6px;font-size:0.69rem;color:#bbf7d0;background:rgba(6,78,59,0.36);border:1px solid rgba(52,211,153,0.28);border-radius:999px;padding:2px 7px;">🌿 목 (Wood)</div>'
@@ -8970,7 +8986,7 @@ function renderZiwei(p, natal, targetId) {
 
         var sec_love_compat_spread = '<div class="zw-love-compat-spread">'
           + '<div class="zw-cosmic-stars"></div>'
-          + '<div class="zw-love-compat-title">💘 [별들이 알려주는 사랑] & 🧿 [자미두수 궁합]</div>'
+          + '<div class="zw-love-compat-title">💘 [두 사람의 운명의 별자리]</div>'
           + '<div class="zw-love-compat-sub">두 사람의 별자리가 하나의 운명별로 피어나는 장면</div>'
           + '<div class="zw-love-compat-canvas-wrap">'
             + '<canvas id="zwLoveDestinyStarCanvas" class="zw-love-compat-canvas" width="920" height="380"></canvas>'
@@ -9020,7 +9036,7 @@ function renderZiwei(p, natal, targetId) {
             +'<div style="grid-column:1 / -1;background:linear-gradient(120deg,rgba(186,230,253,0.14),rgba(224,231,255,0.15));border:1px solid rgba(125,211,252,0.36);border-radius:10px;padding:11px 12px;">'
               +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">'
                 +'<div style="color:#e0f2fe;font-weight:900;">6. 마음 회복 코칭</div>'
-                +'<span style="font-size:0.68rem;color:#e0f2fe;border:1px solid rgba(125,211,252,0.55);background:rgba(3,105,161,0.25);padding:2px 7px;border-radius:999px;white-space:nowrap;">힐링의 메지</span>'
+                +'<span style="font-size:0.68rem;color:#e0f2fe;border:1px solid rgba(125,211,252,0.55);background:rgba(3,105,161,0.25);padding:2px 7px;border-radius:999px;white-space:nowrap;">힐링의 메세지</span>'
               +'</div>'
               +'<div style="margin-bottom:4px;color:#e2e8f0;"><b>'+healingTitle+'</b></div>'
               +'<div style="margin-bottom:4px;color:#e2e8f0;">'+healingAffirmation+'</div>'
@@ -9438,6 +9454,7 @@ function renderZiwei(p, natal, targetId) {
             + (showClose ? '<button type="button" class="zw-report-close-btn zw-summary-close-btn" onclick="window._closeZwDetailReport()">요약 닫기</button>' : '')
             + '</div>'
             + sec1
+            + sec3
             + '</div>';
         } else {
           contentHtml = '<div style="font-family:\'Suit\',sans-serif; background:#121212; color:#E2E8F0; padding:20px; border-radius:12px; width:100%; box-sizing:border-box;">'
@@ -9445,7 +9462,7 @@ function renderZiwei(p, natal, targetId) {
             + '<h1 style="margin:0;color:#C084FC;font-size:1.5rem;">자미두수 천명(天命) 종합 리포트</h1>'
             + (showClose ? '<button type="button" class="zw-report-close-btn" onclick="window._closeZwComprehensiveReport()">리포트 닫기 ✕</button>' : '')
             + '</div>'
-            + sec_persona + sec_ability + sec_hidden_power + sec_love_compat_spread + sec_love + sec_compat + sec_grand + sec3 + sec2 + sec_dahan + sec_pivot
+            + sec_persona + sec_ability + sec_hidden_power + sec_love_compat_spread + sec_love + sec_compat + sec_grand + sec2 + sec_dahan + sec_pivot
             + '</div>';
         }
 
@@ -9599,8 +9616,9 @@ function renderZiwei(p, natal, targetId) {
             if (!canvas || !metrics || !pointDefs) return;
             var dpr = window.devicePixelRatio || 1;
             var rect = canvas.getBoundingClientRect();
-            var cw = Math.max(620, Math.round(rect.width || 920));
-            var ch = Math.max(280, Math.round(rect.height || 380));
+            var cw = Math.max(300, Math.round(rect.width || 920));
+            var compact = cw < 520;
+            var ch = Math.max(compact ? 250 : 280, Math.round(rect.height || (compact ? 320 : 380)));
             canvas.width = Math.round(cw * dpr);
             canvas.height = Math.round(ch * dpr);
             var ctx3 = canvas.getContext('2d');
@@ -9614,7 +9632,7 @@ function renderZiwei(p, natal, targetId) {
             ctx3.fillStyle = bg;
             ctx3.fillRect(0, 0, cw, ch);
 
-            for (var si2 = 0; si2 < 88; si2 += 1) {
+            for (var si2 = 0; si2 < (compact ? 58 : 88); si2 += 1) {
               var sx2 = Math.random() * cw;
               var sy2 = Math.random() * ch;
               var sr2 = Math.random() * 1.6 + 0.15;
@@ -9626,39 +9644,41 @@ function renderZiwei(p, natal, targetId) {
 
             var cx = cw * 0.5;
             var cy = ch * 0.52;
-            var baseR = Math.min(cw, ch) * 0.28;
+            var baseR = Math.min(cw, ch) * (compact ? 0.25 : 0.28);
 
-            var leftClusterX = cw * 0.2;
-            var rightClusterX = cw * 0.8;
-            var clusterY = ch * 0.56;
-            for (var ci = 0; ci < 7; ci += 1) {
-              var ly = clusterY + (ci - 3) * 18;
-              var lx = leftClusterX + (Math.sin(ci * 1.2) * 16);
-              var rx = rightClusterX + (Math.cos(ci * 1.1) * 16);
-              ctx3.fillStyle = 'rgba(125,211,252,0.9)';
-              ctx3.beginPath();
-              ctx3.arc(lx, ly, 2.1, 0, Math.PI * 2);
-              ctx3.fill();
-              ctx3.fillStyle = 'rgba(251,191,36,0.9)';
-              ctx3.beginPath();
-              ctx3.arc(rx, ly, 2.1, 0, Math.PI * 2);
-              ctx3.fill();
-              ctx3.strokeStyle = 'rgba(148,163,184,0.42)';
-              ctx3.lineWidth = 1;
-              ctx3.beginPath();
-              ctx3.moveTo(lx, ly);
-              ctx3.lineTo(cx - 35, cy + (ci - 3) * 8);
-              ctx3.stroke();
-              ctx3.beginPath();
-              ctx3.moveTo(rx, ly);
-              ctx3.lineTo(cx + 35, cy + (ci - 3) * 8);
-              ctx3.stroke();
+            if (!compact) {
+              var leftClusterX = cw * 0.2;
+              var rightClusterX = cw * 0.8;
+              var clusterY = ch * 0.56;
+              for (var ci = 0; ci < 7; ci += 1) {
+                var ly = clusterY + (ci - 3) * 18;
+                var lx = leftClusterX + (Math.sin(ci * 1.2) * 16);
+                var rx = rightClusterX + (Math.cos(ci * 1.1) * 16);
+                ctx3.fillStyle = 'rgba(125,211,252,0.9)';
+                ctx3.beginPath();
+                ctx3.arc(lx, ly, 2.1, 0, Math.PI * 2);
+                ctx3.fill();
+                ctx3.fillStyle = 'rgba(251,191,36,0.9)';
+                ctx3.beginPath();
+                ctx3.arc(rx, ly, 2.1, 0, Math.PI * 2);
+                ctx3.fill();
+                ctx3.strokeStyle = 'rgba(148,163,184,0.42)';
+                ctx3.lineWidth = 1;
+                ctx3.beginPath();
+                ctx3.moveTo(lx, ly);
+                ctx3.lineTo(cx - 35, cy + (ci - 3) * 8);
+                ctx3.stroke();
+                ctx3.beginPath();
+                ctx3.moveTo(rx, ly);
+                ctx3.lineTo(cx + 35, cy + (ci - 3) * 8);
+                ctx3.stroke();
+              }
+
+              ctx3.fillStyle = 'rgba(219,234,254,0.85)';
+              ctx3.font = '700 12px Pretendard, sans-serif';
+              ctx3.fillText('A별자리', leftClusterX - 28, clusterY - 82);
+              ctx3.fillText('B별자리', rightClusterX - 24, clusterY - 82);
             }
-
-            ctx3.fillStyle = 'rgba(219,234,254,0.85)';
-            ctx3.font = '700 12px Pretendard, sans-serif';
-            ctx3.fillText('A별자리', leftClusterX - 28, clusterY - 82);
-            ctx3.fillText('B별자리', rightClusterX - 24, clusterY - 82);
 
             var centerGlow = ctx3.createRadialGradient(cx, cy, 0, cx, cy, baseR * 1.2);
             centerGlow.addColorStop(0, 'rgba(254,249,195,0.38)');
@@ -9709,6 +9729,12 @@ function renderZiwei(p, natal, targetId) {
               ctx3.stroke();
             }
 
+            var labelPadding = compact ? 6 : 10;
+            var placedLabelBoxes = [];
+            function overlapBox(a, b) {
+              return !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y);
+            }
+
             starPts.forEach(function(p){
               var glow = ctx3.createRadialGradient(p.x, p.y, 0, p.x, p.y, 12);
               glow.addColorStop(0, 'rgba(255,248,220,0.98)');
@@ -9722,22 +9748,44 @@ function renderZiwei(p, natal, targetId) {
               ctx3.arc(p.x, p.y, 2.8, 0, Math.PI * 2);
               ctx3.fill();
 
-              var tx = cx + Math.cos(p.a) * (baseR * 1.07);
-              var ty = cy + Math.sin(p.a) * (baseR * 1.07);
+              var tx = cx + Math.cos(p.a) * (baseR * (compact ? 1.12 : 1.07));
+              var ty = cy + Math.sin(p.a) * (baseR * (compact ? 1.12 : 1.07));
               ctx3.fillStyle = 'rgba(241,245,249,0.95)';
-              ctx3.font = '700 12px Pretendard, sans-serif';
-              var text = p.label.icon + ' ' + p.label.name + ' ' + p.v + '%';
+              ctx3.font = compact ? '700 10px Pretendard, sans-serif' : '700 12px Pretendard, sans-serif';
+              var text = compact
+                ? (p.label.icon + ' ' + p.v + '%')
+                : (p.label.icon + ' ' + p.label.name + ' ' + p.v + '%');
               var tw = ctx3.measureText(text).width;
               var alignLeft = Math.cos(p.a) < -0.18;
               var alignRight = Math.cos(p.a) > 0.18;
               var drawX = alignLeft ? (tx - tw) : (alignRight ? tx : (tx - tw / 2));
-              var drawY = ty + (Math.sin(p.a) > 0 ? 12 : -8);
+              var drawY = ty + (Math.sin(p.a) > 0 ? (compact ? 10 : 12) : (compact ? -6 : -8));
+
+              // Clamp text inside canvas to avoid clipping on narrow screens.
+              drawX = Math.max(labelPadding, Math.min(cw - tw - labelPadding, drawX));
+              drawY = Math.max(12, Math.min(ch - 8, drawY));
+
+              // Very light collision avoidance by nudging overlapping labels.
+              var box = { x: drawX - 2, y: drawY - (compact ? 9 : 11), w: tw + 4, h: compact ? 12 : 14 };
+              for (var ai = 0; ai < 6; ai += 1) {
+                var hasCollision = false;
+                for (var bi = 0; bi < placedLabelBoxes.length; bi += 1) {
+                  if (overlapBox(box, placedLabelBoxes[bi])) { hasCollision = true; break; }
+                }
+                if (!hasCollision) break;
+                box.y += (Math.sin(p.a) >= 0 ? 10 : -10);
+                box.y = Math.max(10, Math.min(ch - box.h - 4, box.y));
+                drawY = box.y + (compact ? 9 : 11);
+              }
+              placedLabelBoxes.push(box);
               ctx3.fillText(text, drawX, drawY);
             });
 
             ctx3.fillStyle = 'rgba(251,191,36,0.95)';
-            ctx3.font = '900 14px Pretendard, sans-serif';
-            ctx3.fillText('LOVE DESTINY STAR', cx - 78, cy + 5);
+            ctx3.font = compact ? '900 12px Pretendard, sans-serif' : '900 14px Pretendard, sans-serif';
+            ctx3.textAlign = 'center';
+            ctx3.fillText('LOVE DESTINY STAR', cx, cy + (compact ? 4 : 5));
+            ctx3.textAlign = 'left';
           };
         }
 
@@ -9794,26 +9842,27 @@ function renderZiwei(p, natal, targetId) {
         }, 50);
     };
 
-    // 클릭 없이도 종합 리포트를 먼저 렌더링한다 (명궁 기준).
-    var defaultIdx = (window._currentZiweiData && window._currentZiweiData.palacesByIndex)
-      ? window._currentZiweiData.palacesByIndex.indexOf('명궁')
-      : -1;
-    if (defaultIdx < 0) defaultIdx = 0;
-    if (window._currentZiweiData && window._currentZiweiData.stars && window._currentZiweiData.stars[defaultIdx]) {
-      window._zwComprehensiveSeed = {
-        idx: defaultIdx,
-        pName: window._currentZiweiData.palacesByIndex[defaultIdx],
-        stars: window._currentZiweiData.stars[defaultIdx],
-        pd: window._currentZiweiData
-      };
-      window._renderZwPanel(
-        defaultIdx,
-        window._currentZiweiData.palacesByIndex[defaultIdx],
-        window._currentZiweiData.stars[defaultIdx],
-        window._currentZiweiData,
-        { clickOnly: false, targetId: 'zwComprehensiveReport', showClose: true, showRadar: false, scroll: false }
-      );
-    }
+  }
+
+  // 종합 리포트는 매 렌더 사이클마다 갱신해야 모바일 재진입 시 로딩 문구에 멈추지 않는다.
+  var defaultIdx = (window._currentZiweiData && window._currentZiweiData.palacesByIndex)
+    ? window._currentZiweiData.palacesByIndex.indexOf('명궁')
+    : -1;
+  if (defaultIdx < 0) defaultIdx = 0;
+  if (typeof window._renderZwPanel === 'function' && window._currentZiweiData && window._currentZiweiData.stars && window._currentZiweiData.stars[defaultIdx]) {
+    window._zwComprehensiveSeed = {
+      idx: defaultIdx,
+      pName: window._currentZiweiData.palacesByIndex[defaultIdx],
+      stars: window._currentZiweiData.stars[defaultIdx],
+      pd: window._currentZiweiData
+    };
+    window._renderZwPanel(
+      defaultIdx,
+      window._currentZiweiData.palacesByIndex[defaultIdx],
+      window._currentZiweiData.stars[defaultIdx],
+      window._currentZiweiData,
+      { clickOnly: false, targetId: 'zwComprehensiveReport', showClose: true, showRadar: false, scroll: false }
+    );
   }
 }
 

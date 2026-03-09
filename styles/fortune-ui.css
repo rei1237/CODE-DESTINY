@@ -1729,6 +1729,37 @@ body { top: 0px !important; }
   50%,100%{filter:none;transform:translateX(0)}}
 .neo-glitch-active{animation:neoGlitch .5s ease forwards!important}
 .neo-glitch-active .neo-glitch-layer{animation:neoGlitch .5s ease forwards!important}
+
+/* 모바일/저사양 전환 경량 플래시 */
+body.neo-glitch-lite::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:9995;
+  background:linear-gradient(120deg,rgba(255,255,255,.08),rgba(196,160,89,.07),rgba(100,200,255,.06));
+  animation:neoLiteFlash .24s ease-out forwards;
+}
+@keyframes neoLiteFlash{
+  0%{opacity:.85}
+  100%{opacity:0}
+}
+
+/* 자동 경량 모드: FPS 저하/long task 감지 시 진입 */
+body.neo-auto-lite .neo-glitch-wrap{display:none!important}
+body.neo-auto-lite .neo-glitch-layer{animation:none!important}
+body.neo-auto-lite.neo-mode .card{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:0 2px 12px rgba(0,0,0,.45)!important;
+}
+body.neo-auto-lite.neo-mode .top-hero,
+body.neo-auto-lite.neo-mode .qm-wrap,
+body.neo-auto-lite.neo-mode .modal-card{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:0 4px 16px rgba(0,0,0,.45)!important;
+}
 /* NEO MODE 기본 */
 body.neo-mode{background:#0a0b10!important;color:#c8c8c8!important;transition:background .4s,color .4s}
 body.neo-mode .card{
@@ -1758,6 +1789,18 @@ body.neo-mode .btn-main{
 body.neo-mode .btn-main:hover{box-shadow:0 8px 28px rgba(255,160,0,.5)!important}
 body.neo-mode .btn-sub{background:transparent!important;color:#FFD700!important;border:1.5px solid rgba(255,215,0,.35)!important}
 body.neo-mode .btn-sub:hover{background:rgba(255,215,0,.07)!important}
+
+@media (max-width: 768px), (prefers-reduced-motion: reduce){
+  .neo-glitch-wrap,
+  .neo-glitch-layer{
+    animation:none !important;
+  }
+  body.neo-mode .card{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    box-shadow:0 2px 14px rgba(0,0,0,.5)!important;
+  }
+}
 body.neo-mode .toggle-wrap{background:rgba(255,255,255,.06)!important}
 body.neo-mode .tog-btn{color:#555!important}
 body.neo-mode .tog-btn.on{background:rgba(255,215,0,.12)!important;color:#FFD700!important;box-shadow:none!important}

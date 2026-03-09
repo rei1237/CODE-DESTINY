@@ -236,7 +236,153 @@ function fallbackCopy(text,msg){
 ═══════════════════════════════════════ */
 var NEO_MODE=false;
 var THEME_TOGGLE_DISABLE_MS = 12000;
+var THEME_PERF_PROBE_MS = 1200;
+var THEME_AUTO_LITE_FPS = 46;
+var THEME_AUTO_LITE_LONGTASK_COUNT = 2;
+var THEME_AUTO_LITE_LONGTASK_MAX = 120;
 var _themeToggleAutoDisableTimer = null;
+var _themeToggleInFlight = false;
+var _themeToggleUnlockTimer = null;
+var _themeToggleApplyTextRaf = 0;
+var _themePerfProbeInFlight = false;
+var _themeAutoLiteEnabled = false;
+
+function setThemeAutoLite(enabled, reason, metrics){
+  var body = document.body;
+  if(!body) return;
+  _themeAutoLiteEnabled = !!enabled;
+  body.classList.toggle('neo-auto-lite', _themeAutoLiteEnabled);
+  if(_themeAutoLiteEnabled){
+    body.setAttribute('data-neo-lite-reason', reason || 'auto');
+  }else{
+    body.removeAttribute('data-neo-lite-reason');
+  }
+  if(metrics && typeof console !== 'undefined' && console.info){
+    console.info('[ThemePerf] auto-lite=' + (_themeAutoLiteEnabled ? 'on' : 'off')
+      + ' fps=' + metrics.fps.toFixed(1)
+      + ' longTasks=' + metrics.longTaskCount
+      + ' maxLong=' + metrics.maxLongTask.toFixed(1) + 'ms'
+      + (reason ? ' reason=' + reason : ''));
+  }
+}
+
+function measureThemeTransitionPerformance(durationMs){
+  return new Promise(function(resolve){
+    var startedAt = (window.performance && performance.now) ? performance.now() : Date.now();
+    var frameCount = 0;
+    var longTaskCount = 0;
+    var maxLongTask = 0;
+    var observer = null;
+    var done = false;
+
+    if(window.PerformanceObserver){
+      try {
+        observer = new PerformanceObserver(function(list){
+          list.getEntries().forEach(function(entry){
+            var d = Number(entry && entry.duration) || 0;
+            if(d >= 50){
+              longTaskCount += 1;
+              if(d > maxLongTask) maxLongTask = d;
+            }
+          });
+        });
+        observer.observe({ entryTypes: ['longtask'] });
+      } catch(e) {
+        observer = null;
+      }
+    }
+
+    function finish(nowTs){
+      if(done) return;
+      done = true;
+      if(observer){
+        try { observer.disconnect(); } catch(e) {}
+      }
+      var endedAt = nowTs || ((window.performance && performance.now) ? performance.now() : Date.now());
+      var elapsed = Math.max(1, endedAt - startedAt);
+      var fps = frameCount * 1000 / elapsed;
+      resolve({
+        fps: fps,
+        longTaskCount: longTaskCount,
+        maxLongTask: maxLongTask,
+        elapsedMs: elapsed
+      });
+    }
+
+    function tick(ts){
+      frameCount += 1;
+      if((ts - startedAt) >= durationMs){
+        finish(ts);
+      }else{
+        requestAnimationFrame(tick);
+      }
+    }
+
+    requestAnimationFrame(tick);
+    setTimeout(function(){ finish(); }, durationMs + 240);
+  });
+}
+
+function probeThemePerfAndAutoLite(){
+  if(_themePerfProbeInFlight) return;
+  _themePerfProbeInFlight = true;
+
+  measureThemeTransitionPerformance(THEME_PERF_PROBE_MS).then(function(metrics){
+    var shouldLite = (metrics.fps < THEME_AUTO_LITE_FPS)
+      || (metrics.longTaskCount >= THEME_AUTO_LITE_LONGTASK_COUNT)
+      || (metrics.maxLongTask >= THEME_AUTO_LITE_LONGTASK_MAX);
+
+    if(shouldLite){
+      var reason = metrics.fps < THEME_AUTO_LITE_FPS
+        ? 'fps-drop'
+        : (metrics.maxLongTask >= THEME_AUTO_LITE_LONGTASK_MAX ? 'long-task-spike' : 'long-task-burst');
+      setThemeAutoLite(true, reason, metrics);
+    }else if(_themeAutoLiteEnabled && metrics.fps >= (THEME_AUTO_LITE_FPS + 8) && metrics.longTaskCount === 0){
+      setThemeAutoLite(false, 'recovered', metrics);
+    }else if(_themeAutoLiteEnabled){
+      setThemeAutoLite(true, 'keep-lite', metrics);
+    }
+  }).finally(function(){
+    _themePerfProbeInFlight = false;
+  });
+}
+
+function isLowPerfThemeTransition(){
+  var isNarrow = false;
+  var prefersReducedMotion = false;
+  try {
+    isNarrow = !!(window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+    prefersReducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  } catch(e) {}
+  return isNarrow || prefersReducedMotion || _themeAutoLiteEnabled;
+}
+
+function runThemeTransitionFx(){
+  var body = document.body;
+  var glitchWrap = document.getElementById('neoGlitchWrap');
+
+  if(isLowPerfThemeTransition()){
+    body.classList.remove('neo-glitch-lite');
+    setTimeout(function(){
+      body.classList.add('neo-glitch-lite');
+      setTimeout(function(){ body.classList.remove('neo-glitch-lite'); }, 260);
+    }, 0);
+    return;
+  }
+
+  if(!glitchWrap) return;
+  glitchWrap.classList.remove('run');
+  setTimeout(function(){
+    glitchWrap.classList.add('run');
+  }, 0);
+  setTimeout(function(){ glitchWrap.classList.remove('run'); }, 620);
+}
+
+function isResultPageVisible(){
+  var resultPage = document.getElementById('resultPage');
+  if(!resultPage) return false;
+  return window.getComputedStyle(resultPage).display !== 'none';
+}
 
 function setThemeToggleEnabled(enabled){
   var wrap = document.querySelector('.theme-switch-wrapper');
@@ -301,17 +447,17 @@ var NEO_TITLES={
 function toggleNeoMode(){
   var cbLock = document.getElementById('themeCheckbox');
   if(cbLock && cbLock.disabled) return;
+  if(_themeToggleInFlight) return;
+
+  _themeToggleInFlight = true;
+  if(_themeToggleUnlockTimer) clearTimeout(_themeToggleUnlockTimer);
+  _themeToggleUnlockTimer = setTimeout(function(){
+    _themeToggleInFlight = false;
+  }, 460);
 
   NEO_MODE=!NEO_MODE;
   var body=document.body;
-
-  var glitchWrap = document.getElementById('neoGlitchWrap');
-  if(glitchWrap){
-    glitchWrap.classList.remove('run');
-    void glitchWrap.offsetWidth;
-    glitchWrap.classList.add('run');
-    setTimeout(function(){glitchWrap.classList.remove('run');},600);
-  }
+  runThemeTransitionFx();
 
   // Keep glitch effect isolated to the dedicated overlay wrapper.
   // Body-wide glitch animation can override transform styles on many UI nodes.
@@ -371,7 +517,13 @@ function toggleNeoMode(){
     if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '꽃돼지 운세 서비스 앱 설치하기';
     if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '꽃돼지 운세 서비스 앱 설치하기';
   }
-  applyNeoTexts();
+  if(_themeToggleApplyTextRaf) cancelAnimationFrame(_themeToggleApplyTextRaf);
+  _themeToggleApplyTextRaf = requestAnimationFrame(function(){
+    applyNeoTexts();
+    _themeToggleApplyTextRaf = 0;
+  });
+  // Toggle 직후 실제 성능을 측정해 필요 시 자동 경량 모드로 전환한다.
+  probeThemePerfAndAutoLite();
   scheduleThemeToggleAutoDisable();
 }
 
@@ -421,10 +573,11 @@ function applyNeoTexts(){
   if(letterTitle){
     letterTitle.innerHTML = NEO_MODE ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
   }
-  if(typeof renderLetter === 'function' && window.G_PILLARS) {
+  // 결과 화면이 보일 때만 무거운 카드 재렌더를 수행해 모바일 전환 안정성을 높인다.
+  if(isResultPageVisible() && typeof renderLetter === 'function' && window.G_PILLARS) {
     renderLetter(window.G_PILLARS, window.G_NATAL, window.G_POWER, window.G_JONG);
   }
-  if(typeof renderDailyMonthlyFortune === 'function' && window.G_PILLARS) {
+  if(isResultPageVisible() && typeof renderDailyMonthlyFortune === 'function' && window.G_PILLARS) {
     renderDailyMonthlyFortune(window.G_PILLARS);
   }
 
