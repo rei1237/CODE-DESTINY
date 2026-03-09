@@ -8274,6 +8274,7 @@ function renderZiwei(p, natal, targetId) {
         + '</div>'
         + '</div>'
         + '</div>';
+
     };
 
     if (!window._zwEscCloseBound) {
@@ -9309,8 +9310,7 @@ function renderZiwei(p, natal, targetId) {
 
         var sec_love_compat_spread = '<div class="zw-love-compat-spread">'
           + '<div class="zw-cosmic-stars"></div>'
-          + '<div class="zw-love-compat-title">💘 [두 사람의 운명의 별자리]</div>'
-          + '<div class="zw-love-compat-sub">두 사람의 별자리가 하나의 운명별로 피어나는 장면</div>'
+          + '<div class="zw-love-compat-title">💘 [사랑 에너지 별자리]</div>'
           + '<div class="zw-love-compat-canvas-wrap">'
             + '<canvas id="zwLoveDestinyStarCanvas" class="zw-love-compat-canvas" width="920" height="380"></canvas>'
           + '</div>'
@@ -11747,7 +11747,7 @@ function buildDwQmSection(g,j){
     var badge=isBonus?'⚡ 환골탈태':isSnare?'⚠️ 탐합망귀 (貪合忘貴)':'🔄 합화변환';
     var badgeBg=isBonus?'#E8F5E9':isSnare?'#FFEBEE':'#FAFAFA';
     var badgeTx=isBonus?'#1B5E20':isSnare?'#C62828':'#757575';
-    var elClr={wood:'#2E7D32',fire:'#C62828',earth:'#E65100',metal:'#546E7A',water:'#1565C0'};
+    var elClr={wood:'#2E7D32',fire:'#C62828',earth:'#E65100',metal:'#6D6E7A',water:'#1565C0'};
     var hapColor=elClr[r.hapEl]||'#555';
     var desc=isBonus
       ?'<b>흉신('+EL_K[r.orgEl]+')</b>이 '+r.type+'으로 <b style="color:'+hapColor+'">용신('+EL_K[r.hapEl]+')</b>으로 변환됩니다. 이 대운에서 무서워 보이는 글자가 진짜 기회입니다.'

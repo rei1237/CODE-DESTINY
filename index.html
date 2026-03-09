@@ -861,6 +861,34 @@
           </div>
         </div>
 
+        <!-- 10. Dream Ledger 해몽 리포트 -->
+        <div class="feature-card feature-card--dream">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/heamong.webp"
+                 alt="Dream Ledger 해몽 리포트 - 꿈의 상징과 현실 메시지를 스토리로 해석하는 AI 꿈해몽"
+                 class="feature-card__img" loading="lazy" width="400" height="300"
+              onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(145deg,#030711,#0b1f3a)'">
+            <span class="feature-card__badge">NEW</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">🌙 Dream Ledger</h3>
+            <p class="feature-card__desc">흩어진 꿈의 조각을 모아 한 편의 운명 리포트로. 지금 밤의 기록을 해석해보세요.</p>
+            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
+                    aria-expanded="false" data-label="🌙 Dream Ledger 시작하기">
+              <span class="feature-card__cta-label">🌙 Dream Ledger 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">반복되는 상징, 감정의 잔향, 관계의 암시를 [꿈의 풍경] - [운명의 상징] - [현실로의 메아리] 3단계로 해석합니다.</p>
+                <button class="feature-card__launch" type="button" data-action="openDreamModal">🌙 Dream Ledger 열기 →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
       <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
       <script>
@@ -892,6 +920,7 @@
           if (card.classList.contains('feature-card--sukuyo') && typeof openSukuyoModal === 'function') { openSukuyoModal(); return; }
           if (card.classList.contains('feature-card--astro-fc') && typeof openAstroModal === 'function') { openAstroModal(); return; }
           if (card.classList.contains('feature-card--ziwei') && typeof openZiweiModal === 'function') { openZiweiModal(); return; }
+          if (card.classList.contains('feature-card--dream') && typeof openDreamModal === 'function') { openDreamModal(); return; }
         }
 
         /* fallback: 기존 토글 동작 유지 */
@@ -905,6 +934,66 @@
       }
 
       </script>
+
+      <!-- Dream Ledger 모달 -->
+      <div id="dreamModalOverlay" class="dream-ledger-overlay" style="display:none;">
+        <div class="dream-ledger-shell" role="dialog" aria-modal="true" aria-labelledby="dreamLedgerTitle">
+          <button class="dream-ledger-close" data-action="closeDreamModal" aria-label="Dream Ledger 닫기">✕</button>
+
+          <div class="dream-ledger-hero">
+            <p class="dream-ledger-kicker">NOCTURNE ARCHIVE</p>
+            <h2 id="dreamLedgerTitle">Dream Ledger</h2>
+            <p class="dream-ledger-sub">밤의 상징을 읽어 내일의 선택을 비추는 해몽 리포트</p>
+          </div>
+
+          <div class="dream-ledger-controls">
+            <label for="dreamInput" class="dream-ledger-label">기억나는 꿈을 자유롭게 적어주세요</label>
+            <textarea id="dreamInput" class="dream-ledger-input" placeholder="예: 낯선 기차역에서 늦은 열차를 놓치고, 하늘에서 파란 고래가 떠다녔어요."></textarea>
+            <div class="dream-ledger-actions">
+              <button class="dream-ledger-btn dream-ledger-btn--primary" data-action="startDreamReading">해몽 시작</button>
+              <button class="dream-ledger-btn" data-action="closeDreamModal">메인으로</button>
+            </div>
+          </div>
+
+          <div id="dreamLoader" class="dream-ledger-loader" style="display:none;">
+            <div class="dream-ledger-orbit"></div>
+            <p id="dreamLoaderText">별자리 기록실에서 꿈의 파장을 수집 중...</p>
+          </div>
+
+          <div id="dreamResultWrap" class="dream-ledger-result" style="display:none;">
+            <article id="dreamResultCard" class="dream-ledger-card">
+              <header class="dream-ledger-card-head">
+                <h3 id="dreamCardTitle">Tonight's Dream Ledger</h3>
+                <p id="dreamCardSummary"></p>
+              </header>
+
+              <section class="dream-block" data-dream-stage="1">
+                <h4>[꿈의 풍경]</h4>
+                <p id="dreamSceneText" class="dream-block-text"></p>
+                <button class="dream-fog" data-action="revealDreamStage" data-action-args="1">안개 걷어내기</button>
+              </section>
+
+              <section class="dream-block" data-dream-stage="2">
+                <h4>[운명의 상징]</h4>
+                <p id="dreamSymbolText" class="dream-block-text"></p>
+                <button class="dream-fog" data-action="revealDreamStage" data-action-args="2">상징 해독하기</button>
+              </section>
+
+              <section class="dream-block" data-dream-stage="3">
+                <h4>[현실로의 메아리]</h4>
+                <p id="dreamEchoText" class="dream-block-text"></p>
+                <button class="dream-fog" data-action="revealDreamStage" data-action-args="3">메시지 받기</button>
+              </section>
+            </article>
+
+            <div class="dream-ledger-actions dream-ledger-actions--result">
+              <button class="dream-ledger-btn dream-ledger-btn--primary" data-action="dreamExportCard">카드 저장</button>
+              <button class="dream-ledger-btn" data-action="dreamShareCard">공유하기</button>
+              <button class="dream-ledger-btn" data-action="dreamReset">다른 꿈 해몽</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
 
       <!-- 주역(周易) 64괘 전체화면 — 거북점 UI -->
@@ -2522,6 +2611,9 @@ window.addEventListener('load', function() {
 <script src="js/image-fallback.js" defer></script>
 <script src="js/runtime-stability.js" defer></script>
 <script src="js/touch-perf.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+<script src="lib/ai-engine.js" defer></script>
+<script src="js/dream-ledger.js" defer></script>
 <script type="module" src="js/app.js"></script>
 
 </body>
