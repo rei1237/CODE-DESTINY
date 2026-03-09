@@ -13,7 +13,7 @@
     "build:cf:static": "npm run build:cf && npm run deploy:cf:static",
     "deploy:cf:static": "node scripts/deploy-pages.mjs",
     "deploy:cf:static:prod": "node scripts/deploy-pages.mjs --branch main",
-    "deploy:cf": "npm run build:cf && npx wrangler deploy",
+    "deploy:cf": "npm run build:cf && npx wrangler deploy --config wrangler.worker.jsonc",
     "start": "next start",
     "lint": "next lint"
   },
