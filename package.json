@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=20 <21"
+    "node": ">=20"
   },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild:cf": "node scripts/verify-cloudflare-setup.mjs",
     "build:cf": "cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build",
     "build:cf:legacy": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion",
     "deploy:cf": "npm run build:cf && npx wrangler deploy",
