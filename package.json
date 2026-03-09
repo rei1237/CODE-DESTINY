@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/sync-legacy-static-to-public.mjs && next build",
     "build:cf": "cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build",
     "start": "next start",
     "lint": "next lint"
