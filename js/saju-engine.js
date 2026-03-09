@@ -7248,6 +7248,78 @@ function renderZiwei(p, natal, targetId) {
       font-size: 0.82rem;
       white-space: nowrap;
     }
+    .ziwei-report-container .love-card,
+    .ziwei-report-container .compatibility-card {
+      border-radius: 12px;
+      border: 1px solid rgba(255, 182, 193, 0.35);
+      box-shadow: 0 0 16px rgba(255, 182, 193, 0.18);
+      background: rgba(42, 28, 58, 0.72);
+      backdrop-filter: blur(5px);
+    }
+    .ziwei-report-container .love-title {
+      font-family: "Playfair Display", "Cormorant Garamond", serif;
+      color: #ffd6a5;
+      letter-spacing: 0.015em;
+      text-shadow: 0 0 6px rgba(255, 214, 165, 0.28);
+      font-weight: 900;
+    }
+    .ziwei-report-container .love-text {
+      color: #fff6f0;
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+    .ziwei-report-container .compatibility-score {
+      color: #ffd6a5;
+      font-weight: 800;
+      font-size: 1.08rem;
+      text-shadow: 0 0 6px rgba(255, 214, 165, 0.3);
+    }
+    .ziwei-report-container .star-effect {
+      position: relative;
+      overflow: hidden;
+    }
+    .ziwei-report-container .star-effect::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.34;
+      background-image:
+        radial-gradient(circle at 9% 22%, rgba(255, 243, 229, 0.72) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 27% 71%, rgba(255, 220, 186, 0.55) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 48% 35%, rgba(255, 241, 224, 0.62) 0 1px, transparent 1.6px),
+        radial-gradient(circle at 66% 56%, rgba(255, 210, 173, 0.48) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 82% 19%, rgba(255, 235, 214, 0.66) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 91% 74%, rgba(255, 208, 181, 0.46) 0 1px, transparent 1.8px);
+      animation: zwStarTwinkle 3.5s infinite ease-in-out;
+    }
+    @keyframes zwStarTwinkle {
+      0%, 100% { opacity: 0.32; }
+      50% { opacity: 0.62; }
+    }
+    #ziweiModalOverlay {
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255, 180, 168, 0.15), transparent 36%),
+        radial-gradient(circle at 84% 22%, rgba(196, 154, 255, 0.12), transparent 42%),
+        linear-gradient(180deg, #1f1a2e 0%, #2d1f3f 60%, #342341 100%);
+    }
+    @media (max-width: 768px) {
+      .ziwei-report-container .love-title {
+        font-size: 1.04rem;
+      }
+      .ziwei-report-container .love-text {
+        font-size: 0.94rem;
+        line-height: 1.58;
+      }
+      .ziwei-report-container .love-card,
+      .ziwei-report-container .compatibility-card {
+        border-radius: 10px;
+        padding: 10px;
+      }
+      .ziwei-report-container .compatibility-score {
+        font-size: 1rem;
+      }
+    }
     .zw-persona-wuxing-grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
@@ -9061,7 +9133,7 @@ function renderZiwei(p, natal, targetId) {
         + '<div class="zw-compat-result-inner">'
         + '<div class="zw-compat-result-head card-content">'
         + '<div class="zw-compat-headline section-title">🌟 '+userLabel+' x '+partnerLabel+' 궁합 레포트: "'+relationAlias+'"</div>'
-        + '<div class="zw-compat-subline">종합 점수 <b>'+overallScore+'점</b> · 장점 시너지 반영</div>'
+        + '<div class="zw-compat-subline">종합 점수 <b class="compatibility-score">'+overallScore+'점</b> · 장점 시너지 반영</div>'
         + '<div class="zw-compat-meta">궁합 합산 근거: 오행/성정 '+layer1Bonus+' + 궁위 매칭 '+layer2Bonus+' + 사화 완충 '+layer3Bonus+' + 대운 동기화 '+layer4Bonus+'</div>'
         + '<div class="zw-compat-meta">상대 보정 시간: '+z2(correctedHour)+':'+z2(correctedMinute)+' · 도시: '+cityLabel+'</div>'
         + '</div>'
@@ -10149,24 +10221,24 @@ function renderZiwei(p, natal, targetId) {
           return '<div class="zw-love-metric-item"><span>'+item.icon+' <b>'+item.name+'</b></span><span style="color:#fde68a;font-weight:900;">'+val+'%</span></div>';
         }).join('');
 
-        var sec_love_compat_spread = '<div class="zw-love-compat-spread report-card report-section">'
+        var sec_love_compat_spread = '<div class="zw-love-compat-spread report-card report-section love-card star-effect">'
           + '<div class="zw-cosmic-stars"></div>'
-          + '<div class="zw-love-compat-title">💘 [사랑 에너지 별자리]</div>'
+          + '<div class="zw-love-compat-title love-title">💘 [사랑 인연 별자리]</div>'
           + '<div class="zw-love-compat-canvas-wrap">'
             + '<canvas id="zwLoveDestinyStarCanvas" class="zw-love-compat-canvas" width="920" height="380"></canvas>'
           + '</div>'
           + '<div class="zw-love-metric-grid">'+loveDestinyMetricHtml+'</div>'
         + '</div>';
 
-        var sec_love = '<div class="zw-cosmic-card zw-love-card report-card report-section">'
+        var sec_love = '<div class="zw-cosmic-card zw-love-card report-card report-section love-card star-effect">'
           +'<div class="zw-cosmic-stars"></div>'
           +'<div style="position:absolute;inset:-45% auto auto -12%;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(251,113,133,0.18),rgba(251,113,133,0));pointer-events:none;"></div>'
           +'<div style="position:absolute;inset:auto -18% -56% auto;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(244,114,182,0.15),rgba(244,114,182,0));pointer-events:none;"></div>'
           +'<div class="zw-cosmic-heading" style="border-bottom-color:rgba(251,113,133,0.36);">'
-            +'<h2 class="section-title" style="font-size:1.08rem;margin:0;font-weight:900;letter-spacing:0.01em;">💘 [별들이 알려주는 사랑]</h2>'
+            +'<h2 class="section-title love-title" style="font-size:1.08rem;margin:0;font-weight:900;letter-spacing:0.01em;">💘 [별들이 알려주는 사랑]</h2>'
             +'<span class="zw-cosmic-chip" style="color:#fecdd3;border-color:rgba(251,113,133,0.55);background:rgba(127,29,29,0.3);">Starlit Love Story</span>'
           +'</div>'
-          +'<div class="card-content" style="position:relative;z-index:1;background:linear-gradient(120deg,rgba(251,113,133,0.16),rgba(244,114,182,0.12));border:1px solid rgba(251,113,133,0.38);border-radius:11px;padding:12px 12px;margin-bottom:10px;">'
+          +'<div class="card-content love-text" style="position:relative;z-index:1;background:linear-gradient(120deg,rgba(251,113,133,0.16),rgba(244,114,182,0.12));border:1px solid rgba(251,113,133,0.38);border-radius:11px;padding:12px 12px;margin-bottom:10px;">'
             +'<div style="font-size:1.03rem;font-weight:900;color:#ffe4e6;line-height:1.45;">💌 '+loveNameSafe+'의 연애 운명: "'+loveDestinyTitle+'"</div>'
             +'<div style="margin-top:6px;color:#ffe4e6;font-size:0.87rem;line-height:1.72;"><b>한 줄 요약:</b> '+oneLineSummary+'</div>'
           +'</div>'
@@ -10221,15 +10293,15 @@ function renderZiwei(p, natal, targetId) {
           });
         }
 
-        var sec_compat = '<div class="zw-cosmic-card zw-compat-card report-card report-section">'
+        var sec_compat = '<div class="zw-cosmic-card zw-compat-card report-card report-section love-card compatibility-card star-effect">'
           +'<div class="zw-cosmic-stars"></div>'
           +'<div style="position:absolute;inset:-42% auto auto -10%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(196,181,253,0.15),rgba(196,181,253,0));pointer-events:none;"></div>'
           +'<div style="position:absolute;inset:auto -16% -52% auto;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(192,132,252,0.12),rgba(192,132,252,0));pointer-events:none;"></div>'
           +'<div class="zw-cosmic-heading">'
-            +'<h2 class="section-title" style="font-size:1.13rem;margin:0;font-weight:900;letter-spacing:0.01em;">🧿 [자미두수 궁합]</h2>'
+            +'<h2 class="section-title love-title" style="font-size:1.13rem;margin:0;font-weight:900;letter-spacing:0.01em;">🧿 [자미두수 궁합]</h2>'
             +'<span class="zw-cosmic-chip">Galaxy Synastry</span>'
           +'</div>'
-          +'<div class="card-content" style="position:relative;z-index:1;background:rgba(35,24,56,0.46);border:1px solid rgba(216,180,254,0.24);border-radius:10px;padding:11px 12px;margin-bottom:10px;">'
+          +'<div class="card-content love-text" style="position:relative;z-index:1;background:rgba(35,24,56,0.46);border:1px solid rgba(216,180,254,0.24);border-radius:10px;padding:11px 12px;margin-bottom:10px;">'
             +'<div style="margin-bottom:8px;">상대방의 생년월일과 태어난 시간을 입력하면, 연애·결혼·친구·직장·사업 궁합을 계산하고 전생 인연은 별도 리포트로 분석합니다.</div>'
             +'<div class="zw-cosmic-input-grid">'
               +'<label class="zw-cosmic-field"><span>상대 생년월일</span><input id="zwCompatBirthDate" type="date" class="zw-cosmic-control"></label>'
@@ -10239,7 +10311,7 @@ function renderZiwei(p, natal, targetId) {
             +'</div>'
             +'<div id="zwCompatTimeCorrectionInfo" style="margin-top:8px;color:#ddd6fe;font-size:0.82rem;line-height:1.6;background:rgba(30,20,50,0.48);border:1px solid rgba(196,181,253,0.24);border-radius:8px;padding:8px 10px;">도시 선택 시 진태양시 보정(경도·DST)을 자동 반영합니다.</div>'
           +'</div>'
-          +'<div id="zwCompatResult" style="position:relative;z-index:1;background:rgba(20,14,36,0.55);border:1px dashed rgba(196,181,253,0.35);border-radius:10px;padding:11px 12px;color:#ddd6fe;font-size:0.86rem;line-height:1.7;">'
+          +'<div id="zwCompatResult" class="love-text" style="position:relative;z-index:1;background:rgba(20,14,36,0.55);border:1px dashed rgba(196,181,253,0.35);border-radius:10px;padding:11px 12px;color:#ddd6fe;font-size:0.86rem;line-height:1.7;">'
             +'아직 상대 정보가 입력되지 않았습니다. 입력 후 <b>궁합 보기</b> 버튼을 눌러 주세요.<br>'
             +'<span style="color:#a5b4fc;">카테고리: 연애 · 결혼 · 친구 · 직장 · 사업 + 전생 인연 분리 리포트</span>'
           +'</div>'
