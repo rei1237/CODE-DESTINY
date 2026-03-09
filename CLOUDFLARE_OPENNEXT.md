@@ -21,12 +21,15 @@ Use this project with OpenNext on Cloudflare Workers.
 ## Required Cloudflare Build Settings
 
 - Build command: `npm run build:cf`
-- Do not set a static output directory for Workers deployment.
+- Do not set a Deploy command when using Cloudflare Pages auto-deploy.
+- `wrangler.jsonc` provides `pages_build_output_dir: .open-next/assets`, so Pages can publish automatically after a successful build.
 
 If your project is still configured with a Pages Deploy command, this also works:
 
 - Build command: `npm run build`
-- Deploy command: `npm run build:cf:static`
+- Deploy command: leave empty (recommended)
+
+Why: if Deploy command only runs a build script, logs can show success but no actual publish step occurs.
 
 And these files should exist:
 
