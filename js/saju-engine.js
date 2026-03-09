@@ -6055,9 +6055,9 @@ function renderZiwei(p, natal, targetId) {
       display: flex;
       flex-direction: column;
       gap: 20px;
-      margin: 15px auto 0;
+      margin: 15px 0 0;
       width: 100%;
-      max-width: 1240px;
+      max-width: none;
       font-family: 'Pretendard', sans-serif;
     }
     
@@ -6252,6 +6252,30 @@ function renderZiwei(p, natal, targetId) {
       position: relative;
       line-height: 1.65;
       scroll-margin-top: 72px;
+      min-width: 0;
+      overflow-x: clip;
+    }
+    #zwComprehensiveReport,
+    .ziwei-report-container {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      width: 100%;
+      max-width: none;
+    }
+    #zwComprehensiveReport .zw-report-col,
+    #zwComprehensiveReport .zw-insight-layout,
+    #zwComprehensiveReport .zw-cosmic-card,
+    #zwComprehensiveReport .zw-love-compat-spread,
+    #zwComprehensiveReport .zw-pastlife-archive,
+    #zwComprehensiveReport .zw-hidden-power,
+    #zwComprehensiveReport .zw-pivot-section {
+      width: 100%;
+      max-width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+      box-sizing: border-box;
     }
     
     .zw-dp-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 4px; }
@@ -6369,10 +6393,10 @@ function renderZiwei(p, natal, targetId) {
         radial-gradient(circle at 12% 18%, rgba(96, 165, 250, 0.14), transparent 34%),
         radial-gradient(circle at 86% 82%, rgba(192, 132, 252, 0.15), transparent 45%),
         linear-gradient(145deg, rgba(24, 18, 62, 0.98), rgba(45, 30, 84, 0.94) 52%, rgba(18, 23, 52, 0.92));
-      width: calc(100% + 72px);
-      max-width: none;
-      margin-left: -36px;
-      margin-right: -36px;
+      width: 100%;
+      max-width: 100%;
+      margin-left: 0;
+      margin-right: 0;
     }
     .zw-compat-ref-details {
       background: rgba(40,20,58,0.55);
@@ -6459,16 +6483,24 @@ function renderZiwei(p, natal, targetId) {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
       gap: 8px;
       padding-bottom: 10px;
       margin-bottom: 12px;
       border-bottom: 1px solid rgba(196, 181, 253, 0.28);
+    }
+    .zw-cosmic-heading h2 {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: keep-all;
+      flex: 1 1 170px;
     }
     .zw-cosmic-chip {
       font-size: 0.68rem;
       border-radius: 999px;
       padding: 2px 7px;
       white-space: nowrap;
+      max-width: 100%;
       border: 1px solid rgba(196, 181, 253, 0.5);
       background: rgba(67, 56, 202, 0.22);
       color: #e9d5ff;
@@ -6885,26 +6917,51 @@ function renderZiwei(p, natal, targetId) {
       font-weight: 900;
     }
     .zw-pivot-section {
-      background: rgba(15,10,30,0.8);
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 14% 20%, rgba(96, 165, 250, 0.18), transparent 34%),
+        radial-gradient(circle at 86% 78%, rgba(192, 132, 252, 0.2), transparent 42%),
+        linear-gradient(155deg, rgba(8, 16, 42, 0.95), rgba(20, 28, 63, 0.92) 52%, rgba(13, 22, 49, 0.92));
       padding: 18px;
-      border-radius: 10px;
+      border-radius: 12px;
       margin-bottom: 20px;
-      border: 1px solid rgba(248,113,113,0.2);
+      border: 1px solid rgba(125, 211, 252, 0.35);
+      box-shadow: inset 0 0 0 1px rgba(196, 181, 253, 0.12), 0 14px 28px rgba(2, 6, 23, 0.38);
+    }
+    .zw-pivot-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle at 12% 24%, rgba(255,255,255,0.46) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 28% 76%, rgba(255,255,255,0.38) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 58% 18%, rgba(255,255,255,0.42) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 74% 62%, rgba(255,255,255,0.34) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 90% 34%, rgba(255,255,255,0.32) 0 1px, transparent 1.4px);
+      opacity: 0.68;
     }
     .zw-pivot-title {
-      color: #fca5a5;
+      position: relative;
+      z-index: 1;
+      color: #f8b4ff;
       font-size: 1.2rem;
       margin-top: 0;
-      border-bottom: 1px solid rgba(252,165,165,0.3);
+      border-bottom: 1px solid rgba(196, 181, 253, 0.4);
       padding-bottom: 8px;
     }
     .zw-pivot-sub {
+      position: relative;
+      z-index: 1;
       font-size: 0.78rem;
-      color: #94a3b8;
+      color: #bfdbfe;
       margin: 0 0 10px;
       line-height: 1.6;
     }
     .zw-pivot-deck {
+      position: relative;
+      z-index: 1;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
@@ -6914,10 +6971,11 @@ function renderZiwei(p, natal, targetId) {
       border-radius: 12px;
       border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.45);
       background:
-        radial-gradient(circle at 18% 16%, rgba(var(--pivot-rgb, 167,139,250), 0.26), transparent 40%),
-        linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(30, 27, 75, 0.88));
+        radial-gradient(circle at 14% 16%, rgba(var(--pivot-rgb, 167,139,250), 0.3), transparent 36%),
+        radial-gradient(circle at 86% 82%, rgba(125, 211, 252, 0.14), transparent 42%),
+        linear-gradient(162deg, rgba(10, 20, 49, 0.94), rgba(21, 33, 73, 0.9));
       overflow: hidden;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 6px 18px rgba(0,0,0,0.24);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 22px rgba(2,6,23,0.34);
       transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
     }
     .zw-pivot-card:hover {
@@ -6973,16 +7031,31 @@ function renderZiwei(p, natal, targetId) {
       white-space: nowrap;
       font-weight: 700;
     }
-    .zw-pivot-toggle-icon {
-      margin-top: 4px;
-      font-size: 0.68rem;
-      color: #fda4af;
-      letter-spacing: 0.01em;
-      animation: zwPivotPulse 1.35s ease-in-out infinite;
+    .zw-pivot-meta-right {
+      display: flex;
+      align-items: center;
+      gap: 7px;
     }
-    .zw-pivot-card.is-open .zw-pivot-toggle-icon {
-      color: #86efac;
-      animation: none;
+    .zw-pivot-chevron {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.58);
+      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+      background: rgba(15, 23, 42, 0.55);
+      font-size: 0.6rem;
+      line-height: 1;
+      transform: rotate(0deg);
+      transition: transform .2s ease, color .2s ease, border-color .2s ease, background .2s ease;
+    }
+    .zw-pivot-card.is-open .zw-pivot-chevron {
+      transform: rotate(180deg);
+      color: #fef3c7;
+      border-color: rgba(251, 191, 36, 0.64);
+      background: rgba(126, 34, 206, 0.35);
     }
     .zw-pivot-body {
       display: none;
@@ -6994,12 +7067,6 @@ function renderZiwei(p, natal, targetId) {
     .zw-pivot-card.is-open .zw-pivot-body {
       display: block;
     }
-    @keyframes zwPivotPulse {
-      0% { opacity: 0.72; transform: translateX(0); }
-      50% { opacity: 1; transform: translateX(2px); }
-      100% { opacity: 0.72; transform: translateX(0); }
-    }
-
     @media (min-width: 1100px) {
       .zw-dashboard {
         flex-direction: column;
@@ -7088,10 +7155,52 @@ function renderZiwei(p, natal, targetId) {
       .zw-radar-canvas-wrap { height: min(70vw, 260px); min-height: 200px; }
       .zw-detail-panel { padding: 14px; border-radius: 12px; }
       .zw-insight-layout { gap: 10px; }
-      .zw-compat-card {
-        width: calc(100% + 20px);
-        margin-left: -10px;
-        margin-right: -10px;
+      #zwComprehensiveReport,
+      .ziwei-report-container {
+        width: 100%;
+        max-width: none;
+        padding-left: 8px;
+        padding-right: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .ziwei-report-container .zw-report-col,
+      .ziwei-report-container .zw-pivot-body,
+      .ziwei-report-container .zw-compat-ref-content {
+        overflow-x: auto;
+      }
+      .ziwei-report-container .zw-pastlife-archive {
+        width: calc(100% + 16px);
+        max-width: none;
+        margin-left: -8px;
+        margin-right: -8px;
+        padding: 8px;
+      }
+      .ziwei-report-container .zw-pastlife-layout {
+        gap: 8px;
+      }
+      .ziwei-report-container .zw-pastlife-head {
+        padding: 9px 9px;
+      }
+      .ziwei-report-container .zw-pastlife-main {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+      }
+      .ziwei-report-container .zw-chronos-scroll {
+        padding: 8px;
+      }
+      .ziwei-report-container .zw-chronos-scroll::before,
+      .ziwei-report-container .zw-chronos-scroll::after {
+        display: none;
+      }
+      .ziwei-report-container table {
+        display: block;
+        width: max-content;
+        min-width: 100%;
+        overflow-x: auto;
+      }
+      .zw-dashboard {
+        max-width: 100%;
       }
       .zw-persona-wuxing-grid {
         grid-template-columns: 1fr;
@@ -7347,7 +7456,7 @@ function renderZiwei(p, natal, targetId) {
       </div>
     </div>
   </div>
-  <div class="zw-detail-panel" id="zwComprehensiveReport" style="margin-top:16px;">
+  <div class="zw-detail-panel ziwei-report-container" id="zwComprehensiveReport" style="margin-top:16px;">
     <div class="zw-empty-state">
       <div class="zw-empty-icon">📜</div>
       자미두수 천명 종합 리포트를 불러오는 중입니다.
@@ -9220,7 +9329,7 @@ function renderZiwei(p, natal, targetId) {
             +'<div style="font-size:1.03rem;font-weight:900;color:#ffe4e6;line-height:1.45;">💌 '+loveNameSafe+'의 연애 운명: "'+loveDestinyTitle+'"</div>'
             +'<div style="margin-top:6px;color:#ffe4e6;font-size:0.87rem;line-height:1.72;"><b>한 줄 요약:</b> '+oneLineSummary+'</div>'
           +'</div>'
-          +'<div style="position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:9px;font-size:0.89rem;line-height:1.76;color:#f3e8ff;">'
+          +'<div style="position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:9px;font-size:0.89rem;line-height:1.76;color:#f3e8ff;">'
             +'<div style="background:rgba(53,25,62,0.48);border:1px solid rgba(244,114,182,0.3);border-radius:10px;padding:10px 11px;">'
               +'<div style="color:#fecdd3;font-weight:900;margin-bottom:6px;">1. 당신의 연애 본능 (The Stats)</div>'
               +'<div style="margin-bottom:4px;"><b>Love Style:</b> '+loveTypeName+'</div>'
@@ -9621,8 +9730,6 @@ function renderZiwei(p, natal, targetId) {
               btn.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
               var card = btn.closest ? btn.closest('.zw-pivot-card') : null;
               if (card && card.classList) card.classList.toggle('is-open', nextExpanded);
-              var iconEl = btn.querySelector ? btn.querySelector('.zw-pivot-toggle-icon') : null;
-              if (iconEl) iconEl.textContent = nextExpanded ? '접어서 요약 보기' : '탭해서 펼쳐 보기';
             }
           };
         }
@@ -9639,9 +9746,11 @@ function renderZiwei(p, natal, targetId) {
               +'<div class="zw-pivot-meta">'
                 +'<span class="zw-pivot-chip">'+stageLabel+'</span>'
                 +'<span class="zw-pivot-headline">'+p.icon+' '+p.title+'</span>'
-                +'<span class="zw-pivot-toggle-icon">탭해서 펼쳐 보기</span>'
               +'</div>'
-              +'<span class="zw-pivot-age">'+p.age+'</span>'
+              +'<span class="zw-pivot-meta-right">'
+                +'<span class="zw-pivot-age">'+p.age+'</span>'
+                +'<span class="zw-pivot-chevron" aria-hidden="true">▼</span>'
+              +'</span>'
             +'</button>'
             +'<div id="'+cardId+'" class="zw-pivot-body">'
               +'<div style="margin-bottom:6px;"><b>대한 흐름:</b> ['+p.period+'] '+p.phaseTheme+'</div>'
