@@ -10,9 +10,9 @@
     "build": "next build",
     "build:cf": "cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build",
     "build:cf:legacy": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion",
-    "build:cf:static": "npm run build:cf && npm run deploy:cf:static",
-    "deploy:cf:static": "npx wrangler pages deploy .open-next/assets --project-name \"${CF_PAGES_PROJECT_NAME:-code-destiny-web}\" --branch \"${CF_PAGES_BRANCH:-main}\"",
-    "deploy:cf:static:prod": "npx wrangler pages deploy .open-next/assets --project-name \"${CF_PAGES_PROJECT_NAME:-code-destiny-web}\" --branch main",
+    "build:cf:static": "npm run build:cf",
+    "deploy:cf:static": "node scripts/deploy-pages.mjs",
+    "deploy:cf:static:prod": "node scripts/deploy-pages.mjs --branch main",
     "deploy:cf": "npm run build:cf && npx wrangler deploy",
     "start": "next start",
     "lint": "next lint"
