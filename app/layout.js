@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Code Destiny",
-  description: "Fallback Next.js app shell for Cloudflare/OpenNext build",
+  description: "Code Destiny web app",
 };
 
 export default function RootLayout({ children }) {
