@@ -6306,16 +6306,7 @@ function renderZiwei(p, natal, targetId) {
       width: 100%;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-    }
-    .zw-report-shell {
-      font-family: 'Suit', sans-serif;
-      background: #121212;
-      color: #E2E8F0;
-      padding: 20px;
-      border-radius: 12px;
-      width: 100%;
-      box-sizing: border-box;
+      overflow: visible;
     }
     .zw-report-toolbar {
       display: flex;
@@ -6378,6 +6369,77 @@ function renderZiwei(p, natal, targetId) {
         radial-gradient(circle at 12% 18%, rgba(96, 165, 250, 0.14), transparent 34%),
         radial-gradient(circle at 86% 82%, rgba(192, 132, 252, 0.15), transparent 45%),
         linear-gradient(145deg, rgba(24, 18, 62, 0.98), rgba(45, 30, 84, 0.94) 52%, rgba(18, 23, 52, 0.92));
+      width: calc(100% + 72px);
+      max-width: none;
+      margin-left: -36px;
+      margin-right: -36px;
+    }
+    .zw-compat-ref-details {
+      background: rgba(40,20,58,0.55);
+      border: 1px solid rgba(196,181,253,0.24);
+      border-radius: 11px;
+      overflow: hidden;
+      transition: border-color .24s ease, box-shadow .24s ease, background .24s ease;
+    }
+    .zw-compat-ref-details:hover {
+      border-color: rgba(244,114,182,0.46);
+      box-shadow: 0 10px 18px rgba(17, 7, 37, 0.28), inset 0 0 0 1px rgba(244,114,182,0.14);
+    }
+    .zw-compat-ref-summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 11px;
+      min-height: 44px;
+      cursor: pointer;
+      color: #fbcfe8;
+      font-size: 0.95rem;
+      font-weight: 800;
+      background:
+        linear-gradient(120deg, rgba(244,114,182,0.12), rgba(167,139,250,0.12));
+      border-bottom: 1px solid rgba(196,181,253,0.18);
+      user-select: none;
+      transition: background .22s ease, color .22s ease;
+    }
+    .zw-compat-ref-summary::-webkit-details-marker {
+      display: none;
+    }
+    .zw-compat-ref-summary::marker {
+      content: "";
+    }
+    .zw-compat-ref-details[open] .zw-compat-ref-summary {
+      color: #fde68a;
+      background:
+        linear-gradient(120deg, rgba(244,114,182,0.2), rgba(167,139,250,0.2));
+      border-bottom-color: rgba(251,191,36,0.26);
+    }
+    .zw-compat-ref-title {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .zw-compat-ref-indicator {
+      font-size: 0.72rem;
+      color: #c4b5fd;
+      border: 1px solid rgba(196,181,253,0.36);
+      border-radius: 999px;
+      padding: 2px 8px;
+      white-space: nowrap;
+      transition: color .22s ease, border-color .22s ease, transform .22s ease;
+    }
+    .zw-compat-ref-details[open] .zw-compat-ref-indicator {
+      color: #fef3c7;
+      border-color: rgba(251,191,36,0.56);
+      transform: translateY(-1px);
+    }
+    .zw-compat-ref-content {
+      padding: 8px 11px 10px;
+      animation: zwCompatRefReveal .2s ease;
+    }
+    @keyframes zwCompatRefReveal {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .zw-cosmic-stars {
       position: absolute;
@@ -6822,6 +6884,121 @@ function renderZiwei(p, natal, targetId) {
       font-size: 0.82rem;
       font-weight: 900;
     }
+    .zw-pivot-section {
+      background: rgba(15,10,30,0.8);
+      padding: 18px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(248,113,113,0.2);
+    }
+    .zw-pivot-title {
+      color: #fca5a5;
+      font-size: 1.2rem;
+      margin-top: 0;
+      border-bottom: 1px solid rgba(252,165,165,0.3);
+      padding-bottom: 8px;
+    }
+    .zw-pivot-sub {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      margin: 0 0 10px;
+      line-height: 1.6;
+    }
+    .zw-pivot-deck {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .zw-pivot-card {
+      position: relative;
+      border-radius: 12px;
+      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.45);
+      background:
+        radial-gradient(circle at 18% 16%, rgba(var(--pivot-rgb, 167,139,250), 0.26), transparent 40%),
+        linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(30, 27, 75, 0.88));
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 6px 18px rgba(0,0,0,0.24);
+      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+    }
+    .zw-pivot-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(var(--pivot-rgb, 167,139,250), 0.78);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 24px rgba(0,0,0,0.32);
+    }
+    .zw-pivot-card.is-open {
+      border-color: rgba(var(--pivot-rgb, 167,139,250), 0.92);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.34), 0 0 0 1px rgba(var(--pivot-rgb, 167,139,250), 0.4);
+    }
+    .zw-pivot-toggle {
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      padding: 11px 12px;
+      min-height: 44px;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      color: #e2e8f0;
+    }
+    .zw-pivot-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .zw-pivot-chip {
+      font-size: 0.68rem;
+      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.58);
+      background: rgba(var(--pivot-rgb, 167,139,250), 0.14);
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-weight: 800;
+      white-space: nowrap;
+      width: max-content;
+    }
+    .zw-pivot-headline {
+      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+      font-weight: 800;
+      font-size: 0.92rem;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .zw-pivot-age {
+      font-size: 0.72rem;
+      color: #cbd5e1;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+    .zw-pivot-toggle-icon {
+      margin-top: 4px;
+      font-size: 0.68rem;
+      color: #fda4af;
+      letter-spacing: 0.01em;
+      animation: zwPivotPulse 1.35s ease-in-out infinite;
+    }
+    .zw-pivot-card.is-open .zw-pivot-toggle-icon {
+      color: #86efac;
+      animation: none;
+    }
+    .zw-pivot-body {
+      display: none;
+      padding: 0 12px 12px;
+      color: #e2e8f0;
+      font-size: 0.84rem;
+      line-height: 1.72;
+    }
+    .zw-pivot-card.is-open .zw-pivot-body {
+      display: block;
+    }
+    @keyframes zwPivotPulse {
+      0% { opacity: 0.72; transform: translateX(0); }
+      50% { opacity: 1; transform: translateX(2px); }
+      100% { opacity: 0.72; transform: translateX(0); }
+    }
 
     @media (min-width: 1100px) {
       .zw-dashboard {
@@ -6909,14 +7086,12 @@ function renderZiwei(p, natal, targetId) {
       .zw-empty { font-size: clamp(0.46rem, 1.5vw, 0.6rem); }
       .zw-radar-col { min-width: 0; max-width: none; }
       .zw-radar-canvas-wrap { height: min(70vw, 260px); min-height: 200px; }
-      .zw-detail-panel { padding: 10px; border-radius: 12px; }
+      .zw-detail-panel { padding: 14px; border-radius: 12px; }
       .zw-insight-layout { gap: 10px; }
-      .zw-report-shell { padding: 12px; border-radius: 10px; }
-      .zw-report-shell--comprehensive {
-        padding: 10px;
+      .zw-compat-card {
+        width: calc(100% + 20px);
         margin-left: -10px;
         margin-right: -10px;
-        width: calc(100% + 20px);
       }
       .zw-persona-wuxing-grid {
         grid-template-columns: 1fr;
@@ -6924,13 +7099,22 @@ function renderZiwei(p, natal, targetId) {
       .zw-persona-wuxing-right {
         min-height: 240px;
       }
-    }
-
-    @media (max-width: 360px) {
-      .zw-report-shell--comprehensive {
-        margin-left: -8px;
-        margin-right: -8px;
-        width: calc(100% + 16px);
+      .zw-pivot-deck {
+        grid-template-columns: 1fr;
+      }
+      .zw-compat-ref-summary {
+        font-size: 0.88rem;
+        padding: 10px;
+      }
+      .zw-compat-ref-indicator {
+        font-size: 0.68rem;
+        padding: 2px 7px;
+      }
+      .zw-pivot-headline {
+        font-size: 0.88rem;
+      }
+      .zw-pivot-age {
+        font-size: 0.68rem;
       }
     }
 
@@ -7842,15 +8026,15 @@ function renderZiwei(p, natal, targetId) {
         return '<span style="padding:2px 8px;border-radius:999px;border:1px solid '+bd+';background:'+bg+';font-size:0.78rem;color:#fdf2f8;font-weight:800;">'+v+'점</span>';
       };
 
-      var guideHtml = '<div class="zw-guide-stack">'
+      var guideHtml = '<div style="display:flex;flex-direction:column;gap:9px;">'
         + catRows.map(function(c) {
-          return '<div class="zw-guide-item">'
-            + '<div class="zw-guide-head">'
-            + '<b class="zw-guide-title">'+c.key+'</b>'
+          return '<div style="background:rgba(50,26,70,0.45);border:1px solid rgba(244,114,182,0.2);border-radius:10px;padding:9px 10px;">'
+            + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:5px;">'
+            + '<b style="color:#fbcfe8;font-size:0.9rem;">'+c.key+'</b>'
             + scoreBadge(c.val)
             + '</div>'
-            + '<div class="zw-guide-tag">'+c.tag+'</div>'
-            + '<div class="zw-guide-detail">'+c.detail+'</div>'
+            + '<div style="font-size:0.78rem;color:#f9a8d4;margin-bottom:5px;overflow-wrap:anywhere;word-break:break-word;">'+c.tag+'</div>'
+            + '<div style="font-size:0.81rem;color:#f3e8ff;line-height:1.64;overflow-wrap:anywhere;word-break:break-word;">'+c.detail+'</div>'
             + '</div>';
         }).join('')
         + '</div>';
@@ -7923,133 +8107,64 @@ function renderZiwei(p, natal, targetId) {
         : '주 1회 15분 관계 로그(좋았던 점 1개/아쉬운 점 1개/다음 액션 1개)를 합의해 누적 오해를 차단하세요.';
 
       var bestCategory = catRows.slice().sort(function(a,b){ return b.val - a.val; })[0];
-      var actionGuide = bestCategory.key === '사업 궁합' || bestCategory.key === '직장 궁합'
-        ? '이 시기에는 함께 소규모 공동 프로젝트를 시작해 역할 분업을 실전 검증해 보세요.'
-        : (bestCategory.key === '연애 궁합' || bestCategory.key === '결혼 궁합'
-          ? '이 시기에는 함께 여행+생활규칙 합의(돈/시간/연락 템포)를 동시에 시작해 보세요.'
-          : '이 시기에는 함께 공부/운동 루틴을 묶어 관계 리듬을 안정화해 보세요.');
+      var weakestCategory = catRows.slice().sort(function(a,b){ return a.val - b.val; })[0];
+
+      var conflictTrigger = hasMoonchangHwagi
+        ? '문창 화기 신호로 인해 같은 말도 날카롭게 받아들여질 수 있어, 표현 톤이 갈등을 키우는 촉발점이 될 수 있습니다.'
+        : (hasTara
+          ? '타라 개입으로 답장 템포·약속 실행 시점이 어긋날 때 신뢰 체감이 급격히 낮아지는 패턴이 나타날 수 있습니다.'
+          : '흉성 압력 구간에서는 기대치 미정렬(역할/시간/우선순위)이 반복 충돌의 시작점이 될 수 있습니다.');
+
+      var conflictScenario = weakestCategory.key + ' 점수(' + weakestCategory.val + '점)가 가장 낮아 이 축에서 갈등 체감이 커질 수 있습니다. '
+        + '특히 ' + weakestCategory.key + ' 관련 이슈가 발생하면 작은 의견 차이도 누적되기 쉬우므로, 기준(우선순위·시간·표현 방식)을 먼저 합의하는 것이 안전합니다.';
 
       var romanceWrap = 'background:linear-gradient(145deg,rgba(76,20,68,0.95),rgba(58,26,88,0.94) 42%,rgba(30,20,68,0.95));border:1px solid rgba(251,113,133,0.35);box-shadow:inset 0 0 0 1px rgba(244,114,182,0.15),0 10px 24px rgba(0,0,0,0.32);';
 
-      var matrixRows = catRows.slice();
-      matrixRows.push({
-        key: '전생 인연',
-        val: pastLifeScore,
-        tag: (pastLifeScore >= 70 ? '#카르마상호보완' : '#인연학습'),
-        detail: pastMeaning
-      });
-
-      var matrixHtml = '<div class="zw-mobile-carousel">'
-        + matrixRows.map(function(c){
-          return '<article class="zw-matrix-card">'
-            + '<div class="zw-matrix-head"><b>'+c.key+'</b>'+scoreBadge(c.val)+'</div>'
-            + '<div class="zw-matrix-tag">'+c.tag+'</div>'
-            + '<div class="zw-matrix-detail">'+c.detail+'</div>'
-            + '</article>';
-        }).join('')
-        + '</div>';
-
-      var riskLevel = hasTara || hasMoonchangHwagi ? '주의' : '안정';
-      var weaknessQuick = hasMoonchangHwagi
-        ? '말의 뉘앙스 과열'
-        : (hasTara ? '타이밍 어긋남 누적' : '기대치 미정렬');
-      var quickStats = [
-        { title: '바람기/흔들림', value: riskLevel, body: warningSignal },
-        { title: '연애 약점', value: weaknessQuick, body: patch1 },
-        { title: '관계 회복키', value: '#조율법', body: patch2 },
-        { title: '이번 골든타임', value: '핵심 시기', body: goldenTime }
-      ];
-      var quickGridHtml = '<div class="zw-quick-grid">'
-        + quickStats.map(function(s){
-          return '<article class="zw-quick-card">'
-            + '<div class="zw-quick-kicker">'+s.title+'</div>'
-            + '<div class="zw-quick-value">'+s.value+'</div>'
-            + '<div class="zw-quick-body">'+s.body+'</div>'
-            + '</article>';
-        }).join('')
-        + '</div>';
-
-      var timelineId = 'zwTimeline_'+Date.now();
-      var timelineTabs = [
-        { key: 'phaseA', label: '23~32세', body: '관계의 가속 페이즈입니다. '+goldenTime },
-        { key: 'phaseB', label: '43~52세', body: '운영·합의·역할 분업의 완성도에 따라 관계 체력이 갈립니다. '+actionGuide },
-        { key: 'phaseC', label: '83~92세', body: '함께 쌓아온 루틴과 신뢰가 정서 안정성을 결정합니다. '+pastMeaning }
-      ];
-      var timelineHtml = '<div id="'+timelineId+'" class="zw-timeline-wrap">'
-        + '<div class="zw-timeline-tabs">'
-        + timelineTabs.map(function(t, idx){
-          return '<button type="button" class="zw-time-tab'+(idx===0?' is-active':'')+'" data-key="'+t.key+'" onclick="window._switchZwTimelineTab(\''+timelineId+'\', \''+t.key+'\')">'+t.label+'</button>';
-        }).join('')
+      outEl.innerHTML = '<div style="position:relative;overflow:hidden;border-radius:14px;padding:14px 16px;'+romanceWrap+'">'
+        + '<div style="position:absolute;left:-20px;top:-28px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(251,113,133,0.18),rgba(251,113,133,0));pointer-events:none;"></div>'
+        + '<div style="position:absolute;right:-40px;bottom:-55px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(217,70,239,0.14),rgba(217,70,239,0));pointer-events:none;"></div>'
+        + '<div style="position:relative;z-index:1;display:flex;flex-direction:column;gap:12px;">'
+        + '<div style="background:linear-gradient(120deg,rgba(244,114,182,0.17),rgba(192,132,252,0.16));border:1px solid rgba(244,114,182,0.35);border-radius:11px;padding:10px 11px;">'
+        + '<div style="font-size:1.05rem;color:#fbcfe8;font-weight:900;">🌟 '+userLabel+' x '+partnerLabel+' 궁합 레포트: "'+relationAlias+'"</div>'
+        + '<div style="font-size:0.84rem;color:#f9a8d4;margin-top:6px;">> <b>종합 점수: '+overallScore+'점</b> (장점 시너지 반영)</div>'
+        + '<div style="font-size:0.78rem;color:#c4b5fd;margin-top:6px;">궁합 합산 근거: 오행/성정 '+layer1Bonus+' + 궁위 매칭 '+layer2Bonus+' + 사화 완충 '+layer3Bonus+' + 대운 동기화 '+layer4Bonus+'</div>'
+        + '<div style="font-size:0.76rem;color:#c4b5fd;margin-top:4px;">상대 보정 시간: '+String(correctedHour).padStart(2,'0')+':'+String(correctedMinute).padStart(2,'0')+' · 도시: '+cityLabel+'</div>'
         + '</div>'
-        + timelineTabs.map(function(t, idx){
-          return '<div class="zw-time-panel'+(idx===0?' is-active':'')+'" data-key="'+t.key+'">'+t.body+'</div>';
-        }).join('')
-        + '</div>';
-
-      if (typeof window._switchZwTimelineTab !== 'function') {
-        window._switchZwTimelineTab = function(containerId, key) {
-          var root = document.getElementById(containerId);
-          if (!root) return;
-          var tabs = root.querySelectorAll('.zw-time-tab');
-          for (var i=0; i<tabs.length; i++) {
-            tabs[i].classList.toggle('is-active', tabs[i].getAttribute('data-key') === key);
-          }
-          var panels = root.querySelectorAll('.zw-time-panel');
-          for (var j=0; j<panels.length; j++) {
-            panels[j].classList.toggle('is-active', panels[j].getAttribute('data-key') === key);
-          }
-        };
-      }
-
-      outEl.innerHTML = '<section class="zw-mobile-report" style="'+romanceWrap+'">'
-        + '<div class="zw-mobile-glow zw-mobile-glow-a"></div>'
-        + '<div class="zw-mobile-glow zw-mobile-glow-b"></div>'
-        + '<div class="zw-snapshot">'
-          + '<div class="zw-snapshot-top">🌟 '+userLabel+' x '+partnerLabel+' · '+relationAlias+'</div>'
-          + '<div class="zw-score-chip">'+overallScore+'<span>/100</span></div>'
-          + '<div class="zw-snapshot-one">총합 점수는 <b>'+bestCategory.key+'</b> 축 시너지가 이끌고 있습니다.</div>'
-          + '<div class="zw-snapshot-meta">오행/성정 '+layer1Bonus+' + 궁위 매칭 '+layer2Bonus+' + 사화 완충 '+layer3Bonus+' + 대운 동기화 '+layer4Bonus+' · '+String(correctedHour).padStart(2,'0')+':'+String(correctedMinute).padStart(2,'0')+' · '+cityLabel+'</div>'
+        + '<div style="background:rgba(40,20,58,0.55);border:1px solid rgba(196,181,253,0.24);border-radius:11px;padding:10px 11px;">'
+        + '<div style="color:#fbcfe8;font-size:0.95rem;font-weight:800;margin-bottom:6px;">1. 🚀 서로에게 주는 강력한 버프</div>'
+        + '<div style="font-size:0.83rem;color:#f3e8ff;line-height:1.72;">'
+        + '- <b>성격 시너지:</b> '+layer1Text+'<br>'
+        + '- <b>운명적 매칭:</b> '+layer2Text+'<br>'
+        + '- <b>행운의 전이:</b> 상대와 함께할 때 '+bestCategory.key+' 축이 가장 강하게 활성화됩니다.'
         + '</div>'
-        + '<section class="zw-mobile-block">'
-          + '<h3 class="zw-mobile-title">2. 궁합 매트릭스 (Horizontal Star-Card)</h3>'
-          + matrixHtml
-        + '</section>'
-        + '<section class="zw-mobile-block">'
-          + '<h3 class="zw-mobile-title">3. 상세 스탯 그리드 (Quick Stats Grid)</h3>'
-          + quickGridHtml
-        + '</section>'
-        + '<section class="zw-mobile-block">'
-          + '<h3 class="zw-mobile-title">4. 인생 타임라인 (Tabbed Timeline)</h3>'
-          + timelineHtml
-        + '</section>'
-        + '<section class="zw-mobile-block">'
-          + '<details class="zw-disclosure" open>'
-            + '<summary>종합 버프 요약</summary>'
-            + '<div class="zw-disclosure-body">'
-              + '<div><b>성격 시너지:</b> '+layer1Text+'</div>'
-              + '<div><b>운명적 매칭:</b> '+layer2Text+'</div>'
-              + '<div><b>행운의 전이:</b> 상대와 함께할 때 '+bestCategory.key+' 축이 가장 강하게 활성화됩니다.</div>'
-            + '</div>'
-          + '</details>'
-          + '<details class="zw-disclosure">'
-            + '<summary>관계 조율 지침</summary>'
-            + '<div class="zw-disclosure-body">'
-              + '<div><b>주의 신호:</b> '+warningSignal+'</div>'
-              + '<div><b>조율법 1:</b> '+patch1+'</div>'
-              + '<div><b>조율법 2:</b> '+patch2+'</div>'
-              + (layer3Text ? ('<div><b>사화 시너지 부스터:</b> '+layer3Text+'</div>') : '')
-            + '</div>'
-          + '</details>'
-          + '<details class="zw-disclosure">'
-            + '<summary>궁위별 세부 해석</summary>'
-            + '<div class="zw-disclosure-body">'+guideHtml+'</div>'
-          + '</details>'
-          + '<details class="zw-disclosure">'
-            + '<summary>전생 인연 리포트</summary>'
-            + '<div class="zw-disclosure-body">'+pastLifeHtml+'</div>'
-          + '</details>'
-        + '</section>'
-      + '</section>';
+        + '</div>'
+        + '<div style="background:rgba(40,20,58,0.55);border:1px solid rgba(196,181,253,0.24);border-radius:11px;padding:10px 11px;">'
+        + '<div style="color:#fbcfe8;font-size:0.95rem;font-weight:800;margin-bottom:6px;">2. 🛡️ 관계 조율 지침</div>'
+        + '<div style="font-size:0.83rem;color:#f3e8ff;line-height:1.72;">'
+        + '- <b>주의 신호:</b> '+warningSignal+'<br>'
+        + '- <b>조율법 1:</b> '+patch1+'<br>'
+        + '- <b>조율법 2:</b> '+patch2+'<br>'
+        + (layer3Text ? ('- <b>사화 시너지 부스터:</b> '+layer3Text) : '')
+        + '</div>'
+        + '</div>'
+        + '<div style="background:rgba(40,20,58,0.55);border:1px solid rgba(196,181,253,0.24);border-radius:11px;padding:10px 11px;">'
+        + '<div style="color:#fbcfe8;font-size:0.95rem;font-weight:800;margin-bottom:6px;">3. ⚠️ 이 궁합의 갈등 포인트</div>'
+        + '<div style="font-size:0.83rem;color:#f3e8ff;line-height:1.72;">'
+        + '- <b>핵심 갈등 신호:</b> '+warningSignal+'<br>'
+        + '- <b>단점 기반 트리거:</b> '+conflictTrigger+'<br>'
+        + '- <b>취약 구간 시나리오:</b> '+conflictScenario
+        + '</div>'
+        + '</div>'
+        + '<details class="zw-compat-ref-details">'
+        + '<summary class="zw-compat-ref-summary"><span class="zw-compat-ref-title">참고 | 궁위별 세부 해석</span><span class="zw-compat-ref-indicator">열기/닫기</span></summary>'
+        + '<div class="zw-compat-ref-content">'+guideHtml+'</div>'
+        + '</details>'
+        + '<div style="padding:0;overflow:hidden;">'
+        + '<div style="color:#fbcfe8;font-size:0.95rem;font-weight:800;margin-bottom:6px;">4. 🔮 전생 인연 리포트</div>'
+        + pastLifeHtml
+        + '</div>'
+        + '</div>'
+        + '</div>';
     };
 
     if (!window._zwEscCloseBound) {
@@ -9499,25 +9614,15 @@ function renderZiwei(p, natal, targetId) {
           window._toggleZwPivotCard = function(btn, bodyId) {
             var body = document.getElementById(bodyId);
             if (!body) return;
-            var card = body.closest ? body.closest('.zw-pivot-card') : null;
-            var list = card && card.parentNode;
-            var expanded = !!(card && card.classList.contains('is-open'));
-
-            if (!expanded && list && list.querySelectorAll) {
-              var opened = list.querySelectorAll('.zw-pivot-card.is-open');
-              for (var oi = 0; oi < opened.length; oi++) {
-                opened[oi].classList.remove('is-open');
-                var openedBody = opened[oi].querySelector('.zw-pivot-body');
-                if (openedBody) openedBody.hidden = true;
-                var openedBtn = opened[oi].querySelector('.zw-pivot-head');
-                if (openedBtn) openedBtn.setAttribute('aria-expanded', 'false');
-              }
-            }
-
-            if (card) card.classList.toggle('is-open', !expanded);
-            body.hidden = expanded;
+            var expanded = body.style.display !== 'none';
+            var nextExpanded = !expanded;
+            body.style.display = nextExpanded ? 'block' : 'none';
             if (btn) {
-              btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+              btn.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+              var card = btn.closest ? btn.closest('.zw-pivot-card') : null;
+              if (card && card.classList) card.classList.toggle('is-open', nextExpanded);
+              var iconEl = btn.querySelector ? btn.querySelector('.zw-pivot-toggle-icon') : null;
+              if (iconEl) iconEl.textContent = nextExpanded ? '접어서 요약 보기' : '탭해서 펼쳐 보기';
             }
           };
         }
@@ -9526,45 +9631,44 @@ function renderZiwei(p, natal, targetId) {
         var pivotStageLabels = ['초년 변곡점', '중년 변곡점', '후년 변곡점'];
         selectedPivots.slice(0,3).forEach(function(p, i){
           var bc = p.type==='crisis' ? '#f87171' : (p.type==='chance' ? '#4ade80' : '#a78bfa');
+          var bcRgb = p.type==='crisis' ? '248,113,113' : (p.type==='chance' ? '74,222,128' : '167,139,250');
           var stageLabel = pivotStageLabels[i] || ('변곡점 '+(i+1));
           var cardId = 'zwPivotCard_'+p.key;
-          pivotHtml += '<article class="zw-pivot-card" style="--zw-pivot-tone:'+bc+';">'
-            +'<button type="button" class="zw-pivot-head" aria-expanded="false" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'
-              +'<div class="zw-pivot-head-main">'
-                +'<span class="zw-pivot-stage">'+stageLabel+'</span>'
-                +'<span class="zw-pivot-title">'+p.icon+' '+p.title+'</span>'
+          pivotHtml += '<div class="zw-pivot-card" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'
+            +'<button type="button" class="zw-pivot-toggle" aria-expanded="false" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'
+              +'<div class="zw-pivot-meta">'
+                +'<span class="zw-pivot-chip">'+stageLabel+'</span>'
+                +'<span class="zw-pivot-headline">'+p.icon+' '+p.title+'</span>'
+                +'<span class="zw-pivot-toggle-icon">탭해서 펼쳐 보기</span>'
               +'</div>'
-              +'<span class="zw-pivot-meta">'
-                +'<span class="zw-pivot-age">'+p.age+'</span>'
-                +'<span class="zw-pivot-chevron" aria-hidden="true">▾</span>'
-              +'</span>'
+              +'<span class="zw-pivot-age">'+p.age+'</span>'
             +'</button>'
-            +'<div id="'+cardId+'" class="zw-pivot-body" hidden>'
-              +'<div class="zw-pivot-line"><b>대한 흐름:</b> ['+p.period+'] '+p.phaseTheme+'</div>'
-              +'<div class="zw-pivot-line"><b>핵심 주성:</b> '+p.coreStars+' / <b>사화:</b> '+p.sihuaLabel+' / <span class="zw-pivot-borrowed">'+p.borrowedLabel+'</span></div>'
-              +'<div class="zw-pivot-subhead"><b>성운 항로 | 이 시기 실행 조언</b></div>'
-              +'<div class="zw-pivot-line">1) '+p.step1+'</div>'
-              +'<div class="zw-pivot-line">2) '+p.step2+'</div>'
-              +'<div class="zw-pivot-line">3) '+p.step3+'</div>'
-              +'<div class="zw-pivot-subhead"><b>거문 파동 | 이 시기 주의 조언</b></div>'
-              +'<div class="zw-pivot-line">- <b>주의점:</b> '+p.criticalIssue+'</div>'
-              +'<div class="zw-pivot-line">- <b>대응법:</b> 1) '+p.protocol1+' 2) '+p.protocol2+'</div>'
-              +'<div class="zw-pivot-line">- <b>한 줄 조언:</b> '+p.oneLineAdvice+'</div>'
+            +'<div id="'+cardId+'" class="zw-pivot-body">'
+              +'<div style="margin-bottom:6px;"><b>대한 흐름:</b> ['+p.period+'] '+p.phaseTheme+'</div>'
+              +'<div style="margin-bottom:6px;"><b>핵심 주성:</b> '+p.coreStars+' / <b>사화:</b> '+p.sihuaLabel+' / <span style="color:#c4b5fd;">'+p.borrowedLabel+'</span></div>'
+              +'<div style="margin-bottom:6px;"><b>성운 항로 | 이 시기 실행 조언</b></div>'
+              +'<div style="margin-bottom:4px;">1) '+p.step1+'</div>'
+              +'<div style="margin-bottom:4px;">2) '+p.step2+'</div>'
+              +'<div style="margin-bottom:6px;">3) '+p.step3+'</div>'
+              +'<div style="margin-bottom:6px;"><b>거문 파동 | 이 시기 주의 조언</b></div>'
+              +'<div style="margin-bottom:4px;">- <b>주의점:</b> '+p.criticalIssue+'</div>'
+              +'<div style="margin-bottom:4px;">- <b>대응법:</b> 1) '+p.protocol1+' 2) '+p.protocol2+'</div>'
+              +'<div style="margin-bottom:2px;">- <b>한 줄 조언:</b> '+p.oneLineAdvice+'</div>'
             +'</div>'
-          +'</article>';
+          +'</div>';
         });
 
-        var sec_pivot = '<section class="zw-pivot-section">'
-          +'<h2 class="zw-pivot-heading">🔱 인생의 3대 변곡점</h2>'
-          +'<p class="zw-pivot-intro">사화(四化), 주성/보조성/흉성, 차성(대궁 차용)을 통합 반영한 3개 카드입니다. 카드를 눌러 해당 시기 맞춤 조언을 확인하세요.</p>'
-          +'<div class="zw-pivot-list">'+pivotHtml+'</div>'
-        +'</section>';
+        var sec_pivot = '<div class="zw-pivot-section">'
+          +'<h2 class="zw-pivot-title">🔱 인생의 3대 변곡점</h2>'
+          +'<p class="zw-pivot-sub">사화(四化), 주성/보조성/흉성, 차성(대궁 차용)을 통합 반영한 3개 카드입니다. 카드를 눌러 해당 시기 맞춤 조언을 확인하세요.</p>'
+          +'<div class="zw-pivot-deck">'+pivotHtml+'</div>'
+        +'</div>';
 
         var sec4 = '';
 
         var contentHtml = '';
         if (clickOnly) {
-          contentHtml = '<div class="zw-report-shell zw-report-shell--summary">'
+          contentHtml = '<div style="font-family:\'Suit\',sans-serif; background:#121212; color:#E2E8F0; padding:20px; border-radius:12px; width:100%; box-sizing:border-box;">'
             + '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:2px solid #8B5CF6;padding-bottom:12px;margin-bottom:16px;">'
             + '<h1 style="margin:0;color:#C084FC;font-size:1.2rem;">궁(宮) 해석 요약</h1>'
             + (showClose ? '<button type="button" class="zw-report-close-btn zw-summary-close-btn" onclick="window._closeZwDetailReport()">요약 닫기</button>' : '')
@@ -9573,7 +9677,7 @@ function renderZiwei(p, natal, targetId) {
             + sec3
             + '</div>';
         } else {
-          contentHtml = '<div class="zw-report-shell zw-report-shell--comprehensive">'
+          contentHtml = '<div style="font-family:\'Suit\',sans-serif; background:#121212; color:#E2E8F0; padding:20px; border-radius:12px; width:100%; box-sizing:border-box;">'
             + '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:2px solid #8B5CF6;padding-bottom:15px;margin-bottom:20px;">'
             + '<h1 style="margin:0;color:#C084FC;font-size:1.5rem;">자미두수 천명(天命) 종합 리포트</h1>'
             + (showClose ? '<button type="button" class="zw-report-close-btn" onclick="window._closeZwComprehensiveReport()">리포트 닫기 ✕</button>' : '')
