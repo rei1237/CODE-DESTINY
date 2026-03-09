@@ -4,8 +4,9 @@ Use this project with OpenNext on Cloudflare Pages.
 
 ## Required Pages Settings
 
-- Build command: `npm run build:cf`
+- Build command: `npm run build` (routes to `build:cf`)
 - Build output directory: `.open-next/assets`
+- Deploy command (if your platform requires one): `npm run deploy:cf:static`
 
 ## Required Environment Variables
 
@@ -16,4 +17,5 @@ Use this project with OpenNext on Cloudflare Pages.
 
 - The `build:cf` script already sets `NEXT_VERSION=15.0.0` via `cross-env`.
 - `package.json` enforces Node 20 (`>=20 <21`) to match Next.js 15 requirements.
-- If you changed settings before, clear old build/deploy commands that used `build:cf:static`.
+- `build:cf:static` is now wired to a real Pages deploy command (no longer a no-op).
+- Commit a lock file (`package-lock.json`) to enable dependency/build caching.

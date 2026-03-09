@@ -7,12 +7,12 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:cf": "npx cross-env NEXT_VERSION=15.0.0 opennextjs-cloudflare build",
+    "build": "npm run build:cf",
+    "build:cf": "cross-env NEXT_VERSION=15.0.0 opennextjs-cloudflare build",
     "build:cf:legacy": "opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion",
-    "build:cf:static": "node -e \"console.log('Cloudflare static deploy: no build step required')\"",
-    "deploy:cf:static": "npx wrangler pages deploy . --project-name \"$CF_PAGES_PROJECT_NAME\" --branch \"${CF_PAGES_BRANCH:-main}\"",
-    "deploy:cf:static:prod": "npx wrangler pages deploy . --project-name \"$CF_PAGES_PROJECT_NAME\" --branch main",
+    "build:cf:static": "npm run deploy:cf:static",
+    "deploy:cf:static": "npx wrangler pages deploy .open-next/assets --project-name \"$CF_PAGES_PROJECT_NAME\" --branch \"${CF_PAGES_BRANCH:-main}\"",
+    "deploy:cf:static:prod": "npx wrangler pages deploy .open-next/assets --project-name \"$CF_PAGES_PROJECT_NAME\" --branch main",
     "start": "next start",
     "lint": "next lint"
   },
