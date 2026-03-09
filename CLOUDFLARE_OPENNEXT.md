@@ -13,14 +13,19 @@ Use this project with OpenNext on Cloudflare Workers.
 ## Required Scripts
 
 - `build`: `next build`
-- `prebuild:cf`: validates required files and prevents recursive build misconfiguration
 - `build:cf`: `cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build`
+- `build:cf:static`: compatibility command for Cloudflare Pages Deploy command (`npm run build:cf:static`)
 - `deploy:cf`: `npm run build:cf && npx wrangler deploy`
 
 ## Required Cloudflare Build Settings
 
 - Build command: `npm run build:cf`
 - Do not set a static output directory for Workers deployment.
+
+If your project is still configured with a Pages Deploy command, this also works:
+
+- Build command: `npm run build`
+- Deploy command: `npm run build:cf:static`
 
 ## Required Environment Variables
 
@@ -30,10 +35,8 @@ Use this project with OpenNext on Cloudflare Workers.
 ## Notes
 
 - `open-next.config.ts` and `wrangler.jsonc` must exist in repo root to avoid interactive prompts in CI.
-- `prebuild:cf` runs automatically before `build:cf` and fails fast with a clear message if the structure regresses.
 - `wrangler.jsonc` should keep:
 	- `main`: `.open-next/worker.js`
 	- `assets.directory`: `.open-next/assets`
 	- `compatibility_flags`: include `nodejs_compat`
-- `engines.node` is set to `>=20` to avoid unnecessary failures when Cloudflare uses Node 22+.
 - Commit a lock file (`package-lock.json`) to improve reproducibility and caching.
