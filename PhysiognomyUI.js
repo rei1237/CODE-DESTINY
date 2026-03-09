@@ -614,7 +614,21 @@ window.switchMode = async function(mode) {
       document.getElementById('compatStartBtn').style.display = 'block';
     }
 
-    setTimeout(() => { document.getElementById('phyResult').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+    setTimeout(scrollResultToTop, 100);
+  }
+
+  function scrollResultToTop() {
+    const resultEl = document.getElementById('phyResult');
+    if (!resultEl) return;
+
+    const contentEl = document.querySelector('#physiognomy-app .phy-content');
+    if (contentEl) {
+      const targetTop = Math.max(resultEl.offsetTop - 12, 0);
+      contentEl.scrollTo({ top: targetTop, behavior: 'smooth' });
+      return;
+    }
+
+    resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // ── 궁합 모드 관련 함수 ──
@@ -667,5 +681,5 @@ window.switchMode = async function(mode) {
     document.getElementById('compatStartBtn').style.display = 'none';
     document.getElementById('phyResult').style.display = 'block';
 
-    setTimeout(() => { document.getElementById('phyResult').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+    setTimeout(scrollResultToTop, 100);
   }

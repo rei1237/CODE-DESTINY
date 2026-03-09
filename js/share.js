@@ -235,6 +235,50 @@ function fallbackCopy(text,msg){
    NEO MODE — 팩폭 사자 쌈바 퍼소나 시스템
 ═══════════════════════════════════════ */
 var NEO_MODE=false;
+var THEME_TOGGLE_DISABLE_MS = 12000;
+var _themeToggleAutoDisableTimer = null;
+
+function setThemeToggleEnabled(enabled){
+  var wrap = document.querySelector('.theme-switch-wrapper');
+  var cb = document.getElementById('themeCheckbox');
+  if(wrap){
+    wrap.classList.toggle('theme-toggle-hidden', !enabled);
+    wrap.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    wrap.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+  }
+  if(cb){
+    cb.disabled = !enabled;
+    if(!enabled) cb.blur();
+  }
+}
+
+function clearThemeToggleAutoDisableTimer(){
+  if(_themeToggleAutoDisableTimer){
+    clearTimeout(_themeToggleAutoDisableTimer);
+    _themeToggleAutoDisableTimer = null;
+  }
+}
+
+function scheduleThemeToggleAutoDisable(){
+  clearThemeToggleAutoDisableTimer();
+  _themeToggleAutoDisableTimer = setTimeout(function(){
+    setThemeToggleEnabled(false);
+  }, THEME_TOGGLE_DISABLE_MS);
+}
+
+function isHomePageVisible(){
+  var inputPage = document.getElementById('inputPage');
+  var resultPage = document.getElementById('resultPage');
+  if(!inputPage || !resultPage) return false;
+  var inputShown = window.getComputedStyle(inputPage).display !== 'none';
+  var resultShown = window.getComputedStyle(resultPage).display !== 'none';
+  return inputShown && !resultShown;
+}
+
+function reactivateThemeToggleFromHome(){
+  setThemeToggleEnabled(true);
+  scheduleThemeToggleAutoDisable();
+}
 
 var NEO_TITLES={
   '사주 명식 (四柱命式)':'사주 명식 — 운명 회로도',
@@ -255,6 +299,9 @@ var NEO_TITLES={
 };
 
 function toggleNeoMode(){
+  var cbLock = document.getElementById('themeCheckbox');
+  if(cbLock && cbLock.disabled) return;
+
   NEO_MODE=!NEO_MODE;
   var body=document.body;
 
@@ -325,6 +372,7 @@ function toggleNeoMode(){
     if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '꽃돼지 운세 서비스 앱 설치하기';
   }
   applyNeoTexts();
+  scheduleThemeToggleAutoDisable();
 }
 
 function applyNeoTexts(){
@@ -420,11 +468,38 @@ window.addEventListener('load',function(){
   var themeCb = document.getElementById('themeCheckbox');
   if(themeCb){
     themeCb.addEventListener('change', function(){
+      if(themeCb.disabled){
+        themeCb.checked = NEO_MODE;
+        return;
+      }
       toggleNeoMode();
     });
     document.body.classList.add(NEO_MODE ? 'theme-neo' : 'theme-pig');
     if(NEO_MODE) document.body.classList.add('neo-mode');
   }
+
+  // Home으로 돌아오면 토글을 다시 활성화하고 타이머를 재시작합니다.
+  if(typeof window.resetApp === 'function' && !window.resetApp.__themeToggleWrapped){
+    var _origResetApp = window.resetApp;
+    window.resetApp = function(){
+      var ret = _origResetApp.apply(this, arguments);
+      reactivateThemeToggleFromHome();
+      return ret;
+    };
+    window.resetApp.__themeToggleWrapped = true;
+  }
+
+  // 표시 상태가 바뀌어 홈이 다시 보이면 즉시 재활성화합니다.
+  var inputPage = document.getElementById('inputPage');
+  var resultPage = document.getElementById('resultPage');
+  var pageObserver = new MutationObserver(function(){
+    if(isHomePageVisible()) reactivateThemeToggleFromHome();
+  });
+  if(inputPage) pageObserver.observe(inputPage, { attributes:true, attributeFilter:['style','class'] });
+  if(resultPage) pageObserver.observe(resultPage, { attributes:true, attributeFilter:['style','class'] });
+
+  if(isHomePageVisible()) reactivateThemeToggleFromHome();
+  else scheduleThemeToggleAutoDisable();
 
   enforceThemeToggleSticky();
   window.addEventListener('resize', enforceThemeToggleSticky, { passive: true });

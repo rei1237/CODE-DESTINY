@@ -337,13 +337,11 @@ function bindMbtiDetailEvents(sheet, code, isSelected) {
 function __lockMbtiBody() {
     if (__mbtiBodyLocked) return;
     __mbtiBodyLocked = true;
-    document.body.style.overflow = 'hidden';
 }
 
 function __unlockMbtiBody() {
     if (!__mbtiBodyLocked) return;
     __mbtiBodyLocked = false;
-    document.body.style.overflow = '';
 }
 
 function openMbtiModal() {
@@ -516,10 +514,12 @@ function openMbtiDetail(code) {
 
 function switchMbtiTab(tabEl, panelId) {
     const sheet = document.getElementById('mbtiDetailSheet');
+    if (!sheet) return;
     sheet.querySelectorAll('.mbti-sheet-tab').forEach(t => t.classList.remove('active'));
     sheet.querySelectorAll('.mbti-sheet-panel').forEach(p => p.classList.remove('active'));
     tabEl.classList.add('active');
-    sheet.querySelector(`[data-panel="${panelId}"]`).classList.add('active');
+    const panel = sheet.querySelector(`.mbti-sheet-panel[data-panel="${panelId}"]`);
+    if (panel) panel.classList.add('active');
 }
 
 function selectTotemFromDetail(code) {
