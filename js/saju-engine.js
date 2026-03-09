@@ -6716,12 +6716,24 @@ function renderZiwei(p, natal, targetId) {
       min-width: 0;
       overflow-x: clip;
     }
+    #ziweiModalOverlay {
+      background: radial-gradient(circle at top, #1c1c2e, #0f0f1a);
+    }
+    .report-container,
     #zwComprehensiveReport,
     .ziwei-report-container {
       background: transparent;
       border: none;
       box-shadow: none;
-      padding: 0;
+      width: 100%;
+      max-width: 100%;
+      padding-left: 14px;
+      padding-right: 14px;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+    #zwComprehensiveReport,
+    .ziwei-report-container {
       width: 100%;
       max-width: none;
     }
@@ -6832,15 +6844,56 @@ function renderZiwei(p, natal, targetId) {
       background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(14, 116, 144, 0.72));
       border-color: rgba(103, 232, 249, 0.7);
     }
+    .report-card,
     .zw-cosmic-card {
       position: relative;
       overflow: hidden;
+      width: 100%;
       padding: 18px;
-      border-radius: 12px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      line-height: 1.6;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,215,130,0.25);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      transition: transform 0.2s ease;
+    }
+    .report-card:hover,
+    .zw-cosmic-card:hover {
+      transform: translateY(-2px);
+    }
+    .report-section {
       margin-bottom: 20px;
-      border: 1px solid rgba(196, 181, 253, 0.36);
-      box-shadow: inset 0 0 0 1px rgba(216, 180, 254, 0.1), 0 12px 26px rgba(0, 0, 0, 0.36);
-      backdrop-filter: blur(1px);
+    }
+    .section-title {
+      color: #ffd27a;
+      font-weight: 600;
+    }
+    .palace-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffd27a;
+      margin-bottom: 8px;
+    }
+    .card-content,
+    .zw-compat-core-text,
+    .zw-compat-score-desc,
+    .zw-compat-subline,
+    .zw-compat-meta,
+    .zw-rdesc,
+    .zw-scroll-block,
+    .zw-pivot-body {
+      font-size: 16px;
+      line-height: 1.8;
+      letter-spacing: 0.2px;
+      color: #f0f0f0;
+    }
+    .ziwei-report-container h3,
+    #zwComprehensiveReport h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
     }
     .zw-love-card {
       background:
@@ -6921,6 +6974,105 @@ function renderZiwei(p, natal, targetId) {
     .zw-compat-ref-content {
       padding: 8px 11px 10px;
       animation: zwCompatRefReveal .2s ease;
+    }
+    .zw-compat-result-shell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: linear-gradient(145deg, rgba(76,20,68,0.95), rgba(58,26,88,0.94) 42%, rgba(30,20,68,0.95));
+      border: 1px solid rgba(251,113,133,0.35);
+      box-shadow: inset 0 0 0 1px rgba(244,114,182,0.15), 0 10px 24px rgba(0,0,0,0.32);
+    }
+    .zw-compat-result-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 12px;
+    }
+    .zw-compat-result-head {
+      background: linear-gradient(120deg, rgba(244,114,182,0.17), rgba(192,132,252,0.16));
+      border: 1px solid rgba(244,114,182,0.35);
+      border-radius: 11px;
+      padding: 10px 11px;
+    }
+    .zw-compat-headline {
+      font-size: 1.02rem;
+      color: #fbcfe8;
+      font-weight: 900;
+      line-height: 1.45;
+    }
+    .zw-compat-subline {
+      font-size: 0.82rem;
+      color: #f9a8d4;
+      margin-top: 6px;
+      line-height: 1.6;
+    }
+    .zw-compat-meta {
+      font-size: 0.76rem;
+      color: #c4b5fd;
+      margin-top: 5px;
+      line-height: 1.6;
+    }
+    .zw-compat-core-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .zw-compat-core-panel {
+      background: rgba(40,20,58,0.55);
+      border: 1px solid rgba(196,181,253,0.24);
+      border-radius: 11px;
+      padding: 10px 11px;
+    }
+    .zw-compat-core-title {
+      color: #ffd27a;
+      font-size: 0.93rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .zw-compat-core-text {
+      font-size: 0.83rem;
+      color: #f3e8ff;
+      line-height: 1.72;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .zw-compat-core-text b {
+      color: #fce7f3;
+    }
+    .zw-compat-score-list {
+      display: grid;
+      gap: 8px;
+    }
+    .zw-compat-score-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 9px;
+      border-radius: 9px;
+      background: rgba(50,26,70,0.45);
+      border: 1px solid rgba(244,114,182,0.2);
+    }
+    .zw-compat-score-row b {
+      color: #fbcfe8;
+      font-size: 0.86rem;
+    }
+    .zw-compat-score-tag {
+      display: block;
+      margin-top: 2px;
+      color: #f9a8d4;
+      font-size: 0.74rem;
+      line-height: 1.45;
+    }
+    .zw-compat-score-desc {
+      margin-top: 5px;
+      color: #f3e8ff;
+      font-size: 0.79rem;
+      line-height: 1.58;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     @keyframes zwCompatRefReveal {
       from { opacity: 0; transform: translateY(-4px); }
@@ -7625,34 +7777,62 @@ function renderZiwei(p, natal, targetId) {
       .zw-radar-canvas-wrap { height: min(70vw, 260px); min-height: 200px; }
       .zw-detail-panel { padding: 11px; border-radius: 12px; }
       .zw-insight-layout { gap: 10px; }
+      .report-container,
       #zwComprehensiveReport,
       .ziwei-report-container {
         width: 100%;
-        max-width: none;
-        padding-left: 0;
-        padding-right: 0;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+        padding-left: 14px;
+        padding-right: 14px;
+        margin: 0 auto;
+        box-sizing: border-box;
+        overflow-x: hidden;
+      }
+      .report-card,
+      .zw-cosmic-card {
+        width: 100%;
+        padding: 16px;
+      }
+      .card-content,
+      .zw-compat-core-text,
+      .zw-compat-score-desc,
+      .zw-compat-subline,
+      .zw-compat-meta,
+      .zw-rdesc,
+      .zw-scroll-block,
+      .zw-pivot-body {
+        font-size: 15.5px;
+      }
+      .zw-cosmic-stars {
+        display: none;
+      }
+      .zw-cosmic-card {
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+      .zw-love-compat-canvas-wrap,
+      .zw-love-compat-canvas {
+        min-height: 220px;
+      }
+      .zw-love-metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .ziwei-report-container .zw-cosmic-card,
       .ziwei-report-container .zw-love-compat-spread,
       .ziwei-report-container .zw-pivot-section,
       .ziwei-report-container .zw-pastlife-archive {
-        padding-left: 8px;
-        padding-right: 8px;
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        box-sizing: border-box;
       }
       .ziwei-report-container .zw-report-col,
       .ziwei-report-container .zw-pivot-body,
       .ziwei-report-container .zw-compat-ref-content {
-        overflow-x: auto;
+        overflow-x: hidden;
       }
-      .ziwei-report-container .zw-pastlife-archive {
-        width: calc(100% + 4px);
-        max-width: none;
-        margin-left: -2px;
-        margin-right: -2px;
-        padding: 7px;
-      }
+      .ziwei-report-container .zw-pastlife-archive { padding: 7px; }
       .ziwei-report-container .zw-pastlife-layout {
         gap: 8px;
       }
@@ -7701,6 +7881,35 @@ function renderZiwei(p, natal, targetId) {
       }
       .zw-pivot-age {
         font-size: 0.68rem;
+      }
+      .zw-compat-result-shell {
+        padding: 12px 12px;
+      }
+      .zw-compat-core-grid {
+        grid-template-columns: 1fr;
+      }
+      .zw-compat-headline {
+        font-size: 0.95rem;
+      }
+      .zw-compat-subline {
+        font-size: 0.79rem;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .report-container,
+      #zwComprehensiveReport,
+      .ziwei-report-container {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      .report-card,
+      .zw-cosmic-card,
+      .ziwei-report-container .zw-love-compat-spread,
+      .ziwei-report-container .zw-pivot-section,
+      .ziwei-report-container .zw-pastlife-archive {
+        padding-left: 7px;
+        padding-right: 7px;
       }
     }
 
@@ -7933,7 +8142,7 @@ function renderZiwei(p, natal, targetId) {
       </div>
     </div>
   </div>
-  <div class="zw-detail-panel ziwei-report-container" id="zwComprehensiveReport" style="margin-top:16px;">
+  <div class="zw-detail-panel ziwei-report-container report-container" id="zwComprehensiveReport" style="margin-top:16px;">
     <div class="zw-empty-state">
       <div class="zw-empty-icon">📜</div>
       자미두수 천명 종합 리포트를 불러오는 중입니다.
@@ -8040,13 +8249,31 @@ function renderZiwei(p, natal, targetId) {
       var corrEl = document.getElementById('zwCompatTimeCorrectionInfo');
       if (!dateEl || !timeEl || !outEl) return;
 
+      // Mobile-safe 2-digit formatter for legacy WebViews (avoids String.padStart dependency).
+      var z2 = function(v) {
+        var n = parseInt(v, 10);
+        if (isNaN(n)) n = 0;
+        return n < 10 ? ('0' + n) : String(n);
+      };
+
       var bDate = (dateEl.value || '').trim();
       var bTime = (timeEl.value || '').trim();
+      var triggerBtn = null;
+      var cardEl = dateEl.closest ? dateEl.closest('.zw-cosmic-card') : null;
+      if (cardEl) triggerBtn = cardEl.querySelector('.zw-cosmic-btn');
       if (!bDate || !bTime || !cityEl || cityEl.selectedIndex < 0) {
         outEl.innerHTML = '<div style="color:#fda4af;font-size:0.9rem;">상대방 생년월일, 태어난 시간, 태어난 도시를 모두 입력해 주세요.</div>';
         return;
       }
 
+      if (triggerBtn) {
+        triggerBtn.disabled = true;
+        triggerBtn.style.opacity = '0.7';
+      }
+      outEl.innerHTML = '<div style="color:#ddd6fe;font-size:0.9rem;">궁합을 계산하는 중입니다...</div>';
+
+      var runCompatCalc = function() {
+      try {
       var cityOpt = cityEl.options[cityEl.selectedIndex];
       var cityTz = cityOpt ? (cityOpt.value || '') : '';
       var cityLong = cityOpt ? parseFloat(cityOpt.getAttribute('data-long')) : NaN;
@@ -8080,8 +8307,8 @@ function renderZiwei(p, natal, targetId) {
       correctedHour = Math.floor(correctedTotal / 60);
       correctedMinute = correctedTotal % 60;
       var correctionMsg = '진태양시 보정 적용: '
-        + String(ph).padStart(2, '0') + ':' + String(pmin).padStart(2, '0')
-        + ' → ' + String(correctedHour).padStart(2, '0') + ':' + String(correctedMinute).padStart(2, '0')
+        + z2(ph) + ':' + z2(pmin)
+        + ' → ' + z2(correctedHour) + ':' + z2(correctedMinute)
         + ' (경도 ' + cityLngOffset + '분, DST ' + tzResolved.dstMinutes + '분, UTC'
         + (tzResolved.tzOffsetHours >= 0 ? '+' : '') + tzResolved.tzOffsetHours + ')';
       if (corrEl) {
@@ -8381,28 +8608,162 @@ function renderZiwei(p, natal, targetId) {
         pastRelation = '전생의 강한 고리보다는 이번 생의 선택과 합의가 관계의 방향을 더 크게 좌우하는 흐름입니다.';
       }
 
-      var pastStory = '별빛이 가장 옅은 새벽, 두 사람의 영혼은 ' + pastEraPlace + '의 먼 기억 위를 다시 스쳐 지나간 듯합니다. '
-        + '명궁의 결은 "왜인지 낯설지 않은 성정"을 남기고, 복덕궁과 질액궁은 미처 끝내지 못한 감정의 매듭을 조용히 흔듭니다. '
-        + '부부궁과 천이궁의 축이 맞물리는 순간, 우연처럼 시작된 만남이 사실은 오래된 약속의 메아리였을 가능성을 보여줍니다. '
-        + '다만 이 인연의 결말은 정해진 운명이라기보다, 이번 생에서 두 사람이 어떤 말을 선택하고 어떤 배려를 실천하느냐에 따라 새롭게 쓰일 수 있습니다.';
+      var _zwStableSeedFrom = function(str) {
+        var s = String(str || '');
+        var acc = 17;
+        for (var si3 = 0; si3 < s.length; si3 += 1) {
+          acc = (acc * 31 + s.charCodeAt(si3)) % 2147483647;
+        }
+        return acc;
+      };
+      var _zwPickBySeed = function(list, seed, offset) {
+        if (!list || !list.length) return '';
+        var idx = Math.abs((seed + (offset || 0)) % list.length);
+        return list[idx];
+      };
+
+      var pastSeedCore = [
+        pastTypeTitle,
+        pastEraPlace,
+        pastBand,
+        String(pastLifeScore),
+        String(pastAxisMeng),
+        String(pastAxisBok),
+        String(pastAxisSpouse),
+        String(pastAxisMove),
+        coreTxt(mePal.meng),
+        coreTxt(youPal.meng),
+        coreTxt(mePal.spouse),
+        coreTxt(youPal.spouse)
+      ].join('|');
+      var pastSeed = _zwStableSeedFrom(pastSeedCore);
+
+      var storyOpeners = [
+        '먹빛 하늘에 첫 별이 켜질 무렵,',
+        '달력이 바뀌기 직전의 정적 속에서,',
+        '바람이 문고리를 흔들던 오래된 밤,',
+        '등잔불이 가장 낮게 떨리던 새벽,',
+        '성운의 경계가 열리던 찰나에,'
+      ];
+      var storyScenesByType = {
+        '숙명 연인형': [
+          '두 사람은 의례와 축복이 교차하는 전각에서 서로의 이름을 봉인하듯 불렀고,',
+          '두 사람은 음악과 향이 흐르는 궁정의 회랑에서 같은 약속을 다른 언어로 반복했으며,',
+          '두 사람은 밤길의 등불 아래서 이별을 미루는 대신 재회를 예언하는 표식을 남겼고,'
+        ],
+        'karmic 빚의 인연': [
+          '두 사람은 전장의 뒤편에서 서로의 생존을 바꿔치기하듯 지켜냈지만 정산되지 못한 감정이 남았고,',
+          '두 사람은 빚과 은혜의 장부를 끝내 맞추지 못한 채 같은 도시의 다른 계절로 흩어졌으며,',
+          '두 사람은 구원과 상처가 교차하는 선택을 반복하다 마지막 문장을 쓰지 못한 채 멈췄고,'
+        ],
+        '스승과 제자 인연': [
+          '두 사람은 오래된 서고에서 질문과 답을 주고받으며 서로의 시야를 확장했지만,',
+          '두 사람은 같은 도표를 다른 손으로 완성해 가며 사유의 결을 닮아갔고,',
+          '두 사람은 말보다 침묵의 여백에서 더 많은 지혜를 전수했으나,'
+        ],
+        '운명의 라이벌': [
+          '두 사람은 같은 목표를 다른 방식으로 쟁취하며 서로를 가장 날카롭게 성장시켰고,',
+          '두 사람은 승부의 문턱마다 상대의 존재를 자신의 한계치로 삼았으며,',
+          '두 사람은 대립의 언어로 소통하면서도 결정적 순간마다 서로의 등을 밀어주었고,'
+        ],
+        '보호자 인연': [
+          '두 사람은 폭우가 쏟아지는 골목마다 한 사람이 길을 만들고 다른 한 사람이 숨을 고르게 했으며,',
+          '두 사람은 불안이 밀려오는 날마다 역할을 바꿔가며 서로의 방패가 되었고,',
+          '두 사람은 위기 때마다 가장 먼저 서로의 이름을 확인하는 습관을 갖게 되었지만,'
+        ],
+        '이번 생 중심 인연': [
+          '두 사람의 전생 기록은 짧고 옅지만, 희미한 접점들이 이번 생의 우연을 정교하게 밀어 올렸고,',
+          '두 사람의 과거 연결은 강하지 않았으나 반복되는 타이밍의 일치가 관계의 가능성을 키웠으며,',
+          '두 사람은 긴 서사 대신 작은 공명들을 남겼고 그것들이 현생에서 다시 결을 만들고 있으며,'
+        ]
+      };
+      var storyConflictsByBand = {
+        '강한 전생 인연': [
+          '강한 끌림이 기준 없는 속도로 번지면 애정이 피로로 바뀔 수 있었습니다.',
+          '서로를 잘 안다는 확신이 대화를 생략하게 만들 때 오해가 더 깊어졌습니다.',
+          '익숙함이 배려를 대체한 구간에서 관계의 온도가 급격히 흔들렸습니다.'
+        ],
+        'karmic 관계': [
+          '미해결 과제가 반복될수록 같은 갈등이 다른 장면으로 재현되는 패턴이 생겼습니다.',
+          '사과보다 해명이 먼저 나올 때 감정의 장부가 계속 누적되었습니다.',
+          '정답을 찾으려는 조급함이 서로의 회복 타이밍을 어긋나게 했습니다.'
+        ],
+        '스쳐가는 인연': [
+          '연결의 밀도보다 현실의 속도가 앞설 때 손을 놓치기 쉬웠습니다.',
+          '감정은 있었지만 운영 규칙이 없어 일상이 관계를 밀어냈습니다.',
+          '좋은 의도는 충분했으나 합의의 언어가 부족해 엇갈림이 누적되었습니다.'
+        ],
+        '이번 생 중심 인연': [
+          '선입견이 커질수록 실제의 장점이 가려지는 문제가 반복되었습니다.',
+          '의미를 과장해 해석하면 단순한 문제도 숙명처럼 보일 수 있었습니다.',
+          '작은 오해를 즉시 풀지 않으면 관계의 기본값이 쉽게 낮아졌습니다.'
+        ]
+      };
+      var storyEndings = [
+        '그래서 이번 생의 열쇠는 "속도"보다 "합의"이며, 약속의 단위를 작게 쪼갤수록 인연의 품질이 높아집니다.',
+        '결국 이 인연의 완성도는 감정의 크기보다 운영의 디테일에 의해 결정되며, 반복 가능한 규칙이 곧 사랑의 안전장치가 됩니다.',
+        '이번 생에서 두 사람은 운명을 증명하기보다 생활을 설계해야 하며, 그 설계도가 곧 전생의 미완을 완성하는 문서가 됩니다.',
+        '따라서 강한 끌림을 오래 가는 신뢰로 바꾸려면, 즉흥적 해석보다 주기적 대화 루틴이 필수입니다.'
+      ];
+
+      var leadType = pastTypeList[0] || '이번 생 중심 인연';
+      var scenePool = storyScenesByType[leadType] || storyScenesByType['이번 생 중심 인연'];
+      var conflictPool = storyConflictsByBand[pastBand] || storyConflictsByBand['스쳐가는 인연'];
+      var storyOpening = _zwPickBySeed(storyOpeners, pastSeed, 3);
+      var storyScene = _zwPickBySeed(scenePool, pastSeed, 11);
+      var storyConflict = _zwPickBySeed(conflictPool, pastSeed, 19);
+      var storyEnding = _zwPickBySeed(storyEndings, pastSeed, 27);
+
+      var storyMotifList = [];
+      if (hasAny(pastAxisMain, ['태음','천동'])) storyMotifList.push('월광의 정서 교감');
+      if (hasAny(pastAxisMain, ['칠살','파군'])) storyMotifList.push('강한 결단과 변혁');
+      if (hasAny(pastAxisMain, ['천기','문창','문곡'])) storyMotifList.push('지적 공명과 전략');
+      if (hasAny(pastAxisMain, ['천량','천부'])) storyMotifList.push('보호와 책임의 결');
+      if (hasAny(pastAxisMain, ['탐랑','태양'])) storyMotifList.push('열정과 표현의 불꽃');
+      if (!storyMotifList.length) storyMotifList.push('느린 신뢰의 축적');
+      var storyMotifs = uniq(storyMotifList).slice(0, 3).join(' · ');
+
+      var pastStory = storyOpening + ' '
+        + '두 사람의 영혼은 ' + pastEraPlace + '의 기록과 공명하며 서로를 재인식했습니다. '
+        + storyScene + ' '
+        + '그 과정에서 ' + storyConflict + ' '
+        + '현재 차트에 남은 전생의 키워드는 [' + storyMotifs + ']이며, '
+        + storyEnding;
 
       var pastMeaning = '';
       if (pastLifeScore >= 80) {
-        pastMeaning = '강한 전생 인연 축이 감지됩니다. 이번 생에서는 "강한 끌림"을 "안정적인 합의"로 바꾸는 실천이 관계의 품질을 결정할 수 있습니다.';
+        pastMeaning = '강한 전생 인연 축이 감지됩니다. 이번 생에서는 "강한 끌림"을 "안정적인 합의"로 바꾸는 실천이 관계의 품질을 결정합니다. '
+          + '미션: 1) 다툼 후 24시간 내 재대화 규칙 확정 2) 월 1회 관계 운영 점검 3) 돈/시간/연락 기준 3줄 헌법 작성.';
       } else if (pastLifeScore >= 60) {
-        pastMeaning = 'karmic 학습 과제가 남아 있을 가능성이 있습니다. 감정 반응을 즉시 확정하지 않고 대화 규칙을 세우면 성장이 빨라질 수 있습니다.';
+        pastMeaning = 'karmic 학습 과제가 남아 있을 가능성이 있습니다. 감정 반응을 즉시 확정하지 않고 대화 규칙을 세우면 성장 속도가 빨라집니다. '
+          + '미션: 1) 감정 언어(사실/감정/요청) 포맷 통일 2) 오해 누적 전에 10분 체크인 3) 갈등 키워드 기록 후 재발 방지.';
       } else if (pastLifeScore >= 40) {
-        pastMeaning = '전생의 연결은 약하지만 의미 없는 만남은 아닙니다. 이번 생의 생활 리듬과 상호 존중이 인연의 깊이를 키우는 핵심 열쇠가 됩니다.';
+        pastMeaning = '전생의 연결은 약하지만 의미 없는 만남은 아닙니다. 이번 생의 생활 리듬과 상호 존중이 인연의 깊이를 키우는 핵심 열쇠입니다. '
+          + '미션: 1) 주간 데이트/휴식 리듬 고정 2) 기대치 사전 합의 3) 긍정 피드백 1개를 매일 교환.';
       } else {
-        pastMeaning = '전생보다 현생 중심의 인연으로 보입니다. 선입견 없이 지금의 선택과 행동으로 관계를 설계할수록 건강한 결과에 가까워질 수 있습니다.';
+        pastMeaning = '전생보다 현생 중심의 인연으로 보입니다. 선입견 없이 지금의 선택과 행동으로 관계를 설계할수록 건강한 결과에 가까워집니다. '
+          + '미션: 1) 관계 목표를 작게 정의 2) 역할 분담 명확화 3) 문제 발생 시 원인보다 해결 순서를 먼저 합의.';
+      }
+
+      var pastMission = '';
+      if (pastBand === '강한 전생 인연') {
+        pastMission = '서로를 너무 잘 안다는 착각을 경계하고, 합의 없는 직감을 줄이는 것.';
+      } else if (pastBand === 'karmic 관계') {
+        pastMission = '반복되는 갈등 패턴을 기록해 "이번에는 다르게" 실행하는 것.';
+      } else if (pastBand === '스쳐가는 인연') {
+        pastMission = '작은 약속의 이행률을 높여 신뢰의 누적치를 만드는 것.';
+      } else {
+        pastMission = '숙명 해석보다 현실 운영(시간·돈·표현)의 일관성을 먼저 세우는 것.';
       }
 
       var pastLifeDesc = '전생 인연 유형\n(' + pastTypeTitle + ')\n\n'
+        + '전생 키워드\n(' + storyMotifs + ')\n\n'
         + '전생 관계\n(' + pastRelation + ')\n\n'
         + '전생 시대 / 장소\n(' + pastEraPlace + ')\n\n'
         + '전생 이야기\n(' + pastStory + ')\n\n'
         + '전생 인연 점수\n(' + pastLifeScore + ' / 100, ' + pastBand + ')\n\n'
-        + '이번 생에서의 의미\n(' + pastMeaning + ')';
+        + '이번 생에서의 의미\n(' + pastMeaning + ')\n\n'
+        + '이번 생 미션\n(' + pastMission + ')';
 
       var tagByScore = function(score, key) {
         if (key === '연애 궁합') return score >= 60 ? '#감정교류활성' : '#속도조율';
@@ -8600,15 +8961,15 @@ function renderZiwei(p, natal, targetId) {
         return '<span style="padding:2px 8px;border-radius:999px;border:1px solid '+bd+';background:'+bg+';font-size:0.78rem;color:#fdf2f8;font-weight:800;">'+v+'점</span>';
       };
 
-      var guideHtml = '<div style="display:flex;flex-direction:column;gap:9px;">'
+      var guideHtml = '<div class="zw-compat-score-list">'
         + catRows.map(function(c) {
-          return '<div style="background:rgba(50,26,70,0.45);border:1px solid rgba(244,114,182,0.2);border-radius:10px;padding:9px 10px;">'
-            + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:5px;">'
-            + '<b style="color:#fbcfe8;font-size:0.9rem;">'+c.key+'</b>'
-            + scoreBadge(c.val)
+          return '<div class="zw-compat-score-row">'
+            + '<div>'
+            + '<b>'+c.key+'</b>'
+            + '<span class="zw-compat-score-tag">'+c.tag+'</span>'
+            + '<div class="zw-compat-score-desc">'+c.detail+'</div>'
             + '</div>'
-            + '<div style="font-size:0.78rem;color:#f9a8d4;margin-bottom:5px;overflow-wrap:anywhere;word-break:break-word;">'+c.tag+'</div>'
-            + '<div style="font-size:0.81rem;color:#f3e8ff;line-height:1.64;overflow-wrap:anywhere;word-break:break-word;">'+c.detail+'</div>'
+            + scoreBadge(c.val)
             + '</div>';
         }).join('')
         + '</div>';
@@ -8635,10 +8996,12 @@ function renderZiwei(p, natal, targetId) {
         + '<b style="left:15%;top:26%;width:50px;transform:rotate(38deg);"></b><b style="left:31%;top:55%;width:58px;transform:rotate(-24deg);"></b><b style="left:54%;top:36%;width:52px;transform:rotate(33deg);"></b><b style="left:74%;top:63%;width:36px;transform:rotate(-58deg);"></b><b style="left:31%;top:55%;width:112px;transform:rotate(-6deg);"></b>'
         + '</div>'
         + '<div class="zw-scroll-block"><b>전생 인연 유형</b>'+pastTypeTitle+'</div>'
+        + '<div class="zw-scroll-block"><b>전생 키워드</b>'+storyMotifs+'</div>'
         + '<div class="zw-scroll-block"><b>전생 관계</b>'+pastRelation+'</div>'
         + '<div class="zw-scroll-block"><b>전생 시대 / 장소</b>'+pastEraPlace+'</div>'
         + '<div class="zw-scroll-block"><b>전생 이야기</b>'+pastStory+'</div>'
         + '<div class="zw-scroll-block"><b>이번 생에서의 의미</b>'+pastMeaning+'</div>'
+        + '<div class="zw-scroll-block"><b>이번 생 미션</b>'+pastMission+'</div>'
         + '<div class="zw-karmic-seals">'
         + '<div class="'+sealOn(pastTypeList.indexOf('숙명 연인형') >= 0)+'"><b>🔗</b>숙명 연인형<br>은빛 링 봉인</div>'
         + '<div class="'+sealOn(karmicLightHit)+'"><b>✨</b>karmic 빛의 인연<br>맥동하는 별 봉인</div>'
@@ -8692,53 +9055,66 @@ function renderZiwei(p, natal, targetId) {
       var conflictScenario = weakestCategory.key + ' 점수(' + weakestCategory.val + '점)가 가장 낮아 이 축에서 갈등 체감이 커질 수 있습니다. '
         + '특히 ' + weakestCategory.key + ' 관련 이슈가 발생하면 작은 의견 차이도 누적되기 쉬우므로, 기준(우선순위·시간·표현 방식)을 먼저 합의하는 것이 안전합니다.';
 
-      var romanceWrap = 'background:linear-gradient(145deg,rgba(76,20,68,0.95),rgba(58,26,88,0.94) 42%,rgba(30,20,68,0.95));border:1px solid rgba(251,113,133,0.35);box-shadow:inset 0 0 0 1px rgba(244,114,182,0.15),0 10px 24px rgba(0,0,0,0.32);';
-
-      outEl.innerHTML = '<div style="position:relative;overflow:hidden;border-radius:14px;padding:14px 16px;'+romanceWrap+'">'
+      outEl.innerHTML = '<div class="zw-compat-result-shell">'
         + '<div style="position:absolute;left:-20px;top:-28px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(251,113,133,0.18),rgba(251,113,133,0));pointer-events:none;"></div>'
         + '<div style="position:absolute;right:-40px;bottom:-55px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(217,70,239,0.14),rgba(217,70,239,0));pointer-events:none;"></div>'
-        + '<div style="position:relative;z-index:1;display:flex;flex-direction:column;gap:12px;">'
-        + '<div style="background:linear-gradient(120deg,rgba(244,114,182,0.17),rgba(192,132,252,0.16));border:1px solid rgba(244,114,182,0.35);border-radius:11px;padding:10px 11px;">'
-        + '<div style="font-size:1.05rem;color:#fbcfe8;font-weight:900;">🌟 '+userLabel+' x '+partnerLabel+' 궁합 레포트: "'+relationAlias+'"</div>'
-        + '<div style="font-size:0.84rem;color:#f9a8d4;margin-top:6px;">> <b>종합 점수: '+overallScore+'점</b> (장점 시너지 반영)</div>'
-        + '<div style="font-size:0.78rem;color:#c4b5fd;margin-top:6px;">궁합 합산 근거: 오행/성정 '+layer1Bonus+' + 궁위 매칭 '+layer2Bonus+' + 사화 완충 '+layer3Bonus+' + 대운 동기화 '+layer4Bonus+'</div>'
-        + '<div style="font-size:0.76rem;color:#c4b5fd;margin-top:4px;">상대 보정 시간: '+String(correctedHour).padStart(2,'0')+':'+String(correctedMinute).padStart(2,'0')+' · 도시: '+cityLabel+'</div>'
+        + '<div class="zw-compat-result-inner">'
+        + '<div class="zw-compat-result-head card-content">'
+        + '<div class="zw-compat-headline section-title">🌟 '+userLabel+' x '+partnerLabel+' 궁합 레포트: "'+relationAlias+'"</div>'
+        + '<div class="zw-compat-subline">종합 점수 <b>'+overallScore+'점</b> · 장점 시너지 반영</div>'
+        + '<div class="zw-compat-meta">궁합 합산 근거: 오행/성정 '+layer1Bonus+' + 궁위 매칭 '+layer2Bonus+' + 사화 완충 '+layer3Bonus+' + 대운 동기화 '+layer4Bonus+'</div>'
+        + '<div class="zw-compat-meta">상대 보정 시간: '+z2(correctedHour)+':'+z2(correctedMinute)+' · 도시: '+cityLabel+'</div>'
         + '</div>'
-        + '<div style="background:rgba(40,20,58,0.55);border:1px solid rgba(196,181,253,0.24);border-radius:11px;padding:10px 11px;">'
-        + '<div style="color:#fbcfe8;font-size:0.95rem;font-weight:800;margin-bottom:6px;">1. 🚀 서로에게 주는 강력한 버프</div>'
-        + '<div style="font-size:0.83rem;color:#f3e8ff;line-height:1.72;">'
-        + '- <b>성격 시너지:</b> '+layer1Text+'<br>'
-        + '- <b>운명적 매칭:</b> '+layer2Text+'<br>'
-        + '- <b>행운의 전이:</b> 상대와 함께할 때 '+bestCategory.key+' 축이 가장 강하게 활성화됩니다.'
-        + '</div>'
-        + '</div>'
-        + '<div style="background:rgba(40,20,58,0.55);border:1px solid rgba(196,181,253,0.24);border-radius:11px;padding:10px 11px;">'
-        + '<div style="color:#fbcfe8;font-size:0.95rem;font-weight:800;margin-bottom:6px;">2. 🛡️ 관계 조율 지침</div>'
-        + '<div style="font-size:0.83rem;color:#f3e8ff;line-height:1.72;">'
-        + '- <b>주의 신호:</b> '+warningSignal+'<br>'
-        + '- <b>조율법 1:</b> '+patch1+'<br>'
-        + '- <b>조율법 2:</b> '+patch2+'<br>'
-        + (layer3Text ? ('- <b>사화 시너지 부스터:</b> '+layer3Text) : '')
+        + '<div class="zw-compat-core-grid">'
+        + '<div class="zw-compat-core-panel">'
+        + '<div class="zw-compat-core-title palace-title">핵심 시너지</div>'
+        + '<div class="zw-compat-core-text">'
+        + '<b>성격 시너지:</b> '+layer1Text+'<br>'
+        + '<b>운명적 매칭:</b> '+layer2Text+'<br>'
+        + '<b>행운의 전이:</b> 상대와 함께할 때 '+bestCategory.key+' 축이 가장 강하게 활성화됩니다.'
         + '</div>'
         + '</div>'
-        + '<div style="background:rgba(40,20,58,0.55);border:1px solid rgba(196,181,253,0.24);border-radius:11px;padding:10px 11px;">'
-        + '<div style="color:#fbcfe8;font-size:0.95rem;font-weight:800;margin-bottom:6px;">3. ⚠️ 이 궁합의 갈등 포인트</div>'
-        + '<div style="font-size:0.83rem;color:#f3e8ff;line-height:1.72;">'
-        + '- <b>핵심 갈등 신호:</b> '+warningSignal+'<br>'
-        + '- <b>단점 기반 트리거:</b> '+conflictTrigger+'<br>'
-        + '- <b>취약 구간 시나리오:</b> '+conflictScenario
+        + '<div class="zw-compat-core-panel">'
+        + '<div class="zw-compat-core-title palace-title">갈등 예방 & 조율</div>'
+        + '<div class="zw-compat-core-text">'
+        + '<b>주의 신호:</b> '+warningSignal+'<br>'
+        + '<b>단점 기반 트리거:</b> '+conflictTrigger+'<br>'
+        + '<b>조율법 1:</b> '+patch1+'<br>'
+        + '<b>조율법 2:</b> '+patch2+'<br>'
+        + '<b>취약 구간 시나리오:</b> '+conflictScenario
+        + (layer3Text ? ('<br><b>사화 시너지 부스터:</b> '+layer3Text) : '')
+        + '</div>'
         + '</div>'
         + '</div>'
         + '<details class="zw-compat-ref-details">'
-        + '<summary class="zw-compat-ref-summary"><span class="zw-compat-ref-title">참고 | 궁위별 세부 해석</span><span class="zw-compat-ref-indicator">열기/닫기</span></summary>'
+        + '<summary class="zw-compat-ref-summary"><span class="zw-compat-ref-title">점수별 해석 펼치기</span><span class="zw-compat-ref-indicator">열기/닫기</span></summary>'
         + '<div class="zw-compat-ref-content">'+guideHtml+'</div>'
         + '</details>'
-        + '<div style="padding:0;overflow:hidden;">'
-        + '<div style="color:#fbcfe8;font-size:0.95rem;font-weight:800;margin-bottom:6px;">4. 🔮 전생 인연 리포트</div>'
+        + '<details class="zw-compat-ref-details">'
+        + '<summary class="zw-compat-ref-summary"><span class="zw-compat-ref-title">전생 인연 리포트 펼치기</span><span class="zw-compat-ref-indicator">열기/닫기</span></summary>'
+        + '<div class="zw-compat-ref-content" style="padding:8px 0 0 0;">'
         + pastLifeHtml
         + '</div>'
+        + '</details>'
         + '</div>'
         + '</div>';
+
+      } catch (e) {
+        console.error('[Ziwei compat] run error:', e);
+        outEl.innerHTML = '<div style="color:#fda4af;font-size:0.9rem;">궁합 계산 중 오류가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.</div>';
+      } finally {
+        if (triggerBtn) {
+          triggerBtn.disabled = false;
+          triggerBtn.style.opacity = '';
+        }
+      }
+      };
+
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(runCompatCalc);
+      } else {
+        setTimeout(runCompatCalc, 0);
+      }
 
     };
 
@@ -9773,7 +10149,7 @@ function renderZiwei(p, natal, targetId) {
           return '<div class="zw-love-metric-item"><span>'+item.icon+' <b>'+item.name+'</b></span><span style="color:#fde68a;font-weight:900;">'+val+'%</span></div>';
         }).join('');
 
-        var sec_love_compat_spread = '<div class="zw-love-compat-spread">'
+        var sec_love_compat_spread = '<div class="zw-love-compat-spread report-card report-section">'
           + '<div class="zw-cosmic-stars"></div>'
           + '<div class="zw-love-compat-title">💘 [사랑 에너지 별자리]</div>'
           + '<div class="zw-love-compat-canvas-wrap">'
@@ -9782,15 +10158,15 @@ function renderZiwei(p, natal, targetId) {
           + '<div class="zw-love-metric-grid">'+loveDestinyMetricHtml+'</div>'
         + '</div>';
 
-        var sec_love = '<div class="zw-cosmic-card zw-love-card">'
+        var sec_love = '<div class="zw-cosmic-card zw-love-card report-card report-section">'
           +'<div class="zw-cosmic-stars"></div>'
           +'<div style="position:absolute;inset:-45% auto auto -12%;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(251,113,133,0.18),rgba(251,113,133,0));pointer-events:none;"></div>'
           +'<div style="position:absolute;inset:auto -18% -56% auto;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(244,114,182,0.15),rgba(244,114,182,0));pointer-events:none;"></div>'
           +'<div class="zw-cosmic-heading" style="border-bottom-color:rgba(251,113,133,0.36);">'
-            +'<h2 style="color:#fda4af;font-size:1.08rem;margin:0;font-weight:900;letter-spacing:0.01em;">💘 [별들이 알려주는 사랑]</h2>'
+            +'<h2 class="section-title" style="font-size:1.08rem;margin:0;font-weight:900;letter-spacing:0.01em;">💘 [별들이 알려주는 사랑]</h2>'
             +'<span class="zw-cosmic-chip" style="color:#fecdd3;border-color:rgba(251,113,133,0.55);background:rgba(127,29,29,0.3);">Starlit Love Story</span>'
           +'</div>'
-          +'<div style="position:relative;z-index:1;background:linear-gradient(120deg,rgba(251,113,133,0.16),rgba(244,114,182,0.12));border:1px solid rgba(251,113,133,0.38);border-radius:11px;padding:12px 12px;margin-bottom:10px;">'
+          +'<div class="card-content" style="position:relative;z-index:1;background:linear-gradient(120deg,rgba(251,113,133,0.16),rgba(244,114,182,0.12));border:1px solid rgba(251,113,133,0.38);border-radius:11px;padding:12px 12px;margin-bottom:10px;">'
             +'<div style="font-size:1.03rem;font-weight:900;color:#ffe4e6;line-height:1.45;">💌 '+loveNameSafe+'의 연애 운명: "'+loveDestinyTitle+'"</div>'
             +'<div style="margin-top:6px;color:#ffe4e6;font-size:0.87rem;line-height:1.72;"><b>한 줄 요약:</b> '+oneLineSummary+'</div>'
           +'</div>'
@@ -9845,16 +10221,16 @@ function renderZiwei(p, natal, targetId) {
           });
         }
 
-        var sec_compat = '<div class="zw-cosmic-card zw-compat-card">'
+        var sec_compat = '<div class="zw-cosmic-card zw-compat-card report-card report-section">'
           +'<div class="zw-cosmic-stars"></div>'
           +'<div style="position:absolute;inset:-42% auto auto -10%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(196,181,253,0.15),rgba(196,181,253,0));pointer-events:none;"></div>'
           +'<div style="position:absolute;inset:auto -16% -52% auto;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(192,132,252,0.12),rgba(192,132,252,0));pointer-events:none;"></div>'
           +'<div class="zw-cosmic-heading">'
-            +'<h2 style="color:#ddd6fe;font-size:1.13rem;margin:0;font-weight:900;letter-spacing:0.01em;">🧿 [자미두수 궁합]</h2>'
+            +'<h2 class="section-title" style="font-size:1.13rem;margin:0;font-weight:900;letter-spacing:0.01em;">🧿 [자미두수 궁합]</h2>'
             +'<span class="zw-cosmic-chip">Galaxy Synastry</span>'
           +'</div>'
-          +'<div style="position:relative;z-index:1;background:rgba(35,24,56,0.46);border:1px solid rgba(216,180,254,0.24);border-radius:10px;padding:11px 12px;margin-bottom:10px;">'
-            +'<div style="font-size:0.84rem;color:#ddd6fe;margin-bottom:8px;line-height:1.6;">상대방의 생년월일과 태어난 시간을 입력하면, 연애·결혼·친구·직장·사업 궁합을 계산하고 전생 인연은 별도 리포트로 분석합니다.</div>'
+          +'<div class="card-content" style="position:relative;z-index:1;background:rgba(35,24,56,0.46);border:1px solid rgba(216,180,254,0.24);border-radius:10px;padding:11px 12px;margin-bottom:10px;">'
+            +'<div style="margin-bottom:8px;">상대방의 생년월일과 태어난 시간을 입력하면, 연애·결혼·친구·직장·사업 궁합을 계산하고 전생 인연은 별도 리포트로 분석합니다.</div>'
             +'<div class="zw-cosmic-input-grid">'
               +'<label class="zw-cosmic-field"><span>상대 생년월일</span><input id="zwCompatBirthDate" type="date" class="zw-cosmic-control"></label>'
               +'<label class="zw-cosmic-field"><span>상대 태어난 시간</span><input id="zwCompatBirthTime" type="time" value="12:00" class="zw-cosmic-control"></label>'
@@ -10294,7 +10670,9 @@ function renderZiwei(p, natal, targetId) {
         if (typeof window._drawZwWuXingConstellation !== 'function') {
           window._drawZwWuXingConstellation = function(canvas, values) {
             if (!canvas || !values) return;
+            var compactView = (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) || window.innerWidth <= 768;
             var dpr = window.devicePixelRatio || 1;
+            if (compactView) dpr = Math.min(dpr, 1.25);
             var rect = canvas.getBoundingClientRect();
             var cw = Math.max(280, Math.round(rect.width || 460));
             var ch = Math.max(220, Math.round(rect.height || 320));
@@ -10322,7 +10700,7 @@ function renderZiwei(p, natal, targetId) {
             ctx2.arc(moonX + Math.max(4, cw * 0.012), moonY - 1, Math.max(7, cw * 0.027), 0, Math.PI * 2);
             ctx2.fill();
 
-            for (var si = 0; si < 64; si += 1) {
+            for (var si = 0; si < (compactView ? 36 : 64); si += 1) {
               var sx = Math.random() * cw;
               var sy = Math.random() * ch;
               var sr = Math.random() * 1.5 + 0.2;
@@ -10408,7 +10786,9 @@ function renderZiwei(p, natal, targetId) {
         if (typeof window._drawZwLoveDestinyStar !== 'function') {
           window._drawZwLoveDestinyStar = function(canvas, metrics, pointDefs) {
             if (!canvas || !metrics || !pointDefs) return;
+            var compactView = (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) || window.innerWidth <= 768;
             var dpr = window.devicePixelRatio || 1;
+            if (compactView) dpr = Math.min(dpr, 1.25);
             var rect = canvas.getBoundingClientRect();
             var cw = Math.max(300, Math.round(rect.width || 920));
             var compact = cw < 520;
@@ -10426,7 +10806,7 @@ function renderZiwei(p, natal, targetId) {
             ctx3.fillStyle = bg;
             ctx3.fillRect(0, 0, cw, ch);
 
-            for (var si2 = 0; si2 < (compact ? 58 : 88); si2 += 1) {
+            for (var si2 = 0; si2 < (compact ? 34 : 66); si2 += 1) {
               var sx2 = Math.random() * cw;
               var sy2 = Math.random() * ch;
               var sr2 = Math.random() * 1.6 + 0.15;
