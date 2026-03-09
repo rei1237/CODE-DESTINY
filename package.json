@@ -7,6 +7,7 @@
     "build": "next build",
     "build:cf": "opennextjs-cloudflare build",
     "build:cf:legacy": "opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion",
+    "build:cf:static": "node -e \"console.log('Cloudflare static deploy: no build step required')\"",
     "start": "next start",
     "lint": "next lint"
   },
