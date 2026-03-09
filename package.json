@@ -7,12 +7,10 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npm run build:cf",
+    "build": "next build",
     "build:cf": "cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build",
     "build:cf:legacy": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion",
-    "build:cf:static": "npm run deploy:cf:static",
-    "deploy:cf:static": "npx wrangler pages deploy .open-next/assets --project-name \"$CF_PAGES_PROJECT_NAME\" --branch \"${CF_PAGES_BRANCH:-main}\"",
-    "deploy:cf:static:prod": "npx wrangler pages deploy .open-next/assets --project-name \"$CF_PAGES_PROJECT_NAME\" --branch main",
+    "deploy:cf": "npm run build:cf && npx wrangler deploy",
     "start": "next start",
     "lint": "next lint"
   },
