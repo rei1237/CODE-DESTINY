@@ -5,6 +5,9 @@ const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
 
 const staticTargets = [
+  "AnalysisEngine.js",
+  "PhysiognomyUI.js",
+  "HwatuFortune.js",
   "index.html",
   "ads.txt",
   "robots.txt",
