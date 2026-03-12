@@ -13685,6 +13685,31 @@ function renderVillain(p, power) {
   var wonjinAnimal = zhiToAnimal[wonjinZhi];
   var chongAnimal = zhiToAnimal[chongZhi];
 
+  var stars = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j]
+    .map(function(c) { return getTenGod(myElement, c); })
+    .filter(function(t) { return t && t !== '?'; });
+  var groupMap = {
+    '비견': '비겁', '겁재': '비겁',
+    '식신': '식상', '상관': '식상',
+    '정재': '재성', '편재': '재성',
+    '정관': '관성', '편관': '관성',
+    '정인': '인성', '편인': '인성'
+  };
+  var tgCount = { 비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0 };
+  stars.forEach(function(s) {
+    var g = groupMap[s];
+    if (g) tgCount[g] += 1;
+  });
+  var dominantGroup = Object.keys(tgCount).reduce(function(prev, cur) {
+    return tgCount[cur] > tgCount[prev] ? cur : prev;
+  }, '비겁');
+  var weakPointGroup = Object.keys(tgCount).reduce(function(prev, cur) {
+    return tgCount[cur] < tgCount[prev] ? cur : prev;
+  }, '비겁');
+  var powerTone = power && power.isStrong
+    ? '신강 흐름이라 상대 압박을 버티는 힘은 충분하지만, 고집 대 고집으로 붙으면 갈등이 장기전으로 번질 수 있습니다.'
+    : '신약 흐름이라 관계 피로를 몸으로 먼저 받기 쉬워, 초반 경계선 설정이 특히 중요합니다.';
+
   var villainProfileMap = {
     '비겁': {
       tier: 'A+ 동급자 침투형',
@@ -13719,12 +13744,37 @@ function renderVillain(p, power) {
   };
 
   var profile = villainProfileMap[badTenGod] || villainProfileMap['관성'];
+  var yeoniAdviceMap = {
+    '비겁': '내 편/네 편 구도를 만들기보다, 역할과 책임을 먼저 분리하면 불필요한 경쟁이 줄어들어요.',
+    '식상': '감정적인 반박보다 사실 확인 질문을 먼저 던지면, 말의 주도권을 다시 가져올 수 있어요.',
+    '재성': '호의성 지출과 의무 지출을 분리해 적어두면, 금전 소모 패턴을 깔끔하게 끊어낼 수 있어요.',
+    '관성': '상대 권위가 커 보일수록 요청 범위를 문장으로 다시 확인해 스스로를 보호하세요.',
+    '인성': '도움받는 것과 의존하는 것은 달라요. 결정 전 마지막 선택권은 반드시 내가 가져가야 해요.'
+  };
+  var ssambaAdviceMap = {
+    '비겁': '성과는 숫자로 남겨. 증거 없는 호의는 결국 네 몫을 깎아먹는다.',
+    '식상': '말싸움은 체력전이다. 상대 페이스 말고 네 기준표로 판을 바꿔.',
+    '재성': '돈 얘기 흐리는 순간 게임 끝. 한도, 기한, 증빙 없으면 바로 스톱.',
+    '관성': '압박은 통할 때만 세진다. 짧고 단호한 거절 한 번이 판을 바꾼다.',
+    '인성': '친절한 통제에 길들면 네 선택근육이 죽는다. 스스로 결정해.'
+  };
+  var riskTimingMap = {
+    '비겁': '성과 발표 직전, 역할 조정 시점, 협업 초반 신뢰 형성 구간',
+    '식상': '회의 후반 피로 구간, 메신저 공방, 공개 코멘트가 많은 날',
+    '재성': '정산 주기, 공동구매/투자 제안, 급한 송금 요청이 들어올 때',
+    '관성': '마감 직전, 보고 라인 변경, 책임소재가 모호해지는 시점',
+    '인성': '이직/변화기, 컨디션 저하 시기, 결정 피로가 누적된 주간'
+  };
+  var analysisSummary = '내 사주 기준 십성 분포는 비겁 ' + tgCount.비겁 + ' · 식상 ' + tgCount.식상 + ' · 재성 ' + tgCount.재성 + ' · 관성 ' + tgCount.관성 + ' · 인성 ' + tgCount.인성 + '입니다. '
+    + '핵심 축은 ' + dominantGroup + '이고, 취약 축은 ' + weakPointGroup + '입니다. '
+    + '현재 빌런 축인 ' + badTenGod + '이 자극되면 감정 소모와 의사결정 피로가 함께 증가할 수 있습니다.';
+
   var checklistItems = [
-    '나는 이 사람과 금전/업무 경계를 명확히 분리해두고 있다.',
-    '나는 대화에서 감정 반응보다 기록과 근거를 우선하고 있다.',
-    '나는 불편한 요구에 대해 짧고 명확하게 거절할 수 있다.',
-    '나는 연락 주기/만남 빈도를 내 페이스로 조절하고 있다.',
-    '나는 이 관계로 소모될 때 즉시 거리두기 루틴을 실행하고 있다.'
+    '관계 초반부터 금전/업무/감정 경계를 문장으로 명확히 해두었다.',
+    '갈등 상황에서 즉답보다 기록(메모/문자) 후 답변 원칙을 지키고 있다.',
+    '부당한 부탁을 받으면 이유를 길게 설명하지 않고 짧게 거절할 수 있다.',
+    '연락 주기와 만남 빈도를 내 컨디션 기준으로 조절하고 있다.',
+    '소모 신호(수면저하·예민함·불안)가 오면 즉시 거리두기 루틴을 실행한다.'
   ];
 
   var checklistHtml = checklistItems.map(function(item, idx) {
@@ -13771,6 +13821,17 @@ function renderVillain(p, power) {
     + '    <p class="villain-text" style="margin-top:8px;color:#c4b5fd;">+ A급 대응 포인트: ' + profile.strategy + '</p>'
     + '  </div>'
 
+    + '  <div class="villain-section">'
+    + '    <div class="villain-section-title">🧠 사주 기반 리스크 해설</div>'
+    + '    <p class="villain-text">' + analysisSummary + '</p>'
+    + '    <p class="villain-text" style="margin-top:8px;color:#cbd5e1;">' + powerTone + '</p>'
+    + '  </div>'
+
+    + '  <div class="villain-section">'
+    + '    <div class="villain-section-title">⏱️ 충돌 트리거 타이밍</div>'
+    + '    <p class="villain-text">' + riskTimingMap[badTenGod] + '에 경계가 흐려지기 쉽습니다. 이 구간에는 답변 지연·기준 재확인·문서화 3단계를 우선 적용하세요.</p>'
+    + '  </div>'
+
     + '  <div class="villain-fact-bomb"><p>"' + factBombMap[badTenGod] + '"</p></div>'
 
     + '  <div class="villain-checklist-wrap">'
@@ -13781,8 +13842,8 @@ function renderVillain(p, power) {
     + '  </div>'
 
     + '  <div class="villain-quotes">'
-    + '    <div class="villain-quote yeoni">"당신의 평화는 선택이 아니라 생존 전략이에요. 관계보다 컨디션을 먼저 지키세요."</div>'
-    + '    <div class="villain-quote neo">"빌런은 네 경계선이 흐릴 때 강해진다. 오늘부터 선명하게 끊어."</div>'
+    + '    <div class="villain-quote yeoni"><strong>👩 연이의 조언</strong><br>"' + yeoniAdviceMap[badTenGod] + '"</div>'
+    + '    <div class="villain-quote neo"><strong>🕶️ 쌈바의 조언</strong><br>"' + ssambaAdviceMap[badTenGod] + '"</div>'
     + '  </div>'
     + '</div>';
 
@@ -13812,6 +13873,13 @@ function renderVillain(p, power) {
       feedbackEl.classList.remove('is-show', 'is-good', 'is-mid', 'is-danger');
       feedbackEl.innerHTML = '<strong>진단 결과</strong><br>' + msg;
       feedbackEl.classList.add('is-show', 'is-' + gradeCls);
+
+      // 모바일에서 피드백 박스 하단이 가려지지 않도록 안전하게 스크롤 보정
+      setTimeout(function() {
+        try {
+          feedbackEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (_e) {}
+      }, 30);
     };
   }
 }

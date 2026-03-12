@@ -13739,79 +13739,79 @@ function renderVillain(p, power) {
 
   var myDayGan = p.d.g;
   var myDayZhi = p.d.j;
-  var badElementEng = power.kijishin[0]; // ��� ���� (��: 'wood', 'fire', 'earth', 'metal', 'water')
-  
+  var badElementEng = power.kijishin[0]; // 기신 오행 (예: 'wood', 'fire', 'earth', 'metal', 'water')
+
   var engToKor = {
-    'wood': '��', 'fire': 'ȭ', 'earth': '��', 'metal': '��', 'water': '��'
+    'wood': '목', 'fire': '화', 'earth': '토', 'metal': '금', 'water': '수'
   };
   var badElement = engToKor[badElementEng];
 
-  var elements = ['��', 'ȭ', '��', '��', '��'];
+  var elements = ['목', '화', '토', '금', '수'];
   var ganToElement = {
-    '��':'��', '��':'��', '��':'ȭ', '��':'ȭ', '��':'��', '��':'��', '��':'��', '��':'��', '��':'��', '��':'��'
+    '甲':'목', '乙':'목', '丙':'화', '丁':'화', '戊':'토', '己':'토', '庚':'금', '辛':'금', '壬':'수', '癸':'수'
   };
   var myElement = ganToElement[myDayGan];
-  
+
   var myGanIdx = elements.indexOf(myElement);
   var badIdx = elements.indexOf(badElement);
-  
+
   var diff = (badIdx - myGanIdx + 5) % 5;
   var badTenGod = '';
-  if(diff === 0) badTenGod = '���';
-  else if(diff === 1) badTenGod = '�Ļ�';
-  else if(diff === 2) badTenGod = '�缺';
-  else if(diff === 3) badTenGod = '����';
-  else if(diff === 4) badTenGod = '�μ�';
+  if(diff === 0) badTenGod = '비겁';
+  else if(diff === 1) badTenGod = '식상';
+  else if(diff === 2) badTenGod = '재성';
+  else if(diff === 3) badTenGod = '관성';
+  else if(diff === 4) badTenGod = '인성';
 
   var appearanceMap = {
-    '��': '�����ϰ� ���������� ���̴� �λ�, ������ ������ ü��, ���ϰ� �Ű������� ������',
-    'ȭ': '���������̰� ������ �ż��� �λ�, ȭ���ϰų� Ƣ�� ������, ���� �⺹�� ���� ���̴� ������',
-    '��': '���Ҷ��ϰ� ���� �� �� ���� �λ�, ü���� ũ�ų� ���� ���̴� ü��, �������ϰ� ����� ������',
-    '��': '������ ��ī�ο� �λ�, â���ϰų� ���� ��, �񷯵� �� �� ��� �� ���� �� ���� ��Ȥ�� ������',
-    '��': '��ħ�ϰ� ���� �� �� ���� �λ�, ���������� ��� ������ ���̴� ü��, ����� ���� ���̴� ������'
+    '목': '뻣뻣하고 고집스러워 보이는 인상, 마르고 길쭉한 체형, 묘하게 신경질적인 분위기',
+    '화': '다혈질적이고 눈빛이 매서운 인상, 화려하거나 튀는 옷차림, 감정 기복이 심해 보이는 분위기',
+    '토': '무뚝뚝하고 속을 알 수 없는 인상, 체격이 크거나 둔해 보이는 체형, 고지식하고 답답한 분위기',
+    '금': '차갑고 날카로운 인상, 창백하거나 각진 얼굴, 찔러도 피 한 방울 안 나올 것 같은 냉혹한 분위기',
+    '수': '음침하고 속을 알 수 없는 인상, 유연하지만 어딘가 음흉해 보이는 체형, 비밀이 많아 보이는 분위기'
   };
 
   var behaviorMap = {
-    '���': '�� ���� �������� ��ų�, ���ǰ� ������� �����ϸ� �ǰ��ϰ� ����� ����',
-    '�Ļ�': '���� ��ó�� �ְų�, �� ��ȹ�� �길�ϰ� ����� �������� ����Ű�� ����',
-    '�缺': '�� ������ �����ų�, �������� ���ظ� ������ ���� ����� ����ä�� ����',
-    '����': '����ϰ� �����Ϸ� ��ų�, �δ��� ��Ʈ������ å�Ӱ��� �����ϴ� ����',
-    '�μ�': '����ģ ������ �ܼҸ��� �ǰ��ϰ� �ϰų�, ���� �������� ���������� ����� ����'
+    '비겁': '내 것을 빼앗으려 들거나, 사사건건 경쟁심을 유발하며 피곤하게 만드는 유형',
+    '식상': '말로 상처를 주거나, 내 계획을 산만하게 만들고 구설수를 일으키는 유형',
+    '재성': '돈 문제로 얽히거나, 물질적인 손해를 입히고 나의 결과를 가로채는 유형',
+    '관성': '억압하고 통제하려 들거나, 부당한 스트레스와 책임감을 강요하는 유형',
+    '인성': '지나친 간섭과 잔소리로 피곤하게 하거나, 나를 게으르고 의존적으로 만드는 유형'
   };
 
   var defenseMap = {
-    '���': '������ �Ÿ��αⰡ �ʼ��Դϴ�. �� �и� �� �������� ����, ���ʿ��� ������ ���ϼ���.',
-    '�Ļ�': '�������� ������. ����� ���߿� ���������� �������� ���� ħ������ �ϰ��ϴ� ���� ��å�Դϴ�.',
-    '�缺': '���� �ŷ��� ���� �ݹ��Դϴ�. ���� �縦 ��Ȯ�� �����ϰ�, �� ���� Ȯ���� ì�⼼��.',
-    '����': '�δ��� �䱸���� ��ȣ�ϰ� "No"��� ���ϴ� ������ �ʿ��մϴ�. ������ �ٿ������ ��Ű����.',
-    '�μ�': '�������� Ű���� �մϴ�. ����� ȣ�Ǹ� ������ ������ ����� ������ �����ϼ���.'
+    '비겁': '적당한 거리두기가 필수입니다. 내 패를 다 보여주지 말고, 불필요한 경쟁은 피하세요.',
+    '식상': '말려들지 마세요. 상대의 도발에 감정적으로 대응하지 말고 침묵으로 일관하는 것이 상책입니다.',
+    '재성': '금전 거래는 절대 금물입니다. 공과 사를 명확히 구분하고, 내 몫은 확실히 챙기세요.',
+    '관성': '부당한 요구에는 단호하게 "No"라고 말하는 연습이 필요합니다. 나만의 바운더리를 지키세요.',
+    '인성': '독립심을 키워야 합니다. 상대의 호의를 가장한 간섭을 끊어내고 스스로 결정하세요.'
   };
 
   var factBombMap = {
-    '���': '�װ� ������ ���̴ϱ� �ڲ� �� �Ѵ� �ž�. ���� ���� ���÷��� �� ����.',
-    '�Ļ�': '���� ���� ������ ��ó���� ��. �³״� �׳� ���� ������ �ͻ��̾�. ���ð� ���̾�.',
-    '�缺': '�� �Ұ� ��� �ұ� �� ���� ȣ�� �����̾�. ���� �� �������� ��.',
-    '����': '�� �ڲ� �� ��ġ�� ��? �� �λ��ε� �� ���� �����ϰ� ���γİ�. ���� ����.',
-    '�μ�': '�������� ������ �����ҷ�? �װ� ������ �� ���� ��� �ֵѸ��� ���� �ž�.'
+    '비겁': '네가 만만해 보이니까 자꾸 선 넘는 거야. 착한 아이 콤플렉스 좀 버려.',
+    '식상': '상대방 말에 일일이 상처받지 마. 걔네는 그냥 입이 가벼운 것뿐이야. 무시가 답이야.',
+    '재성': '돈 잃고 사람 잃기 딱 좋은 호구 관상이야. 제발 돈 빌려주지 마.',
+    '관성': '왜 자꾸 남 눈치만 봐? 네 인생인데 왜 남이 조종하게 놔두냐고. 정신 차려.',
+    '인성': '언제까지 남한테 의지할래? 네가 스스로 안 서면 평생 휘둘리다 끝날 거야.'
   };
 
-  var wonjinMap = {'��':'ڱ', '��':'��', '��':'�', '��':'��', '��':'��', '��':'��', '��':'��', 'ڱ':'��', '��':'��', '�':'��', '��':'��', '��':'��'};
-  var chongMap = {'��':'��', '��':'ڱ', '��':'��', '��':'�', '��':'��', '��':'��', '��':'��', 'ڱ':'��', '��':'��', '�':'��', '��':'��', '��':'��'};
-  var zhiToAnimal = {'��':'��', '��':'��', '��':'ȣ����', '��':'�䳢', '��':'��', '��':'��', '��':'��', 'ڱ':'��', '��':'������', '�':'��', '��':'��', '��':'����'};
+  var wonjinMap = {'子':'未', '丑':'午', '寅':'酉', '卯':'申', '辰':'亥', '巳':'戌', '午':'丑', '未':'子', '申':'卯', '酉':'寅', '戌':'巳', '亥':'辰'};
+  var chongMap = {'子':'午', '丑':'未', '寅':'申', '卯':'酉', '辰':'戌', '巳':'亥', '午':'子', '未':'丑', '申':'寅', '酉':'卯', '戌':'辰', '亥':'巳'};
+  var zhiToAnimal = {'子':'쥐', '丑':'소', '寅':'호랑이', '卯':'토끼', '辰':'용', '巳':'뱀', '午':'말', '未':'양', '申':'원숭이', '酉':'닭', '戌':'개', '亥':'돼지'};
 
   var wonjinDescMap = {
-    '��': '������(��)�� ���� ���� �Ⱦ���',
-    'ڱ': '������(��)�� ���� ���� �Ⱦ���',
-    '��': '�������� �Ұ� ��� ���� �Ⱦ���',
-    '��': '�������� �Ұ� ��� ���� �Ⱦ���',
-    '��': 'ȣ���̴� ���� �����Ҹ��� �Ⱦ���',
-    '�': 'ȣ���̴� ���� �����Ҹ��� �Ⱦ���',
-    '��': '�䳢�� �������� ���� �����̸� �Ⱦ���',
-    '��': '�䳢�� �������� ���� �����̸� �Ⱦ���',
-    '��': '���� ������ �ڰ� �ڱ�� ��� �Ⱦ���',
-    '��': '���� ������ �ڰ� �ڱ�� ��� �Ⱦ���',
-    '��': '���� �� ¢�� �Ҹ��� ��¦ ��� �Ⱦ���',
-    '��': '���� �� ¢�� �Ҹ��� ��¦ ��� �Ⱦ���'
+    '子': '서생원(쥐)이 양의 뿔을 싫어함',
+    '未': '서생원(쥐)이 양의 뿔을 싫어함',
+    '丑': '부지런한 소가 노는 말을 싫어함',
+    '午': '부지런한 소가 노는 말을 싫어함',
+    '寅': '호랑이는 닭의 울음소리를 싫어함',
+    '酉': '호랑이는 닭의 울음소리를 싫어함',
+    '卯': '토끼는 원숭이의 빨간 엉덩이를 싫어함',
+    '申': '토끼는 원숭이의 빨간 엉덩이를 싫어함',
+    '辰': '용은 돼지의 코가 자기와 닮아 싫어함',
+    '亥': '용은 돼지의 코가 자기와 닮아 싫어함',
+    '巳': '뱀은 개 짖는 소리에 깜짝 놀라 싫어함',
+    '戌': '뱀은 개 짖는 소리에 깜짝 놀라 싫어함'
   };
 
   var wonjinZhi = wonjinMap[myDayZhi];
@@ -13819,57 +13819,203 @@ function renderVillain(p, power) {
   var wonjinAnimal = zhiToAnimal[wonjinZhi];
   var chongAnimal = zhiToAnimal[chongZhi];
 
-  var html = `
-    <div class="villain-container">
-      <div class="villain-header">
-        <div class="villain-shadow-box">
-          <div class="villain-shadow"></div>
-        </div>
-        <div class="villain-title-area">
-          <div class="villain-grade">���赵: �ػ� (S�� ��� ���)</div>
-          <h3 class="villain-name">�ڵ����: ${badElement}����� ${badTenGod}</h3>
-        </div>
-      </div>
+  var stars = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j]
+    .map(function(c) { return getTenGod(myElement, c); })
+    .filter(function(t) { return t && t !== '?'; });
+  var groupMap = {
+    '비견': '비겁', '겁재': '비겁',
+    '식신': '식상', '상관': '식상',
+    '정재': '재성', '편재': '재성',
+    '정관': '관성', '편관': '관성',
+    '정인': '인성', '편인': '인성'
+  };
+  var tgCount = { 비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0 };
+  stars.forEach(function(s) {
+    var g = groupMap[s];
+    if (g) tgCount[g] += 1;
+  });
+  var dominantGroup = Object.keys(tgCount).reduce(function(prev, cur) {
+    return tgCount[cur] > tgCount[prev] ? cur : prev;
+  }, '비겁');
+  var weakPointGroup = Object.keys(tgCount).reduce(function(prev, cur) {
+    return tgCount[cur] < tgCount[prev] ? cur : prev;
+  }, '비겁');
+  var powerTone = power && power.isStrong
+    ? '신강 흐름이라 상대 압박을 버티는 힘은 충분하지만, 고집 대 고집으로 붙으면 갈등이 장기전으로 번질 수 있습니다.'
+    : '신약 흐름이라 관계 피로를 몸으로 먼저 받기 쉬워, 초반 경계선 설정이 특히 중요합니다.';
 
-      <div class="villain-section">
-        <div class="villain-section-title">??? ��Ÿ�� �� ������</div>
-        <p class="villain-text">${appearanceMap[badElement]}</p>
-      </div>
+  var villainProfileMap = {
+    '비겁': {
+      tier: 'A+ 동급자 침투형',
+      codename: 'MIRROR JACKER',
+      shortDesc: '당신과 비슷한 결로 접근해 신뢰를 얻고, 성과와 에너지를 슬쩍 가져가는 타입',
+      strategy: '정보를 단계별로 공개하고, 역할·책임·성과 귀속을 문서/메모로 남기세요.'
+    },
+    '식상': {
+      tier: 'A급 여론 교란형',
+      codename: 'NOISE CUTTER',
+      shortDesc: '말과 분위기로 흐름을 흐리고, 당신의 집중력을 무너뜨리는 타입',
+      strategy: '즉답 대신 기록 후 답변 원칙을 사용하고, 논쟁이 아닌 기준표로 대화하세요.'
+    },
+    '재성': {
+      tier: 'A+ 손익 흡혈형',
+      codename: 'DRAIN BROKER',
+      shortDesc: '돈/자원/기회를 매개로 들어와 당신의 손익 밸런스를 깨는 타입',
+      strategy: '금전·계약·공동지출은 분리하고, 계좌/증빙/한도 기준을 미리 고정하세요.'
+    },
+    '관성': {
+      tier: 'A+ 통제 압박형',
+      codename: 'IRON FRAME',
+      shortDesc: '권위, 규칙, 죄책감을 이용해 당신의 선택권을 빼앗는 타입',
+      strategy: '요청의 정당성·기한·범위를 재확인하고, 부당 요구는 짧고 단호하게 거절하세요.'
+    },
+    '인성': {
+      tier: 'A급 보호자 위장형',
+      codename: 'VELVET LEASH',
+      shortDesc: '도움과 조언의 얼굴로 다가와 당신의 자율성과 판단력을 약화시키는 타입',
+      strategy: '결정권은 항상 본인에게 두고, 조언은 참고만 하되 최종 선택은 스스로 하세요.'
+    }
+  };
 
-      <div class="villain-section red-flag">
-        <div class="villain-section-title">?? ���� �÷��� (���� �ൿ)</div>
-        <p class="villain-text">${behaviorMap[badTenGod]}</p>
-      </div>
+  var profile = villainProfileMap[badTenGod] || villainProfileMap['관성'];
+  var yeoniAdviceMap = {
+    '비겁': '내 편/네 편 구도를 만들기보다, 역할과 책임을 먼저 분리하면 불필요한 경쟁이 줄어들어요.',
+    '식상': '감정적인 반박보다 사실 확인 질문을 먼저 던지면, 말의 주도권을 다시 가져올 수 있어요.',
+    '재성': '호의성 지출과 의무 지출을 분리해 적어두면, 금전 소모 패턴을 깔끔하게 끊어낼 수 있어요.',
+    '관성': '상대 권위가 커 보일수록 요청 범위를 문장으로 다시 확인해 스스로를 보호하세요.',
+    '인성': '도움받는 것과 의존하는 것은 달라요. 결정 전 마지막 선택권은 반드시 내가 가져가야 해요.'
+  };
+  var ssambaAdviceMap = {
+    '비겁': '성과는 숫자로 남겨. 증거 없는 호의는 결국 네 몫을 깎아먹는다.',
+    '식상': '말싸움은 체력전이다. 상대 페이스 말고 네 기준표로 판을 바꿔.',
+    '재성': '돈 얘기 흐리는 순간 게임 끝. 한도, 기한, 증빙 없으면 바로 스톱.',
+    '관성': '압박은 통할 때만 세진다. 짧고 단호한 거절 한 번이 판을 바꾼다.',
+    '인성': '친절한 통제에 길들면 네 선택근육이 죽는다. 스스로 결정해.'
+  };
+  var riskTimingMap = {
+    '비겁': '성과 발표 직전, 역할 조정 시점, 협업 초반 신뢰 형성 구간',
+    '식상': '회의 후반 피로 구간, 메신저 공방, 공개 코멘트가 많은 날',
+    '재성': '정산 주기, 공동구매/투자 제안, 급한 송금 요청이 들어올 때',
+    '관성': '마감 직전, 보고 라인 변경, 책임소재가 모호해지는 시점',
+    '인성': '이직/변화기, 컨디션 저하 시기, 결정 피로가 누적된 주간'
+  };
+  var analysisSummary = '내 사주 기준 십성 분포는 비겁 ' + tgCount.비겁 + ' · 식상 ' + tgCount.식상 + ' · 재성 ' + tgCount.재성 + ' · 관성 ' + tgCount.관성 + ' · 인성 ' + tgCount.인성 + '입니다. '
+    + '핵심 축은 ' + dominantGroup + '이고, 취약 축은 ' + weakPointGroup + '입니다. '
+    + '현재 빌런 축인 ' + badTenGod + '이 자극되면 감정 소모와 의사결정 피로가 함께 증가할 수 있습니다.';
 
-      <div class="villain-section">
-        <div class="villain-section-title">?? ������ �� (����/��)</div>
-        <p class="villain-text">Ư�� <b>${wonjinAnimal}��</b>�� <b>${chongAnimal}��</b> �߿� �̷� Ư¡�� ���� ����� �ִٸ� ������ �Ÿ��� �δ� ���� �����ϴ�.</p>
-        <p class="villain-text" style="margin-top:8px; font-size:0.85rem; color:#ff9999;">
-          �� ����(���) ����: ${wonjinDescMap[myDayZhi]} (���� �̿��ϰ� �����ϱ� ���� �ο�)
-        </p>
-      </div>
+  var checklistItems = [
+    '관계 초반부터 금전/업무/감정 경계를 문장으로 명확히 해두었다.',
+    '갈등 상황에서 즉답보다 기록(메모/문자) 후 답변 원칙을 지키고 있다.',
+    '부당한 부탁을 받으면 이유를 길게 설명하지 않고 짧게 거절할 수 있다.',
+    '연락 주기와 만남 빈도를 내 컨디션 기준으로 조절하고 있다.',
+    '소모 신호(수면저하·예민함·불안)가 오면 즉시 거리두기 루틴을 실행한다.'
+  ];
 
-      <div class="villain-section defense">
-        <div class="villain-section-title">??? ���� ��� õ��</div>
-        <p class="villain-text">${defenseMap[badTenGod]}</p>
-      </div>
+  var checklistHtml = checklistItems.map(function(item, idx) {
+    return '<label class="villain-check-item" for="villainChk' + idx + '">' 
+      + '<input type="checkbox" class="villain-check-input" id="villainChk' + idx + '">'
+      + '<span class="villain-check-text">' + item + '</span>'
+      + '</label>';
+  }).join('');
 
-      <div class="villain-fact-bomb">
-        <p>"${factBombMap[badTenGod]}"</p>
-      </div>
+  var html = ''
+    + '<div class="villain-container villain-container--a-grade">'
+    + '  <div class="villain-header">'
+    + '    <div class="villain-shadow-box villain-silhouette-stage">'
+    + '      <div class="villain-aura"></div>'
+    + '      <div class="villain-shadow"></div>'
+    + '      <div class="villain-silhouette-core"></div>'
+    + '    </div>'
+    + '    <div class="villain-title-area">'
+    + '      <div class="villain-grade">위험 등급: ' + profile.tier + '</div>'
+    + '      <h3 class="villain-name">코드네임: ' + profile.codename + ' · ' + badElement + badTenGod + ' 빌런</h3>'
+    + '      <p class="villain-subcopy">' + profile.shortDesc + '</p>'
+    + '    </div>'
+    + '  </div>'
 
-      <div class="villain-quotes">
-        <div class="villain-quote yeoni">
-          "����� �������� ���ƸԴ� ������� ���� �� ���� �ʿ� �����. ����� ��ȭ�� �ֿ켱�̴ϱ��! ??"
-        </div>
-        <div class="villain-quote neo">
-          "������ �װ� ����� ��ŭ�� �� ������ �� �־�. �� �ߴ� ������ �����. ???"
-        </div>
-      </div>
-    </div>
-  `;
+    + '  <div class="villain-section">'
+    + '    <div class="villain-section-title">👁️ 몽타주/분위기 프로파일</div>'
+    + '    <p class="villain-text">' + appearanceMap[badElement] + '</p>'
+    + '  </div>'
+
+    + '  <div class="villain-section red-flag">'
+    + '    <div class="villain-section-title">🚩 작동 패턴 (레드 플래그)</div>'
+    + '    <p class="villain-text">' + behaviorMap[badTenGod] + '</p>'
+    + '  </div>'
+
+    + '  <div class="villain-section">'
+    + '    <div class="villain-section-title">🎯 충돌 리스크 (원진/충)</div>'
+    + '    <p class="villain-text">특히 <b>' + wonjinAnimal + '띠</b>, <b>' + chongAnimal + '띠</b>와 결이 맞아떨어질 때 갈등 피로도가 급상승할 수 있습니다.</p>'
+    + '    <p class="villain-text" style="margin-top:8px;font-size:0.85rem;color:#ff9ea8;">※ 원진(怨嗔): ' + wonjinDescMap[myDayZhi] + '</p>'
+    + '  </div>'
+
+    + '  <div class="villain-section defense">'
+    + '    <div class="villain-section-title">🛡️ 실전 방어 가이드</div>'
+    + '    <p class="villain-text">' + defenseMap[badTenGod] + '</p>'
+    + '    <p class="villain-text" style="margin-top:8px;color:#c4b5fd;">+ A급 대응 포인트: ' + profile.strategy + '</p>'
+    + '  </div>'
+
+    + '  <div class="villain-section">'
+    + '    <div class="villain-section-title">🧠 사주 기반 리스크 해설</div>'
+    + '    <p class="villain-text">' + analysisSummary + '</p>'
+    + '    <p class="villain-text" style="margin-top:8px;color:#cbd5e1;">' + powerTone + '</p>'
+    + '  </div>'
+
+    + '  <div class="villain-section">'
+    + '    <div class="villain-section-title">⏱️ 충돌 트리거 타이밍</div>'
+    + '    <p class="villain-text">' + riskTimingMap[badTenGod] + '에 경계가 흐려지기 쉽습니다. 이 구간에는 답변 지연·기준 재확인·문서화 3단계를 우선 적용하세요.</p>'
+    + '  </div>'
+
+    + '  <div class="villain-fact-bomb"><p>"' + factBombMap[badTenGod] + '"</p></div>'
+
+    + '  <div class="villain-checklist-wrap">'
+    + '    <div class="villain-section-title">✅ A급 빌런 대처 체크리스트 (자가 진단 5문항)</div>'
+    + '    <div class="villain-checklist">' + checklistHtml + '</div>'
+    + '    <button type="button" class="villain-submit-btn" id="villainChecklistSubmit">제출하기 (결과 보기)</button>'
+    + '    <div class="villain-feedback" id="villainFeedback" aria-live="polite"></div>'
+    + '  </div>'
+
+    + '  <div class="villain-quotes">'
+    + '    <div class="villain-quote yeoni"><strong>👩 연이의 조언</strong><br>"' + yeoniAdviceMap[badTenGod] + '"</div>'
+    + '    <div class="villain-quote neo"><strong>🕶️ 쌈바의 조언</strong><br>"' + ssambaAdviceMap[badTenGod] + '"</div>'
+    + '  </div>'
+    + '</div>';
 
   resultArea.innerHTML = html;
+
+  var submitBtn = document.getElementById('villainChecklistSubmit');
+  var feedbackEl = document.getElementById('villainFeedback');
+  if (submitBtn && feedbackEl) {
+    submitBtn.onclick = function() {
+      var checks = resultArea.querySelectorAll('.villain-check-input');
+      var checked = 0;
+      checks.forEach(function(chk) { if (chk.checked) checked += 1; });
+
+      var msg = '';
+      var gradeCls = 'mid';
+      if (checked >= 4) {
+        gradeCls = 'good';
+        msg = '훌륭한 방어태세! (' + checked + '/5) 경계선 설정과 감정 통제가 안정적입니다. 지금 페이스를 유지하세요.';
+      } else if (checked >= 2) {
+        gradeCls = 'mid';
+        msg = '조금 더 경계가 필요함 (' + checked + '/5). 대화 기록과 거리두기 루틴을 강화하면 소모를 크게 줄일 수 있습니다.';
+      } else {
+        gradeCls = 'danger';
+        msg = '위험! 당장 거리두기 필수 (' + checked + '/5). 연락/만남 빈도를 즉시 줄이고 금전·감정 경계부터 회복하세요.';
+      }
+
+      feedbackEl.classList.remove('is-show', 'is-good', 'is-mid', 'is-danger');
+      feedbackEl.innerHTML = '<strong>진단 결과</strong><br>' + msg;
+      feedbackEl.classList.add('is-show', 'is-' + gradeCls);
+
+      // 모바일에서 피드백 박스 하단이 가려지지 않도록 안전하게 스크롤 보정
+      setTimeout(function() {
+        try {
+          feedbackEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (_e) {}
+      }, 30);
+    };
+  }
 }
 
 /* ??????????????????????????????????????????

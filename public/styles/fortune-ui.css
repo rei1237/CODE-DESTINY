@@ -2974,7 +2974,7 @@ body.neo-mode .neo-logo{display:flex!important}
   }
   .villain-container--a-grade {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
   }
   .villain-container--a-grade::after {
     content: '';
@@ -2982,6 +2982,11 @@ body.neo-mode .neo-logo{display:flex!important}
     inset: 0;
     pointer-events: none;
     background: linear-gradient(140deg, rgba(255, 68, 68, 0.08), transparent 40%, rgba(255, 204, 153, 0.06));
+    z-index: 0;
+  }
+  .villain-container--a-grade > * {
+    position: relative;
+    z-index: 1;
   }
   .villain-header {
     display: flex;
@@ -3119,6 +3124,7 @@ body.neo-mode .neo-logo{display:flex!important}
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 120, 120, 0.22);
+  overflow: visible;
 }
 .villain-checklist {
   display: grid;
@@ -3178,9 +3184,10 @@ body.neo-mode .neo-logo{display:flex!important}
 }
 .villain-feedback.is-show {
   padding: 10px 12px;
-  max-height: 180px;
+  max-height: 420px;
   opacity: 1;
   transform: translateY(0);
+  overflow: visible;
 }
 .villain-feedback.is-good {
   background: rgba(34, 197, 94, 0.18);
@@ -3209,6 +3216,12 @@ body.neo-mode .neo-logo{display:flex!important}
   border-radius: 20px;
   max-width: 85%;
   line-height: 1.4;
+}
+.villain-quote strong {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 0.84rem;
+  letter-spacing: 0.01em;
 }
 .villain-quote.yeoni {
   background: #f0f8ff;
