@@ -754,7 +754,7 @@ function getFortuneAndCharacter(score) {
     return { character: TAZZA_SYSTEM.CHARACTERS[charKey], reading };
 }
 
-window.openHwatuModal = function() {
+window.openHwatuModal = function(initialMode) {
     if(!document.getElementById('hwatuModalOverlay')) { injectHwatuHTML(); }
     const stats = checkDailyLimit();
     document.getElementById('hwatuLimitText').innerText = 10 - stats.count;
@@ -768,9 +768,10 @@ window.openHwatuModal = function() {
     if(document.getElementById('tradResultBox'))  document.getElementById('tradResultBox').style.display  = 'none';
     if(document.getElementById('tradStartBtn'))   document.getElementById('tradStartBtn').style.display   = 'block';
     _tradState = null;
-    // 모드 초기화 (섯다로)
-    window._hwatuMode = 'seotda';
-    if(document.getElementById('seotdaModeContainer')) switchHwatuMode('seotda');
+    // 모드 초기화 (기본: 섯다, 요청 시 운수 떼기)
+    var nextMode = (initialMode === 'traditional') ? 'traditional' : 'seotda';
+    window._hwatuMode = nextMode;
+    if(document.getElementById('seotdaModeContainer')) switchHwatuMode(nextMode);
     document.getElementById('hCard1').classList.remove('flipped');
     document.getElementById('hCard2').classList.remove('flipped');
     document.getElementById('shuffleArea').style.display = 'block';
@@ -786,6 +787,10 @@ window.openHwatuModal = function() {
     btn.innerText = "운세 보기 (패 섞기)";
     btn.disabled = false;
     document.getElementById('hwatuModalOverlay').style.display = 'block';
+};
+
+window.openHwatuTraditionalMode = function() {
+    window.openHwatuModal('traditional');
 };
 
 window.closeHwatuModal = function() { document.getElementById('hwatuModalOverlay').style.display = 'none'; };
@@ -1007,8 +1012,10 @@ window._hwatuMode = 'seotda'; // 'seotda' | 'traditional'
 window.switchHwatuMode = function(mode) {
     window._hwatuMode = mode;
     const isSeotda = mode === 'seotda';
-    document.getElementById('seotdaModeContainer').style.display   = isSeotda ? '' : 'none';
-    document.getElementById('traditionalModeContainer').style.display = isSeotda ? 'none' : '';
+    const seotdaBox = document.getElementById('seotdaModeContainer');
+    const traditionalBox = document.getElementById('traditionalModeContainer');
+    seotdaBox.style.display = isSeotda ? '' : 'none';
+    traditionalBox.style.display = isSeotda ? 'none' : '';
     // 섯다 고유 요소들
     document.getElementById('shuffleArea').style.display    = isSeotda ? 'block' : 'none';
     document.getElementById('revealArea').style.display     = isSeotda ? (document.getElementById('revealArea').dataset.vis||'none') : 'none';
@@ -1018,6 +1025,12 @@ window.switchHwatuMode = function(mode) {
     document.getElementById('modeBtnSeotda').style.color           = isSeotda ? '#1a202c'  : '#d4af37';
     document.getElementById('modeBtnTraditional').style.background = isSeotda ? 'transparent' : '#d4af37';
     document.getElementById('modeBtnTraditional').style.color      = isSeotda ? '#d4af37'  : '#1a202c';
+
+    if(!isSeotda && traditionalBox && typeof traditionalBox.scrollIntoView === 'function') {
+        setTimeout(function() {
+            traditionalBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 30);
+    }
 };
 
 // ═══════════════════════════════════════════════════════════════
