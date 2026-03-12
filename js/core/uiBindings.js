@@ -27,10 +27,12 @@ function __loadScriptOnce(src) {
     if (existingBySrc.dataset.loaded === '1' || existingBySrc.readyState === 'complete') {
       return Promise.resolve();
     }
+    if (existingBySrc.dataset.loading !== '1' && !existingBySrc.dataset.dynSrc) {
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
       existingBySrc.addEventListener('load', () => resolve(), { once: true });
       existingBySrc.addEventListener('error', () => reject(new Error('load failed: ' + src)), { once: true });
-      setTimeout(resolve, 0);
     });
   }
 
@@ -89,7 +91,19 @@ function __invokeAction(action, actionEl, event) {
     });
   }
   __lazyActionState[action].then(() => {
-    __callActionWithConfig(action, actionEl, event, args);
+    let attempt = 0;
+    const maxAttempts = 12;
+    const retryMs = 50;
+
+    const tryInvoke = () => {
+      const result = __callActionWithConfig(action, actionEl, event, args);
+      if (result !== undefined) return;
+      if (attempt >= maxAttempts) return;
+      attempt += 1;
+      setTimeout(tryInvoke, retryMs);
+    };
+
+    tryInvoke();
   });
 }
 

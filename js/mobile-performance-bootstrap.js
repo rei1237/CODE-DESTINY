@@ -77,10 +77,12 @@ function __loadScriptOnce(src) {
     if (existingBySrc.dataset.loaded === '1' || existingBySrc.readyState === 'complete') {
       return Promise.resolve();
     }
+    if (existingBySrc.dataset.loading !== '1' && !existingBySrc.dataset.dynSrc) {
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
       existingBySrc.addEventListener('load', () => resolve(), { once: true });
       existingBySrc.addEventListener('error', () => reject(new Error('load failed: ' + src)), { once: true });
-      setTimeout(() => resolve(), 0);
     });
   }
 
