@@ -1,21 +1,51 @@
 (function () {
   'use strict';
 
-  var TAP_MOVE_THRESHOLD = 12;
-  var GHOST_CLICK_BLOCK_MS = 420;
+  var TAP_MAX_DX = 14;
+  var TAP_MAX_DY = 10;
+  var GHOST_CLICK_BLOCK_MS = 500;
   var suppressClickUntil = 0;
+  var touchCtx = null;
 
-  function isNaturallyInteractive(el) {
-    if (!el || !el.tagName) return false;
-    return /^(BUTTON|A|INPUT|SELECT|TEXTAREA|SUMMARY)$/.test(el.tagName);
-  }
+  var RULES = [
+    {
+      action: 'openPhysiognomyApp',
+      cardSelector: '.feature-card--face',
+      targetSelector: [
+        '[data-action="openPhysiognomyApp"]',
+        '.feature-card--face .feature-card__visual',
+        '.feature-card--face .feature-card__img-wrap',
+        '.feature-card--face .feature-card__img',
+        '.feature-card--face .feature-card__title',
+        '.feature-card--face .feature-card__desc',
+        '.feature-card--face .feature-card__cta',
+        '.feature-card--face .feature-card__launch'
+      ].join(',')
+    },
+    {
+      action: 'openHwatuModal',
+      cardSelector: '.feature-card--tazza',
+      targetSelector: [
+        '[data-action="openHwatuModal"]',
+        '.feature-card--tazza .feature-card__visual',
+        '.feature-card--tazza .feature-card__img-wrap',
+        '.feature-card--tazza .feature-card__img',
+        '.feature-card--tazza .feature-card__title',
+        '.feature-card--tazza .feature-card__desc',
+        '.feature-card--tazza .feature-card__cta',
+        '.feature-card--tazza .feature-card__launch'
+      ].join(',')
+    }
+  ];
 
-  function addA11yButtonAttrs(el) {
-    if (!el || !(el instanceof HTMLElement)) return;
-    el.classList.add('ios-tap-target');
-    if (isNaturallyInteractive(el)) return;
-    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
-    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+  function nodeLabel(el) {
+    if (!el || !el.tagName) return '(null)';
+    var id = el.id ? '#' + el.id : '';
+    var cls = '';
+    if (el.classList && el.classList.length) {
+      cls = '.' + Array.prototype.slice.call(el.classList, 0, 4).join('.');
+    }
+    return el.tagName.toLowerCase() + id + cls;
   }
 
   function getPoint(event) {
@@ -33,178 +63,182 @@
     return null;
   }
 
-  function describeNode(el) {
-    if (!el || !el.tagName) return '(null)';
-    var id = el.id ? ('#' + el.id) : '';
-    var cls = '';
-    if (el.classList && el.classList.length) {
-      cls = '.' + Array.from(el.classList).slice(0, 4).join('.');
+  function findRuleFromTarget(origin) {
+    if (!origin || typeof origin.closest !== 'function') return null;
+    for (var i = 0; i < RULES.length; i += 1) {
+      if (origin.closest(RULES[i].targetSelector)) return RULES[i];
     }
-    return el.tagName.toLowerCase() + id + cls;
+    return null;
   }
 
-  function logTapDebug(event, actionName, triggerEl) {
-    try {
-      var pt = getPoint(event) || { x: null, y: null };
-      console.groupCollapsed('[tap-debug] ' + actionName + ' @ ' + describeNode(triggerEl));
-      console.log('target:', event && event.target);
-      console.log('currentTarget:', triggerEl);
-      console.log('point:', pt);
-
-      var node = triggerEl;
-      var depth = 0;
-      while (node && depth < 10) {
-        var st = window.getComputedStyle(node);
-        console.log(
-          'tree[' + depth + ']:',
-          describeNode(node),
-          'z-index=' + st.zIndex,
-          'pointer-events=' + st.pointerEvents,
-          'position=' + st.position
-        );
-        node = node.parentElement;
-        depth += 1;
-      }
-
-      if (pt.x !== null && pt.y !== null && typeof document.elementsFromPoint === 'function') {
-        var stack = document.elementsFromPoint(pt.x, pt.y).slice(0, 8);
-        console.log('elementsFromPoint:', stack.map(describeNode));
-      }
-      console.groupEnd();
-    } catch (e) {
-      console.warn('[tap-debug] log failed', e);
-    }
-  }
-
-  function findActionTarget(originEl, actionName) {
-    if (!originEl || typeof originEl.closest !== 'function') return null;
-    var direct = originEl.closest('[data-action="' + actionName + '"]');
+  function findActionElement(origin, rule) {
+    if (!origin || !rule) return null;
+    var direct = origin.closest('[data-action="' + rule.action + '"]');
     if (direct) return direct;
 
-    var card = originEl.closest('.feature-card');
-    if (!card || typeof card.querySelector !== 'function') return null;
-    return card.querySelector('[data-action="' + actionName + '"]');
-  }
-
-  function callAction(actionName, originEl) {
-    var fn = window[actionName];
-    if (typeof fn === 'function') {
-      fn();
-      return true;
+    var card = origin.closest(rule.cardSelector);
+    if (card && typeof card.querySelector === 'function') {
+      var inCard = card.querySelector('[data-action="' + rule.action + '"]');
+      if (inCard) return inCard;
     }
 
-    var fallbackTarget = findActionTarget(originEl, actionName);
-    if (fallbackTarget && typeof fallbackTarget.click === 'function') {
-      fallbackTarget.click();
-      return true;
+    return document.querySelector('[data-action="' + rule.action + '"]');
+  }
+
+  function probeTopNodeFromPoint(x, y, reason) {
+    var top = document.elementFromPoint(x, y);
+    var stack = [];
+    if (typeof document.elementsFromPoint === 'function') {
+      stack = document.elementsFromPoint(x, y).slice(0, 8);
+    }
+
+    console.groupCollapsed('[overlay-probe] ' + (reason || 'tap') + ' @ (' + x + ', ' + y + ')');
+    console.log('top node:', nodeLabel(top), top);
+    console.log('stack:', stack.map(nodeLabel), stack);
+    console.groupEnd();
+
+    return { top: top, stack: stack };
+  }
+
+  window.debugTopNodeAtTap = function (x, y, reason) {
+    var px = Number(x);
+    var py = Number(y);
+    if (!Number.isFinite(px) || !Number.isFinite(py)) {
+      console.warn('[overlay-probe] invalid coordinates:', x, y);
+      return null;
+    }
+    return probeTopNodeFromPoint(px, py, reason || 'manual');
+  };
+
+  function dispatchFeatureTapEvent(rule, origin, sourceEvent) {
+    var detail = {
+      action: rule.action,
+      sourceType: sourceEvent ? sourceEvent.type : 'manual',
+      target: origin || null,
+      timestamp: Date.now()
+    };
+    window.dispatchEvent(new CustomEvent('code-destiny:feature-tap', { detail: detail }));
+  }
+
+  function invokeBusinessAction(rule, origin, sourceEvent) {
+    if (!rule) return false;
+
+    dispatchFeatureTapEvent(rule, origin, sourceEvent);
+
+    var fn = window[rule.action];
+    if (typeof fn === 'function') {
+      try {
+        fn();
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
+      }
     }
 
     return false;
   }
 
-  function bindHybridTap(el, actionName) {
-    if (!el || el.dataset.hybridTapBound === '1') return;
-    el.dataset.hybridTapBound = '1';
-    addA11yButtonAttrs(el);
+  function injectTouchActionStyle() {
+    if (document.getElementById('cd-mobile-touch-bridge-style')) return;
 
-    var touchStart = { x: 0, y: 0, valid: false };
+    var css = [
+      '.feature-card--face, .feature-card--tazza,',
+      '.feature-card--face .feature-card__visual, .feature-card--tazza .feature-card__visual,',
+      '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap,',
+      '.feature-card--face .feature-card__img, .feature-card--tazza .feature-card__img,',
+      '.feature-card--face .feature-card__title, .feature-card--tazza .feature-card__title,',
+      '.feature-card--face .feature-card__desc, .feature-card--tazza .feature-card__desc,',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"] {',
+      '  touch-action: manipulation;',
+      '  -webkit-tap-highlight-color: transparent;',
+      '  cursor: pointer;',
+      '}'
+    ].join('\n');
 
-    el.addEventListener('touchstart', function (event) {
+    var style = document.createElement('style');
+    style.id = 'cd-mobile-touch-bridge-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
+  function createBulletproofDelegator(root) {
+    if (!root || root.__cdTouchBridgeBound) return;
+    root.__cdTouchBridgeBound = true;
+
+    root.addEventListener('touchstart', function (event) {
+      if (!event || !event.target || !event.target.closest) return;
+      var rule = findRuleFromTarget(event.target);
+      if (!rule) return;
+
       var pt = getPoint(event);
-      if (!pt) {
-        touchStart.valid = false;
-        return;
-      }
-      touchStart.x = pt.x;
-      touchStart.y = pt.y;
-      touchStart.valid = true;
-    }, { passive: true });
+      if (!pt) return;
 
-    el.addEventListener('touchend', function (event) {
+      touchCtx = {
+        rule: rule,
+        startX: pt.x,
+        startY: pt.y,
+        target: event.target,
+        moved: false
+      };
+    }, { passive: true, capture: true });
+
+    root.addEventListener('touchmove', function (event) {
+      if (!touchCtx) return;
       var pt = getPoint(event);
-      if (!touchStart.valid || !pt) return;
-
-      var dx = Math.abs(pt.x - touchStart.x);
-      var dy = Math.abs(pt.y - touchStart.y);
-      touchStart.valid = false;
-
-      if (dx > TAP_MOVE_THRESHOLD || dy > TAP_MOVE_THRESHOLD) {
-        return;
+      if (!pt) return;
+      if (Math.abs(pt.x - touchCtx.startX) > TAP_MAX_DX || Math.abs(pt.y - touchCtx.startY) > TAP_MAX_DY) {
+        touchCtx.moved = true;
       }
+    }, { passive: true, capture: true });
 
-      logTapDebug(event, actionName + ':touchend', el);
-      var handled = callAction(actionName, el);
+    root.addEventListener('touchend', function (event) {
+      if (!touchCtx) return;
+
+      var ctx = touchCtx;
+      touchCtx = null;
+
+      var pt = getPoint(event);
+      if (!pt) return;
+      var dy = Math.abs(pt.y - ctx.startY);
+      var dx = Math.abs(pt.x - ctx.startX);
+      if (ctx.moved || dy >= TAP_MAX_DY || dx >= TAP_MAX_DX) return;
+
+      probeTopNodeFromPoint(pt.x, pt.y, ctx.rule.action + ':touchend');
+      var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
       if (!handled) return;
 
       event.preventDefault();
       event.stopPropagation();
       suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-    }, { passive: false });
+    }, { passive: false, capture: true });
 
-    el.addEventListener('click', function (event) {
+    root.addEventListener('click', function (event) {
+      if (!event || !event.target || !event.target.closest) return;
+      var rule = findRuleFromTarget(event.target);
+      if (!rule) return;
+
       if (Date.now() < suppressClickUntil) {
         event.preventDefault();
         event.stopPropagation();
         return;
       }
 
-      logTapDebug(event, actionName + ':click', el);
-      var handled = callAction(actionName, el);
+      var handled = invokeBusinessAction(rule, event.target, event);
       if (!handled) return;
 
       event.preventDefault();
       event.stopPropagation();
     }, true);
-
-    el.addEventListener('keydown', function (event) {
-      var key = event.key || '';
-      if (key !== 'Enter' && key !== ' ') return;
-      logTapDebug(event, actionName + ':keyboard', el);
-      var handled = callAction(actionName, el);
-      if (!handled) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-    });
   }
 
-  function bindAll() {
-    var bindingTable = [
-      {
-        action: 'openPhysiognomyApp',
-        selector: [
-          '[data-action="openPhysiognomyApp"]',
-          '.feature-card--face .feature-card__cta',
-          '.feature-card--face .feature-card__img-wrap',
-          '.feature-card--face .feature-card__img',
-          '.feature-card--face .feature-card__title',
-          '.feature-card--face .feature-card__desc'
-        ].join(',')
-      },
-      {
-        action: 'openHwatuModal',
-        selector: [
-          '[data-action="openHwatuModal"]',
-          '.feature-card--tazza .feature-card__cta',
-          '.feature-card--tazza .feature-card__img-wrap',
-          '.feature-card--tazza .feature-card__img',
-          '.feature-card--tazza .feature-card__title',
-          '.feature-card--tazza .feature-card__desc'
-        ].join(',')
-      }
-    ];
-
-    bindingTable.forEach(function (row) {
-      var nodes = document.querySelectorAll(row.selector);
-      nodes.forEach(function (el) {
-        bindHybridTap(el, row.action);
-      });
-    });
+  function init() {
+    injectTouchActionStyle();
+    createBulletproofDelegator(document);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindAll, { once: true });
+    document.addEventListener('DOMContentLoaded', init, { once: true });
   } else {
-    bindAll();
+    init();
   }
 })();
