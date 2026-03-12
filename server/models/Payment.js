@@ -1,0 +1,68 @@
+const mongoose = require("mongoose");
+
+const paymentSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    index: true,
+  },
+  impUid: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true,
+    trim: true,
+  },
+  merchantUid: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true,
+    trim: true,
+  },
+  paymentAmount: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  expectedChargedPoints: {
+    type: Number,
+    min: 0,
+    default: 0,
+  },
+  chargedPoints: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0,
+  },
+  paymentMethod: {
+    type: String,
+    trim: true,
+    default: "unknown",
+  },
+  status: {
+    type: String,
+    enum: ["pending", "success", "failed", "cancelled"],
+    default: "pending",
+    index: true,
+  },
+  paidAt: {
+    type: Date,
+  },
+  source: {
+    type: String,
+    enum: ["prepare", "confirm", "webhook", "system"],
+    default: "confirm",
+  },
+  rawPortOne: {
+    type: mongoose.Schema.Types.Mixed,
+  },
+}, {
+  timestamps: true,
+});
+
+paymentSchema.index({ userId: 1, createdAt: -1 });
+
+module.exports = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);

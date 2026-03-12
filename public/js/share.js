@@ -10,7 +10,7 @@ function showToast(msg){
   setTimeout(function(){t.classList.remove('show');},2500);
 }
 function openDestinyFlowerPage(){
-  window.location.href = 'destiny-flower/index.html';
+  window.location.href = '/destiny-flower';
 }
 function shareKakao(){
   var text=getShareText();

@@ -74,6 +74,16 @@
     { pair: ['午', '未'], result: 'fire'  }
   ];
 
+  // 지지충 (충돌 스트레스) — 해당 오행의 안정성을 저하시킴
+  var ZHI_CHUNG = [
+    { pair: ['子', '午'], impacts: { water: 1.4, fire: 1.4 }, label: '子午' },
+    { pair: ['丑', '未'], impacts: { earth: 1.6 },              label: '丑未' },
+    { pair: ['寅', '申'], impacts: { wood: 1.2, metal: 1.2 },   label: '寅申' },
+    { pair: ['卯', '酉'], impacts: { wood: 1.2, metal: 1.2 },   label: '卯酉' },
+    { pair: ['辰', '戌'], impacts: { earth: 1.7 },              label: '辰戌' },
+    { pair: ['巳', '亥'], impacts: { fire: 1.2, water: 1.2 },   label: '巳亥' }
+  ];
+
   // 천간합 파트너
   var GANHE = {
     '甲': '己', '己': '甲',
@@ -96,6 +106,8 @@
     var gans = [p.y.g, p.m.g, p.d.g, p.h.g];
     var results = [];
     var dominated = {}; // 합화 결과 오행별 부스트 합산
+    var clashResults = [];
+    var clashLoad = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
 
     // ── 삼합 / 반합 검사
     for (var el in SAMHAP) {
@@ -140,13 +152,31 @@
       }
     }
 
+    // ── 지지충 검사
+    ZHI_CHUNG.forEach(function (rule) {
+      var both = rule.pair.filter(function (z) { return zhis.indexOf(z) >= 0; });
+      if (both.length === 2) {
+        clashResults.push({ type: '지지충(地支沖)', label: rule.label, impacts: rule.impacts });
+        for (var elc in rule.impacts) {
+          clashLoad[elc] = (clashLoad[elc] || 0) + rule.impacts[elc];
+        }
+      }
+    });
+
     // 최대 합화 오행 추출
     var topEl = null, topBoost = 0;
     for (var k in dominated) {
       if (dominated[k] > topBoost) { topBoost = dominated[k]; topEl = k; }
     }
 
-    return { hapResults: results, dominated: dominated, topEl: topEl, topBoost: topBoost };
+    return {
+      hapResults: results,
+      dominated: dominated,
+      clashResults: clashResults,
+      clashLoad: clashLoad,
+      topEl: topEl,
+      topBoost: topBoost
+    };
   }
 
 
@@ -189,6 +219,208 @@
     metal: { today: '금기(金氣)가 호흡기를 건드립니다. 미세먼지와 건조한 공기에 주의하고 보습해주세요.', month: '이달 금 기운이 폐·피부·대장에 영향을 줄 수 있습니다. 환기와 수분 섭취가 중요합니다.', year: '올해 금 기운이 대장 건강에 영향을 줄 수 있습니다. 식이섬유 섭취를 늘려보세요.' },
     water: { today: '수기(水氣) 부족으로 신장·방광이 피로합니다. 충분한 수분(2L 이상)을 보충하세요.', month: '이달 수 기운이 냉증·부종·허리 통증을 유발할 수 있습니다. 온열 케어가 도움이 됩니다.', year: '올해 수기 파동이 내분비·호르몬계에 영향을 줄 수 있습니다. 스트레스 관리가 핵심입니다.' }
   };
+
+  // 오행 임상형 분석 데이터 (전문 처방 문체)
+  var EL_CLINICAL_DB = {
+    wood: {
+      strength: '간담 해독 축과 근막·인대 회복력이 비교적 우수한 체질입니다.',
+      deficientSymptoms: '눈 건조, 안구 피로, 근육 뻣뻣함, 새벽 각성, 감정 억눌림 패턴이 나타날 수 있습니다.',
+      excessSymptoms: '편두통, 목·어깨 과긴장, 예민성 상승, 혈압 변동성이 증가할 수 있습니다.',
+      dietDef: '짙은 녹색 채소·오메가3·충분한 수분으로 간 대사를 보조하세요.',
+      dietEx: '자극적인 술·야식·카페인 과다를 줄여 간열(肝熱) 과흥분을 진정시키세요.',
+      exerciseDef: '저강도 유산소 + 고관절·흉곽 가동성 스트레칭을 매일 15분.',
+      exerciseEx: '고강도 운동 빈도를 줄이고 호흡 교정·이완성 운동 비중을 늘리세요.',
+      lifeDef: '밤 11시 이전 수면 루틴으로 간 회복 시간을 확보하세요.',
+      lifeEx: '경쟁 자극이 높은 환경에서 휴식 타임블록을 의도적으로 배치하세요.',
+      monitor: '피로 누적 시 간수치(AST/ALT), 혈압, 수면의 질을 주기적으로 관찰하세요.'
+    },
+    fire: {
+      strength: '심혈관 반응성과 대사 점화력이 좋아 추진력·활력 회복이 빠른 편입니다.',
+      deficientSymptoms: '무기력, 저체온감, 순환 저하, 집중력 저하, 우울한 정서가 동반될 수 있습니다.',
+      excessSymptoms: '심박 상승, 불면, 초조, 안면 홍조, 염증성 반응이 잦아질 수 있습니다.',
+      dietDef: '따뜻한 단백질 식사(계란·살코기·생강)로 순환 점화를 도우세요.',
+      dietEx: '매운 음식·알코올·당분 과다를 줄이고 냉각 식품(수분 과일, 채소)을 보강하세요.',
+      exerciseDef: '아침 햇빛 노출 + 중강도 인터벌로 순환 리듬을 깨우세요.',
+      exerciseEx: '취침 전 격렬 운동을 피하고 심박 안정형 운동(걷기·요가) 위주로 조정하세요.',
+      lifeDef: '기상·식사·수면 시간을 고정해 자율신경 리듬을 재정렬하세요.',
+      lifeEx: '카페인 커트오프(오후 2시 이전)와 디지털 야간 차단이 필요합니다.',
+      monitor: '안정시 심박수, 수면 잠복기, 심계항진 빈도를 기록해 추적하세요.'
+    },
+    earth: {
+      strength: '비위(소화) 축의 흡수력과 체력 유지력이 좋아 회복 기반이 탄탄한 체질입니다.',
+      deficientSymptoms: '복부 팽만, 소화 지연, 식후 졸림, 만성 피로, 무거운 부종이 생길 수 있습니다.',
+      excessSymptoms: '체중 정체·증가, 점액성 염증, 대사 둔화, 당 조절 불안정이 나타날 수 있습니다.',
+      dietDef: '소화가 쉬운 단백질·따뜻한 곡물·발효식품으로 위장 기능을 복구하세요.',
+      dietEx: '정제 탄수·야식·과식 빈도를 줄이고 식사량 분할 전략을 적용하세요.',
+      exerciseDef: '식후 15분 걷기와 코어 안정화 운동으로 순환을 돕습니다.',
+      exerciseEx: '장시간 좌식을 피하고 하루 총 보행량(7~9천 보)을 확보하세요.',
+      lifeDef: '규칙적인 식사 시각과 수면 루틴이 최우선 처방입니다.',
+      lifeEx: '감정성 섭식 트리거를 기록해 저녁 과식 패턴을 차단하세요.',
+      monitor: '체중, 허리둘레, 공복 혈당, 식후 졸림 강도를 주 1회 기록하세요.'
+    },
+    metal: {
+      strength: '폐·피부 방어 축과 판단 집중력이 좋아 회복 프로토콜 준수율이 높은 체질입니다.',
+      deficientSymptoms: '피부 건조, 호흡 얕음, 변비 경향, 슬럼프 시 면역 저하가 동반될 수 있습니다.',
+      excessSymptoms: '호흡 과긴장, 어깨·흉곽 경직, 완벽주의성 스트레스 반응이 커질 수 있습니다.',
+      dietDef: '수분·식이섬유·적정 지방을 늘려 호흡기·대장 축을 안정시키세요.',
+      dietEx: '건조·짜고 자극적인 음식 비중을 낮추고 수분 많은 식단으로 균형을 맞추세요.',
+      exerciseDef: '복식호흡 + 흉곽 가동 운동으로 산소 교환 효율을 높이세요.',
+      exerciseEx: '강박적 운동 스케줄 대신 회복일과 스트레칭 비중을 의도적으로 포함하세요.',
+      lifeDef: '실내 습도 관리(40~60%)와 수면 전 호흡 훈련을 루틴화하세요.',
+      lifeEx: '결과 통제 욕구를 줄이고 완료 기준을 80%로 설정하는 훈련이 필요합니다.',
+      monitor: '호흡 깊이, 피부 상태, 배변 리듬, 스트레스 점수를 추적하세요.'
+    },
+    water: {
+      strength: '신장·내분비 축과 회복 보존력이 좋아 장기전에서 버티는 체질적 장점이 있습니다.',
+      deficientSymptoms: '냉감, 요통, 부종, 만성 피로, 집중력 저하, 불안 민감성이 증가할 수 있습니다.',
+      excessSymptoms: '무기력, 우울감, 활동 저하, 체액 정체형 피로가 심해질 수 있습니다.',
+      dietDef: '온열성 단백질·미네랄·수분 보충으로 신장 축 회복을 지원하세요.',
+      dietEx: '과도한 염분·야간 수분 폭식을 줄이고 낮 시간 균등 수분 섭취로 전환하세요.',
+      exerciseDef: '허리·둔근 강화 + 저충격 유산소로 순환과 체온을 올리세요.',
+      exerciseEx: '완전 비활동 상태를 피하고 짧고 잦은 움직임(NEAT)으로 대사를 유지하세요.',
+      lifeDef: '수면 시간 확보와 보온(복부·요부) 관리가 1차 처방입니다.',
+      lifeEx: '고립 시간이 길어지지 않도록 외부 활동 스케줄을 고정하세요.',
+      monitor: '체온, 부종, 요통 강도, 기상 피로감을 주간 단위로 관찰하세요.'
+    }
+  };
+
+  function toNum(v, fallback) {
+    var n = Number(v);
+    return isFinite(n) ? n : fallback;
+  }
+
+  function computeQuantumHealthScore(p, natal) {
+    var ratios = (natal && natal.ratios) || {};
+    var els = ['wood', 'fire', 'earth', 'metal', 'water'];
+    var q = calcQuantumHap(p);
+    var metrics = {};
+
+    els.forEach(function (el) {
+      var base = toNum(ratios[el], 20);
+      var hapBoost = toNum((q.dominated || {})[el], 0) * 4.8;
+      var clashPenalty = toNum((q.clashLoad || {})[el], 0) * 5.6;
+      var effective = base + hapBoost - clashPenalty;
+
+      var deficiencyPenalty = effective < 13 ? (13 - effective) * 2.0 : 0;
+      var excessPenalty = effective > 31 ? (effective - 31) * 2.0 : 0;
+      var imbalancePenalty = Math.abs(effective - 20) * 0.28;
+      var risk = deficiencyPenalty + excessPenalty + (clashPenalty * 0.9) + imbalancePenalty;
+
+      var status = 'balanced';
+      if (excessPenalty > deficiencyPenalty && excessPenalty > 0) status = 'excess';
+      else if (deficiencyPenalty > 0) status = 'deficient';
+
+      metrics[el] = {
+        base: Math.round(base * 10) / 10,
+        hapBoost: Math.round(hapBoost * 10) / 10,
+        clashPenalty: Math.round(clashPenalty * 10) / 10,
+        effective: Math.round(effective * 10) / 10,
+        risk: Math.round(risk * 10) / 10,
+        status: status
+      };
+    });
+
+    var sortedRiskDesc = els.slice().sort(function (a, b) { return metrics[b].risk - metrics[a].risk; });
+    var worstEl = sortedRiskDesc[0];
+
+    var balancedCandidates = els.filter(function (el) { return metrics[el].status === 'balanced'; })
+      .sort(function (a, b) { return metrics[a].risk - metrics[b].risk; });
+    var bestEl = balancedCandidates.length ? balancedCandidates[0] : els.slice().sort(function (a, b) { return metrics[a].risk - metrics[b].risk; })[0];
+
+    return {
+      metrics: metrics,
+      worstEl: worstEl,
+      bestEl: bestEl,
+      quantum: q
+    };
+  }
+
+  function getRiskGrade(risk) {
+    if (risk >= 18) return { t: '고위험', c: '#f87171' };
+    if (risk >= 12) return { t: '주의', c: '#fbbf24' };
+    if (risk >= 7) return { t: '관찰', c: '#60a5fa' };
+    return { t: '안정', c: '#4ade80' };
+  }
+
+  function buildQuantumClinicalTopReport(p, natal, johu) {
+    var sc = computeQuantumHealthScore(p, natal);
+    var worstEl = sc.worstEl;
+    var bestEl = sc.bestEl;
+    var wm = sc.metrics[worstEl];
+    var bm = sc.metrics[bestEl];
+    var wProf = EL_CLINICAL_DB[worstEl] || EL_CLINICAL_DB.earth;
+    var bProf = EL_CLINICAL_DB[bestEl] || EL_CLINICAL_DB.earth;
+    var wGrade = getRiskGrade(wm.risk);
+
+    var weaknessType = wm.status === 'excess' ? '과다형 취약' : (wm.status === 'deficient' ? '결핍형 취약' : '불안정형 취약');
+    var weaknessReason = wm.status === 'excess'
+      ? (wProf.excessSymptoms + ' → 과다도 기능 저하로 간주합니다.')
+      : (wm.status === 'deficient' ? wProf.deficientSymptoms : '절대 수치가 정상 범위라도 합/충 스트레스가 높아 기능 변동성이 큽니다.');
+
+    var dietRx = wm.status === 'excess' ? wProf.dietEx : wProf.dietDef;
+    var exRx = wm.status === 'excess' ? wProf.exerciseEx : wProf.exerciseDef;
+    var lifeRx = wm.status === 'excess' ? wProf.lifeEx : wProf.lifeDef;
+
+    var johuComment = '조후는 중화 상태로 판정됩니다.';
+    if (johu && (johu.type === 'hot' || johu.type === 'warm')) johuComment = '조열(燥熱) 경향이 있어 화·목 과열 관리 및 수·금 보완이 중요합니다.';
+    else if (johu && (johu.type === 'cold' || johu.type === 'cool')) johuComment = '한습(寒濕) 경향이 있어 수·금 정체 관리 및 화·목 활성화가 중요합니다.';
+
+    var hapBadges = (sc.quantum.hapResults || []).slice(0, 4).map(function (h) {
+      var col = EL_NEON[h.resultEl] || '#c9a84c';
+      return '<span style="display:inline-block; margin:2px 4px 2px 0; padding:3px 8px; border-radius:20px; font-size:.68rem; color:' + col + '; border:1px solid ' + col + '55;">'
+        + h.type + ' ' + h.label + ' → ' + EL_NAME[h.resultEl] + '</span>';
+    }).join('') || '<span style="font-size:.72rem;color:rgba(255,255,255,.45)">뚜렷한 합 작용은 약한 편입니다.</span>';
+
+    var clashBadges = (sc.quantum.clashResults || []).slice(0, 4).map(function (h) {
+      return '<span style="display:inline-block; margin:2px 4px 2px 0; padding:3px 8px; border-radius:20px; font-size:.68rem; color:#f87171; border:1px solid rgba(248,113,113,.45);">'
+        + h.type + ' ' + h.label + '</span>';
+    }).join('') || '<span style="font-size:.72rem;color:rgba(255,255,255,.45)">임상적 의미의 충 스트레스는 경미한 편입니다.</span>';
+
+    return '<div id="entQuantumClinicalReport" class="ent-reveal" style="margin:0 0 14px; border-radius:12px; border:1px solid rgba(201,168,76,.32); background:linear-gradient(145deg, rgba(6,10,20,.95), rgba(10,15,30,.92)); padding:14px 14px 12px; box-shadow:0 0 24px rgba(0,0,0,.22);">'
+      + '<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">'
+      +   '<div style="font-size:.76rem; font-weight:900; letter-spacing:1px; color:#c9a84c;">🧬 선천 체질 정밀 판독 (Quantum Clinical)</div>'
+      +   '<div style="font-size:.68rem; color:rgba(255,255,255,.5);">과다도 취약으로 판정</div>'
+      + '</div>'
+      + '<div style="font-size:.83rem; line-height:1.65; color:rgba(255,255,255,.86); margin-bottom:10px;">'
+      +   '<b>' + (w.USER_NAME || '당신') + '</b>님의 사주 원국 오행과 합·충 재배열 데이터를 통합 판독한 결과, <b style="color:' + (EL_NEON[worstEl] || '#f87171') + '">' + EL_NAME[worstEl] + '</b> 축이 <b style="color:' + wGrade.c + '">' + weaknessType + ' (' + wGrade.t + ')</b>으로 분류됩니다. '
+      +   johuComment
+      + '</div>'
+
+      + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">'
+      +   '<div style="border:1px solid rgba(74,222,128,.35); border-radius:10px; padding:10px; background:rgba(74,222,128,.05);">'
+      +     '<div style="font-size:.68rem; letter-spacing:1px; font-weight:900; color:#4ade80; margin-bottom:6px;">타고난 강점 신체 축</div>'
+      +     '<div style="font-size:.84rem; color:#fff; margin-bottom:4px;"><b>' + EL_NAME[bestEl] + '</b> · ' + EL_ORGAN[bestEl] + '</div>'
+      +     '<div style="font-size:.77rem; color:rgba(255,255,255,.78); line-height:1.55;">' + bProf.strength + '</div>'
+      +     '<div style="font-size:.7rem; color:rgba(255,255,255,.52); margin-top:5px;">유효지수 ' + bm.effective + ' / 리스크 ' + bm.risk + '</div>'
+      +   '</div>'
+      +   '<div style="border:1px solid rgba(248,113,113,.35); border-radius:10px; padding:10px; background:rgba(248,113,113,.05);">'
+      +     '<div style="font-size:.68rem; letter-spacing:1px; font-weight:900; color:#f87171; margin-bottom:6px;">타고난 취약 신체 축</div>'
+      +     '<div style="font-size:.84rem; color:#fff; margin-bottom:4px;"><b>' + EL_NAME[worstEl] + '</b> · ' + EL_ORGAN[worstEl] + ' <span style="font-size:.68rem;color:#fca5a5">(' + weaknessType + ')</span></div>'
+      +     '<div style="font-size:.77rem; color:rgba(255,255,255,.78); line-height:1.55;">' + weaknessReason + '</div>'
+      +     '<div style="font-size:.7rem; color:rgba(255,255,255,.52); margin-top:5px;">기초 ' + wm.base + '% + 합 보정 ' + wm.hapBoost + ' - 충 스트레스 ' + wm.clashPenalty + '</div>'
+      +   '</div>'
+      + '</div>'
+
+      + '<div style="border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px; background:rgba(255,255,255,.03); margin-bottom:10px;">'
+      +   '<div style="font-size:.7rem; font-weight:900; letter-spacing:1px; color:#93c5fd; margin-bottom:6px;">합(合) 기반 재배열</div>'
+      +   '<div style="margin-bottom:8px;">' + hapBadges + '</div>'
+      +   '<div style="font-size:.7rem; font-weight:900; letter-spacing:1px; color:#fda4af; margin-bottom:6px;">충(沖) 기반 스트레스</div>'
+      +   '<div>' + clashBadges + '</div>'
+      + '</div>'
+
+      + '<div style="border:1px solid rgba(0,229,255,.18); border-radius:10px; padding:10px; background:rgba(0,229,255,.04);">'
+      +   '<div style="font-size:.72rem; font-weight:900; letter-spacing:1px; color:#00e5ff; margin-bottom:6px;">전문의형 맞춤 처방</div>'
+      +   '<div style="font-size:.8rem; color:rgba(255,255,255,.82); line-height:1.62;">'
+      +     '① 식이 처방: ' + dietRx + '<br>'
+      +     '② 운동 처방: ' + exRx + '<br>'
+      +     '③ 생활 처방: ' + lifeRx + '<br>'
+      +     '④ 추적 관찰: ' + wProf.monitor
+      +   '</div>'
+      + '</div>'
+
+      + '<div style="margin-top:8px; font-size:.67rem; color:rgba(255,255,255,.42); line-height:1.45;">본 리포트는 사주 기반 웰니스 참고용이며 의료적 진단을 대체하지 않습니다. 증상이 지속되면 전문의 진료를 권장합니다.</div>'
+      + '</div>';
+  }
 
   function buildHealthTimeline(weakEl, johu) {
     var info = TIMELINE_TEXT[weakEl] || TIMELINE_TEXT.earth;
@@ -651,20 +883,26 @@
          (saju-engine.js 이후 로드되므로 안전하게 교체 가능)
      ════════════════════════════════════════════════════════ */
 
-  // ① 명리 헬스 리포트 — 완전 교체
+  // ① 명리 헬스 리포트 — 원본 복구 + 퀀텀 임상형 상단 리포트 추가
   var _origHealth = w.renderHealthReport;
   w.renderHealthReport = function (p, natal, johu, pw, jg) {
+    // 먼저 기존 saju-engine.js의 원본 콘텐츠를 그대로 렌더링
+    _origHealth && _origHealth(p, natal, johu, pw, jg);
+
     var area = document.getElementById('healthReportSection');
     var card = document.getElementById('healthReportCard');
-    if (!area || !card) {
-      // 엘리먼트가 없으면 원본 폴백
-      _origHealth && _origHealth(p, natal, johu, pw, jg);
-      return;
-    }
-    area.innerHTML = buildEnhancedHealthReport(p, natal, johu, pw, jg);
+    if (!area || !card) return;
+
+    // 중복 삽입 방지
+    var oldReport = document.getElementById('entQuantumClinicalReport');
+    if (oldReport && oldReport.parentNode) oldReport.parentNode.removeChild(oldReport);
+
+    // 사주 원국 + 합/충 기반 상단 임상형 리포트 추가
+    var clinicalHtml = buildQuantumClinicalTopReport(p, natal, johu || {}, pw, jg);
+    area.insertAdjacentHTML('afterbegin', clinicalHtml);
     card.style.display = 'block';
+
     _scheduleReveal(area);
-    _initGaugeAnimation(area);
   };
 
   // ② RPG 스킬 트리 — 퀘스트 시스템 추가 (원본은 유지)

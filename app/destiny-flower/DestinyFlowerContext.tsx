@@ -15,6 +15,7 @@ type Action =
   | { type: "hydrate_profile"; payload: DestinyProfile | null }
   | { type: "confirm_phase"; payload: { phase: DiscoveryPhaseKey } }
   | { type: "run_analysis" }
+  | { type: "enter_tarot" }
   | { type: "pick_tarot"; payload: { cardId: string } }
   | { type: "restart" };
 
@@ -22,6 +23,7 @@ interface DestinyFlowerContextValue extends DestinyFlowerState {
   reloadProfile: () => void;
   confirmPhase: (phase: DiscoveryPhaseKey) => void;
   runAnalysis: () => void;
+  proceedToTarot: () => void;
   pickTarot: (cardId: string) => void;
   restart: () => void;
 }
@@ -127,6 +129,15 @@ function reducer(state: DestinyFlowerState, action: Action): DestinyFlowerState 
           picked: undefined,
           finalFlower: undefined,
         },
+        stage: "results",
+      };
+    }
+
+    case "enter_tarot": {
+      if (state.stage !== "results") return state;
+      if (!state.analysis.results.length || !state.tarot.spread.length) return state;
+      return {
+        ...state,
         stage: "tarot",
       };
     }
@@ -203,6 +214,7 @@ export function DestinyFlowerProvider({ children }: { children: ReactNode }) {
       reloadProfile,
       confirmPhase: (phase: DiscoveryPhaseKey) => dispatch({ type: "confirm_phase", payload: { phase } }),
       runAnalysis: () => dispatch({ type: "run_analysis" }),
+      proceedToTarot: () => dispatch({ type: "enter_tarot" }),
       pickTarot: (cardId: string) => dispatch({ type: "pick_tarot", payload: { cardId } }),
       restart: () => dispatch({ type: "restart" }),
     }),

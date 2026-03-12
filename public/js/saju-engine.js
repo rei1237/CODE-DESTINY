@@ -2165,9 +2165,225 @@ function showJongVerificationModal(jongResult, p) {
 /* ═══════════════════════════════════════
    개인정보 동의 모달 제어
 ═══════════════════════════════════════ */
-function checkPrivacyAndCalculate() {
+var FORTUNE_COST_POINTS = 1000;
+var __fortuneConsumeInFlight = false;
+
+function formatPointAmount(points){
+  var n = Number(points || 0);
+  if (!Number.isFinite(n)) n = 0;
+  return n.toLocaleString('ko-KR') + 'P';
+}
+
+function getFortuneApiBaseUrl(){
+  if (typeof window !== 'undefined') {
+    if (window.CODE_DESTINY_API_BASE_URL) return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
+    var custom = localStorage.getItem('fortune_api_base_url');
+    if (custom) return String(custom).replace(/\/+$/, '');
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return 'http://localhost:4000';
+    return location.origin;
+  }
+  return 'http://localhost:4000';
+}
+
+function getFortuneAuthToken(){
+  try {
+    return localStorage.getItem('fortune_auth_token') || '';
+  } catch(e) {
+    return '';
+  }
+}
+
+function getStoredAuthUser(){
+  try {
+    var raw = localStorage.getItem('fortune_auth_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) {
+    return null;
+  }
+}
+
+function updateFortunePointNotice(points){
+  var costEl = document.getElementById('fortuneCostLabel');
+  if (costEl) costEl.textContent = formatPointAmount(FORTUNE_COST_POINTS);
+
+  var currentEl = document.getElementById('fortuneCurrentPoints');
+  if (!currentEl) return;
+
+  if (typeof points === 'number' && Number.isFinite(points)) {
+    currentEl.textContent = formatPointAmount(points);
+    return;
+  }
+
+  var user = getStoredAuthUser();
+  if (user && typeof user.points === 'number') {
+    currentEl.textContent = formatPointAmount(user.points);
+  } else {
+    currentEl.textContent = '로그인 후 확인';
+  }
+}
+
+function redirectToLoginForFortune(){
+  var nextPath = encodeURIComponent('/index.html');
+  window.location.href = '/login?next=' + nextPath;
+}
+
+function redirectToPointRecharge(){
+  var nextPath = encodeURIComponent('/index.html');
+  window.location.href = '/points?next=' + nextPath;
+}
+
+function showFortuneConfirmModal(costPoints){
+  return new Promise(function(resolve){
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(3,7,18,.68);display:flex;align-items:center;justify-content:center;padding:18px;';
+
+    var box = document.createElement('div');
+    box.style.cssText = 'width:min(420px,92vw);border-radius:16px;border:1px solid rgba(167,139,250,.45);background:linear-gradient(160deg,rgba(30,27,75,.98),rgba(76,29,149,.96));box-shadow:0 12px 40px rgba(88,28,135,.45);padding:18px;color:#f5f3ff;';
+    box.innerHTML = ''
+      + '<div style="font-size:.76rem;letter-spacing:.2em;color:#c4b5fd;font-weight:700;margin-bottom:8px;">TWILIGHT POINT CHECK</div>'
+      + '<div style="font-size:1rem;line-height:1.55;color:#ede9fe;margin-bottom:14px;">'
+      + formatPointAmount(costPoints).replace('P',' 포인트')
+      + '가 차감됩니다. 계속하시겠습니까?'
+      + '</div>'
+      + '<div style="display:flex;gap:10px;">'
+      + '<button id="fortunePointCancelBtn" style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(221,214,254,.45);background:rgba(30,41,59,.45);color:#e2e8f0;font-weight:700;cursor:pointer;">취소</button>'
+      + '<button id="fortunePointConfirmBtn" style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(196,181,253,.6);background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 0 18px rgba(168,85,247,.45);">계속하기</button>'
+      + '</div>';
+
+    function close(answer){
+      if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      resolve(answer);
+    }
+
+    box.querySelector('#fortunePointCancelBtn').onclick = function(){ close(false); };
+    box.querySelector('#fortunePointConfirmBtn').onclick = function(){ close(true); };
+    overlay.onclick = function(e){ if (e.target === overlay) close(false); };
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+  });
+}
+
+async function checkFortunePointEligibility(){
+  if (window.__SKIP_FORTUNE_POINT_GATE === true) return true;
+
+  var token = getFortuneAuthToken();
+  if (!token) {
+    var goLogin = window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?');
+    if (goLogin) redirectToLoginForFortune();
+    return false;
+  }
+
+  var confirmed = await showFortuneConfirmModal(FORTUNE_COST_POINTS);
+  if (!confirmed) return false;
+
+  try {
+    var response = await fetch(getFortuneApiBaseUrl() + '/api/fortune/check', {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+
+    var payload = {};
+    try { payload = await response.json(); } catch(e) {}
+
+    if (response.status === 401) {
+      alert(payload.message || '로그인이 만료되었습니다. 다시 로그인해 주세요.');
+      try {
+        localStorage.removeItem('fortune_auth_token');
+        localStorage.removeItem('fortune_auth_user');
+      } catch(e) {}
+      redirectToLoginForFortune();
+      return false;
+    }
+
+    if (response.status === 402) {
+      alert((payload && payload.message ? payload.message : '포인트가 부족합니다.') + '\n포인트 충전 페이지로 이동합니다.');
+      redirectToPointRecharge();
+      return false;
+    }
+
+    if (!response.ok) {
+      alert(payload.message || '포인트 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return false;
+    }
+
+    if (payload && typeof payload.currentPoints === 'number') {
+      updateFortunePointNotice(payload.currentPoints);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('[points] fortune check failed', error);
+    alert('포인트 서버와 통신하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    return false;
+  }
+}
+
+async function consumeFortunePointAfterCalculation(){
+  if (window.__SKIP_FORTUNE_POINT_GATE === true) return true;
+  if (__fortuneConsumeInFlight) return false;
+
+  var token = getFortuneAuthToken();
+  if (!token) return false;
+
+  __fortuneConsumeInFlight = true;
+  try {
+    var response = await fetch(getFortuneApiBaseUrl() + '/api/fortune/consume', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        reason: '사주 분석 결과 조회 포인트 차감'
+      })
+    });
+
+    var payload = {};
+    try { payload = await response.json(); } catch(e) {}
+
+    if (response.status === 401) {
+      try {
+        localStorage.removeItem('fortune_auth_token');
+        localStorage.removeItem('fortune_auth_user');
+      } catch(e) {}
+      return false;
+    }
+
+    if (response.status === 402) {
+      alert((payload && payload.message ? payload.message : '포인트가 부족합니다.') + '\n포인트 충전 페이지로 이동합니다.');
+      redirectToPointRecharge();
+      return false;
+    }
+
+    if (!response.ok) {
+      alert(payload.message || '포인트 차감 처리 중 오류가 발생했습니다.');
+      return false;
+    }
+
+    if (payload && payload.user && typeof payload.user.points === 'number') {
+      var user = getStoredAuthUser();
+      if (user) {
+        user.points = payload.user.points;
+        try { localStorage.setItem('fortune_auth_user', JSON.stringify(user)); } catch(e) {}
+      }
+      updateFortunePointNotice(payload.user.points);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('[points] fortune consume failed', error);
+    return false;
+  } finally {
+    __fortuneConsumeInFlight = false;
+  }
+}
+
+async function checkPrivacyAndCalculate() {
   if (sessionStorage.getItem('privacyAgreed') === 'true') {
-    startSajuCalculationFlow();
+    await startSajuCalculationFlow();
   } else {
     document.getElementById('privacy-modal-overlay').classList.add('show');
   }
@@ -2177,13 +2393,13 @@ function closePrivacyModal() {
   document.getElementById('privacy-modal-overlay').classList.remove('show');
 }
 
-function agreeAndCalculate() {
+async function agreeAndCalculate() {
   sessionStorage.setItem('privacyAgreed', 'true');
   closePrivacyModal();
-  startSajuCalculationFlow();
+  await startSajuCalculationFlow();
 }
 
-function startSajuCalculationFlow() {
+async function startSajuCalculationFlow() {
   if(typeof Solar==='undefined'||typeof Solar.fromYmdHms!=='function'){
     if (!__libLoading && !__libReady) {
       retrySajuLibraryLoad();
@@ -2193,13 +2409,27 @@ function startSajuCalculationFlow() {
   var bd=document.getElementById('birthDate').value;
   if(!bd){alert('생년월일을 입력하세요');return;}
 
+  var canProceed = await checkFortunePointEligibility();
+  if (!canProceed) return;
+
   // 만세력 책 로더 기능 제거: 클릭 즉시 계산 실행
   try {
-    calculate();
+    await calculate();
   } catch (calcErr) {
     console.error('[saju] calculate flow failed', calcErr);
+    return;
   }
+
+  var resultPage = document.getElementById('resultPage');
+  var isResultVisible = !!(resultPage && resultPage.style.display !== 'none');
+  if (!isResultVisible) return;
+
+  await consumeFortunePointAfterCalculation();
 }
+
+setTimeout(function(){
+  try { updateFortunePointNotice(); } catch(e) {}
+}, 0);
 
 /* ═══════════════════════════════════════
    STEP 6: 메인 계산
@@ -13974,8 +14204,16 @@ function renderHormoneVibe(p, power) {
   var tPct = Math.round(Math.min(100, vibe.tetoScore * 1.2));
   var ePct = Math.round(Math.min(100, vibe.egenScore * 1.2));
 
-  var reasonsHtml = vibe.reasons.length
-    ? vibe.reasons.map(function(r) {
+  var autoReasons = [];
+  if (vibe.tetoScore >= 60) autoReasons.push({ type:'teto', icon:'🧱', text:'테토 기본 체력 높음 — 결정 속도 빠르고 밀어붙이는 엔진이 강합니다.' });
+  if (vibe.egenScore >= 60) autoReasons.push({ type:'egen', icon:'🫧', text:'에겐 감수성 상한치 근접 — 분위기·표정·말투 디테일 감지력이 높습니다.' });
+  if (Math.abs(vibe.tetoScore - vibe.egenScore) <= 12) autoReasons.push({ type:'egen', icon:'⚖️', text:'테토·에겐 점수 차가 작아 상황 맞춤형 페르소나 전환이 빠른 편입니다.' });
+  if (vibe.tetoScore >= 70 && vibe.egenScore >= 55) autoReasons.push({ type:'egen', icon:'🎯', text:'강하게 말해도 속은 섬세한 하이브리드 — 겉테토·속에겐 패턴이 보입니다.' });
+  if (vibe.egenScore >= 70 && vibe.tetoScore >= 55) autoReasons.push({ type:'teto', icon:'🗡️', text:'다정한데 선 넘으면 칼같이 선 긋는 타입 — 겉에겐·속테토 패턴입니다.' });
+
+  var mergedReasons = (vibe.reasons || []).concat(autoReasons).slice(0, 8);
+  var reasonsHtml = mergedReasons.length
+    ? mergedReasons.map(function(r) {
         return '<div class="hv-reason-item ' + (r.type === 'egen' ? 'egen-item' : '') + '">'
           + r.icon + ' ' + r.text + '</div>';
       }).join('')
@@ -13992,6 +14230,77 @@ function renderHormoneVibe(p, power) {
     + '<div class="hv-stat-box" style="padding:10px 4px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);"><div class="hv-stat-num" style="font-size:1.2rem;">' + vibe.jaesung + '</div><div class="hv-stat-label" style="font-size:0.68rem; color:#f39c12;">재성</div></div>'
     + '<div class="hv-stat-box" style="padding:10px 4px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);"><div class="hv-stat-num" style="font-size:1.2rem;">' + vibe.gwansung+ '</div><div class="hv-stat-label" style="font-size:0.68rem; color:#e74c3c;">관성</div></div>'
     + '<div class="hv-stat-box" style="padding:10px 4px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);"><div class="hv-stat-num" style="font-size:1.2rem;">' + vibe.insung  + '</div><div class="hv-stat-label" style="font-size:0.68rem; color:#1abc9c;">인성</div></div>'
+    + '</div>';
+
+  var scoreGap = vibe.tetoScore - vibe.egenScore;
+  var gapAbs = Math.abs(scoreGap);
+  var stars = Object.keys(vibe.cnt || {}).sort(function(a, b) { return (vibe.cnt[b] || 0) - (vibe.cnt[a] || 0); });
+  var starSummary = stars.length
+    ? stars.slice(0, 3).map(function(s) { return s + ' ' + vibe.cnt[s] + '칸'; }).join(' · ')
+    : '십성 분포가 고르게 퍼진 중립형';
+
+  var comboTitle = '';
+  var comboSummary = '';
+  var comboBone = '';
+  var comboLove = '';
+  var comboWork = '';
+  var comboTip = '';
+
+  if (vibe.tetoScore >= 75 && vibe.egenScore >= 60) {
+    comboTitle = '🔥 겉테토 · 속에겐 하이브리드';
+    comboSummary = '결정은 테토처럼 빠른데, 사람 감정 로그는 에겐처럼 다 저장하는 타입입니다.';
+    comboBone = '센 말 던지고 집 가서 "내가 너무 쎘나?" 복기 3회차 돌리는 패턴이 보입니다.';
+    comboLove = '리드 잘하지만 디테일에 민감해서, 상대 표정 한 번에 기분이 롤러코스터를 탈 수 있습니다.';
+    comboWork = '회의에서는 결론 머신, 1:1 대화에서는 공감봇. 팀에서는 꽤 희귀한 만능형입니다.';
+    comboTip = '결론은 짧고 단단하게, 피드백은 부드럽고 길게 가면 승률이 급상승합니다.';
+  } else if (vibe.egenScore >= 75 && vibe.tetoScore >= 60) {
+    comboTitle = '✨ 겉에겐 · 속테토 하이브리드';
+    comboSummary = '분위기는 부드럽지만 핵심 선 넘어오면 단칼에 정리하는 은근 강철 타입입니다.';
+    comboBone = '평소엔 다 받아주다가 임계점 넘는 순간 "여기까지" 버튼을 광속으로 누릅니다.';
+    comboLove = '다정함이 기본값이지만, 존중이 깨지는 순간 관계 정리 속도가 의외로 빠릅니다.';
+    comboWork = '조율 능력 최상급. 다만 기준 없는 부탁을 계속 받으면 피로가 누적됩니다.';
+    comboTip = '착한 사람 모드와 원칙 모드 전환 기준을 미리 말해두면 소모가 줄어듭니다.';
+  } else if (vibe.result === 'teto') {
+    comboTitle = '🦁 테토 우세형';
+    comboSummary = '주도권, 속도, 결정력에서 강점이 뚜렷합니다. "일단 가보자" 엔진이 강합니다.';
+    comboBone = '문제는 늘 해결하는데, 말투까지 해결해버리면 사람도 같이 정리될 수 있습니다.';
+    comboLove = '확실한 표현과 행동으로 신뢰를 줍니다. 다만 상대의 속도도 존중해야 오래 갑니다.';
+    comboWork = '난이도 높은 과제에 강합니다. 단독 돌파력은 좋지만 위임이 약하면 과부하가 옵니다.';
+    comboTip = '정답 제시 전 5초 경청만 추가해도 "카리스마"가 "압박감"으로 읽히는 걸 막습니다.';
+  } else if (vibe.result === 'egen') {
+    comboTitle = '🌸 에겐 우세형';
+    comboSummary = '공감, 분위기, 관계 센스가 뛰어난 타입입니다. 사람 마음의 변화를 빠르게 읽습니다.';
+    comboBone = '배려 만렙인데, 정작 본인 배터리 잔량은 마지막 5%까지 쓰는 경향이 있습니다.';
+    comboLove = '감정 결을 잘 맞춰 친밀도가 빨리 올라갑니다. 대신 과몰입 경계가 중요합니다.';
+    comboWork = '협업의 윤활유 역할이 탁월합니다. 다만 우선순위가 흐려지면 성과가 분산됩니다.';
+    comboTip = '공감 후 행동 한 줄(다음 액션)을 붙이면 감성과 실행력이 동시에 살아납니다.';
+  } else if (vibe.tetoScore >= 50 && vibe.egenScore >= 50) {
+    comboTitle = '🌀 멀티 페르소나 밸런스형';
+    comboSummary = '테토·에겐 모두 높은 다재다능형입니다. 상황 따라 캐릭터 스위칭이 빠릅니다.';
+    comboBone = '문제는 본인도 "지금 내가 어떤 모드인지" 헷갈리는 순간이 온다는 점입니다.';
+    comboLove = '상대에게 맞춰주는 능력이 좋지만, 본인 욕구를 뒤로 미루면 피로가 누적됩니다.';
+    comboWork = '중재·리딩·실행을 모두 소화합니다. 다만 기준이 없으면 다 떠안게 됩니다.';
+    comboTip = '오늘의 기본 모드(테토/에겐) 하나만 정해두면 의사결정 피로가 크게 줄어듭니다.';
+  } else {
+    comboTitle = '🧊 저자극 관찰자형';
+    comboSummary = '표현은 신중하고 반응은 절제된 타입입니다. 쉽게 흔들리지 않는 장점이 있습니다.';
+    comboBone = '문제는 너무 조용해서 "아무 생각 없나?" 오해를 자주 받는다는 점입니다.';
+    comboLove = '깊어지기까지 시간이 필요합니다. 대신 한번 신뢰하면 오래 갑니다.';
+    comboWork = '정확도 중심으로 움직여 실수가 적습니다. 빠른 템포 환경에서는 의도 설명이 필요합니다.';
+    comboTip = '생각을 끝낸 뒤 한 줄로 먼저 공유하면 존재감과 신뢰도가 동시에 올라갑니다.';
+  }
+
+  var hormoneStoryHtml = '<div style="margin-top:18px; background:rgba(0,0,0,0.22); border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:14px; text-align:left;">'
+    + '<div style="font-size:.9rem; font-weight:900; color:#f8fafc; margin-bottom:8px;">🧪 테토·에겐 화학식 리포트</div>'
+    + '<div style="font-size:.82rem; color:#e2e8f0; margin-bottom:8px;"><b>' + comboTitle + '</b> · 점수차 ' + gapAbs + '점</div>'
+    + '<div style="font-size:.82rem; line-height:1.62; color:#dbeafe; margin-bottom:8px;">' + comboSummary + '</div>'
+    + '<div style="font-size:.8rem; line-height:1.6; color:#fecaca; margin-bottom:10px;"><b>🦴 뼈때리는 한 줄:</b> ' + comboBone + '</div>'
+    + '<div style="display:grid; grid-template-columns:1fr; gap:8px;">'
+    +   '<div style="background:rgba(255,255,255,0.06); border-radius:8px; padding:8px;"><b style="color:#f9a8d4;">💘 연애 모드</b><div style="font-size:.79rem; color:#e5e7eb; margin-top:4px; line-height:1.55;">' + comboLove + '</div></div>'
+    +   '<div style="background:rgba(255,255,255,0.06); border-radius:8px; padding:8px;"><b style="color:#93c5fd;">💼 사회/커리어 모드</b><div style="font-size:.79rem; color:#e5e7eb; margin-top:4px; line-height:1.55;">' + comboWork + '</div></div>'
+    +   '<div style="background:rgba(255,255,255,0.06); border-radius:8px; padding:8px;"><b style="color:#fde68a;">🧭 오늘의 운영 팁</b><div style="font-size:.79rem; color:#e5e7eb; margin-top:4px; line-height:1.55;">' + comboTip + '</div></div>'
+    + '</div>'
+    + '<div style="margin-top:10px; font-size:.74rem; color:rgba(255,255,255,.58);">핵심 십성 분포: ' + starSummary + '</div>'
     + '</div>';
 
   var barHtml = '<div style="margin-bottom:6px;">'
@@ -14030,6 +14339,7 @@ function renderHormoneVibe(p, power) {
       + barHtml
       + '<div class="hv-reason-list">' + reasonsHtml + '</div>'
       + statsHtml
+      + hormoneStoryHtml
       + tetoQuantum
       + '<div style="margin-top:16px;font-size:.78rem;color:rgba(255,255,255,.35);line-height:1.6; text-align:center;">비겁·관성 중심의 신강 사주는 강한 추진력과 승부욕을 나타냅니다. 다만 모든 것을 성별·개인 편차로 다양하게 해석하는 재미있는 심리 콘텐츠입니다 😄</div>'
       + '</div></div>'
@@ -14058,6 +14368,7 @@ function renderHormoneVibe(p, power) {
       + barHtml
       + '<div class="hv-reason-list">' + reasonsHtml + '</div>'
       + statsHtml
+      + hormoneStoryHtml
       + egenQuantum
       + '<div style="margin-top:16px;font-size:.78rem;color:rgba(255,255,255,.35);line-height:1.6; text-align:center;">인성·식상 중심 사주는 수용성과 감성 표현이 특징입니다. 성별·개인 편차로 다양하게 해석하는 재미있는 심리 콘텐츠입니다 😊</div>'
       + '</div></div>';
@@ -14077,6 +14388,7 @@ function renderHormoneVibe(p, power) {
       + barHtml
       + '<div class="hv-reason-list">' + reasonsHtml + '</div>'
       + statsHtml
+        + hormoneStoryHtml
       + neutralQuantum
       + '</div></div>';
   }
@@ -15260,8 +15572,51 @@ function renderEnergyCoord(natal){
 
   var avoidDirs = kijishinList.map(function(e){ return ENERGY_COORD_DB[e] ? ENERGY_COORD_DB[e].direction : ''; }).filter(Boolean).join(', ');
   if(!avoidDirs) avoidDirs = '특별히 없음';
+  var analysisBasis = yongshinList.length ? '용신/희신 중심 해석' : '원국 오행 결핍도 중심 해석';
 
   var today = new Date();
+  function getSeasonNeed(month){
+    if(month>=3&&month<=5) return {el:'wood',label:'봄(3~5월)',note:'생장·확장 기운이 강해 목(木) 보강 효율이 높습니다.'};
+    if(month>=6&&month<=7) return {el:'fire',label:'여름(6~7월)',note:'활동·발산 기운이 강해 화(火) 조절/보강이 중요합니다.'};
+    if(month>=8&&month<=9) return {el:'earth',label:'환절(8~9월)',note:'중심·소화·안정 기운이 핵심이라 토(土) 보정이 효과적입니다.'};
+    if(month>=10&&month<=11) return {el:'metal',label:'가을(10~11월)',note:'정리·결단 기운이 올라가 금(金) 보강이 성과로 이어집니다.'};
+    return {el:'water',label:'겨울(12~2월)',note:'저장·회복 기운이 커져 수(水) 보강 체감이 큽니다.'};
+  }
+  var seasonNeed = getSeasonNeed(today.getMonth()+1);
+  var primaryNeedText = (EL_E[target]||'') + (EL_K[target]||target);
+  var seasonNeedText = (EL_E[seasonNeed.el]||'') + (EL_K[seasonNeed.el]||seasonNeed.el);
+  var timingNarrative = seasonNeed.el===target
+    ? '사주 원국의 필요 오행과 현재 시기 오행이 일치합니다. 같은 기운을 집중 보완하면 운의 체감 상승 속도가 빠릅니다.'
+    : '사주 원국의 기본 보완축은 '+primaryNeedText+', 현재 시기 미세조정축은 '+seasonNeedText+'입니다. 기본 체력은 '+primaryNeedText+'로 채우고, 월간 컨디션은 '+seasonNeedText+'로 튜닝하는 이중 전략이 유리합니다.';
+
+  var ENERGY_ENV_PLAN = {
+    wood:{
+      env:'숲·수목원·초록 동선, 통풍이 잘되고 습윤한 동향 공간',
+      benefits:['정체된 기운을 뚫어 실행력과 성장 운을 끌어올림','관계 확장·기획력·창의적 발상 회복','간담 계열 피로 누적 완화에 도움'],
+      tip:'주 1회 이상 숲길 걷기 + 아침 햇빛 루틴을 붙이면 목(木) 기운이 안정적으로 축적됩니다.'
+    },
+    fire:{
+      env:'남향 채광, 활기 있는 도시/축제/야경, 체온을 올리는 활동 공간',
+      benefits:['자신감·표현력·사회적 존재감 강화','의사결정 속도와 추진 동력 상승','침체된 감정 회로를 데워 대인운 활성'],
+      tip:'햇빛 노출 시간 확보 + 가벼운 유산소를 병행하면 화(火) 기운이 과열 없이 잘 순환합니다.'
+    },
+    earth:{
+      env:'한옥·황토·온천·산책 중심의 안정 공간, 루틴이 유지되는 생활 환경',
+      benefits:['집중력·지속력·재정/생활 안정감 강화','소화·수면 리듬 안정으로 컨디션 복원','흔들리는 판단을 중심축으로 다시 고정'],
+      tip:'식사·수면 시각을 고정하고 주말에 흙길/산책 루틴을 넣으면 토(土) 기운이 단단해집니다.'
+    },
+    metal:{
+      env:'정돈된 미니멀 공간, 암석/금속 구조물, 서늘하고 건조한 정리 환경',
+      benefits:['결단력·분별력·우선순위 정리 능력 강화','불필요한 관계/업무를 정리해 성과 집중','호흡과 리듬이 정돈되며 멘탈 선명도 상승'],
+      tip:'정리정돈 20분 + 체크리스트 기반 실행 습관이 금(金) 기운을 빠르게 끌어올립니다.'
+    },
+    water:{
+      env:'물가·호수·해안·안개 지형, 조용하고 깊은 몰입이 가능한 저자극 환경',
+      benefits:['회복력·직관력·내면 통찰 강화','불안/과열을 식혀 판단의 깊이 확보','지식 흡수력과 장기 전략 사고력 상승'],
+      tip:'물가 산책 + 저녁 디지털 디톡스를 병행하면 수(水) 기운이 안정적으로 충전됩니다.'
+    }
+  };
+
   var seedStr = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate()+'-'+(USER_NAME||'');
   var seed = 0;
   for(var i=0;i<seedStr.length;i++){
@@ -15282,6 +15637,12 @@ function renderEnergyCoord(natal){
 
   var domList = shuffle(db.domestic, seed).slice(0,3);
   var globList = shuffle(db.global, seed+100).slice(0,3);
+  var envPlan = ENERGY_ENV_PLAN[target] || ENERGY_ENV_PLAN.water;
+  var benefitHtml = (envPlan.benefits||[]).map(function(b){
+    return '<li style="margin:2px 0;">'+b+'</li>';
+  }).join('');
+  var focusDomestic = domList.length ? domList.map(function(l){return l.name;}).join(' · ') : '가까운 자연 환경';
+  var focusGlobal = globList.length ? globList.map(function(l){return l.name;}).join(' · ') : '해외 자연/도시 에너지 포인트';
 
   function locCard(loc,tagClass,tagLabel){
     return '<div class="ec-loc-item">'+
@@ -15313,6 +15674,20 @@ function renderEnergyCoord(natal){
         '<div>🌟 <b>나를 돕는 기운:</b> 용신('+yongText+') · 희신('+heeText+')</div>'+
         '<div>🚧 <b>나를 힘들게 하는 기운:</b> 기신('+giText+') · 구신('+gooText+')</div>'+
         '<div style="margin-top:6px;color:#d32f2f;">⚠️ <b>피해야 할 방향:</b> '+avoidDirs+'</div>'+
+      '</div>'+
+      '<div style="background:rgba(15,23,42,0.05);border:1px solid rgba(148,163,184,0.35);border-radius:8px;padding:12px;margin-bottom:14px;font-size:0.83rem;color:#334155;line-height:1.62;">'+
+        '<div>🧾 <b>분석 기준:</b> '+analysisBasis+'</div>'+
+        '<div>🧬 <b>현재 사주 핵심 보완 오행:</b> '+primaryNeedText+'</div>'+
+        '<div>⏳ <b>시기 보완 오행 ('+seasonNeed.label+'):</b> '+seasonNeedText+'</div>'+
+        '<div style="margin-top:5px;color:#475569;">• '+seasonNeed.note+'</div>'+
+        '<div style="margin-top:6px;color:#1f2937;">'+timingNarrative+'</div>'+
+      '</div>'+
+      '<div style="background:rgba(6,95,70,0.08);border:1px solid rgba(16,185,129,0.35);border-radius:10px;padding:12px;margin-bottom:16px;font-size:0.82rem;color:#0f172a;line-height:1.62;">'+
+        '<div>🌍 <b>국가/장소 보완 루트:</b> 국내 '+focusDomestic+' · 해외 '+focusGlobal+'</div>'+
+        '<div style="margin-top:5px;">🏡 <b>환경 처방:</b> '+envPlan.env+'</div>'+
+        '<div style="margin-top:6px;">⚡ <b>'+primaryNeedText+' 보충 시 기대되는 장점</b></div>'+
+        '<ul style="margin:6px 0 0 18px;padding:0;">'+benefitHtml+'</ul>'+
+        '<div style="margin-top:6px;color:#065f46;">'+envPlan.tip+'</div>'+
       '</div>'+
       '<div class="ec-direction">'+
         '<span class="ec-dir-label">🚩 타겟 에너지 방위 &nbsp;</span>'+
@@ -15439,10 +15814,108 @@ function renderHealthReport(p, natal, johu, pw, jg) {
   var card = document.getElementById('healthReportCard');
   if(!area || !card) return;
 
+  natal = natal || {};
+  johu = johu || {};
+
   var els = ['wood','fire','earth','metal','water'];
   var elNames = {wood:'목(木)', fire:'화(火)', earth:'토(土)', metal:'금(金)', water:'수(水)'};
   var elColors = {wood:'청색 🌿', fire:'적색 🔥', earth:'황색 🟨', metal:'백색 🤍', water:'흑색 💧'};
   var elOrgans = {wood:'간/담', fire:'심장/소장', earth:'비위(소화기)', metal:'폐/대장', water:'신장/방광'};
+  var userName = USER_NAME || '당신';
+
+  var ratios = natal.ratios || {};
+  els.forEach(function(el){
+    var v = Number(ratios[el]);
+    ratios[el] = isFinite(v) ? v : 20;
+  });
+
+  var HEALTH_SIGNAL_DB = {
+    wood: {
+      deficient: {
+        risk: '간·담 해독력 저하, 눈 피로, 근육·인대 경직, 새벽 각성, 무기력/우울감이 나타나기 쉽습니다.',
+        care: '녹색 채소·신맛 식품을 늘리고, 목·어깨 스트레칭과 수면 리듬(23시 이전 취침)을 고정하세요.'
+      },
+      excess: {
+        risk: '분노·예민성 상승, 편두통, 혈압 변동, 목·어깨 과긴장으로 스트레스성 통증이 잦아질 수 있습니다.',
+        care: '카페인·음주·야식 자극을 줄이고, 호흡 이완·저강도 유산소로 간열을 내려주세요.'
+      }
+    },
+    fire: {
+      deficient: {
+        risk: '순환 저하, 손발 냉감, 무기력, 저체온감, 동기 저하와 우울감으로 이어질 수 있습니다.',
+        care: '아침 햇빛 노출과 규칙적 유산소 운동으로 체온과 심폐 리듬을 끌어올리세요.'
+      },
+      excess: {
+        risk: '심계항진, 불면, 초조, 안면홍조, 염증 반응 증가 등 심혈관·자율신경 과열 신호가 나타날 수 있습니다.',
+        care: '매운 음식·카페인·알코올을 줄이고, 저녁 격렬운동 대신 걷기·명상으로 심박을 낮추세요.'
+      }
+    },
+    earth: {
+      deficient: {
+        risk: '소화 불량, 식후 졸림, 만성 피로, 복부 냉감/복통, 기력 저하가 발생하기 쉽습니다.',
+        care: '따뜻한 식사와 규칙적 식사 시간, 식후 15분 걷기로 비위 기능을 회복하세요.'
+      },
+      excess: {
+        risk: '복부 팽만, 체중 증가·정체, 부종, 대사 둔화, 혈당 변동성 증가로 이어질 수 있습니다.',
+        care: '정제 탄수화물·야식을 줄이고, 하루 총보행량과 코어운동으로 순환을 확보하세요.'
+      }
+    },
+    metal: {
+      deficient: {
+        risk: '호흡기 약화, 피부 건조, 면역 저하, 변비 경향, 집중력 저하가 나타날 수 있습니다.',
+        care: '수분·식이섬유·복식호흡을 늘리고, 건조 환경(습도 40~60%)을 개선하세요.'
+      },
+      excess: {
+        risk: '호흡 과긴장, 흉곽·어깨 경직, 완벽주의 스트레스, 변비/건조 증상이 심해질 수 있습니다.',
+        care: '완벽 기준을 낮추고 스트레칭·호흡 이완 루틴으로 몸의 긴장을 의도적으로 풀어주세요.'
+      }
+    },
+    water: {
+      deficient: {
+        risk: '허리·무릎 약화, 신장·방광 기능 저하, 생식기/호르몬 밸런스 저하, 수면 부족·수면 질 저하가 나타나기 쉽습니다.',
+        care: '검은콩·해조류·단백질 보강, 하복부/요부 보온, 야간 카페인 차단, 수면 시간 확보가 핵심입니다.'
+      },
+      excess: {
+        risk: '부종, 무기력, 우울 경향, 과수면 혹은 수면 리듬 붕괴, 하체 순환 저하가 나타날 수 있습니다.',
+        care: '냉한 음식·과염분을 줄이고, 허리·둔근 강화와 저충격 유산소로 수기 정체를 풀어주세요.'
+      }
+    }
+  };
+
+  function classifyEl(v) {
+    if (v <= 11) return { state: 'deficient', label: '심한 결핍', color: '#c0392b' };
+    if (v < 16) return { state: 'deficient', label: '결핍 경향', color: '#d35400' };
+    if (v >= 34) return { state: 'excess', label: '심한 과다', color: '#8e44ad' };
+    if (v > 28) return { state: 'excess', label: '과다 경향', color: '#9b59b6' };
+    return { state: 'balanced', label: '중화 범위', color: '#2e7d32' };
+  }
+
+  var sortedByRatio = els.slice().sort(function(a,b){ return (ratios[b]||0) - (ratios[a]||0); });
+  var strongestEl = sortedByRatio[0] || 'earth';
+  var weakestEl = sortedByRatio[sortedByRatio.length - 1] || 'earth';
+  var strongestVal = Math.round((ratios[strongestEl] || 0) * 10) / 10;
+  var weakestVal = Math.round((ratios[weakestEl] || 0) * 10) / 10;
+  var strongestType = classifyEl(strongestVal);
+  var weakestType = classifyEl(weakestVal);
+
+  var imbalanceRows = els.map(function(el){
+    var val = Math.round((ratios[el] || 0) * 10) / 10;
+    var c = classifyEl(val);
+    if(c.state === 'balanced') return '';
+    var guide = (HEALTH_SIGNAL_DB[el] || {})[c.state] || { risk:'건강 변동성 주의', care:'생활 리듬 점검 필요' };
+    return '<div style="margin-bottom:8px; border:1px solid #ececec; border-left:4px solid '+c.color+'; border-radius:8px; background:#fff; padding:10px;">'+
+      '<div style="font-weight:700; color:#2c3e50; margin-bottom:4px;">'+elNames[el]+' '+val+'% · '+c.label+'</div>'+
+      '<div style="font-size:0.82rem; color:#555; line-height:1.6;"><b>건강 신호:</b> '+guide.risk+'</div>'+
+      '<div style="font-size:0.82rem; color:#444; line-height:1.6; margin-top:3px;"><b>관리 포인트:</b> '+guide.care+'</div>'+
+    '</div>';
+  }).filter(Boolean);
+
+  var imbalanceHtml = imbalanceRows.length
+    ? imbalanceRows.join('')
+    : '<div style="border:1px solid #d1fae5; background:#ecfdf5; color:#065f46; border-radius:8px; padding:10px; font-size:.84rem; line-height:1.6;">현재 오행 분포는 전반적으로 중화 범위입니다. 과로·수면 부족·야식 같은 생활 요인이 건강운을 먼저 흔들 수 있으니 생활 리듬을 우선 관리하세요.</div>';
+
+  var strongestGuide = (HEALTH_SIGNAL_DB[strongestEl] || {}).excess || { risk: '해당 오행 과열 시 기능 저하 가능', care: '과열 신호를 조절하세요.' };
+  var weakestGuide = (HEALTH_SIGNAL_DB[weakestEl] || {}).deficient || { risk: '해당 오행 결핍 시 기능 저하 가능', care: '보강 루틴을 고정하세요.' };
 
   var yongshinList = [];
   var kijishinList = [];
@@ -15498,18 +15971,30 @@ function renderHealthReport(p, natal, johu, pw, jg) {
     return arr;
   }
 
-  var foodList = shuffle(HEALTH_FOOD_DB[targetEl] || HEALTH_FOOD_DB.earth, seed);
+  var foodDb = (typeof HEALTH_FOOD_DB !== 'undefined' && HEALTH_FOOD_DB) ? HEALTH_FOOD_DB : null;
+  var exerciseDb = (typeof HEALTH_EXERCISE_DB !== 'undefined' && HEALTH_EXERCISE_DB) ? HEALTH_EXERCISE_DB : null;
+
+  var foodList = foodDb ? shuffle(foodDb[targetEl] || foodDb.earth || [], seed) : [];
   var recFoods = foodList.slice(0, 10);
   
-  var avoidFoodList = shuffle(HEALTH_FOOD_DB[avoidEl] || HEALTH_FOOD_DB.earth, seed + 1);
-  var badFood = avoidFoodList[0];
+  var avoidFoodList = foodDb ? shuffle(foodDb[avoidEl] || foodDb.earth || [], seed + 1) : [];
+  var badFood = avoidFoodList[0] || { name: '야식·과음·과당 식품' };
 
-  var recEx = HEALTH_EXERCISE_DB[targetEl] || HEALTH_EXERCISE_DB.earth;
+  var recEx = exerciseDb ? (exerciseDb[targetEl] || exerciseDb.earth) : {
+    name: '저강도 걷기 & 스트레칭',
+    desc: '기본 순환을 회복하는 운동 루틴으로 시작하세요.',
+    types: ['걷기'],
+    stretch: '호흡을 길게 내쉬며 허리-골반-어깨를 순서대로 풀어주세요.'
+  };
   var exTypes = shuffle(recEx.types, seed).slice(0, 2).join(', ');
 
-  var todayEl = (GAN[G_BAZI.getDayGan()] || {}).e || 'earth'; // 일진(오늘의 천간) 오행
+  var todayEl = 'earth'; // 일진(오늘의 천간) 오행
+  try {
+    todayEl = (GAN[G_BAZI.getDayGan()] || {}).e || 'earth';
+  } catch(e) {}
+
   var balanceSummary = "오늘은 " + elNames[todayEl] + " 기운이 흐르는 날이에요. " + 
-                       USER_NAME + "님의 사주에 필요한 " + elNames[targetEl] + " 에너지를 채워주면 운이 좋아져요!";
+                       userName + "님의 사주에 필요한 " + elNames[targetEl] + " 에너지를 채워주면 운이 좋아져요!";
 
   var html = 
     '<div class="ec-card" style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); border: 1px solid #e0e0e0; margin-top: 15px;">'+
@@ -15530,10 +16015,21 @@ function renderHealthReport(p, natal, johu, pw, jg) {
       '</div>'+
 
       '<div style="margin-bottom: 20px;">'+
-        '<div style="font-weight: 700; color: #34495e; margin-bottom: 8px; font-size: 1.05rem;">[Section 2: 오늘의 맞춤 식단 10선 🥗]</div>'+
+        '<div style="font-weight: 700; color: #34495e; margin-bottom: 8px; font-size: 1.05rem;">[Section 2: 오행 과다/결핍 건강 리스크 진단 🧬]</div>'+
+        '<div style="background: rgba(255,255,255,0.85); padding: 12px; border-radius: 8px; font-size: 0.9rem; color: #555; border:1px solid #eee;">'+
+          '<div style="font-size:0.84rem; line-height:1.6; margin-bottom:10px; color:#444;">'+
+            '<b>가장 강한 오행:</b> '+elNames[strongestEl]+' '+strongestVal+'% ('+strongestType.label+') · '+strongestGuide.risk+'<br>'+
+            '<b>가장 약한 오행:</b> '+elNames[weakestEl]+' '+weakestVal+'% ('+weakestType.label+') · '+weakestGuide.risk+
+          '</div>'+
+          imbalanceHtml+
+        '</div>'+
+      '</div>'+
+
+      '<div style="margin-bottom: 20px;">'+
+        '<div style="font-weight: 700; color: #34495e; margin-bottom: 8px; font-size: 1.05rem;">[Section 3: 오늘의 맞춤 식단 10선 🥗]</div>'+
         '<div style="background: rgba(255,255,255,0.8); padding: 12px; border-radius: 8px; font-size: 0.9rem; color: #555;">'+
           '<div style="margin-bottom: 12px; max-height: 280px; overflow-y: auto; padding-right: 6px; box-sizing: border-box; border: 1px solid #eee; border-radius: 6px; padding: 8px; background: #fff;">'+
-          recFoods.map(function(f, idx) {
+          (recFoods.length ? recFoods.map(function(f, idx) {
             return '<div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee;">'+
               '<div style="margin-bottom: 4px;">'+
                 '<span style="display:inline-block; background:#e8f5e9; color:#2e7d32; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:0.75rem; margin-right:6px;">추천 ' + (idx+1) + '</span>'+
@@ -15542,7 +16038,7 @@ function renderHealthReport(p, natal, johu, pw, jg) {
               '<div style="font-size: 0.8rem; margin-top: 2px;"><b>식재료:</b> ' + f.ingredients + '</div>'+
               '<div style="font-size: 0.8rem; color:#666; margin-top: 2px;">💡 ' + f.reason + '</div>'+
             '</div>';
-          }).join('') +
+          }).join('') : '<div style="font-size:.82rem;color:#777;">추천 식단 DB를 불러오지 못해 기본 가이드(규칙 식사·수분·저염식)를 권장합니다.</div>') +
           '</div>'+
           '<div style="font-size: 0.85rem; background: #fffcfc; padding: 8px; border-radius: 6px; border: 1px solid #fce8e6;">'+
             '<span style="color:#c0392b; font-weight:bold;">⚠️ 피해야 할 음식:</span> ' + badFood.name + ' (' + elNames[avoidEl] + ' 기운이 강해 밸런스를 깰 수 있어요)'+
@@ -15551,7 +16047,7 @@ function renderHealthReport(p, natal, johu, pw, jg) {
       '</div>'+
 
       '<div>'+
-        '<div style="font-weight: 700; color: #34495e; margin-bottom: 8px; font-size: 1.05rem;">[Section 3: 운을 깨우는 운동법 🏃‍♂️]</div>'+
+        '<div style="font-weight: 700; color: #34495e; margin-bottom: 8px; font-size: 1.05rem;">[Section 4: 운을 깨우는 운동법 🏃‍♂️]</div>'+
         '<div style="background: rgba(255,255,255,0.8); padding: 12px; border-radius: 8px; font-size: 0.9rem; color: #555;">'+
           '<div style="margin-bottom: 8px;">'+
             '<span style="display:inline-block; background:#e3f2fd; color:#1565c0; padding:3px 8px; border-radius:4px; font-weight:bold; font-size:0.8rem; margin-right:6px;">추천 운동</span>'+
@@ -15563,6 +16059,7 @@ function renderHealthReport(p, natal, johu, pw, jg) {
           '<div style="font-size: 0.85rem; background: #fff9c4; padding: 8px; border-radius: 6px; color: #f57f17; font-weight: 500;">'+
             '🍀 <b>행운의 스트레칭:</b> ' + recEx.stretch +
           '</div>'+
+          '<div style="font-size: 0.75rem; color:#6b7280; margin-top:8px; line-height:1.5;">※ 본 건강운 분석은 사주 기반 생활 가이드이며 의학적 진단을 대체하지 않습니다.</div>'+
         '</div>'+
       '</div>'+
 

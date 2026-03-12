@@ -31,6 +31,15 @@
     };
   }
 
+  function safeVibrate(pattern) {
+    if (!navigator || typeof navigator.vibrate !== 'function') return;
+    var ua = navigator.userActivation;
+    if (ua && !ua.isActive) return;
+    try {
+      navigator.vibrate(pattern);
+    } catch (e) {}
+  }
+
   /* ── 4. Resize 쓰로틀링 (200ms) + optimizedResize 커스텀 이벤트 ── */
   window.addEventListener('resize', throttle(function() {
     window.dispatchEvent(new CustomEvent('optimizedResize'));
@@ -54,7 +63,7 @@
     el.addEventListener('touchend', cleanup, { passive: true });
     el.addEventListener('touchcancel', cleanup, { passive: true });
     /* 햅틱 피드백 */
-    if (navigator.vibrate) navigator.vibrate(8);
+    safeVibrate(8);
   }, { passive: true });
 
   /* ── 6. Lazy Loading — Intersection Observer ── */

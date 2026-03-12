@@ -538,6 +538,11 @@
         <p>감성 제로. 팩트만 남는다.</p>
       </div>
 
+      <div class="auth-quick-links" style="display:flex; justify-content:center; gap:10px; margin-top:14px; flex-wrap:wrap;">
+        <a href="/signup" style="display:inline-flex; align-items:center; justify-content:center; min-width:120px; padding:10px 14px; border-radius:999px; text-decoration:none; color:#f8fafc; font-weight:700; font-size:0.9rem; background:linear-gradient(135deg, rgba(124,58,237,.85), rgba(99,102,241,.78)); box-shadow:0 8px 20px rgba(76,29,149,.35);">✨ 회원가입</a>
+        <a href="/login" style="display:inline-flex; align-items:center; justify-content:center; min-width:120px; padding:10px 14px; border-radius:999px; text-decoration:none; color:#e2e8f0; font-weight:700; font-size:0.9rem; border:1px solid rgba(167,139,250,.55); background:rgba(15,23,42,.72); box-shadow:0 8px 20px rgba(15,23,42,.35);">🔐 로그인</a>
+      </div>
+
     </header>
 
     <!-- ═══ Destiny Profile Manager ═══ -->
@@ -612,6 +617,13 @@
         ✦ 이 정보를 나의 운명 카드에 저장
       </button>
       <button class="btn-main" id="run-btn" data-action="checkPrivacyAndCalculate" disabled>🔄 라이브러리 로딩 중...</button>
+      <div id="fortunePointNotice" style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:linear-gradient(135deg,rgba(99,102,241,.10),rgba(168,85,247,.10));border:1px solid rgba(139,92,246,.22);font-size:.82rem;color:#4c1d95;">
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <span>🔮 운세 1회 이용: <strong id="fortuneCostLabel">1,000P</strong></span>
+          <span style="font-size:.75rem;color:#6d28d9;">현재 보유: <b id="fortuneCurrentPoints">로그인 후 확인</b></span>
+        </div>
+        <a href="/points" style="display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;text-decoration:none;font-weight:700;white-space:nowrap;">포인트 충전</a>
+      </div>
       <div class="post-saju-services-intro" role="note" aria-live="polite">
         <strong>✨ 사주 팔자 이외의 신비한 운세 서비스</strong>
         <span>아래에는 AI 동물 관상, MBTI 동물 궁합, 타로, 화투점 등 다양한 운세 콘텐츠가 준비되어 있어요. 스크롤하며 원하는 서비스로 편하게 이어서 즐겨보세요.</span>
@@ -869,7 +881,7 @@
                  alt="나의 운명 꽃 Destiny Flower — 사주·자미두수·점성술·숙요·타로를 통합한 플라워 운세"
                  class="feature-card__img" loading="lazy" width="400" height="300"
               onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(145deg,#fff3d9,#f8e8ff)'">
-            <span class="feature-card__badge feature-card__badge--wobble">NEW</span>
+            <span class="feature-card__badge feature-card__badge--wobble">준비중,,</span>
           </div>
           <div class="feature-card__body">
             <h3 class="feature-card__title">🌸 나의 운명 꽃</h3>

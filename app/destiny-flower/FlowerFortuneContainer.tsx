@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import styles from "./destiny-flower.module.css";
 import { useDestinyFlower } from "./DestinyFlowerContext";
@@ -9,6 +10,8 @@ import { FlowerCanvas } from "./FlowerCanvas";
 import { getFlowerImageCandidates } from "./flowerAssetMap";
 import { formatElementLabel, getElementColorHex } from "./flowerData";
 import { LongFormReport } from "./LongFormReport";
+import { DivinationResultCard } from "./DivinationResultCard";
+import { formatProfileBirth } from "./profileBridge";
 import type { DiscoveryPhaseKey } from "./types";
 
 // ── 블룸 스테이지 헬퍼 ─────────────────────────────────────────────────────
@@ -116,12 +119,14 @@ function createFinalCardCanvasUrl(options: {
 export function FlowerFortuneContainer() {
   const {
     profileStatus,
+    profile,
     analysis,
     tarot,
     stage,
     reloadProfile,
     confirmPhase,
     runAnalysis,
+    proceedToTarot,
     pickTarot,
     restart,
   } = useDestinyFlower();
@@ -182,12 +187,12 @@ export function FlowerFortuneContainer() {
       try {
         await navigator.share({ title: "나의 운명 꽃", text: finalFlower.shareText, url: window.location.href });
         return;
-      } catch (_) { /* fallthrough */ }
+      } catch { /* fallthrough */ }
     }
     try {
       await navigator.clipboard.writeText(finalFlower.shareText);
       alert("운명 꽃 결과 텍스트가 복사됐어요!");
-    } catch (_) {
+    } catch {
       alert("공유하지 못하는 환경입니다.");
     }
   };
@@ -229,7 +234,7 @@ export function FlowerFortuneContainer() {
             다시 이 정원으로 돌아와 주세요.
           </small>
           <div className={styles.missingActions}>
-            <a href="/index.html" className={styles.gardenLink}>정원으로 이동</a>
+            <Link href="/" className={styles.gardenLink}>정원으로 이동</Link>
             <button type="button" className={styles.gardenButton} onClick={reloadProfile}>다시 확인</button>
           </div>
         </div>
@@ -305,11 +310,73 @@ export function FlowerFortuneContainer() {
                     transition={{ delay: 0.55, duration: 0.65 }}
                     onClick={runAnalysis}
                   >
-                    오늘 당신이라는 정원에 핀 꽃 확인하기
+                    사주·자미두수·숙요·점성술 꽃 특징 분석 보기
                   </motion.button>
                 )}
               </AnimatePresence>
             </div>
+          )}
+
+          {/* RESULTS 스테이지 – 4대 점술 특징 + 꽃 타임라인 */}
+          {stage === "results" && analysis.results.length > 0 && analysis.input && (
+            <motion.section
+              className={styles.resultsStageWrap}
+              initial={{ opacity: 0, y: 26 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65 }}
+            >
+              <header className={styles.resultsHeader}>
+                <div className={styles.resultsBadge}>✦ FLORAL DESTINY TIMELINE</div>
+                <h3>당신의 점술 특징이 꽃으로 개화되는 여정</h3>
+                <p>
+                  사주 · 자미두수 · 숙요 · 점성술 신호를 종합해 꽃 상징으로 번역했습니다.
+                  마지막에 3장의 카드 중 1장을 뽑아 오늘의 운세를 확정합니다.
+                </p>
+              </header>
+
+              <div className={styles.profileSnapshot}>
+                <div>
+                  <span>프로필</span>
+                  <strong>{analysis.input.profileName}</strong>
+                  <em>{profile ? formatProfileBirth(profile) : analysis.input.birthLabel}</em>
+                </div>
+                <div>
+                  <span>출생지</span>
+                  <strong>{analysis.input.locationLabel}</strong>
+                  <em>{analysis.input.isBirthTimeKnown ? "생시 반영" : "평시(12:00) 보정"}</em>
+                </div>
+              </div>
+
+              <div className={styles.crossSignalPanel}>
+                {analysis.input.crossSignals.map((signal, idx) => (
+                  <p key={signal + idx}>🌸 {signal}</p>
+                ))}
+              </div>
+
+              <div className={styles.oracleTimeline}>
+                <div className={styles.timelineLine} aria-hidden="true" />
+                {analysis.results.map((result, index) => (
+                  <section key={result.kind} className={styles.timelineNode}>
+                    <div className={styles.timelineBloom} style={{ borderColor: `${result.accentHex}77` }}>
+                      <span style={{ color: result.accentHex }}>✿</span>
+                      <small>{result.title}</small>
+                    </div>
+                    <div className={styles.timelineCardWrap}>
+                      <DivinationResultCard result={result} order={index} />
+                    </div>
+                  </section>
+                ))}
+              </div>
+
+              <div className={styles.resultStageActions}>
+                <button type="button" className={styles.resultPrimaryBtn} onClick={proceedToTarot}>
+                  3장의 꽃 카드에서 하루 운세 뽑기
+                </button>
+                <button type="button" className={styles.resultGhostBtn} onClick={restart}>
+                  분석 다시 시작
+                </button>
+              </div>
+            </motion.section>
           )}
 
           {/* TAROT 스테이지 – 3장 카드 */}

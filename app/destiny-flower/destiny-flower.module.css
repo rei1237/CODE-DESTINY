@@ -880,6 +880,359 @@
   font-size: 0.77rem;
 }
 
+/* ── Results Stage: Floral Timeline ── */
+.resultsStageWrap {
+  margin-top: 16px;
+  border-radius: 24px;
+  border: 1px solid rgba(201, 168, 76, 0.24);
+  background:
+    radial-gradient(circle at 85% 10%, rgba(201, 168, 76, 0.1), transparent 34%),
+    radial-gradient(circle at 14% 0%, rgba(145, 122, 234, 0.14), transparent 44%),
+    rgba(8, 12, 20, 0.95);
+  box-shadow: 0 18px 58px rgba(0, 0, 0, 0.52);
+  padding: 22px 16px 18px;
+}
+
+.resultsHeader {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.resultsBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 76, 0.34);
+  background: rgba(201, 168, 76, 0.08);
+  color: rgba(201, 168, 76, 0.84);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  margin-bottom: 10px;
+}
+
+.resultsHeader h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: rgba(255, 249, 224, 0.96);
+  letter-spacing: 0.04em;
+}
+
+.resultsHeader p {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  color: rgba(201, 168, 76, 0.64);
+  line-height: 1.72;
+}
+
+.profileSnapshot {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.profileSnapshot > div {
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  background: rgba(12, 16, 26, 0.72);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profileSnapshot span {
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.52);
+  font-weight: 800;
+}
+
+.profileSnapshot strong {
+  font-size: 0.86rem;
+  color: rgba(255, 249, 224, 0.93);
+  font-weight: 700;
+}
+
+.profileSnapshot em {
+  margin: 0;
+  font-style: normal;
+  color: rgba(201, 168, 76, 0.62);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.crossSignalPanel {
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  background: rgba(8, 12, 20, 0.64);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.crossSignalPanel p {
+  margin: 0;
+  color: rgba(255, 249, 224, 0.68);
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
+.crossSignalPanel p + p {
+  margin-top: 4px;
+}
+
+.oracleTimeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-left: 22px;
+}
+
+.timelineLine {
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(201, 168, 76, 0.15),
+      rgba(201, 168, 76, 0.9),
+      rgba(137, 112, 225, 0.78),
+      rgba(201, 168, 76, 0.2)
+    );
+  overflow: hidden;
+}
+
+.timelineLine::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 2px;
+  height: 28%;
+  background: linear-gradient(to bottom, transparent, rgba(255, 249, 224, 0.9), transparent);
+  animation: timelineTracer 2.6s linear infinite;
+}
+
+.timelineNode {
+  position: relative;
+}
+
+.timelineNode::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff8d6 0%, #c9a84c 72%);
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.85);
+}
+
+.timelineBloom {
+  margin-bottom: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 76, 0.26);
+  background: rgba(201, 168, 76, 0.08);
+  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.timelineBloom span {
+  font-size: 0.9rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(255, 220, 150, 0.4));
+}
+
+.timelineBloom small {
+  font-size: 0.68rem;
+  color: rgba(255, 249, 224, 0.8);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.timelineCardWrap {
+  position: relative;
+}
+
+.resultStageActions {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.resultPrimaryBtn,
+.resultGhostBtn {
+  min-height: 46px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.24s ease;
+}
+
+.resultPrimaryBtn {
+  border: 1px solid rgba(201, 168, 76, 0.5);
+  color: rgba(255, 249, 224, 0.95);
+  background: linear-gradient(135deg, rgba(201, 120, 50, 0.34), rgba(201, 168, 76, 0.42));
+  box-shadow: 0 8px 20px rgba(201, 168, 76, 0.18);
+}
+
+.resultPrimaryBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(201, 168, 76, 0.24);
+}
+
+.resultGhostBtn {
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  color: rgba(201, 168, 76, 0.8);
+  background: rgba(201, 168, 76, 0.08);
+}
+
+.resultGhostBtn:hover {
+  background: rgba(201, 168, 76, 0.16);
+}
+
+/* ── Divination Result Card ── */
+.divinationCard {
+  border-radius: 16px;
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  background: linear-gradient(152deg, rgba(14, 20, 32, 0.94), rgba(8, 12, 20, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 249, 224, 0.06), 0 8px 24px rgba(0, 0, 0, 0.35);
+  padding: 13px;
+}
+
+.divinationHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.divinationChip {
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  background: rgba(201, 168, 76, 0.1);
+  padding: 4px 10px;
+  font-size: 0.67rem;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: rgba(201, 168, 76, 0.88);
+}
+
+.divinationSubtitle {
+  font-size: 0.72rem;
+  color: rgba(255, 249, 224, 0.72);
+  font-weight: 600;
+}
+
+.resultMetaRow {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.elementTag {
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  background: rgba(201, 168, 76, 0.06);
+  color: rgba(201, 168, 76, 0.74);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 4px 10px;
+}
+
+.scorePill {
+  font-size: 0.76rem;
+  color: rgba(255, 249, 224, 0.9);
+  letter-spacing: 0.03em;
+}
+
+.bloomFrame {
+  margin-top: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  position: relative;
+  background: rgba(10, 14, 22, 0.85);
+}
+
+.bloomImage {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+
+.pollenLayer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.34) 1px, transparent 1.1px),
+    radial-gradient(circle, rgba(201, 168, 76, 0.3) 0.8px, transparent 0.9px);
+  background-size: 28px 28px, 38px 38px;
+  opacity: 0.25;
+  animation: pollenDrift 9s linear infinite;
+}
+
+.flowerName {
+  margin: 10px 0 4px;
+  color: rgba(255, 249, 224, 0.95);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.flowerSummary {
+  margin: 0;
+  color: rgba(201, 168, 76, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.flowerDetails {
+  margin: 8px 0 0;
+  color: rgba(255, 249, 224, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.67;
+}
+
+.basisLine {
+  margin: 8px 0 0;
+  color: rgba(201, 168, 76, 0.58);
+  font-size: 0.72rem;
+  line-height: 1.58;
+}
+
+.scoreBar {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.scoreBar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.18);
+}
+
 /* ══ Animations ══ */
 @keyframes twinkleDrift {
   from {
@@ -917,6 +1270,16 @@
   50%       { box-shadow: 0 0 16px 3px rgba(201, 168, 76, 0.18); }
 }
 
+@keyframes timelineTracer {
+  0% { top: -26%; }
+  100% { top: 120%; }
+}
+
+@keyframes pollenDrift {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 0 120px, 20px 80px; }
+}
+
 /* ══ Responsive ══ */
 @media (max-width: 640px) {
   .pageWrap {
@@ -933,6 +1296,10 @@
 
   .tarotCard {
     min-height: 160px;
+  }
+
+  .profileSnapshot {
+    grid-template-columns: 1fr;
   }
 
   .longReportGrid {
