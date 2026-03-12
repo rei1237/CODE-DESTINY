@@ -1009,7 +1009,8 @@ window.shareHwatu = function() {
 // ═══════════════════════════════════════════════════════════════
 window._hwatuMode = 'seotda'; // 'seotda' | 'traditional'
 
-window.switchHwatuMode = function(mode) {
+window.switchHwatuMode = function(mode, autoStartTraditional) {
+    if (typeof autoStartTraditional === 'undefined') autoStartTraditional = true;
     window._hwatuMode = mode;
     const isSeotda = mode === 'seotda';
     const seotdaBox = document.getElementById('seotdaModeContainer');
@@ -1030,6 +1031,15 @@ window.switchHwatuMode = function(mode) {
         setTimeout(function() {
             traditionalBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 30);
+    }
+
+    // 운수 떼기를 선택하면 안내 단계가 아니라 즉시 짝 맞추기 판으로 진입
+    if (!isSeotda && autoStartTraditional && !_tradState) {
+        setTimeout(function() {
+            if (window._hwatuMode === 'traditional' && !_tradState) {
+                startTraditionalGame();
+            }
+        }, 40);
     }
 };
 
