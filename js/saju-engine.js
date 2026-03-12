@@ -1,4 +1,4 @@
-﻿/* ═══════════════════════════════════════
+/* ═══════════════════════════════════════
    STEP 1: CDN 폴백 라이브러리 로딩
 ═══════════════════════════════════════ */
 var CDN_URLS=[
@@ -6775,549 +6775,6 @@ function renderZiwei(p, natal, targetId) {
         };
       })
     };
-  };
-  window.debugZiweiCaseBatch = function(cases){
-    var input = Array.isArray(cases) ? cases : [];
-    return input.map(function(c){
-      var y = Number(c && c.year) || 0;
-      var m = Number(c && c.month) || 1;
-      var d = Number(c && c.day) || 1;
-      var h = Number(c && c.hour) || 0;
-      var min = Number(c && c.minute) || 0;
-      var pd = calcZiweiPalaces(y, m, d, h, min);
-      var rows = (pd.palaceStarData || []).map(function(r){
-        function toStr(st){
-          return (st || []).map(function(it){
-            return it.name + ' ' + zwStrengthToSymbol(it.strength || '평') + (it.borrowed ? '*' : '');
-          }).join(', ');
-        }
-        return {
-          palace: zwDisplayPalaceName(r.palace),
-          branch: r.branch,
-          main: toStr(r.stars),
-          aux: toStr(r.auxStars),
-          bad: toStr(r.badStars)
-        };
-      });
-      return {
-        label: c && c.label ? String(c.label) : (String(y)+'-'+String(m)+'-'+String(d)+' '+String(h)+':'+String(min)),
-        input: { year:y, month:m, day:d, hour:h, minute:min },
-        ganZhi: { yearGan: pd.yearGan, lunarMonth: pd.lunarMonth, lunarDay: pd.lunarDay },
-        core: { meng: pd.meng, shen: pd.shen, ju: pd.juInfo },
-        rows: rows
-      };
-    });
-  };
-  window.debugZiweiProvidedCases = function(){
-    var cases = [
-      { label:'C1 1991-02-20 진시 남', year:1991, month:2, day:20, hour:8, minute:0, gender:'M' },
-      { label:'C2 2000-01-01 오시', year:2000, month:1, day:1, hour:12, minute:0 },
-      { label:'C3 1999-01-01 오시', year:1999, month:1, day:1, hour:12, minute:0 },
-      { label:'C4 1998-01-01 오시', year:1998, month:1, day:1, hour:12, minute:0 },
-      { label:'C5 1991-09-02 오시 여', year:1991, month:9, day:2, hour:12, minute:0, gender:'F' },
-      { label:'C6 2000-02-20 오시 남', year:2000, month:2, day:20, hour:12, minute:0, gender:'M' }
-    ];
-    return window.debugZiweiCaseBatch(cases);
-  };
-  window.debugZiweiKeyStarSummary = function(cases){
-    var keyStars = ['자미','천기','태양','무곡','천동','염정','천부','태음','탐랑','거문','천상','천량','칠살','파군','천괴','천월','좌보','우필','문창','문곡','경양','타라','화성','영성','지공','지겁','녹존','천마'];
-    var batch = window.debugZiweiCaseBatch(cases && cases.length ? cases : (window.debugZiweiProvidedCases() || []).map(function(x){ return x.input; }));
-    return batch.map(function(one){
-      var map = {};
-      (one.rows || []).forEach(function(r){
-        function ingest(list){
-          (list || '').split(',').map(function(v){ return v.trim(); }).filter(Boolean).forEach(function(tok){
-            var star = tok.split(' ')[0];
-            if(!map[star]) map[star] = [];
-            map[star].push({ palace:r.palace, branch:r.branch, token:tok });
-          });
-        }
-        ingest(r.main);
-        ingest(r.aux);
-        ingest(r.bad);
-      });
-      var keyMap = {};
-      keyStars.forEach(function(st){ if(map[st]) keyMap[st] = map[st]; });
-      return {
-        label: one.label,
-        input: one.input,
-        yearGan: one.ganZhi && one.ganZhi.yearGan,
-        keyStars: keyMap
-      };
-    });
-  };
-  window.debugZiweiCompareWithExpected = function(expectedCases){
-    var expected = Array.isArray(expectedCases) ? expectedCases : [];
-    var actual = window.debugZiweiProvidedCases();
-    function norm(v){ return String(v || '').replace(/\s+/g,' ').trim(); }
-    function rowKey(r){ return norm(r.palace) + '|' + norm(r.branch); }
-
-    return expected.map(function(expCase, idx){
-      var actCase = actual[idx] || null;
-      if(!actCase){
-        return { label: expCase && expCase.label ? expCase.label : ('case-'+idx), missingActual:true, mismatches:[{type:'case', msg:'actual case missing'}] };
-      }
-
-      var expRows = (expCase && expCase.rows) ? expCase.rows : [];
-      var actRows = (actCase.rows || []);
-      var mapAct = {};
-      actRows.forEach(function(r){ mapAct[rowKey(r)] = r; });
-
-      var mismatches = [];
-      expRows.forEach(function(er){
-        var k = rowKey(er);
-        var ar = mapAct[k];
-        if(!ar){
-          mismatches.push({ palace:er.palace, branch:er.branch, field:'row', expected:'exists', actual:'missing' });
-          return;
-        }
-        ['main','aux','bad'].forEach(function(f){
-          var ev = norm(er[f]);
-          var av = norm(ar[f]);
-          if(ev !== av){
-            mismatches.push({ palace:er.palace, branch:er.branch, field:f, expected:ev, actual:av });
-          }
-        });
-      });
-
-      return {
-        label: expCase && expCase.label ? expCase.label : actCase.label,
-        totalMismatches: mismatches.length,
-        mismatches: mismatches
-      };
-    });
-  };
-  function zwParseStarBrightnessMap(rowStr){
-    var out = {};
-    String(rowStr || '').split(',').map(function(v){ return v.trim(); }).filter(Boolean).forEach(function(tok){
-      var m = tok.match(/^([^\s]+)\s+([◎○▲△X])/);
-      if(!m) return;
-      out[m[1]] = m[2];
-    });
-    return out;
-  }
-  function zwMergeBrightnessMap(row){
-    var m1 = zwParseStarBrightnessMap(row && row.main);
-    var m2 = zwParseStarBrightnessMap(row && row.aux);
-    var m3 = zwParseStarBrightnessMap(row && row.bad);
-    var out = {};
-    [m1,m2,m3].forEach(function(m){
-      Object.keys(m).forEach(function(k){ out[k] = m[k]; });
-    });
-    return out;
-  }
-  window.debugZiweiBrightnessTemplate = function(cases){
-    var batch = window.debugZiweiCaseBatch(cases && cases.length ? cases : (window.debugZiweiProvidedCases() || []).map(function(x){ return x.input; }));
-    return batch.map(function(one){
-      return {
-        label: one.label,
-        input: one.input,
-        rows: (one.rows || []).map(function(r){
-          return {
-            palace: r.palace,
-            branch: r.branch,
-            main: r.main,
-            aux: r.aux,
-            bad: r.bad
-          };
-        })
-      };
-    });
-  };
-  window.debugZiweiExpectedCasesDefault = function(){
-    return [
-      {
-        label:'C5 1991-09-02 오시 여',
-        input:{ year:1991, month:9, day:2, hour:12, minute:0, gender:'F' },
-        rows:[
-          { palace:'주거환경', main:'무곡 △, 지겁 ▲, 지공 ◎, 천마 △' },
-          { palace:'직업성공', main:'태양 ◎' },
-          { palace:'인간관계', main:'천부 ◎' },
-          { palace:'사회활동', main:'천기 △, 태음 △, 타라 X' },
-          { palace:'정신행복', main:'천동 △, 문창 ◎, 영성 ◎, 우필 ◎' },
-          { palace:'신체건강', main:'자미 △, 탐랑 △, 녹존 ◎' },
-          { palace:'부모손배', main:'화성 △' },
-          { palace:'금전수익', main:'거문 ◎, 문곡 X, 좌보 ◎, 경양 ◎' },
-          { palace:'형제친구', main:'염정 ◎, 칠살 ◎' },
-          { palace:'애정부부', main:'천량 ◎' },
-          { palace:'자녀후배', main:'천상 △' }
-        ]
-      },
-      {
-        label:'C6 2000-02-20 오시 남',
-        input:{ year:2000, month:2, day:20, hour:12, minute:0, gender:'M' },
-        rows:[
-          { palace:'자녀후배', main:'무곡 △, 파군 X, 지겁 ▲, 지공 ◎' },
-          { palace:'애정부부', main:'태양 ◎, 천월 ○, 타라 ◎' },
-          { palace:'형제친구', main:'천부 ◎' },
-          { palace:'자기자신', main:'천기 △, 태음 △, 화성 X, 녹존 ○' },
-          { palace:'금전수익', main:'천동 △, 문창 ○, 영성 ○, 좌보 ◎' },
-          { palace:'부모선비', main:'자미 △, 탐랑 △, 경양 X' },
-          { palace:'신체건강', main:'천마 ○' },
-          { palace:'정신행복', main:'거문 ○, 문곡 X, 우필 ◎' },
-          { palace:'인간관계', main:'염정 ◎, 칠살 ◎, 천괴 ○' },
-          { palace:'직업성공', main:'천량 ◎' },
-          { palace:'주거환경', main:'천상 △' }
-        ]
-      }
-    ];
-  };
-  function caseKey(inp){
-    if(!inp) return '';
-    return [Number(inp.year)||0, Number(inp.month)||0, Number(inp.day)||0, Number(inp.hour)||0, Number(inp.minute)||0].join('-');
-  }
-  window.debugZiweiCompareBrightness = function(expectedCases){
-    var expected = Array.isArray(expectedCases) ? expectedCases : [];
-    var actual = window.debugZiweiProvidedCases();
-    function norm(v){ return String(v || '').replace(/\s+/g,' ').trim(); }
-    var actualByKey = {};
-    actual.forEach(function(ac){
-      actualByKey[caseKey(ac && ac.input)] = ac;
-    });
-    var expectedOnly = true;
-
-    function rowKey(r){
-      var p = norm(r && r.palace);
-      var b = norm(r && r.branch);
-      return b ? (p + '|' + b) : p;
-    }
-
-    return expected.map(function(expCase, idx){
-      var kCase = caseKey(expCase && expCase.input);
-      var actCase = (kCase && actualByKey[kCase]) ? actualByKey[kCase] : (actual[idx] || null);
-      if(!actCase){
-        return { label: expCase && expCase.label ? expCase.label : ('case-'+idx), missingActual:true, totalMismatches:0, mismatches:[{type:'case', msg:'actual case missing'}] };
-      }
-      var expRows = (expCase && expCase.rows) ? expCase.rows : [];
-      var actRows = (actCase.rows || []);
-      var mapAct = {};
-      actRows.forEach(function(r){
-        mapAct[rowKey(r)] = r;
-        if(r && r.palace) mapAct[norm(r.palace)] = r;
-      });
-
-      var mismatches = [];
-      expRows.forEach(function(er){
-        var k = rowKey(er);
-        var ar = mapAct[k];
-        if(!ar){
-          mismatches.push({ palace:er.palace, branch:er.branch, type:'row-missing', expected:'exists', actual:'missing' });
-          return;
-        }
-        var expMap = zwMergeBrightnessMap(er);
-        var actMap = zwMergeBrightnessMap(ar);
-        var starSet = {};
-        Object.keys(expMap).forEach(function(sn){ starSet[sn] = 1; });
-        if(!expectedOnly) Object.keys(actMap).forEach(function(sn){ starSet[sn] = 1; });
-
-        Object.keys(starSet).forEach(function(sn){
-          var es = expMap[sn] || '';
-          var as = actMap[sn] || '';
-          if(es !== as){
-            mismatches.push({
-              palace: er.palace,
-              branch: er.branch,
-              type: 'brightness',
-              star: sn,
-              expected: es || '(없음)',
-              actual: as || '(없음)'
-            });
-          }
-        });
-      });
-
-      return {
-        label: expCase && expCase.label ? expCase.label : actCase.label,
-        totalMismatches: mismatches.length,
-        mismatches: mismatches
-      };
-    });
-  };
-  function zwBrightnessSymbolToNum(sym){
-    if(sym === '◎') return 4;
-    if(sym === '○') return 3;
-    if(sym === '▲') return 2;
-    if(sym === '△') return 1;
-    if(sym === 'X') return 0;
-    return 2;
-  }
-  function zwBrightnessLossFromDiff(diff){
-    var total = 0;
-    (diff || []).forEach(function(cs){
-      (cs.mismatches || []).forEach(function(mm){
-        if(mm.type !== 'brightness') return;
-        var e = zwBrightnessSymbolToNum(mm.expected);
-        var a = zwBrightnessSymbolToNum(mm.actual);
-        var d = Math.abs(e - a);
-        total += (d * d);
-      });
-    });
-    return total;
-  }
-  function zwCloneCfg(){
-    return JSON.parse(JSON.stringify(ZW_BRIGHTNESS_CFG || {}));
-  }
-  function zwCloneObj(o){ return JSON.parse(JSON.stringify(o || {})); }
-  function zwAssignCfg(src){
-    var k = Object.keys(ZW_BRIGHTNESS_CFG || {});
-    k.forEach(function(kk){
-      if(src && typeof src[kk] === 'number') ZW_BRIGHTNESS_CFG[kk] = src[kk];
-    });
-  }
-  window.debugZiweiGetBrightnessCfg = function(){ return zwCloneCfg(); };
-  window.debugZiweiSetBrightnessCfg = function(cfg){ zwAssignCfg(cfg || {}); return zwCloneCfg(); };
-  window.debugZiweiGetBrightnessBias = function(){
-    return {
-      star: zwCloneObj(ZW_BRIGHTNESS_STAR_BIAS),
-      branch: zwCloneObj(ZW_BRIGHTNESS_BRANCH_BIAS),
-      interaction: zwCloneObj(ZW_BRIGHTNESS_INTERACTION_BIAS)
-    };
-  };
-  window.debugZiweiSetBrightnessBias = function(bias){
-    var b = bias || {};
-    Object.keys(b.star || {}).forEach(function(k){
-      if(typeof b.star[k] === 'number') ZW_BRIGHTNESS_STAR_BIAS[k] = b.star[k];
-    });
-    Object.keys(b.branch || {}).forEach(function(k){
-      if(typeof b.branch[k] === 'number') ZW_BRIGHTNESS_BRANCH_BIAS[k] = b.branch[k];
-    });
-    Object.keys(b.interaction || {}).forEach(function(k){
-      if(typeof b.interaction[k] === 'number') ZW_BRIGHTNESS_INTERACTION_BIAS[k] = b.interaction[k];
-    });
-    return window.debugZiweiGetBrightnessBias();
-  };
-  window.debugZiweiAutoTuneBrightness = function(expectedCases, options){
-    var expected = Array.isArray(expectedCases) ? expectedCases : [];
-    if(!expected.length){
-      return { ok:false, message:'expectedCases가 비어 있습니다. debugZiweiBrightnessTemplate() 결과를 흰색 기준으로 수정해 넣어주세요.' };
-    }
-    var opt = options || {};
-    var maxIter = Math.max(1, Number(opt.maxIter) || 80);
-    var step = Number(opt.step) || 0.02;
-    var minStep = Number(opt.minStep) || 0.002;
-    var keys = Array.isArray(opt.keys) && opt.keys.length ? opt.keys : [
-      'distSlope','spatialGain','elemGain','yinYangMatch','yinYangMismatch','monthAmp','hourAmp','polMatch','polMismatch',
-      'beneficAdj','maleficAdj','biasGain','yangNear1','yangNear0','yangFar4','tuoNear1','tuoNear0','tuoFar4',
-      'kongGood','kongBad','jieBad','jieGood','fireLingGood','fireLingBad'
-    ];
-    var bounds = {
-      distSlope:[0.15,0.7], spatialGain:[0.03,0.25], elemGain:[0.05,0.8], yinYangMatch:[0,0.3], yinYangMismatch:[-0.2,0],
-      monthAmp:[0,0.25], hourAmp:[0,0.25], polMatch:[0,0.2], polMismatch:[-0.15,0], beneficAdj:[-0.05,0.3], maleficAdj:[-0.4,0.1],
-      biasGain:[0,0.2], yangNear1:[0,1.2], yangNear0:[-1,0.2], yangFar4:[-1,0.2], tuoNear1:[-1.2,0], tuoNear0:[-1,0.2], tuoFar4:[-1,0.2],
-      kongGood:[-0.2,1], kongBad:[-1,0.2], jieBad:[-1,0.2], jieGood:[-0.2,0.8], fireLingGood:[-0.2,0.8], fireLingBad:[-1,0.2]
-    };
-    function clamp(key, v){
-      var b = bounds[key];
-      if(!b) return v;
-      if(v < b[0]) return b[0];
-      if(v > b[1]) return b[1];
-      return v;
-    }
-    function evalLoss(){
-      var diff = window.debugZiweiCompareBrightness(expected);
-      return { loss: zwBrightnessLossFromDiff(diff), diff: diff };
-    }
-
-    var curCfg = zwCloneCfg();
-    var curStarBias = zwCloneObj(ZW_BRIGHTNESS_STAR_BIAS);
-    var curBranchBias = zwCloneObj(ZW_BRIGHTNESS_BRANCH_BIAS);
-    var curInteractionBias = zwCloneObj(ZW_BRIGHTNESS_INTERACTION_BIAS);
-    var best = evalLoss();
-    var bestCfg = zwCloneCfg();
-    var bestStarBias = zwCloneObj(ZW_BRIGHTNESS_STAR_BIAS);
-    var bestBranchBias = zwCloneObj(ZW_BRIGHTNESS_BRANCH_BIAS);
-    var bestInteractionBias = zwCloneObj(ZW_BRIGHTNESS_INTERACTION_BIAS);
-    var history = [{ iter:0, loss:best.loss }];
-    var curStep = step;
-
-    var tuneStarBias = opt.tuneStarBias !== false;
-    var tuneBranchBias = opt.tuneBranchBias !== false;
-    var tuneInteractionBias = opt.tuneInteractionBias !== false;
-    var starKeys = {};
-    var interactionKeys = {};
-    expected.forEach(function(cs){
-      (cs.rows || []).forEach(function(r){
-        var bz = String(r && r.branch || '').trim();
-        [r.main, r.aux, r.bad].forEach(function(seg){
-          String(seg || '').split(',').map(function(v){ return v.trim(); }).filter(Boolean).forEach(function(tok){
-            var m = tok.match(/^([^\s]+)\s+([◎○▲△X])/);
-            if(m){
-              starKeys[m[1]] = 1;
-              if(bz) interactionKeys[m[1]+'|'+bz] = 1;
-            }
-          });
-        });
-      });
-    });
-    var tuneStarList = Object.keys(starKeys);
-    var tuneBranchList = Object.keys(ZW_BRIGHTNESS_BRANCH_BIAS || {});
-    var tuneInteractionList = Object.keys(interactionKeys);
-
-    for(var iter=1; iter<=maxIter; iter++){
-      var improved = false;
-      for(var ki=0; ki<keys.length; ki++){
-        var key = keys[ki];
-        if(typeof ZW_BRIGHTNESS_CFG[key] !== 'number') continue;
-        var baseVal = ZW_BRIGHTNESS_CFG[key];
-        var trials = [baseVal + curStep, baseVal - curStep];
-        var localBestLoss = best.loss;
-        var localBestVal = baseVal;
-
-        for(var ti=0; ti<trials.length; ti++){
-          var tv = clamp(key, trials[ti]);
-          ZW_BRIGHTNESS_CFG[key] = tv;
-          var ev = evalLoss();
-          if(ev.loss < localBestLoss){
-            localBestLoss = ev.loss;
-            localBestVal = tv;
-          }
-        }
-
-        ZW_BRIGHTNESS_CFG[key] = localBestVal;
-        if(localBestLoss < best.loss){
-          improved = true;
-          best = evalLoss();
-          bestCfg = zwCloneCfg();
-        }
-      }
-
-      if(tuneStarBias){
-        for(var si=0; si<tuneStarList.length; si++){
-          var sk = tuneStarList[si];
-          var sbv = ZW_BRIGHTNESS_STAR_BIAS[sk] || 0;
-          var trialsS = [sbv + (curStep * 0.5), sbv - (curStep * 0.5)];
-          var bestLossS = best.loss;
-          var bestValS = sbv;
-          for(var ts=0; ts<trialsS.length; ts++){
-            var tvs = Math.max(-0.8, Math.min(0.8, trialsS[ts]));
-            ZW_BRIGHTNESS_STAR_BIAS[sk] = tvs;
-            var evs = evalLoss();
-            if(evs.loss < bestLossS){ bestLossS = evs.loss; bestValS = tvs; }
-          }
-          ZW_BRIGHTNESS_STAR_BIAS[sk] = bestValS;
-          if(bestLossS < best.loss){
-            improved = true;
-            best = evalLoss();
-            bestCfg = zwCloneCfg();
-            bestStarBias = zwCloneObj(ZW_BRIGHTNESS_STAR_BIAS);
-            bestBranchBias = zwCloneObj(ZW_BRIGHTNESS_BRANCH_BIAS);
-            bestInteractionBias = zwCloneObj(ZW_BRIGHTNESS_INTERACTION_BIAS);
-          }
-        }
-      }
-
-      if(tuneBranchBias){
-        for(var bi=0; bi<tuneBranchList.length; bi++){
-          var bk = tuneBranchList[bi];
-          var bbv = ZW_BRIGHTNESS_BRANCH_BIAS[bk] || 0;
-          var trialsB = [bbv + (curStep * 0.35), bbv - (curStep * 0.35)];
-          var bestLossB = best.loss;
-          var bestValB = bbv;
-          for(var tb=0; tb<trialsB.length; tb++){
-            var tvb = Math.max(-0.5, Math.min(0.5, trialsB[tb]));
-            ZW_BRIGHTNESS_BRANCH_BIAS[bk] = tvb;
-            var evb = evalLoss();
-            if(evb.loss < bestLossB){ bestLossB = evb.loss; bestValB = tvb; }
-          }
-          ZW_BRIGHTNESS_BRANCH_BIAS[bk] = bestValB;
-          if(bestLossB < best.loss){
-            improved = true;
-            best = evalLoss();
-            bestCfg = zwCloneCfg();
-            bestStarBias = zwCloneObj(ZW_BRIGHTNESS_STAR_BIAS);
-            bestBranchBias = zwCloneObj(ZW_BRIGHTNESS_BRANCH_BIAS);
-            bestInteractionBias = zwCloneObj(ZW_BRIGHTNESS_INTERACTION_BIAS);
-          }
-        }
-      }
-
-      if(tuneInteractionBias && tuneInteractionList.length){
-        for(var ii=0; ii<tuneInteractionList.length; ii++){
-          var ik = tuneInteractionList[ii];
-          var iv = ZW_BRIGHTNESS_INTERACTION_BIAS[ik] || 0;
-          var trialsI = [iv + (curStep * 0.4), iv - (curStep * 0.4)];
-          var bestLossI = best.loss;
-          var bestValI = iv;
-          for(var tii=0; tii<trialsI.length; tii++){
-            var tvi = Math.max(-0.8, Math.min(0.8, trialsI[tii]));
-            ZW_BRIGHTNESS_INTERACTION_BIAS[ik] = tvi;
-            var evi = evalLoss();
-            if(evi.loss < bestLossI){ bestLossI = evi.loss; bestValI = tvi; }
-          }
-          ZW_BRIGHTNESS_INTERACTION_BIAS[ik] = bestValI;
-          if(bestLossI < best.loss){
-            improved = true;
-            best = evalLoss();
-            bestCfg = zwCloneCfg();
-            bestStarBias = zwCloneObj(ZW_BRIGHTNESS_STAR_BIAS);
-            bestBranchBias = zwCloneObj(ZW_BRIGHTNESS_BRANCH_BIAS);
-            bestInteractionBias = zwCloneObj(ZW_BRIGHTNESS_INTERACTION_BIAS);
-          }
-        }
-      }
-
-      history.push({ iter:iter, loss:best.loss, step:curStep });
-      if(!improved){
-        curStep *= 0.5;
-        if(curStep < minStep) break;
-      }
-    }
-
-    zwAssignCfg(bestCfg);
-    ZW_BRIGHTNESS_STAR_BIAS = zwCloneObj(bestStarBias);
-    ZW_BRIGHTNESS_BRANCH_BIAS = zwCloneObj(bestBranchBias);
-    ZW_BRIGHTNESS_INTERACTION_BIAS = zwCloneObj(bestInteractionBias);
-    var finalDiff = window.debugZiweiCompareBrightness(expected);
-    var totalMismatch = (finalDiff || []).reduce(function(s, c){ return s + (c.totalMismatches || 0); }, 0);
-
-    return {
-      ok:true,
-      totalMismatch: totalMismatch,
-      loss: zwBrightnessLossFromDiff(finalDiff),
-      cfg: zwCloneCfg(),
-      bias: {
-        star: zwCloneObj(ZW_BRIGHTNESS_STAR_BIAS),
-        branch: zwCloneObj(ZW_BRIGHTNESS_BRANCH_BIAS),
-        interaction: zwCloneObj(ZW_BRIGHTNESS_INTERACTION_BIAS)
-      },
-      history: history,
-      diff: finalDiff
-    };
-  };
-  window.debugZiweiAutoTuneSummary = function(expectedCases, options){
-    var r = window.debugZiweiAutoTuneBrightness(expectedCases, options || {});
-    if(!r || !r.ok) return r;
-    var top = [];
-    (r.diff || []).forEach(function(c){
-      (c.mismatches || []).forEach(function(m){
-        if(m.type === 'brightness') top.push({
-          label: c.label,
-          palace: m.palace,
-          branch: m.branch,
-          star: m.star,
-          expected: m.expected,
-          actual: m.actual
-        });
-      });
-    });
-    return {
-      ok: true,
-      totalMismatch: r.totalMismatch,
-      loss: r.loss,
-      cfg: r.cfg,
-      topMismatches: top.slice(0, 30),
-      lastHistory: (r.history || []).slice(-10)
-    };
-  };
-  window.debugZiweiRunAutoTune = function(expectedCases, options){
-    var out = window.debugZiweiAutoTuneSummary(expectedCases, options || {});
-    try { console.log('Ziwei auto-tune summary:', out); } catch(e) {}
-    return out;
-  };
-  window.debugZiweiRunAutoTuneWithDefaults = function(options){
-    var expected = window.debugZiweiExpectedCasesDefault();
-    var opt = options || { maxIter: 140, step: 0.03, minStep: 0.0015 };
-    return window.debugZiweiRunAutoTune(expected, opt);
   };
 
   var html = `
@@ -14228,57 +13685,135 @@ function renderVillain(p, power) {
   var wonjinAnimal = zhiToAnimal[wonjinZhi];
   var chongAnimal = zhiToAnimal[chongZhi];
 
-  var html = `
-    <div class="villain-container">
-      <div class="villain-header">
-        <div class="villain-shadow-box">
-          <div class="villain-shadow"></div>
-        </div>
-        <div class="villain-title-area">
-          <div class="villain-grade">위험도: 극상 (S급 경계 대상)</div>
-          <h3 class="villain-name">코드네임: ${badElement}기운의 ${badTenGod}</h3>
-        </div>
-      </div>
+  var villainProfileMap = {
+    '비겁': {
+      tier: 'A+ 동급자 침투형',
+      codename: 'MIRROR JACKER',
+      shortDesc: '당신과 비슷한 결로 접근해 신뢰를 얻고, 성과와 에너지를 슬쩍 가져가는 타입',
+      strategy: '정보를 단계별로 공개하고, 역할·책임·성과 귀속을 문서/메모로 남기세요.'
+    },
+    '식상': {
+      tier: 'A급 여론 교란형',
+      codename: 'NOISE CUTTER',
+      shortDesc: '말과 분위기로 흐름을 흐리고, 당신의 집중력을 무너뜨리는 타입',
+      strategy: '즉답 대신 기록 후 답변 원칙을 사용하고, 논쟁이 아닌 기준표로 대화하세요.'
+    },
+    '재성': {
+      tier: 'A+ 손익 흡혈형',
+      codename: 'DRAIN BROKER',
+      shortDesc: '돈/자원/기회를 매개로 들어와 당신의 손익 밸런스를 깨는 타입',
+      strategy: '금전·계약·공동지출은 분리하고, 계좌/증빙/한도 기준을 미리 고정하세요.'
+    },
+    '관성': {
+      tier: 'A+ 통제 압박형',
+      codename: 'IRON FRAME',
+      shortDesc: '권위, 규칙, 죄책감을 이용해 당신의 선택권을 빼앗는 타입',
+      strategy: '요청의 정당성·기한·범위를 재확인하고, 부당 요구는 짧고 단호하게 거절하세요.'
+    },
+    '인성': {
+      tier: 'A급 보호자 위장형',
+      codename: 'VELVET LEASH',
+      shortDesc: '도움과 조언의 얼굴로 다가와 당신의 자율성과 판단력을 약화시키는 타입',
+      strategy: '결정권은 항상 본인에게 두고, 조언은 참고만 하되 최종 선택은 스스로 하세요.'
+    }
+  };
 
-      <div class="villain-section">
-        <div class="villain-section-title">👁️ 몽타주 및 분위기</div>
-        <p class="villain-text">${appearanceMap[badElement]}</p>
-      </div>
+  var profile = villainProfileMap[badTenGod] || villainProfileMap['관성'];
+  var checklistItems = [
+    '나는 이 사람과 금전/업무 경계를 명확히 분리해두고 있다.',
+    '나는 대화에서 감정 반응보다 기록과 근거를 우선하고 있다.',
+    '나는 불편한 요구에 대해 짧고 명확하게 거절할 수 있다.',
+    '나는 연락 주기/만남 빈도를 내 페이스로 조절하고 있다.',
+    '나는 이 관계로 소모될 때 즉시 거리두기 루틴을 실행하고 있다.'
+  ];
 
-      <div class="villain-section red-flag">
-        <div class="villain-section-title">🚩 레드 플래그 (주의 행동)</div>
-        <p class="villain-text">${behaviorMap[badTenGod]}</p>
-      </div>
+  var checklistHtml = checklistItems.map(function(item, idx) {
+    return '<label class="villain-check-item" for="villainChk' + idx + '">' 
+      + '<input type="checkbox" class="villain-check-input" id="villainChk' + idx + '">'
+      + '<span class="villain-check-text">' + item + '</span>'
+      + '</label>';
+  }).join('');
 
-      <div class="villain-section">
-        <div class="villain-section-title">🎯 요주의 띠 (원진/충)</div>
-        <p class="villain-text">특히 <b>${wonjinAnimal}띠</b>나 <b>${chongAnimal}띠</b> 중에 이런 특징을 가진 사람이 있다면 무조건 거리를 두는 것이 좋습니다.</p>
-        <p class="villain-text" style="margin-top:8px; font-size:0.85rem; color:#ff9999;">
-          ※ 원진(怨嗔) 관계: ${wonjinDescMap[myDayZhi]} (서로 미워하고 원망하기 쉬운 인연)
-        </p>
-      </div>
+  var html = ''
+    + '<div class="villain-container villain-container--a-grade">'
+    + '  <div class="villain-header">'
+    + '    <div class="villain-shadow-box villain-silhouette-stage">'
+    + '      <div class="villain-aura"></div>'
+    + '      <div class="villain-shadow"></div>'
+    + '      <div class="villain-silhouette-core"></div>'
+    + '    </div>'
+    + '    <div class="villain-title-area">'
+    + '      <div class="villain-grade">위험 등급: ' + profile.tier + '</div>'
+    + '      <h3 class="villain-name">코드네임: ' + profile.codename + ' · ' + badElement + badTenGod + ' 빌런</h3>'
+    + '      <p class="villain-subcopy">' + profile.shortDesc + '</p>'
+    + '    </div>'
+    + '  </div>'
 
-      <div class="villain-section defense">
-        <div class="villain-section-title">🛡️ 퀀텀 방어 천기</div>
-        <p class="villain-text">${defenseMap[badTenGod]}</p>
-      </div>
+    + '  <div class="villain-section">'
+    + '    <div class="villain-section-title">👁️ 몽타주/분위기 프로파일</div>'
+    + '    <p class="villain-text">' + appearanceMap[badElement] + '</p>'
+    + '  </div>'
 
-      <div class="villain-fact-bomb">
-        <p>"${factBombMap[badTenGod]}"</p>
-      </div>
+    + '  <div class="villain-section red-flag">'
+    + '    <div class="villain-section-title">🚩 작동 패턴 (레드 플래그)</div>'
+    + '    <p class="villain-text">' + behaviorMap[badTenGod] + '</p>'
+    + '  </div>'
 
-      <div class="villain-quotes">
-        <div class="villain-quote yeoni">
-          "당신의 에너지를 갉아먹는 사람과는 굳이 잘 지낼 필요 없어요. 당신의 평화가 최우선이니까요! 🌸"
-        </div>
-        <div class="villain-quote neo">
-          "빌런은 네가 허락한 만큼만 널 괴롭힐 수 있어. 선 긋는 법부터 배워라. 🕶️"
-        </div>
-      </div>
-    </div>
-  `;
+    + '  <div class="villain-section">'
+    + '    <div class="villain-section-title">🎯 충돌 리스크 (원진/충)</div>'
+    + '    <p class="villain-text">특히 <b>' + wonjinAnimal + '띠</b>, <b>' + chongAnimal + '띠</b>와 결이 맞아떨어질 때 갈등 피로도가 급상승할 수 있습니다.</p>'
+    + '    <p class="villain-text" style="margin-top:8px;font-size:0.85rem;color:#ff9ea8;">※ 원진(怨嗔): ' + wonjinDescMap[myDayZhi] + '</p>'
+    + '  </div>'
+
+    + '  <div class="villain-section defense">'
+    + '    <div class="villain-section-title">🛡️ 실전 방어 가이드</div>'
+    + '    <p class="villain-text">' + defenseMap[badTenGod] + '</p>'
+    + '    <p class="villain-text" style="margin-top:8px;color:#c4b5fd;">+ A급 대응 포인트: ' + profile.strategy + '</p>'
+    + '  </div>'
+
+    + '  <div class="villain-fact-bomb"><p>"' + factBombMap[badTenGod] + '"</p></div>'
+
+    + '  <div class="villain-checklist-wrap">'
+    + '    <div class="villain-section-title">✅ A급 빌런 대처 체크리스트 (자가 진단 5문항)</div>'
+    + '    <div class="villain-checklist">' + checklistHtml + '</div>'
+    + '    <button type="button" class="villain-submit-btn" id="villainChecklistSubmit">제출하기 (결과 보기)</button>'
+    + '    <div class="villain-feedback" id="villainFeedback" aria-live="polite"></div>'
+    + '  </div>'
+
+    + '  <div class="villain-quotes">'
+    + '    <div class="villain-quote yeoni">"당신의 평화는 선택이 아니라 생존 전략이에요. 관계보다 컨디션을 먼저 지키세요."</div>'
+    + '    <div class="villain-quote neo">"빌런은 네 경계선이 흐릴 때 강해진다. 오늘부터 선명하게 끊어."</div>'
+    + '  </div>'
+    + '</div>';
 
   resultArea.innerHTML = html;
+
+  var submitBtn = document.getElementById('villainChecklistSubmit');
+  var feedbackEl = document.getElementById('villainFeedback');
+  if (submitBtn && feedbackEl) {
+    submitBtn.onclick = function() {
+      var checks = resultArea.querySelectorAll('.villain-check-input');
+      var checked = 0;
+      checks.forEach(function(chk) { if (chk.checked) checked += 1; });
+
+      var msg = '';
+      var gradeCls = 'mid';
+      if (checked >= 4) {
+        gradeCls = 'good';
+        msg = '훌륭한 방어태세! (' + checked + '/5) 경계선 설정과 감정 통제가 안정적입니다. 지금 페이스를 유지하세요.';
+      } else if (checked >= 2) {
+        gradeCls = 'mid';
+        msg = '조금 더 경계가 필요함 (' + checked + '/5). 대화 기록과 거리두기 루틴을 강화하면 소모를 크게 줄일 수 있습니다.';
+      } else {
+        gradeCls = 'danger';
+        msg = '위험! 당장 거리두기 필수 (' + checked + '/5). 연락/만남 빈도를 즉시 줄이고 금전·감정 경계부터 회복하세요.';
+      }
+
+      feedbackEl.classList.remove('is-show', 'is-good', 'is-mid', 'is-danger');
+      feedbackEl.innerHTML = '<strong>진단 결과</strong><br>' + msg;
+      feedbackEl.classList.add('is-show', 'is-' + gradeCls);
+    };
+  }
 }
 
 /* ══════════════════════════════════════════
