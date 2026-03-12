@@ -1,0 +1,382 @@
+"use client";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import styles from "./destiny-flower.module.css";
+import { useDestinyFlower } from "./DestinyFlowerContext";
+import { TarotPickCanvas } from "./TarotPickCanvas";
+import { FlowerCanvas } from "./FlowerCanvas";
+import { getFlowerImageCandidates } from "./flowerAssetMap";
+import { formatElementLabel, getElementColorHex } from "./flowerData";
+import { LongFormReport } from "./LongFormReport";
+import type { DiscoveryPhaseKey } from "./types";
+
+// ── 블룸 스테이지 헬퍼 ─────────────────────────────────────────────────────
+function getBloomStage(confirmedCount: number): 0 | 1 | 2 | 3 {
+  if (confirmedCount >= 3) return 3;
+  return confirmedCount as 0 | 1 | 2;
+}
+
+const BLOOM_LABEL = ["발아", "발아", "성장", "만개"] as const;
+const BLOOM_SUBTITLE = ["Germination", "Germination", "Growth", "Full Bloom"] as const;
+
+interface StoryEntry { label: string; title: string; body: string }
+const STORY: Record<0 | 1 | 2 | 3, StoryEntry> = {
+  0: { label: "뿌리의 형상 (사주)", title: "사주 四柱", body: "천문의 궤적이 당신의 씨앗에 닿고 있습니다." },
+  1: { label: "꽃잎의 빛깔 (자미두수)", title: "자미두수 · 숙요", body: "별무리의 빛이 씨앗 속으로 스며들기 시작합니다." },
+  2: { label: "향기의 근원 (점성술)", title: "태양 별자리", body: "천체의 형상이 마지막 조각을 채웁니다." },
+  3: { label: "만개", title: "운명의 꽃", body: "오늘 당신이라는 정원에 꽃이 완전히 피었습니다." },
+};
+
+// ── 캔버스 카드 저장 헬퍼 ────────────────────────────────────────────────────
+function createFinalCardCanvasUrl(options: {
+  flowerName: string;
+  aura: string;
+  tarotCardName: string;
+  narrative: string;
+  imageSources?: string[];
+}): Promise<string> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1440;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) { resolve(""); return; }
+
+    const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bg.addColorStop(0, "#0d1322");
+    bg.addColorStop(0.5, "#0a0e14");
+    bg.addColorStop(1, "#10162a");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 별 점 장식
+    ctx.fillStyle = "rgba(255, 255, 255, 0.32)";
+    for (let i = 0; i < 90; i++) {
+      ctx.beginPath();
+      ctx.arc(Math.random() * 1080, Math.random() * 700, 0.8 + Math.random() * 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const drawText = () => {
+      ctx.strokeStyle = "rgba(201, 168, 76, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(90, 766); ctx.lineTo(990, 766); ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 249, 224, 0.94)";
+      ctx.font = "700 52px system-ui, sans-serif";
+      ctx.fillText("운명의 꽃", 90, 836);
+
+      ctx.fillStyle = "#e8c96d";
+      ctx.font = "600 44px system-ui, sans-serif";
+      ctx.fillText(options.flowerName, 90, 904);
+
+      ctx.fillStyle = "rgba(201, 168, 76, 0.78)";
+      ctx.font = "500 30px system-ui, sans-serif";
+      ctx.fillText("아우라 · " + options.aura, 90, 958);
+
+      ctx.fillStyle = "rgba(180, 150, 100, 0.7)";
+      ctx.font = "600 27px system-ui, sans-serif";
+      ctx.fillText("Tarot: " + options.tarotCardName, 90, 1006);
+
+      ctx.fillStyle = "rgba(255, 249, 224, 0.65)";
+      ctx.font = "500 25px system-ui, sans-serif";
+      let y = 1058; let line = "";
+      for (const char of options.narrative.slice(0, 200)) {
+        const test = line + char;
+        if (ctx.measureText(test).width > 900) {
+          ctx.fillText(line, 90, y); y += 38; line = char;
+          if (y > 1350) break;
+        } else { line = test; }
+      }
+      if (line && y <= 1350) ctx.fillText(line, 90, y);
+
+      ctx.fillStyle = "rgba(201, 168, 76, 0.38)";
+      ctx.font = "500 21px system-ui, sans-serif";
+      ctx.fillText("Code Destiny · Celestial Bloom", 90, 1406);
+      resolve(canvas.toDataURL("image/png"));
+    };
+
+    const srcs = (options.imageSources ?? []).filter(Boolean);
+    if (!srcs.length) { drawText(); return; }
+
+    const img = new Image();
+    img.onload = () => {
+      const cw = 900, ch = 640, cx = 90, cy = 90;
+      const r = Math.min(cw / img.width, ch / img.height);
+      ctx.drawImage(img, cx + (cw - img.width * r) / 2, cy + (ch - img.height * r) / 2, img.width * r, img.height * r);
+      drawText();
+    };
+    img.onerror = drawText;
+    img.src = srcs[0];
+  });
+}
+
+// ── 메인 컨테이너 ─────────────────────────────────────────────────────────────
+export function FlowerFortuneContainer() {
+  const {
+    profileStatus,
+    analysis,
+    tarot,
+    stage,
+    reloadProfile,
+    confirmPhase,
+    runAnalysis,
+    pickTarot,
+    restart,
+  } = useDestinyFlower();
+
+  const discovery = analysis.discovery;
+  const phaseConfirmed = analysis.phaseConfirmed;
+  const finalFlower = tarot.finalFlower;
+  const pickedTarot = tarot.picked;
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const confirmedCount = useMemo(
+    () => Object.values(phaseConfirmed).filter(Boolean).length,
+    [phaseConfirmed],
+  );
+  const allPhasesConfirmed = confirmedCount >= 3;
+  const bloomStage = getBloomStage(confirmedCount);
+
+  const nextPhase = useMemo((): DiscoveryPhaseKey | null => {
+    if (!phaseConfirmed.saju) return "saju";
+    if (!phaseConfirmed.ziweiSukuyo) return "ziweiSukuyo";
+    if (!phaseConfirmed.astrology) return "astrology";
+    return null;
+  }, [phaseConfirmed]);
+
+  const handleFlowerTouch = () => {
+    if (nextPhase && stage === "input") confirmPhase(nextPhase);
+  };
+
+  const handleSave = async () => {
+    if (!finalFlower) return;
+    setIsSaving(true);
+    try {
+      const candidates = getFlowerImageCandidates(finalFlower.flowerId);
+      const pngUrl = await createFinalCardCanvasUrl({
+        flowerName: finalFlower.flowerName,
+        aura: finalFlower.aura,
+        tarotCardName: finalFlower.tarotCardName,
+        narrative: finalFlower.finalNarrative + " " + finalFlower.report.opening,
+        imageSources: candidates,
+      });
+      if (pngUrl) {
+        const a = document.createElement("a");
+        a.href = pngUrl;
+        a.download = "destiny-flower-" + Date.now() + ".png";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!finalFlower) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "나의 운명 꽃", text: finalFlower.shareText, url: window.location.href });
+        return;
+      } catch (_) { /* fallthrough */ }
+    }
+    try {
+      await navigator.clipboard.writeText(finalFlower.shareText);
+      alert("운명 꽃 결과 텍스트가 복사됐어요!");
+    } catch (_) {
+      alert("공유하지 못하는 환경입니다.");
+    }
+  };
+
+  const storyEntry = STORY[bloomStage];
+
+  return (
+    <main className={styles.pageWrap}>
+      {/* 그레인 노이즈 오버레이 */}
+      <div className={styles.grainOverlay} aria-hidden="true" />
+
+      {/* ✦ 천상 헤더 ✦ */}
+      <header className={styles.celestialHeader}>
+        <div className={styles.headerBadge}>✦ CELESTIAL BLOOM</div>
+        <h1 className={styles.headerTitle}>운명의 꽃</h1>
+        <p className={styles.headerSubtitle}>당신이라는 정원에서 피어나는 별들의 기록</p>
+      </header>
+
+      {/* 로딩 */}
+      {profileStatus === "loading" && (
+        <div className={styles.soulSyncPanel}>
+          <motion.div
+            className={styles.soulSyncOrb}
+            animate={{ scale: [1, 1.22, 1], opacity: [0.5, 1, 0.5] }}
+            transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+          />
+          <p className={styles.soulSyncText}>당신의 영혼의 지문을 정원에 심는 중...</p>
+          <small>천문의 궤적이 당신의 씨앗에 닿고 있습니다. 잠시 기다려주세요.</small>
+        </div>
+      )}
+
+      {/* 프로필 없음 */}
+      {profileStatus === "missing" && (
+        <div className={styles.missingGardenPanel}>
+          <div className={styles.missingGardenIcon}>🌱</div>
+          <p>아직 정원에 씨앗이 심기지 않았습니다.</p>
+          <small>
+            메인 화면에서 사주 정보를 입력해 운명의 정원을 완성한 뒤{" "}
+            다시 이 정원으로 돌아와 주세요.
+          </small>
+          <div className={styles.missingActions}>
+            <a href="/index.html" className={styles.gardenLink}>정원으로 이동</a>
+            <button type="button" className={styles.gardenButton} onClick={reloadProfile}>다시 확인</button>
+          </div>
+        </div>
+      )}
+
+      {/* 메인 정원 */}
+      {profileStatus === "ready" && discovery && (
+        <>
+          {/* INPUT 스테이지 – 블루밍 여정 */}
+          {stage === "input" && (
+            <div className={styles.flowerCanvasWrap}>
+              {/* 블룸 스테이지마다 바뀌는 신호 어노테이션 */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={"signal-" + bloomStage}
+                  className={styles.signalAnnotation}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.45 }}
+                >
+                  <span className={styles.signalLabel}>{storyEntry.label}</span>
+                  {bloomStage === 0 && (
+                    <>
+                      <p style={{ color: getElementColorHex(discovery.dayStemElement) }}>
+                        {discovery.dayStem} 일간 · {formatElementLabel(discovery.dayStemElement)}
+                      </p>
+                      <small>{storyEntry.body}</small>
+                    </>
+                  )}
+                  {bloomStage === 1 && (
+                    <>
+                      <p>{discovery.ziweiMainStar}</p>
+                      <small>숙요 {discovery.sukuyoMansion} · {storyEntry.body}</small>
+                    </>
+                  )}
+                  {bloomStage === 2 && (
+                    <>
+                      <p>{discovery.sunSignSymbol} {discovery.sunSignLabel}</p>
+                      <small>{storyEntry.body}</small>
+                    </>
+                  )}
+                  {bloomStage === 3 && (
+                    <>
+                      <p>{storyEntry.title}</p>
+                      <small>{storyEntry.body}</small>
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+
+              <p className={styles.bloomStageLabel}>
+                {BLOOM_LABEL[bloomStage]} · {BLOOM_SUBTITLE[bloomStage]}
+              </p>
+
+              {/* 인터랙티브 꽃 캔버스 */}
+              <FlowerCanvas
+                bloomStage={bloomStage}
+                dayStemElement={discovery.dayStemElement}
+                ziweiMainStar={discovery.ziweiMainStar}
+                sunSignSymbol={discovery.sunSignSymbol}
+                onClick={!allPhasesConfirmed ? handleFlowerTouch : undefined}
+              />
+
+              {/* 만개 후 CTA */}
+              <AnimatePresence>
+                {allPhasesConfirmed && (
+                  <motion.button
+                    className={styles.gardenCTA}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ delay: 0.55, duration: 0.65 }}
+                    onClick={runAnalysis}
+                  >
+                    오늘 당신이라는 정원에 핀 꽃 확인하기
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {/* TAROT 스테이지 – 3장 카드 */}
+          {stage === "tarot" && tarot.spread.length > 0 && (
+            <motion.div
+              className={styles.tarotStageWrap}
+              initial={{ opacity: 0, y: 26 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65 }}
+            >
+              <div className={styles.tarotFlowerMini}>
+                <FlowerCanvas
+                  bloomStage={3}
+                  dayStemElement={discovery.dayStemElement}
+                  ziweiMainStar={discovery.ziweiMainStar}
+                  sunSignSymbol={discovery.sunSignSymbol}
+                />
+              </div>
+              <TarotPickCanvas
+                cards={tarot.spread.slice(0, 3)}
+                selectedCardId={pickedTarot?.id}
+                onPick={pickTarot}
+              />
+            </motion.div>
+          )}
+
+          {/* FINALE 스테이지 */}
+          {stage === "final" && finalFlower && (
+            <motion.section
+              className={styles.finaleSection}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1 }}
+            >
+              <div className={styles.finaleStars} aria-hidden="true" />
+              <div className={styles.finaleNoise} aria-hidden="true" />
+
+              <FlowerCanvas
+                bloomStage={3}
+                dayStemElement={discovery.dayStemElement}
+                ziweiMainStar={discovery.ziweiMainStar}
+                sunSignSymbol={discovery.sunSignSymbol}
+              />
+
+              <div className={styles.finaleCard}>
+                <h2>오늘 당신이라는 정원에 핀 꽃</h2>
+                <h3>{finalFlower.flowerName}</h3>
+                <p className={styles.aura}>아우라 · {finalFlower.aura}</p>
+                <p className={styles.finalNarrative}>{finalFlower.finalNarrative}</p>
+                <div className={styles.tagRow}>
+                  {finalFlower.highlightTags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
+                <LongFormReport report={finalFlower.report} />
+                <div className={styles.finalActions}>
+                  <button type="button" onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? "생성 중..." : "🖼 카드 저장"}
+                  </button>
+                  <button type="button" onClick={handleShare}>📤 공유</button>
+                  <button type="button" onClick={restart}>🔄 다시 분석</button>
+                </div>
+              </div>
+            </motion.section>
+          )}
+        </>
+      )}
+    </main>
+  );
+}

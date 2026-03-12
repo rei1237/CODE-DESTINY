@@ -1,0 +1,848 @@
+/* ═══════════════════════════════════════════════════════════
+   entertain-engine.js  — CodeDestiny Entertain Engine v2
+   네임스페이스: CodeDestiny_Entertain
+
+   기능 1: 명리 헬스 리포트 (다크 네온 완전 리뉴얼)
+   기능 2: RPG 캐릭터 일일 퀘스트 (localStorage EXP 시스템)
+   기능 3: 테토-에겐 심화 분석 (양자 합화 기반 숨겨진 본성)
+
+   작동 원리: saju-engine.js 이후에 로드되어
+             renderHealthReport, renderSkillTree, renderHormoneVibe
+             세 함수를 오버라이드(교체/확장) 합니다.
+   ═══════════════════════════════════════════════════════════ */
+
+(function (w) {
+  'use strict';
+
+  /* ════════════════════════════════════════════════════════
+     §0  유틸리티 함수
+     ════════════════════════════════════════════════════════ */
+
+  // 시드 기반 피셔-예이츠 셔플
+  function seededShuffle(arr, seed) {
+    var a = arr.slice(), m = a.length, t, i, s = seed;
+    while (m) {
+      i = Math.floor(Math.abs(Math.sin(s++)) * m--);
+      t = a[m]; a[m] = a[i]; a[i] = t;
+    }
+    return a;
+  }
+
+  // 오늘 날짜 문자열 (YYYY-M-D)
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  }
+
+  // 시드 계산 (사용자 이름 + 날짜 + 추가 문자열)
+  function getSeed(extra) {
+    var k = todayKey() + (extra || '') + (w.USER_NAME || '');
+    var s = 0;
+    for (var i = 0; i < k.length; i++) s += k.charCodeAt(i);
+    return s;
+  }
+
+
+  /* ════════════════════════════════════════════════════════
+     §1  QuantumMyeongriEngine — 합(合) 확장 계산
+         삼합(三合) · 방합(方合) · 육합(六合) · 천간합(天干合)
+     ════════════════════════════════════════════════════════ */
+
+  // 삼합 (지지 세 자리가 모이면 특정 오행이 기화)
+  var SAMHAP = {
+    water: ['申', '子', '辰'],
+    fire:  ['寅', '午', '戌'],
+    wood:  ['亥', '卯', '未'],
+    metal: ['巳', '酉', '丑']
+  };
+
+  // 방합 (같은 계절 지지가 모이는 방국)
+  var BANGHAP = {
+    wood:  ['寅', '卯', '辰'],
+    fire:  ['巳', '午', '未'],
+    metal: ['申', '酉', '戌'],
+    water: ['亥', '子', '丑']
+  };
+
+  // 육합 (지지 두 자리 합화 쌍)
+  var YUKHAP = [
+    { pair: ['子', '丑'], result: 'earth' },
+    { pair: ['寅', '亥'], result: 'wood'  },
+    { pair: ['卯', '戌'], result: 'fire'  },
+    { pair: ['辰', '酉'], result: 'metal' },
+    { pair: ['巳', '申'], result: 'water' },
+    { pair: ['午', '未'], result: 'fire'  }
+  ];
+
+  // 천간합 파트너
+  var GANHE = {
+    '甲': '己', '己': '甲',
+    '乙': '庚', '庚': '乙',
+    '丙': '辛', '辛': '丙',
+    '丁': '壬', '壬': '丁',
+    '戊': '癸', '癸': '戊'
+  };
+  // 천간합 결과 오행
+  var GANHE_RES = {
+    '甲': 'earth',  '己': 'earth',
+    '乙': 'metal',  '庚': 'metal',
+    '丙': 'water',  '辛': 'water',
+    '丁': 'wood',   '壬': 'wood',
+    '戊': 'fire',   '癸': 'fire'
+  };
+
+  function calcQuantumHap(p) {
+    var zhis = [p.y.j, p.m.j, p.d.j, p.h.j];
+    var gans = [p.y.g, p.m.g, p.d.g, p.h.g];
+    var results = [];
+    var dominated = {}; // 합화 결과 오행별 부스트 합산
+
+    // ── 삼합 / 반합 검사
+    for (var el in SAMHAP) {
+      var set = SAMHAP[el];
+      var found = set.filter(function (z) { return zhis.indexOf(z) >= 0; });
+      if (found.length >= 3) {
+        results.push({ type: '삼합(三合)', resultEl: el, boost: 2.5, label: set.join(' ') });
+        dominated[el] = (dominated[el] || 0) + 2.5;
+      } else if (found.length === 2) {
+        results.push({ type: '반합(半合)', resultEl: el, boost: 1.3, label: found.join(' ') });
+        dominated[el] = (dominated[el] || 0) + 1.3;
+      }
+    }
+
+    // ── 방합 검사
+    for (var el2 in BANGHAP) {
+      var set2 = BANGHAP[el2];
+      var found2 = set2.filter(function (z) { return zhis.indexOf(z) >= 0; });
+      if (found2.length >= 3) {
+        results.push({ type: '방합(方合)', resultEl: el2, boost: 2.0, label: set2.join(' ') });
+        dominated[el2] = (dominated[el2] || 0) + 2.0;
+      }
+    }
+
+    // ── 육합 검사
+    YUKHAP.forEach(function (pair) {
+      var both = pair.pair.filter(function (z) { return zhis.indexOf(z) >= 0; });
+      if (both.length === 2) {
+        results.push({ type: '육합(六合)', resultEl: pair.result, boost: 1.6, label: pair.pair.join(' · ') });
+        dominated[pair.result] = (dominated[pair.result] || 0) + 1.6;
+      }
+    });
+
+    // ── 천간합 검사
+    for (var i = 0; i < gans.length; i++) {
+      for (var j = i + 1; j < gans.length; j++) {
+        if (GANHE[gans[i]] === gans[j]) {
+          var res = GANHE_RES[gans[i]];
+          results.push({ type: '천간합(天干合)', resultEl: res, boost: 1.4, label: gans[i] + ' · ' + gans[j] });
+          dominated[res] = (dominated[res] || 0) + 1.4;
+        }
+      }
+    }
+
+    // 최대 합화 오행 추출
+    var topEl = null, topBoost = 0;
+    for (var k in dominated) {
+      if (dominated[k] > topBoost) { topBoost = dominated[k]; topEl = k; }
+    }
+
+    return { hapResults: results, dominated: dominated, topEl: topEl, topBoost: topBoost };
+  }
+
+
+  /* ════════════════════════════════════════════════════════
+     §2  명리 헬스 리포트 — 다크 네온 테마 완전 리뉴얼
+     ════════════════════════════════════════════════════════ */
+
+  // 오행별 UI 상수
+  var EL_NEON   = { wood: '#4ade80', fire: '#f87171', earth: '#fbbf24', metal: '#e2e8f0', water: '#60a5fa' };
+  var EL_ICON   = { wood: '🌿', fire: '🔥', earth: '⛰️', metal: '⚔️', water: '💧' };
+  var EL_NAME   = { wood: '목(木)', fire: '화(火)', earth: '토(土)', metal: '금(金)', water: '수(水)' };
+  var EL_ORGAN  = { wood: '간·담', fire: '심장·소장', earth: '비·위', metal: '폐·대장', water: '신장·방광' };
+  var EL_MENTAL_NOTE = {
+    wood:  '목 기운 부족 → 억압된 감정이 분노나 우울로 발현될 수 있습니다. 표현하는 연습이 필요합니다.',
+    fire:  '화 기운 과잉 → 과도한 흥분과 불안이 번아웃을 만들 수 있습니다. 냉각이 필요합니다.',
+    earth: '토 기운 정체 → 걱정·반추 사고가 집중력을 갉아먹습니다. 단순화 연습을 권합니다.',
+    metal: '금 기운 예리 → 완벽주의와 슬픔이 에너지를 고갈시킵니다. 적당히의 기술이 필요합니다.',
+    water: '수 기운 결핍 → 두려움과 무기력이 의지를 약화시킵니다. 소소한 성취 루틴이 특효약입니다.'
+  };
+
+  // 십성 기반 멘탈 케어 처방
+  var TEN_GOD_MENTAL = {
+    '비견': { advice: '독립 과잉 → 고독감 주의. 혼자 모든 것을 해결하려는 습관이 번아웃을 만든다.', rx: '오늘 진심을 나눌 수 있는 친구 한 명에게 연락해보세요.' },
+    '겁재': { advice: '경쟁욕 과부하 → 내면의 불안 경계. 남과 비교가 습관이 되면 자존감이 흔들린다.', rx: '오늘 비교 대상 없는 나만의 성취 하나를 기록해보세요.' },
+    '식신': { advice: '감각 과잉 → 소진 주의. 먹고 즐기고 누리는 것이 과해지면 본질을 잃는다.', rx: '디지털 디톡스 30분이 지친 뇌를 리셋시켜 줍니다.' },
+    '상관': { advice: '표현욕 폭발 → 관계 갈등 주의. 하고 싶은 말을 다 하면 뒷감당이 힘들 수 있다.', rx: '일기에 쏟아내고 실제로는 3초 숨고르기 후에 말하는 연습을 해보세요.' },
+    '편재': { advice: '자극 추구 → 집중력 저하. 새로운 것을 끊임없이 좇다 보면 정착이 힘들어진다.', rx: '오늘 딱 하나만 완성하는 모노태스킹을 시도해보세요.' },
+    '정재': { advice: '안정 집착 → 기회 회피. 너무 안정성만 따지다 보면 성장이 멈춘다.', rx: '작은 불확실성을 감수하는 용기가 오늘의 과제입니다.' },
+    '편관': { advice: '스트레스 과잉 → 신체 각성 상태. 압박을 즐긴다고 느끼지만 몸은 이미 비상 모드다.', rx: '4-7-8 심호흡 기법으로 교감신경을 달래주세요. (4초 흡입, 7초 정지, 8초 날숨)' },
+    '정관': { advice: '규칙 집착 → 경직된 사고. 완벽히 옳아야 한다는 압박이 창의성을 막는다.', rx: '오늘만큼은 "틀려도 괜찮아"를 입버릇처럼 반복해보세요.' },
+    '편인': { advice: '고독 과잉 → 고립 주의. 나만의 세계에 갇히면 현실 감각이 흐려진다.', rx: '오늘 하루 5분이라도 바깥 세상과 연결되는 시간을 가져보세요.' },
+    '정인': { advice: '과보호 수용 → 의존성 주의. 받기만 익숙해지면 자생력이 떨어진다.', rx: '혼자 결정하고 혼자 책임지는 연습이 성장의 연료입니다.' }
+  };
+
+  // 타임라인 건강 예보 텍스트
+  var TIMELINE_TEXT = {
+    wood:  { today: '목(木) 기운이 시신경과 근육에 영향을 줍니다. 눈의 피로감과 뒷목 긴장을 확인하세요.', month: '이달 목 기운의 흐름이 간 기능에 영향을 줍니다. 음주·지방간·눈 건강에 주의하세요.', year: '올해 목 기운이 근골격계에 누적 영향을 줄 수 있습니다. 스트레칭 루틴이 필수입니다.' },
+    fire:  { today: '화기(火氣)가 심박수를 올립니다. 과로와 흥분 상태를 피하고 냉각이 필요합니다.', month: '이달 화 기운이 혈압·불면에 영향을 줄 수 있습니다. 취침 전 루틴을 만드세요.', year: '올해 화기 파동이 심혈관계를 자극합니다. 정기 혈압 검진을 권합니다.' },
+    earth: { today: '토기(土氣) 정체가 소화계를 둔하게 만듭니다. 과식·야식·밀가루를 피하세요.', month: '이달 습토(濕土) 기운이 비위에 영향을 줍니다. 단백질 중심 식단과 걷기를 권합니다.', year: '올해 토 기운의 누적으로 체중 관리와 혈당에 신경 쓸 필요가 있습니다.' },
+    metal: { today: '금기(金氣)가 호흡기를 건드립니다. 미세먼지와 건조한 공기에 주의하고 보습해주세요.', month: '이달 금 기운이 폐·피부·대장에 영향을 줄 수 있습니다. 환기와 수분 섭취가 중요합니다.', year: '올해 금 기운이 대장 건강에 영향을 줄 수 있습니다. 식이섬유 섭취를 늘려보세요.' },
+    water: { today: '수기(水氣) 부족으로 신장·방광이 피로합니다. 충분한 수분(2L 이상)을 보충하세요.', month: '이달 수 기운이 냉증·부종·허리 통증을 유발할 수 있습니다. 온열 케어가 도움이 됩니다.', year: '올해 수기 파동이 내분비·호르몬계에 영향을 줄 수 있습니다. 스트레스 관리가 핵심입니다.' }
+  };
+
+  function buildHealthTimeline(weakEl, johu) {
+    var info = TIMELINE_TEXT[weakEl] || TIMELINE_TEXT.earth;
+    var johuNote = (johu.type === 'hot' || johu.type === 'warm')
+      ? '조열(燥熱) 체질 — 수분 보충과 열을 식히는 음식이 건강의 핵심입니다.'
+      : (johu.type === 'cold' || johu.type === 'cool')
+        ? '한습(寒濕) 체질 — 온기를 공급하는 음식과 유산소 운동이 건강의 핵심입니다.'
+        : '온도 중화(中和) 체질 — 약한 오행을 채우는 식단에 집중하세요.';
+
+    var color = EL_NEON[weakEl] || '#fff';
+    return '<div class="ent-timeline">'
+      + '<div class="ent-tl-line"></div>'
+      + '<div class="ent-tl-node ent-reveal">'
+      +   '<div class="ent-tl-dot" style="background:' + color + ';box-shadow:0 0 8px ' + color + '88;"></div>'
+      +   '<div class="ent-tl-content"><div class="ent-tl-label">TODAY</div><div class="ent-tl-text">' + info.today + '</div></div>'
+      + '</div>'
+      + '<div class="ent-tl-node ent-reveal">'
+      +   '<div class="ent-tl-dot" style="background:#c9a84c;box-shadow:0 0 8px #c9a84c88;"></div>'
+      +   '<div class="ent-tl-content"><div class="ent-tl-label">THIS MONTH</div><div class="ent-tl-text">' + info.month + '</div></div>'
+      + '</div>'
+      + '<div class="ent-tl-node ent-reveal">'
+      +   '<div class="ent-tl-dot" style="background:#7c3aed;box-shadow:0 0 8px #7c3aed88;"></div>'
+      +   '<div class="ent-tl-content"><div class="ent-tl-label">THIS YEAR</div><div class="ent-tl-text">' + info.year + '</div></div>'
+      + '</div>'
+      + '<div class="ent-tl-node ent-tl-johu ent-reveal">'
+      +   '<div class="ent-tl-dot" style="background:#00e5ff;box-shadow:0 0 8px #00e5ff88;"></div>'
+      +   '<div class="ent-tl-content"><div class="ent-tl-label">조후(調候) 핵심</div><div class="ent-tl-text">' + johuNote + '</div></div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function buildEnhancedHealthReport(p, natal, johu, pw, jg) {
+    // ── 오행 비율
+    var ratios = (natal && natal.ratios) || { wood: 20, fire: 20, earth: 20, metal: 20, water: 20 };
+
+    // ── 용신 / 기신
+    var yongshinList = (jg && jg.isJong) ? [jg.dominant, jg.parEl].filter(Boolean) : ((pw && pw.yongshin) || []);
+    var kijishinList = (jg && jg.isJong) ? [] : ((pw && pw.kijishin) || []);
+
+    // ── 조후 요구 오행
+    var johuNeed = [], johuAvoid = [];
+    if (johu && (johu.type === 'hot' || johu.type === 'warm')) {
+      johuNeed = ['water', 'metal']; johuAvoid = ['fire', 'wood'];
+    } else if (johu && (johu.type === 'cold' || johu.type === 'cool')) {
+      johuNeed = ['fire', 'wood'];   johuAvoid = ['water', 'metal'];
+    }
+
+    // targetEl (용신 ∩ 조후 우선)
+    var targetEl = 'earth';
+    var inter = yongshinList.filter(function (e) { return johuNeed.indexOf(e) >= 0; });
+    if (inter.length) targetEl = inter[0];
+    else if (johuNeed.length) targetEl = johuNeed[0];
+    else if (yongshinList.length) targetEl = yongshinList[0];
+
+    // avoidEl
+    var avoidEl = 'earth';
+    var aInter = kijishinList.filter(function (e) { return johuAvoid.indexOf(e) >= 0; });
+    if (aInter.length) avoidEl = aInter[0];
+    else if (johuAvoid.length) avoidEl = johuAvoid[0];
+    else if (kijishinList.length) avoidEl = kijishinList[0];
+
+    // 가장 약한 오행
+    var weakEl = 'earth', minRatio = 999;
+    var ELS = ['wood', 'fire', 'earth', 'metal', 'water'];
+    ELS.forEach(function (el) {
+      if ((ratios[el] || 0) < minRatio) { minRatio = ratios[el] || 0; weakEl = el; }
+    });
+
+    // ── 최다 십성 분석 (멘탈 처방용)
+    var dg = p.d.g;
+    var topStar = null, topStarCnt = 0;
+    var tgCnt = {};
+    [p.y.g, p.y.j, p.m.g, p.m.j, p.h.g, p.h.j, p.d.j].forEach(function (c) {
+      var t = (w.getTenGod) ? w.getTenGod(dg, c) : null;
+      if (t && t !== '?' && t !== '일간') tgCnt[t] = (tgCnt[t] || 0) + 1;
+    });
+    for (var s in tgCnt) { if (tgCnt[s] > topStarCnt) { topStarCnt = tgCnt[s]; topStar = s; } }
+    var mentalData = TEN_GOD_MENTAL[topStar] || { advice: '다양한 십성이 고르게 분포된 균형 사주입니다. 현재의 루틴을 유지하면 됩니다.', rx: '오늘 감사한 것 세 가지를 기록해보세요.' };
+
+    // ── 식단 / 운동 데이터
+    var seed = getSeed('health');
+    var HFDB = w.HEALTH_FOOD_DB, HEDB = w.HEALTH_EXERCISE_DB;
+    var recFoods = [], badFood = null, recEx = null;
+    if (HFDB) {
+      var fArr = seededShuffle(HFDB[targetEl] || HFDB.earth, seed);
+      recFoods = fArr.slice(0, 6);
+      var bArr = seededShuffle(HFDB[avoidEl] || HFDB.earth, seed + 1);
+      badFood = bArr[0];
+    }
+    if (HEDB) recEx = HEDB[targetEl] || HEDB.earth;
+
+    // ── 오행 게이지 HTML
+    var gaugeHtml = ELS.map(function (el) {
+      var pct   = Math.round(ratios[el] || 0);
+      var color = EL_NEON[el];
+      var badge = (el === targetEl) ? '<span class="ent-el-badge target">용신↑</span>'
+                : (el === avoidEl)  ? '<span class="ent-el-badge avoid">기신↓</span>'
+                : '';
+      return '<div class="ent-gauge-row">'
+        + '<div class="ent-gauge-label">' + EL_ICON[el] + ' ' + EL_NAME[el]
+        +   ' <span style="font-size:.65rem;opacity:.6;color:' + color + '">' + EL_ORGAN[el] + '</span>' + badge + '</div>'
+        + '<div class="ent-gauge-bar-wrap"><div class="ent-gauge-fill" data-target="' + pct
+        +   '" style="width:0%;background:' + color + ';box-shadow:0 0 10px ' + color + '44;"></div></div>'
+        + '<div class="ent-gauge-pct" style="color:' + color + '">' + pct + '%</div>'
+        + '</div>';
+    }).join('');
+
+    // ── 식단 카드 HTML
+    var foodHtml = recFoods.length
+      ? recFoods.map(function (f) {
+          return '<div class="ent-food-card ent-reveal">'
+            + '<div class="ent-food-name">' + f.name + '</div>'
+            + '<div class="ent-food-desc">' + (f.reason || '') + '</div>'
+            + '</div>';
+        }).join('')
+      : '<div style="font-size:.8rem;color:rgba(255,255,255,.3)">식단 데이터를 불러올 수 없습니다.</div>';
+
+    var avoidFoodHtml = badFood
+      ? '<div class="ent-avoid-tip">⚠️ 오늘 피할 것: <b>' + badFood.name + '</b> — '
+        + EL_NAME[avoidEl] + ' 과잉을 유발합니다.</div>'
+      : '';
+
+    // ── 운동 카드 HTML
+    var exHtml = recEx
+      ? '<div class="ent-ex-card ent-reveal">'
+        + '<div class="ent-ex-name">' + EL_ICON[targetEl] + ' ' + recEx.name + '</div>'
+        + '<div class="ent-ex-desc">' + recEx.desc + '</div>'
+        + '<div class="ent-ex-stretch">🍀 행운의 스트레칭: ' + recEx.stretch + '</div>'
+        + '</div>'
+      : '';
+
+    // ── 전체 HTML 조립
+    return '<div class="ent-health-wrap">'
+
+      // 헤더
+      + '<div class="ent-health-header">'
+      +   '<div class="ent-health-tag">🩺 MYEONGRI HEALTH ENGINE v2</div>'
+      +   '<div class="ent-health-title">명리 헬스 리포트</div>'
+      +   '<div class="ent-health-sub">사주 오행 × 조후 × 용신 = ' + (w.USER_NAME || '당신') + '님만을 위한 맞춤 건강 처방</div>'
+      + '</div>'
+
+      // 섹션 1 — 오행 체질 게이지
+      + '<div class="ent-section ent-reveal">'
+      +   '<div class="ent-section-header">'
+      +     '<span class="ent-section-num">01</span>'
+      +     '<span class="ent-section-title">오행 체질 게이지</span>'
+      +   '</div>'
+      +   '<div class="ent-gauge-wrap">' + gaugeHtml + '</div>'
+      + '</div>'
+
+      // 섹션 2 — 건강 타임라인 예보
+      + '<div class="ent-section ent-reveal">'
+      +   '<div class="ent-section-header">'
+      +     '<span class="ent-section-num">02</span>'
+      +     '<span class="ent-section-title">건강 타임라인 예보</span>'
+      +   '</div>'
+      +   buildHealthTimeline(weakEl, johu || {})
+      + '</div>'
+
+      // 섹션 3 — 맞춤 처방전
+      + '<div class="ent-section ent-reveal">'
+      +   '<div class="ent-section-header">'
+      +     '<span class="ent-section-num">03</span>'
+      +     '<span class="ent-section-title">사주 맞춤 처방전 🥗</span>'
+      +   '</div>'
+      +   '<div class="ent-food-grid">' + foodHtml + '</div>'
+      +   avoidFoodHtml
+      +   exHtml
+      + '</div>'
+
+      // 섹션 4 — 멘탈 케어
+      + '<div class="ent-section ent-reveal">'
+      +   '<div class="ent-section-header">'
+      +     '<span class="ent-section-num">04</span>'
+      +     '<span class="ent-section-title">멘탈 케어 처방 🧠</span>'
+      +   '</div>'
+      +   '<div class="ent-mental-card">'
+      +     '<div class="ent-mental-star">최다 십성: ' + (topStar || '—') + '</div>'
+      +     '<div class="ent-mental-advice">⚡ ' + mentalData.advice + '</div>'
+      +     '<div class="ent-mental-rx">💊 처방: ' + mentalData.rx + '</div>'
+      +     '<div class="ent-mental-el-note">' + (EL_MENTAL_NOTE[weakEl] || '') + '</div>'
+      +   '</div>'
+      + '</div>'
+
+      + '</div>'; // .ent-health-wrap
+  }
+
+
+  /* ════════════════════════════════════════════════════════
+     §3  RPG 일일 퀘스트 시스템 (localStorage EXP)
+     ════════════════════════════════════════════════════════ */
+
+  // 일간 오행별 일일 퀘스트 데이터베이스
+  var QUEST_DB = {
+    wood: [
+      { id: 'wq1', icon: '🌱', text: '새로운 것을 하나 배우기 (영상, 아티클, 책 한 챕터)', exp: 20 },
+      { id: 'wq2', icon: '🤸', text: '10분 이상 스트레칭 또는 가벼운 산책', exp: 15 },
+      { id: 'wq3', icon: '📝', text: '창의적인 아이디어 3가지를 노트에 기록하기', exp: 25 },
+      { id: 'wq4', icon: '🥗', text: '녹색 채소 1가지 이상 오늘 식사에 포함하기', exp: 10 },
+      { id: 'wq5', icon: '💬', text: '가까운 사람에게 먼저 연락하거나 감사 표현하기', exp: 15 }
+    ],
+    fire: [
+      { id: 'fq1', icon: '🔥', text: '오늘 하루 최우선 목표 1개를 완수하기', exp: 25 },
+      { id: 'fq2', icon: '🌅', text: '아침에 햇빛 10분 이상 쬐기 (비타민D 충전)', exp: 10 },
+      { id: 'fq3', icon: '💪', text: '30분 이상 유산소 운동 (달리기, 사이클, 댄스)', exp: 20 },
+      { id: 'fq4', icon: '🎯', text: '하고 싶었던 말을 용기 있게 표현하기 (문자도 OK)', exp: 20 },
+      { id: 'fq5', icon: '💊', text: '수분 2L 이상 섭취하고 마신 양 체크하기', exp: 10 }
+    ],
+    earth: [
+      { id: 'eq1', icon: '⛰️', text: '오늘 감사한 것 3가지를 일기나 메모에 기록하기', exp: 15 },
+      { id: 'eq2', icon: '🍽️', text: '규칙적인 시간에 세끼 챙겨 먹기 (야식 금지)', exp: 15 },
+      { id: 'eq3', icon: '🏠', text: '방·책상 주변 5분 미니 정리정돈 완료하기', exp: 10 },
+      { id: 'eq4', icon: '🤝', text: '오늘 한 가지 약속이나 계획을 칼같이 지키기', exp: 25 },
+      { id: 'eq5', icon: '😴', text: '23시 이전 취침 준비 완료하기 (폰 내려놓기)', exp: 20 }
+    ],
+    metal: [
+      { id: 'mq1', icon: '⚔️', text: '가장 어려운 일을 먼저 처리하기 (이팅 더 프로그)', exp: 25 },
+      { id: 'mq2', icon: '🫁', text: '복식 호흡 5분 — 폐와 신경계 정화 호흡', exp: 15 },
+      { id: 'mq3', icon: '🗑️', text: '불필요한 앱·파일·물건 하나 정리하거나 삭제하기', exp: 10 },
+      { id: 'mq4', icon: '📊', text: '오늘 지출 내역 확인 및 이번 달 예산 점검하기', exp: 20 },
+      { id: 'mq5', icon: '🤫', text: '불필요한 말을 아끼고 핵심만 전달하는 하루', exp: 15 }
+    ],
+    water: [
+      { id: 'aq1', icon: '💧', text: '기상 직후 물 한 잔 (공복에 신장·방광 깨우기)', exp: 10 },
+      { id: 'aq2', icon: '🧘', text: '5분 명상 또는 조용한 사색 시간 갖기', exp: 20 },
+      { id: 'aq3', icon: '📖', text: '오늘 직관적으로 떠오른 아이디어·감정 기록하기', exp: 20 },
+      { id: 'aq4', icon: '🌊', text: '걱정거리를 종이에 쓰고 해결책 1가지 적어보기', exp: 25 },
+      { id: 'aq5', icon: '🎧', text: '마음을 편하게 해주는 음악 듣기 (최소 10분)', exp: 10 }
+    ]
+  };
+
+  // 비밀 팁 데이터 (모든 퀘스트 완료 시 해금)
+  var SECRET_TIP_DB = {
+    wood:  [
+      '오늘 나무의 기운이 당신의 직관을 극대화합니다. 영감이 떠오를 때 즉시 메모하세요. 그 아이디어가 1년 뒤 큰 기회가 될 수 있습니다.',
+      '동쪽을 향한 책상 배치 또는 초록 식물 하나가 오늘의 木 기운을 증폭시킵니다. 창의적인 작업에 특히 좋은 날입니다.'
+    ],
+    fire:  [
+      '오늘 화(火) 에너지가 당신의 카리스마를 폭발시킵니다. 중요한 발표나 협상은 오늘 오전에 진행하세요. 상대방이 당신의 열정에 압도될 것입니다.',
+      '빨간색 소품이나 붉은 음식(토마토, 딸기, 홍고추)이 오늘 화 기운을 증폭시킵니다. 행운의 컬러 빨강을 오늘 하나 착용해보세요.'
+    ],
+    earth: [
+      '오늘 토(土) 기운이 인연을 만들어줍니다. 오랫동안 연락 못 했던 소중한 사람에게 먼저 손을 내밀어보세요. 뜻밖의 좋은 소식을 들을 수 있습니다.',
+      '노란색이나 황토색 계열의 물건이 오늘 재운(財運)을 끌어당깁니다. 신뢰를 쌓고 관계를 다지기에 가장 좋은 날입니다.'
+    ],
+    metal: [
+      '오늘 금(金) 기운이 결단력을 최고조로 강화합니다. 미뤄뒀던 중요한 결정을 오늘 내리면 후회가 없을 것입니다. 칼같은 실행력이 빛을 발하는 날입니다.',
+      '흰색이나 금속 소품이 오늘의 포스를 배가시킵니다. 중요한 미팅에 깔끔한 차림을 권합니다. 첫인상이 결정적인 역할을 할 것입니다.'
+    ],
+    water: [
+      '오늘 수(水) 기운이 숨겨진 기회를 수면 위로 끌어올립니다. 평소 지나쳤던 정보나 제안을 다시 한번 꼼꼼히 살펴보세요. 보물이 숨어있을 수 있습니다.',
+      '검정 또는 남색 계열이 오늘 수기를 증폭시킵니다. 중요한 글쓰기·기획·아이디어 정리에 집중하기에 최적의 날입니다.'
+    ]
+  };
+
+  // EXP → 레벨 계산
+  function calcExpLevel(exp) {
+    var level = Math.floor(exp / 100) + 1;
+    var pct = exp % 100;
+    return { level: Math.min(level, 99), pct: pct };
+  }
+
+  function buildSecretTip(dayEl) {
+    var tips = SECRET_TIP_DB[dayEl] || SECRET_TIP_DB.earth;
+    var tip = seededShuffle(tips, getSeed('secret'))[0];
+    return tip;
+  }
+
+  function buildEnhancedQuestSystem(p) {
+    var dg = p.d.g;
+    var dayEl = ((w.GAN && w.GAN[dg]) ? w.GAN[dg].e : 'earth') || 'earth';
+    var quests = QUEST_DB[dayEl] || QUEST_DB.earth;
+    var allExp = quests.reduce(function (s, q) { return s + q.exp; }, 0);
+
+    var dateKey = todayKey();
+    var storageKey = 'cd_quests_' + dateKey;
+    var expKey = 'cd_exp';
+
+    // localStorage 로드
+    var completed = [];
+    try { completed = JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch (e) { completed = []; }
+    var totalExp = 0;
+    try { totalExp = parseInt(localStorage.getItem(expKey) || '0', 10) || 0; } catch (e) {}
+
+    var earnedToday = quests.filter(function (q) { return completed.indexOf(q.id) >= 0; })
+      .reduce(function (s, q) { return s + q.exp; }, 0);
+    var allDone = completed.length >= quests.length;
+    var lvlInfo = calcExpLevel(totalExp);
+
+    var questItems = quests.map(function (q) {
+      var isDone = completed.indexOf(q.id) >= 0;
+      return '<label class="ent-quest-item' + (isDone ? ' done' : '') + '" data-qid="' + q.id + '" data-exp="' + q.exp + '">'
+        + '<input type="checkbox"' + (isDone ? ' checked' : '') + ' style="display:none" aria-label="' + q.text + '">'
+        + '<div class="ent-quest-icon">' + q.icon + '</div>'
+        + '<div class="ent-quest-text">' + q.text + '</div>'
+        + '<div class="ent-quest-exp">+' + q.exp + ' EXP</div>'
+        + '</label>';
+    }).join('');
+
+    var secretHtml = allDone
+      ? '<div class="ent-secret-unlock is-visible" style="display:block">'
+        + '<div class="ent-secret-icon">🔓</div>'
+        + '<div class="ent-secret-title">오늘의 비밀 운세 해금!</div>'
+        + '<div class="ent-secret-text">' + buildSecretTip(dayEl) + '</div>'
+        + '</div>'
+      : '<div class="ent-secret-lock">'
+        + '<div class="ent-secret-lock-icon">🔒</div>'
+        + '<div class="ent-secret-lock-text">퀘스트를 모두 완료하면 오늘의 <b>비밀 운세</b>가 해금됩니다!</div>'
+        + '</div>';
+
+    return '<div class="ent-quest-wrap" id="entQuestSection" data-storage="' + storageKey + '" data-expkey="' + expKey + '" data-dayel="' + dayEl + '">'
+      + '<div class="ent-quest-header">'
+      +   '<div class="ent-quest-tag">⚡ DAILY QUEST SYSTEM</div>'
+      +   '<div class="ent-quest-title">오늘의 일일 퀘스트</div>'
+      +   '<div class="ent-quest-sub">' + EL_ICON[dayEl] + ' ' + EL_NAME[dayEl] + ' 일간 맞춤 미션 · 매일 자정 리셋</div>'
+      + '</div>'
+      // EXP 현황 패널
+      + '<div class="ent-exp-panel">'
+      +   '<div class="ent-exp-level">LV. <span id="entLvNum">' + lvlInfo.level + '</span></div>'
+      +   '<div class="ent-exp-wrap"><div class="ent-exp-bar" id="entExpBar" style="width:' + lvlInfo.pct + '%"></div></div>'
+      +   '<div class="ent-exp-label">누적 EXP <span id="entTotalExp">' + totalExp + '</span> &nbsp;·&nbsp; 오늘 획득: <span id="entTodayExp">' + earnedToday + '</span> / ' + allExp + '</div>'
+      + '</div>'
+      // 퀘스트 목록
+      + '<div class="ent-quest-list" id="entQuestList">' + questItems + '</div>'
+      // 비밀 해금 영역
+      + '<div id="entSecretArea">' + secretHtml + '</div>'
+      + '</div>';
+  }
+
+
+  /* ════════════════════════════════════════════════════════
+     §4  테토-에겐 심화 분석 — 양자 합화 × 숨겨진 본성 × 뼈 때리는 조언
+     ════════════════════════════════════════════════════════ */
+
+  // 합화 결과 오행별 숨겨진 본성 데이터
+  var HAP_HIDDEN = {
+    water: {
+      title: '숨겨진 본성: 깊은 공감자 (水局)',
+      desc: '수국(水局) 합화가 사주에 형성되어 있습니다. 겉으로 보이는 강함 혹은 감성 뒤에, 타인의 감정을 물처럼 흡수하고 공명하는 깊은 공감 능력이 잠들어 있습니다. 당신이 생각보다 훨씬 더 많은 것을 느끼고 있다는 것을 — 스스로 먼저 인정해주세요. 이 공감 능력은 최강의 무기가 될 수 있습니다.'
+    },
+    fire: {
+      title: '숨겨진 본성: 폭발적 열정가 (火局)',
+      desc: '화국(火局) 합화 기운이 사주 깊은 곳에서 에너지를 모읍니다. 차분하거나 조용해 보이더라도 내면에는 불꽃 같은 에너지와 억압된 열정이 잠들어 있습니다. 단 한 번의 결정적인 계기로 폭발적인 행동력이 터져나올 수 있습니다. 이 에너지를 올바른 방향으로 흘려보내는 것이 관건입니다.'
+    },
+    wood: {
+      title: '숨겨진 본성: 집요한 성장자 (木局)',
+      desc: '목국(木局) 합화가 당신의 성장 DNA를 수면 아래에서 자극합니다. 현재는 잠잠해 보이거나 포기한 것처럼 보일 때도, 속으로는 끊임없이 더 나아가려는 집요한 성장 의지가 작동하고 있습니다. 당신은 멈추는 것처럼 보이지만, 실제로는 항상 다음 도약을 준비하고 있습니다.'
+    },
+    metal: {
+      title: '숨겨진 본성: 냉철한 판단자 (金局)',
+      desc: '금국(金局) 합화가 내면의 분석 능력을 날카롭게 가다듬고 있습니다. 감정적으로 반응하는 것처럼 보여도, 실제로는 그 뒤에서 상황을 매우 차갑고 정확하게 관찰·계산하는 메타인지가 작동합니다. 당신의 판단력은 본인도 놀랄 만큼 예리합니다. 이 능력을 의식적으로 활용하세요.'
+    },
+    earth: {
+      title: '숨겨진 본성: 묵직한 수용자 (土)',
+      desc: '토기(土氣)의 합화가 사주의 중심을 잡고 있습니다. 흔들리는 것처럼 보여도 당신의 내면에는 모든 것을 포용하는 대지(大地) 에너지가 있습니다. 혼란 속에서도 결국 중심을 찾아내는 것이 당신의 가장 큰 재능입니다. 이 안정감이 주변 사람들을 끌어당기는 이유입니다.'
+    }
+  };
+
+  // 성향별 뼈 때리는 조언 (테토 / 에겐 / 균형)
+  var BONE_ADVICE = {
+    teto: [
+      {
+        icon: '🪞',
+        title: '당신이 놓치고 있는 진실',
+        text: '강해 보이는 것과 실제로 강한 것은 다릅니다. 주도권을 잡아야만 안심이 된다면 — 그것은 강함이 아니라 내면의 불안이 만들어낸 정교한 방어기제일 수 있습니다. 진짜 강한 사람은 취약함을 보여줄 수도 있습니다.'
+      },
+      {
+        icon: '💔',
+        title: '관계에서 반복되는 패턴',
+        text: '먼저 베풀고 나중에 스스로 지쳐서 뒤돌아서는 패턴이 반복된다면, "나는 왜 기대하는가"부터 돌아보세요. 기대 없이 주는 연습이 당신을 더 자유롭게 만들 것입니다. 관계는 통제가 아니라 흐름입니다.'
+      },
+      {
+        icon: '🔥',
+        title: '이 에너지가 독이 될 때',
+        text: '승부욕이 과열되면 번아웃이 아니라 자멸이 옵니다. 이기기 위해 싸우는 것과 성장하기 위해 싸우는 것은 전혀 다른 에너지입니다. 지는 법을 배우는 것도 테토형 인간이 반드시 익혀야 할 최고의 스킬입니다.'
+      }
+    ],
+    egen: [
+      {
+        icon: '🌊',
+        title: '당신이 놓치고 있는 진실',
+        text: '감수성이 뛰어나다는 것이 때로는 경계를 잃는 것을 의미합니다. 모두를 보살피다 정작 자신을 돌보지 못하고 있지는 않나요? 당신이 먼저 채워져야 다른 사람에게도 줄 수 있습니다. 산소마스크는 본인부터 착용해야 합니다.'
+      },
+      {
+        icon: '🌱',
+        title: '관계에서 반복되는 패턴',
+        text: '"왜 나는 항상 이렇게 맞춰주는가" 싶을 때가 있을 것입니다. 그것은 사랑이기도 하지만, 거절하지 못하는 두려움이기도 합니다. NO라고 말하는 연습 — 당신에게 가장 필요한 자기 존중의 언어입니다.'
+      },
+      {
+        icon: '✨',
+        title: '이 에너지가 독이 될 때',
+        text: '감정에 과몰입하면 객관적인 판단력이 흐려집니다. 감정을 충분히 느끼되 그 감정에 지배당하지 않는 메타인지 훈련이 당신에게 가장 필요한 성장 과제입니다. 관찰자의 눈으로 자신을 바라보는 연습을 시작하세요.'
+      }
+    ],
+    neutral: [
+      {
+        icon: '⚖️',
+        title: '당신이 놓치고 있는 진실',
+        text: '양면성은 분명 강점입니다. 하지만 때로는 내 안의 진짜 욕구가 무엇인지 스스로도 모르는 상황이 생깁니다. "나는 지금 진짜 뭘 원하는가" — 이 질문을 일주일에 한 번은 진지하게 물어보세요.'
+      },
+      {
+        icon: '🌀',
+        title: '관계에서 반복되는 패턴',
+        text: '상황에 따라 다른 면을 보여주는 것이 영리해 보이지만, 가까운 사람이 "당신의 진짜 모습을 모르겠다"고 느낄 수 있습니다. 무방비 상태의 진짜 모습을 한 명에게라도 보여주는 용기가 관계의 깊이를 만듭니다.'
+      },
+      {
+        icon: '🔮',
+        title: '이 에너지가 독이 될 때',
+        text: '균형을 유지하려는 욕구가 과잉되면 아무 결정도 내리지 못하는 우유부단함이 됩니다. 완벽한 균형은 존재하지 않습니다. 선택하고 책임지는 용기 — 그것이 당신을 한 단계 성장시키는 유일한 방법입니다.'
+      }
+    ]
+  };
+
+  function buildTetoEgeDeepSection(p, power, hapData) {
+    var vibe = (w.calculateHormoneVibe) ? w.calculateHormoneVibe(p, power) : { result: 'neutral' };
+    var result = vibe.result || 'neutral';
+
+    // ── 숨겨진 본성 (합화 기반)
+    var hiddenHtml = '';
+    if (hapData && hapData.topEl && hapData.hapResults && hapData.hapResults.length > 0) {
+      var hiddenData = HAP_HIDDEN[hapData.topEl] || HAP_HIDDEN.earth;
+      var hapListHtml = hapData.hapResults.slice(0, 4).map(function (h) {
+        var color = EL_NEON[h.resultEl] || '#ddd';
+        return '<span class="ent-hap-badge" style="color:' + color + ';border-color:' + color + '44;">'
+          + h.type + ' <b>' + h.label + '</b> → ' + EL_NAME[h.resultEl] + '</span>';
+      }).join('');
+      hiddenHtml = '<div class="ent-hidden-wrap ent-reveal">'
+        + '<div class="ent-hidden-header">🌌 양자 명리 — 숨겨진 본성</div>'
+        + '<div class="ent-hap-list">' + hapListHtml + '</div>'
+        + '<div class="ent-hidden-title">' + hiddenData.title + '</div>'
+        + '<div class="ent-hidden-desc">' + hiddenData.desc + '</div>'
+        + '</div>';
+    }
+
+    // ── 뼈 때리는 조언
+    var advices = BONE_ADVICE[result] || BONE_ADVICE.neutral;
+    var adviceHtml = advices.map(function (a) {
+      return '<div class="ent-bone-card ent-reveal">'
+        + '<div class="ent-bone-icon">' + a.icon + '</div>'
+        + '<div class="ent-bone-body">'
+        + '  <div class="ent-bone-title">' + a.title + '</div>'
+        + '  <div class="ent-bone-text">' + a.text + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="ent-te-deep-wrap">'
+      + hiddenHtml
+      + '<div class="ent-bone-section ent-reveal">'
+      +   '<div class="ent-bone-header">🦴 뼈 때리는 조언</div>'
+      +   '<div class="ent-bone-subtitle">사주가 당신에게 보내는 솔직하고 따끔한 메시지</div>'
+      +   '<div class="ent-bone-list">' + adviceHtml + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+
+  /* ════════════════════════════════════════════════════════
+     §5  원본 함수 오버라이드
+         (saju-engine.js 이후 로드되므로 안전하게 교체 가능)
+     ════════════════════════════════════════════════════════ */
+
+  // ① 명리 헬스 리포트 — 완전 교체
+  var _origHealth = w.renderHealthReport;
+  w.renderHealthReport = function (p, natal, johu, pw, jg) {
+    var area = document.getElementById('healthReportSection');
+    var card = document.getElementById('healthReportCard');
+    if (!area || !card) {
+      // 엘리먼트가 없으면 원본 폴백
+      _origHealth && _origHealth(p, natal, johu, pw, jg);
+      return;
+    }
+    area.innerHTML = buildEnhancedHealthReport(p, natal, johu, pw, jg);
+    card.style.display = 'block';
+    _scheduleReveal(area);
+    _initGaugeAnimation(area);
+  };
+
+  // ② RPG 스킬 트리 — 퀘스트 시스템 추가 (원본은 유지)
+  var _origSkillTree = w.renderSkillTree;
+  w.renderSkillTree = function (p, natal) {
+    _origSkillTree && _origSkillTree(p, natal);
+    var area = document.getElementById('skillTreeSection');
+    if (!area) return;
+    // 퀘스트 HTML 추가
+    var questEl = document.createElement('div');
+    questEl.innerHTML = buildEnhancedQuestSystem(p);
+    var questNode = questEl.firstElementChild || questEl;
+    area.appendChild(questNode);
+    _scheduleReveal(area);
+    _initQuestSystem();
+  };
+
+  // ③ 테토-에겐 — 심화 분석 섹션 추가 (원본 결과 아래에 이어서 표시)
+  var _origHormone = w.renderHormoneVibe;
+  w.renderHormoneVibe = function (p, power) {
+    _origHormone && _origHormone(p, power);
+    var target = document.getElementById('hormoneVibeResult');
+    if (!target) return;
+    var hapData = calcQuantumHap(p);
+    var deepHtml = buildTetoEgeDeepSection(p, power, hapData);
+    var addon = document.createElement('div');
+    addon.innerHTML = deepHtml;
+    target.appendChild(addon.firstElementChild || addon);
+    _scheduleReveal(target);
+  };
+
+
+  /* ════════════════════════════════════════════════════════
+     §6  인터랙션 & 애니메이션
+     ════════════════════════════════════════════════════════ */
+
+  // 스크롤 진입 시 페이드인 (IntersectionObserver)
+  function _scheduleReveal(root) {
+    requestAnimationFrame(function () {
+      _initScrollReveal(root);
+    });
+  }
+
+  function _initScrollReveal(root) {
+    var els = (root || document).querySelectorAll('.ent-reveal:not(.is-visible)');
+    if (!els.length) return;
+    if (typeof IntersectionObserver !== 'undefined') {
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-visible');
+            obs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.08 });
+      els.forEach(function (el) { obs.observe(el); });
+    } else {
+      // IntersectionObserver 미지원 환경: 즉시 표시
+      els.forEach(function (el) { el.classList.add('is-visible'); });
+    }
+  }
+
+  // 오행 게이지 너비 애니메이션 시작
+  function _initGaugeAnimation(root) {
+    setTimeout(function () {
+      var fills = (root || document).querySelectorAll('.ent-gauge-fill');
+      fills.forEach(function (fill) {
+        var target = fill.getAttribute('data-target') || '0';
+        fill.style.width = target + '%';
+      });
+    }, 250);
+  }
+
+  // 퀘스트 클릭 이벤트 바인딩
+  function _initQuestSystem() {
+    var section = document.getElementById('entQuestSection');
+    if (!section) return;
+    var storageKey = section.getAttribute('data-storage');
+    var expKey = section.getAttribute('data-expkey');
+    var dayEl = section.getAttribute('data-dayel') || 'earth';
+
+    section.querySelectorAll('.ent-quest-item:not(.done)').forEach(function (item) {
+      item.addEventListener('click', function () {
+        if (item.classList.contains('done')) return;
+
+        var checkbox = item.querySelector('input[type="checkbox"]');
+        var qid = item.getAttribute('data-qid');
+        var qexp = parseInt(item.getAttribute('data-exp') || '0', 10);
+
+        // 1) 시각 처리
+        if (checkbox) checkbox.checked = true;
+        item.classList.add('done');
+
+        // 2) localStorage 갱신
+        var completed = [];
+        try { completed = JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch (e) {}
+        if (completed.indexOf(qid) < 0) {
+          completed.push(qid);
+          try { localStorage.setItem(storageKey, JSON.stringify(completed)); } catch (e) {}
+
+          // EXP 누적
+          var totalExp = 0;
+          try { totalExp = parseInt(localStorage.getItem(expKey) || '0', 10) || 0; } catch (e) {}
+          totalExp += qexp;
+          try { localStorage.setItem(expKey, String(totalExp)); } catch (e) {}
+
+          // 3) UI 갱신
+          var lvInfo = calcExpLevel(totalExp);
+          var lvEl = document.getElementById('entLvNum');
+          var barEl = document.getElementById('entExpBar');
+          var totEl = document.getElementById('entTotalExp');
+          var todayEl = document.getElementById('entTodayExp');
+          if (lvEl)    lvEl.textContent    = lvInfo.level;
+          if (barEl)   barEl.style.width   = lvInfo.pct + '%';
+          if (totEl)   totEl.textContent   = totalExp;
+          if (todayEl) todayEl.textContent = parseInt(todayEl.textContent || '0', 10) + qexp;
+
+          // 4) EXP 스파크 이펙트
+          _spawnExpSpark(item, qexp);
+
+          // 5) 전체 완료 체크 → 비밀 해금
+          var allItems  = section.querySelectorAll('.ent-quest-item');
+          var doneItems = section.querySelectorAll('.ent-quest-item.done');
+          if (doneItems.length >= allItems.length) {
+            _unlockSecret(section, dayEl);
+          }
+        }
+      });
+    });
+  }
+
+  // EXP 스파크 팝업 생성
+  function _spawnExpSpark(el, exp) {
+    var spark = document.createElement('div');
+    spark.className = 'ent-exp-spark';
+    spark.textContent = '+' + exp + ' EXP';
+    el.appendChild(spark);
+    setTimeout(function () { if (spark.parentNode) spark.parentNode.removeChild(spark); }, 1300);
+  }
+
+  // 모든 퀘스트 완료 → 비밀 운세 해금 처리
+  function _unlockSecret(section, dayEl) {
+    var secretArea = section.querySelector('#entSecretArea');
+    if (!secretArea) return;
+
+    // 잠금 UI 숨기기
+    var lockEl = secretArea.querySelector('.ent-secret-lock');
+    if (lockEl) lockEl.style.display = 'none';
+
+    // 해금 UI 표시
+    var unlockEl = secretArea.querySelector('.ent-secret-unlock');
+    if (unlockEl) {
+      unlockEl.style.display = 'block';
+      setTimeout(function () { unlockEl.classList.add('is-visible'); }, 80);
+    } else {
+      // 해금 엘리먼트가 없으면 새로 생성
+      var tip = buildSecretTip(dayEl);
+      var newHtml = '<div class="ent-secret-unlock">'
+        + '<div class="ent-secret-icon">🔓</div>'
+        + '<div class="ent-secret-title">오늘의 비밀 운세 해금!</div>'
+        + '<div class="ent-secret-text">' + tip + '</div>'
+        + '</div>';
+      secretArea.innerHTML = newHtml;
+      var newEl = secretArea.querySelector('.ent-secret-unlock');
+      if (newEl) {
+        setTimeout(function () { newEl.classList.add('is-visible'); }, 80);
+      }
+    }
+  }
+
+
+  /* ════════════════════════════════════════════════════════
+     §7  공개 API
+     ════════════════════════════════════════════════════════ */
+
+  w.CodeDestiny_Entertain = {
+    version: '2.0',
+    calcQuantumHap: calcQuantumHap
+  };
+
+})(window);

@@ -1,0 +1,44 @@
+import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { resolve } from "node:path";
+
+const rootDir = process.cwd();
+const publicDir = resolve(rootDir, "public");
+
+const staticTargets = [
+  "AnalysisEngine.js",
+  "PhysiognomyUI.js",
+  "HwatuFortune.js",
+  "index.html",
+  "ads.txt",
+  "robots.txt",
+  "sitemap.xml",
+  "manifest.json",
+  "manifest-samba.json",
+  "service-worker.js",
+  "css",
+  "js",
+  "icons",
+  "styles",
+  "fortune",
+  "destiny-flower",
+  "fuctionassets",
+  "lib",
+  "sudda",
+];
+
+if (!existsSync(publicDir)) {
+  mkdirSync(publicDir, { recursive: true });
+}
+
+for (const target of staticTargets) {
+  const sourcePath = resolve(rootDir, target);
+  const destinationPath = resolve(publicDir, target);
+
+  if (!existsSync(sourcePath)) {
+    continue;
+  }
+
+  cpSync(sourcePath, destinationPath, { recursive: true, force: true });
+}
+
+console.log("[sync-legacy-static-to-public] Completed static asset sync.");

@@ -1,0 +1,965 @@
+/* ============================================================
+   CELESTIAL BLOOM · destiny-flower.module.css
+   Deep Navy / Gold / Mystical Dark Mode
+   ============================================================ */
+
+/* ── Page Wrap ── */
+.pageWrap {
+  position: relative;
+  min-height: 100dvh;
+  padding: 40px 18px 110px;
+  max-width: 620px;
+  margin: 0 auto;
+  background: #0a0e14;
+  color: rgba(255, 249, 224, 0.9);
+  overflow-x: hidden;
+}
+
+/* Full-page ambient star field */
+.pageWrap::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.6) 1px, transparent 1.1px),
+    radial-gradient(circle, rgba(201, 168, 76, 0.45) 0.8px, transparent 0.9px),
+    radial-gradient(circle, rgba(150, 120, 255, 0.3) 1px, transparent 1.1px);
+  background-size: 46px 46px, 70px 70px, 92px 92px;
+  background-position: 0 0, 23px 31px, 46px 16px;
+  opacity: 0.22;
+  animation: twinkleDrift 20s ease-in-out infinite alternate;
+}
+
+/* Grainy noise overlay */
+.grainOverlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.042;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* All page content above grain/stars */
+.pageWrap > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Celestial Header ── */
+.celestialHeader {
+  text-align: center;
+  padding: 8px 0 28px;
+}
+
+.headerBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  color: #c9a84c;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 7px 18px;
+  margin-bottom: 18px;
+  animation: headerGlow 3s ease-in-out infinite;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: clamp(2.2rem, 7vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  background: linear-gradient(135deg, #e8c96d 0%, #fff8d6 50%, #c6934a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.headerSubtitle {
+  margin: 12px 0 0;
+  color: rgba(201, 175, 120, 0.7);
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  line-height: 1.7;
+}
+
+/* ── Soul Sync (Loading) ── */
+.soulSyncPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 56px 24px;
+  text-align: center;
+}
+
+.soulSyncOrb {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, rgba(255, 245, 180, 0.85), rgba(201, 168, 76, 0.45));
+  box-shadow: 0 0 44px 14px rgba(201, 168, 76, 0.28), 0 0 80px 30px rgba(201, 168, 76, 0.1);
+}
+
+.soulSyncText {
+  margin: 0;
+  color: rgba(255, 249, 224, 0.92);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.soulSyncPanel small {
+  color: rgba(201, 168, 76, 0.55);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+/* ── Missing Garden ── */
+.missingGardenPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 46px 28px;
+  text-align: center;
+  border-radius: 24px;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  background: rgba(12, 16, 26, 0.88);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.missingGardenIcon {
+  font-size: 3.2rem;
+  line-height: 1;
+}
+
+.missingGardenPanel p {
+  margin: 0;
+  color: rgba(255, 249, 224, 0.9);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.missingGardenPanel small {
+  color: rgba(201, 168, 76, 0.6);
+  font-size: 0.84rem;
+  line-height: 1.75;
+  max-width: 300px;
+}
+
+.missingActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.gardenLink,
+.gardenButton {
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 76, 0.38);
+  background: rgba(201, 168, 76, 0.1);
+  color: #c9a84c;
+  min-height: 40px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: background 0.22s;
+}
+
+.gardenLink:hover,
+.gardenButton:hover {
+  background: rgba(201, 168, 76, 0.2);
+}
+
+/* ── Signal Annotation ── */
+.signalAnnotation {
+  text-align: center;
+  margin-bottom: 18px;
+  padding: 16px 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  background: rgba(12, 16, 26, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.signalLabel {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.65);
+  margin-bottom: 10px;
+}
+
+.signalAnnotation p {
+  margin: 0 0 8px;
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: rgba(255, 249, 224, 0.96);
+  letter-spacing: 0.04em;
+}
+
+.signalAnnotation small {
+  color: rgba(201, 168, 76, 0.52);
+  font-size: 0.8rem;
+  line-height: 1.65;
+  display: block;
+}
+
+/* ── Bloom Stage Label ── */
+.bloomStageLabel {
+  margin: 0 0 14px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.44);
+}
+
+/* ── Flower Canvas Wrap ── */
+.flowerCanvasWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Flower Canvas ── */
+.flowerCanvas {
+  position: relative;
+  width: 100%;
+  max-width: 308px;
+  height: 400px;
+  margin: 0 auto;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* Localized star field within canvas */
+.flowerStarField {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.88) 1.1px, transparent 1.2px),
+    radial-gradient(circle, rgba(201, 168, 76, 0.72) 0.85px, transparent 0.95px),
+    radial-gradient(circle, rgba(160, 130, 255, 0.6) 1px, transparent 1.1px);
+  background-size: 42px 42px, 64px 64px, 82px 82px;
+  background-position: 0 0, 21px 29px, 40px 14px;
+  opacity: 0.2;
+  animation: twinkleDrift 12s ease-in-out infinite alternate;
+}
+
+/* Zodiac symbol floating above — stage 3 */
+.flowerZodiacFloat {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.flowerZodiacRing {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(201, 168, 76, 0.72);
+  background: radial-gradient(
+    circle at 42% 38%,
+    rgba(255, 245, 180, 0.22),
+    rgba(12, 16, 26, 0.82)
+  );
+  display: grid;
+  place-items: center;
+  font-size: 1.85rem;
+  box-shadow:
+    0 0 24px 7px rgba(201, 168, 76, 0.24),
+    inset 0 1px 0 rgba(255, 249, 224, 0.1);
+  animation: zodiacFloat 4.2s ease-in-out infinite;
+}
+
+/* Rotating aura ring — Sukuyo */
+.flowerAuraRing {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  width: 172px;
+  height: 172px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px dashed rgba(201, 168, 76, 0.28);
+  animation: auroraSpin 20s linear infinite;
+  z-index: 5;
+}
+
+/* Individual particle dot */
+.flowerParticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin: -2.5px 0 0 -2.5px;
+  opacity: 0.82;
+}
+
+/* Petals container */
+.flowerPetalsWrap {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  z-index: 6;
+}
+
+/* Rotation wrapper for each petal */
+.petalWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Petal shape */
+.flowerPetal {
+  position: absolute;
+  width: 38px;
+  height: 80px;
+  left: -19px;
+  bottom: 0;
+  border-radius: 50% 50% 64% 64% / 84% 84% 28% 28%;
+  transform-origin: center bottom;
+  filter: blur(0.4px);
+}
+
+/* Stem */
+.flowerStem {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 92px;
+  border-radius: 4px;
+  transform-origin: center bottom;
+  z-index: 4;
+}
+
+/* Center sphere / stamen */
+.flowerCenter {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  z-index: 10;
+}
+
+.flowerCenterLabel {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: rgba(12, 16, 26, 0.92);
+  letter-spacing: 0.04em;
+  text-shadow: none;
+  line-height: 1;
+}
+
+/* Touch hint */
+.flowerTouchHint {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(201, 168, 76, 0.58);
+}
+
+/* ── Garden CTA ── */
+.gardenCTA {
+  margin-top: 30px;
+  width: 100%;
+  max-width: 360px;
+  min-height: 56px;
+  border: 1px solid rgba(201, 168, 76, 0.48);
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(201, 120, 50, 0.24),
+    rgba(201, 168, 76, 0.38) 50%,
+    rgba(120, 80, 190, 0.2)
+  );
+  color: #e8c96d;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow:
+    0 0 30px 3px rgba(201, 168, 76, 0.14),
+    inset 0 1px 0 rgba(255, 249, 224, 0.07);
+  transition: all 0.32s ease;
+  line-height: 1.45;
+  padding: 0 24px;
+}
+
+.gardenCTA:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(201, 130, 50, 0.38),
+    rgba(201, 168, 76, 0.54) 50%,
+    rgba(140, 100, 210, 0.28)
+  );
+  box-shadow: 0 0 44px 8px rgba(201, 168, 76, 0.22);
+  transform: translateY(-2px);
+}
+
+/* ── Tarot Stage ── */
+.tarotStageWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.tarotFlowerMini {
+  width: 100%;
+  max-width: 308px;
+  height: 250px;
+  overflow: hidden;
+  position: relative;
+  pointer-events: none;
+  margin-bottom: -20px;
+}
+
+.tarotFlowerMini > div {
+  transform: scale(0.62);
+  transform-origin: top center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+/* ── Tarot Canvas ── */
+.tarotCanvas {
+  width: 100%;
+  border-radius: 24px;
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  background: rgba(10, 14, 22, 0.9);
+  padding: 26px 20px 28px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.tarotHeader {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.tarotHeader h3 {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgba(255, 249, 224, 0.96);
+}
+
+.tarotHeader p {
+  margin: 12px 0 0;
+  color: rgba(201, 168, 76, 0.65);
+  font-size: 0.84rem;
+  line-height: 1.75;
+}
+
+.tarotGuide {
+  display: none;
+}
+
+/* 3-card grid */
+.tarotDeck {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tarotCard {
+  border: 0;
+  padding: 0;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  min-height: 180px;
+  background: transparent;
+  cursor: pointer;
+  perspective: 1100px;
+  animation: cardRise 0.7s cubic-bezier(0.18, 0.83, 0.34, 1) both;
+}
+
+.tarotCard:focus-visible {
+  outline: 2px solid rgba(201, 168, 76, 0.6);
+  outline-offset: 3px;
+  border-radius: 20px;
+}
+
+.tarotCardInner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  transform-style: preserve-3d;
+  transition: transform 0.72s cubic-bezier(0.18, 0.83, 0.34, 1);
+}
+
+/* Hover lift for unselected unlocked cards */
+.tarotCard:not(:disabled):not(.tarotCardSelected):hover .tarotCardInner {
+  transform: scale(1.05) translateY(-3px);
+}
+
+.tarotCardSelected .tarotCardInner {
+  transform: rotateY(180deg);
+}
+
+.tarotCardBack,
+.tarotCardFront {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 14px 10px;
+  overflow: hidden;
+}
+
+.tarotCardBack {
+  border: 1px solid rgba(201, 168, 76, 0.44);
+  background:
+    radial-gradient(ellipse at 50% 28%, rgba(201, 168, 76, 0.2), transparent 62%),
+    linear-gradient(162deg, #0f1524, #08101c);
+  box-shadow: inset 0 1px 0 rgba(255, 249, 224, 0.07);
+}
+
+.tarotBackSymbol {
+  display: block;
+  font-size: 2.4rem;
+  color: rgba(201, 168, 76, 0.68);
+  margin-bottom: 12px;
+  animation: starSpin 8s linear infinite;
+}
+
+.tarotBackText {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.44);
+}
+
+.tarotCardFront {
+  transform: rotateY(180deg);
+  border: 1px solid rgba(232, 201, 109, 0.55);
+  background: linear-gradient(168deg, #1c1436, #0f1422);
+  color: rgba(255, 249, 224, 0.92);
+  justify-content: flex-start;
+}
+
+.tarotArtFrame {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 76, 0.32);
+  overflow: hidden;
+  background: rgba(10, 14, 20, 0.85);
+  flex-shrink: 0;
+}
+
+.tarotCardArt {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tarotArcana {
+  display: block;
+  margin: 8px 0 0;
+  font-size: 0.65rem;
+  color: rgba(201, 168, 76, 0.62);
+  font-weight: 700;
+}
+
+.tarotName {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: rgba(255, 249, 224, 0.96);
+  font-weight: 800;
+}
+
+.tarotSubtitle {
+  display: block;
+  margin-top: 3px;
+  font-style: normal;
+  font-size: 0.64rem;
+  color: rgba(201, 168, 76, 0.6);
+  line-height: 1.45;
+}
+
+.tarotReveal {
+  display: block;
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 168, 76, 0.36);
+  background: rgba(201, 168, 76, 0.08);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #c9a84c;
+  text-decoration: none;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.tarotCardLocked {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
+}
+
+/* ── Finale Section ── */
+.finaleSection {
+  position: relative;
+  overflow: hidden;
+  margin-top: 28px;
+  border-radius: 26px;
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  background: rgba(8, 12, 20, 0.97);
+  box-shadow: 0 0 64px 12px rgba(201, 168, 76, 0.07);
+  padding: 4px 0 0;
+}
+
+.finaleStars {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.75) 1px, transparent 1.1px),
+    radial-gradient(circle, rgba(201, 168, 76, 0.55) 0.8px, transparent 0.9px);
+  background-size: 36px 36px, 58px 58px;
+  background-position: 0 0, 18px 26px;
+  opacity: 0.16;
+  animation: twinkleDrift 14s ease-in-out infinite alternate;
+}
+
+.finaleNoise {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* Inner result card */
+.finaleCard {
+  position: relative;
+  z-index: 3;
+  margin: 0 16px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  background: rgba(12, 18, 30, 0.9);
+  padding: 22px 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 249, 224, 0.05);
+}
+
+.finaleSection h2 {
+  position: relative;
+  z-index: 2;
+  margin: 0 0 0;
+}
+
+.finaleCard h2 {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.65);
+}
+
+.finaleSection h3 {
+  position: relative;
+  z-index: 2;
+}
+
+.finaleCard h3 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, #e8c96d, #fff8d6 55%, #c6934a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.aura {
+  margin: 10px 0 0;
+  color: rgba(201, 168, 76, 0.78);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.finalNarrative {
+  margin-top: 16px;
+  line-height: 1.9;
+  color: rgba(255, 249, 224, 0.76);
+  font-size: 0.92rem;
+}
+
+.tagRow {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tagRow span {
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 76, 0.32);
+  background: rgba(201, 168, 76, 0.08);
+  color: #c9a84c;
+  padding: 5px 12px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.finalElementRow {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.finalElementRow em {
+  border-radius: 999px;
+  padding: 4px 10px;
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  background: rgba(201, 168, 76, 0.07);
+  color: rgba(201, 168, 76, 0.65);
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.finalActions {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.finalActions button {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  background: rgba(201, 168, 76, 0.07);
+  color: rgba(201, 168, 76, 0.82);
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.22s;
+}
+
+.finalActions button:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.16);
+}
+
+.finalActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Long Form Report ── */
+.longReportSection {
+  margin-top: 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  background: rgba(8, 12, 20, 0.72);
+  padding: 16px;
+}
+
+.longReportHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.longReportHeader h4 {
+  margin: 0;
+  color: rgba(255, 249, 224, 0.9);
+  font-size: 0.94rem;
+  font-weight: 800;
+}
+
+.longReportHeader span {
+  color: rgba(201, 168, 76, 0.55);
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.longReportOpening,
+.longReportClosing {
+  margin: 0 0 12px;
+  line-height: 1.82;
+  color: rgba(255, 249, 224, 0.7);
+  font-size: 0.84rem;
+}
+
+.longReportGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.longReportCard {
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 76, 0.14);
+  background: rgba(12, 16, 26, 0.72);
+  padding: 12px;
+}
+
+.longReportCard h5 {
+  margin: 0 0 7px;
+  font-size: 0.78rem;
+  color: rgba(201, 168, 76, 0.78);
+  font-weight: 800;
+}
+
+.longReportCard p {
+  margin: 0;
+  line-height: 1.72;
+  color: rgba(255, 249, 224, 0.65);
+  font-size: 0.77rem;
+}
+
+/* ══ Animations ══ */
+@keyframes twinkleDrift {
+  from {
+    background-position: 0 0, 23px 31px, 46px 16px;
+    opacity: 0.16;
+  }
+  to {
+    background-position: 5px 9px, 28px 36px, 50px 20px;
+    opacity: 0.28;
+  }
+}
+
+@keyframes auroraSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes zodiacFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-9px); }
+}
+
+@keyframes cardRise {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes starSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes headerGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
+  50%       { box-shadow: 0 0 16px 3px rgba(201, 168, 76, 0.18); }
+}
+
+/* ══ Responsive ══ */
+@media (max-width: 640px) {
+  .pageWrap {
+    padding: 28px 14px 90px;
+  }
+
+  .flowerCanvas {
+    height: 340px;
+  }
+
+  .tarotDeck {
+    gap: 10px;
+  }
+
+  .tarotCard {
+    min-height: 160px;
+  }
+
+  .longReportGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .finalActions {
+    grid-template-columns: 1fr;
+  }
+
+  .gardenCTA {
+    font-size: 0.86rem;
+    min-height: 50px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageWrap::before,
+  .flowerStarField,
+  .finaleStars,
+  .flowerAuraRing,
+  .tarotCard,
+  .tarotBackSymbol,
+  .flowerZodiacRing,
+  .flowerTouchHint,
+  .headerBadge {
+    animation: none !important;
+    transition: none !important;
+  }
+}
