@@ -13686,7 +13686,7 @@ function renderVillain(p, power) {
   var chongAnimal = zhiToAnimal[chongZhi];
 
   var stars = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j]
-    .map(function(c) { return getTenGod(myElement, c); })
+    .map(function(c) { return getTenGod(myDayGan, c); })
     .filter(function(t) { return t && t !== '?'; });
   var groupMap = {
     '비견': '비겁', '겁재': '비겁',
