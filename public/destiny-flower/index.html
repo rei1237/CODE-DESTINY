@@ -1,0 +1,202 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>꽃으로 피어나는 운명</title>
+  <meta name="description" content="프로필 자동 연동 기반 사주 오행 분석과 꽃 타로 리포트" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            rounded: ["Nunito", "Gowun Dodum", "system-ui", "sans-serif"]
+          },
+          colors: {
+            lavender: { 100: "#ece8ff" },
+            cream: { 50: "#fffdf6" },
+            peach: { 100: "#ffe8dd" }
+          },
+          boxShadow: {
+            bloom: "0 16px 50px rgba(240, 112, 173, .28)",
+            glass: "0 18px 48px rgba(92, 56, 120, .18)",
+            petal: "0 12px 34px rgba(255, 126, 179, .22)"
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./destiny-flower.css" />
+</head>
+<body class="min-h-screen overflow-x-hidden font-rounded text-slate-700 bg-gradient-to-b from-lavender-100 via-cream-50 to-peach-100">
+  <div id="ambientParticles" class="pointer-events-none fixed inset-0 z-0"></div>
+  <div class="pointer-events-none fixed -left-24 top-12 h-72 w-72 rounded-full bg-pink-200/35 blur-3xl"></div>
+  <div class="pointer-events-none fixed -right-28 bottom-8 h-80 w-80 rounded-full bg-fuchsia-200/35 blur-3xl"></div>
+
+  <main class="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center justify-center px-4 py-10">
+    <section class="w-full rounded-[32px] border border-white/60 bg-white/35 p-5 shadow-glass backdrop-blur-xl md:p-10">
+      <header class="text-center">
+        <p class="inline-flex items-center gap-2 rounded-full border border-rose-200/80 bg-white/60 px-4 py-1 text-xs font-extrabold tracking-[0.18em] text-rose-500 shadow-petal">
+          BLOOMING DESTINY ARCHIVE
+        </p>
+        <h1 class="mt-4 text-2xl font-extrabold leading-tight text-slate-800 md:text-4xl">
+          프로필의 사주 기운으로 피어나는<br class="hidden md:block" /> 당신만의 운명의 꽃
+        </h1>
+        <p class="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-slate-600 md:text-base">
+          메인 화면의 프로필 카드 데이터를 자동으로 읽어 오행(목화토금수)을 분석하고,
+          그 흐름으로 오늘의 꽃과 타로 메시지를 도출합니다.
+        </p>
+      </header>
+
+      <section class="mt-7 grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+        <article class="rounded-2xl border border-white/70 bg-white/60 p-4 shadow-petal">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-sm font-extrabold text-slate-700">프로필 자동 연동</p>
+            <span id="profileStatusBadge" class="status-badge status-loading">동기화 중</span>
+          </div>
+          <p id="profileSummary" class="mt-2 text-sm leading-relaxed text-slate-600">프로필 정보를 확인하고 있습니다.</p>
+
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button id="syncProfileBtn" class="rounded-xl bg-gradient-to-r from-rose-300 to-pink-300 px-4 py-2 text-sm font-extrabold text-white shadow-md transition hover:brightness-105">프로필 다시 동기화</button>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-2 text-xs font-bold text-slate-600 sm:grid-cols-4">
+            <div class="rounded-xl border border-white/70 bg-white/75 p-2">
+              <p class="text-[11px] text-slate-400">일간</p>
+              <p id="dayStemText" class="mt-1 text-sm text-slate-700">-</p>
+            </div>
+            <div class="rounded-xl border border-white/70 bg-white/75 p-2">
+              <p class="text-[11px] text-slate-400">일주</p>
+              <p id="dayPillarText" class="mt-1 text-sm text-slate-700">-</p>
+            </div>
+            <div class="rounded-xl border border-white/70 bg-white/75 p-2">
+              <p class="text-[11px] text-slate-400">우세 오행</p>
+              <p id="dominantElementText" class="mt-1 text-sm text-slate-700">-</p>
+            </div>
+            <div class="rounded-xl border border-white/70 bg-white/75 p-2">
+              <p class="text-[11px] text-slate-400">분석 소스</p>
+              <p id="engineSourceText" class="mt-1 text-sm text-slate-700">-</p>
+            </div>
+          </div>
+
+          <p id="profileHint" class="mt-3 text-xs text-slate-500">
+            프로필이 없으면 아래 수동 입력으로도 꽃 분석이 가능합니다.
+          </p>
+        </article>
+
+        <article class="rounded-2xl border border-white/70 bg-white/60 p-4 shadow-petal">
+          <p class="text-sm font-extrabold text-slate-700">오행 에너지 분석</p>
+          <div id="energyBars" class="mt-3 space-y-2">
+            <div class="energy-row" data-element="wood"><span>목(木)</span><div class="energy-track"><div id="energy-wood" class="energy-fill energy-wood" style="width:0%"></div></div><strong id="energy-wood-value">0%</strong></div>
+            <div class="energy-row" data-element="fire"><span>화(火)</span><div class="energy-track"><div id="energy-fire" class="energy-fill energy-fire" style="width:0%"></div></div><strong id="energy-fire-value">0%</strong></div>
+            <div class="energy-row" data-element="earth"><span>토(土)</span><div class="energy-track"><div id="energy-earth" class="energy-fill energy-earth" style="width:0%"></div></div><strong id="energy-earth-value">0%</strong></div>
+            <div class="energy-row" data-element="metal"><span>금(金)</span><div class="energy-track"><div id="energy-metal" class="energy-fill energy-metal" style="width:0%"></div></div><strong id="energy-metal-value">0%</strong></div>
+            <div class="energy-row" data-element="water"><span>수(水)</span><div class="energy-track"><div id="energy-water" class="energy-fill energy-water" style="width:0%"></div></div><strong id="energy-water-value">0%</strong></div>
+          </div>
+
+          <details class="mt-4 rounded-xl border border-white/70 bg-white/75 p-3">
+            <summary class="cursor-pointer text-xs font-extrabold tracking-[0.12em] text-slate-500">수동 보정 입력</summary>
+            <div class="mt-3 grid gap-2 md:grid-cols-2">
+              <label class="space-y-1 text-xs font-bold text-slate-600">출생 월
+                <select id="monthInput" class="w-full rounded-lg border border-white/80 bg-white px-2 py-2">
+                  <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option>
+                  <option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option>
+                  <option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+                </select>
+              </label>
+              <label class="space-y-1 text-xs font-bold text-slate-600">일간
+                <select id="dayStemInput" class="w-full rounded-lg border border-white/80 bg-white px-2 py-2">
+                  <option value="甲">갑(甲)</option><option value="乙">을(乙)</option><option value="丙">병(丙)</option><option value="丁">정(丁)</option>
+                  <option value="戊">무(戊)</option><option value="己">기(己)</option><option value="庚">경(庚)</option><option value="辛">신(辛)</option>
+                  <option value="壬">임(壬)</option><option value="癸">계(癸)</option>
+                </select>
+              </label>
+              <label class="space-y-1 text-xs font-bold text-slate-600">수(水) 강도 <span id="waterValue" class="font-extrabold text-sky-500">60</span>
+                <input id="waterInput" type="range" min="0" max="100" value="60" class="w-full accent-sky-400" />
+              </label>
+              <label class="space-y-1 text-xs font-bold text-slate-600">금(金) 강도 <span id="metalValue" class="font-extrabold text-amber-500">50</span>
+                <input id="metalInput" type="range" min="0" max="100" value="50" class="w-full accent-amber-400" />
+              </label>
+              <label class="md:col-span-2 space-y-1 text-xs font-bold text-slate-600">일주(선택)
+                <input id="dayPillarInput" type="text" maxlength="2" placeholder="예: 乙亥" class="w-full rounded-lg border border-white/80 bg-white px-2 py-2" />
+              </label>
+            </div>
+          </details>
+        </article>
+      </section>
+
+      <div class="mt-5 grid gap-2 sm:grid-cols-2">
+        <label class="space-y-1 text-xs font-bold text-slate-600">이름(선택)
+          <input id="nameInput" type="text" placeholder="꽃 이름표에 담길 이름" class="w-full rounded-xl border border-white/80 bg-white/75 px-3 py-2 outline-none transition focus:border-rose-300 focus:ring-2 focus:ring-rose-200" />
+        </label>
+        <button id="bloomBtn" class="rounded-2xl bg-gradient-to-r from-rose-300 via-pink-300 to-orange-200 px-5 py-3 text-base font-extrabold text-white shadow-bloom transition duration-300 hover:scale-[1.02] hover:brightness-105 active:scale-[0.99]">
+          나의 꽃 피워내기
+        </button>
+      </div>
+
+      <div id="resultCapture" class="mt-8 hidden" aria-live="polite">
+        <section id="bloomCard" class="rounded-3xl border border-white/60 bg-white/45 p-5 shadow-glass backdrop-blur-lg md:p-8">
+          <div id="bloomScene" class="relative mx-auto flex h-72 max-w-2xl items-center justify-center overflow-hidden rounded-3xl border border-white/50 bg-gradient-to-br from-rose-100/70 via-white/65 to-fuchsia-100/70">
+            <div id="flowerGlow" class="absolute h-40 w-40 rounded-full blur-3xl"></div>
+            <div id="flowerPollen" class="absolute inset-0 pointer-events-none"></div>
+            <div id="flowerWrap" class="flower-fade-in">
+              <div id="flowerVisual" class="flower-float text-[96px] drop-shadow-[0_8px_24px_rgba(244,114,182,.35)]">🌸</div>
+            </div>
+          </div>
+
+          <div class="mt-6 text-center">
+            <h2 id="flowerName" class="text-3xl font-extrabold text-slate-800">벚꽃</h2>
+            <p id="flowerDesc" class="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base"></p>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-white/60 bg-white/55 p-4 text-center">
+            <p class="text-xs font-extrabold tracking-[0.16em] text-rose-400">FLOWER THEME</p>
+            <p id="tarotTheme" class="mt-1 text-sm font-bold text-slate-700"></p>
+          </div>
+
+          <ul id="analysisLines" class="mt-5 space-y-2"></ul>
+        </section>
+
+        <section id="tarotSection" class="mt-6 rounded-3xl border border-white/60 bg-white/45 p-5 shadow-glass backdrop-blur-lg md:p-8">
+          <header class="text-center">
+            <p class="text-xs font-extrabold tracking-[0.16em] text-violet-400">LUCKY TAROT</p>
+            <h3 class="mt-2 text-xl font-extrabold text-slate-800">꽃의 기운이 이끄는 행운의 카드</h3>
+            <p class="mt-2 text-sm text-slate-600">부채처럼 펼쳐진 꽃문양 카드 3장 중 한 장을 선택해 주세요.</p>
+          </header>
+
+          <div id="tarotFan" class="tarot-fan mt-6"></div>
+
+          <div id="tarotResult" class="mt-5 hidden rounded-2xl border border-white/60 bg-white/60 p-4">
+            <p class="text-xs font-extrabold tracking-[0.14em] text-rose-400">PICKED MESSAGE</p>
+            <h4 id="pickedCardName" class="mt-2 text-lg font-extrabold text-slate-800"></h4>
+            <p id="pickedCardMessage" class="mt-2 text-sm leading-relaxed text-slate-700"></p>
+          </div>
+        </section>
+      </div>
+
+      <section id="luckActionsSection" class="mt-6 hidden rounded-2xl border border-white/60 bg-white/55 p-4 text-center">
+        <button id="keepLuckBtn" class="w-full rounded-xl bg-gradient-to-r from-pink-300 to-rose-300 px-4 py-3 text-sm font-extrabold text-white shadow-md transition hover:brightness-105">
+          오늘의 행운 간직하기
+        </button>
+        <div id="luckActions" class="mt-3 hidden grid gap-2 sm:grid-cols-2">
+          <button id="saveResultBtn" class="rounded-xl border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-700">이미지 저장</button>
+          <button id="shareResultBtn" class="rounded-xl border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-700">결과 공유</button>
+        </div>
+      </section>
+    </section>
+
+    <p class="mt-6 text-xs text-slate-500">꽃돼지가 당신의 운명을 정성껏 읽어드릴게요.</p>
+
+    <button id="flowerPigBtn" class="fixed bottom-5 right-5 z-20 rounded-full border border-white/70 bg-white/80 p-3 text-xl shadow-lg backdrop-blur-md transition hover:scale-110" aria-label="꽃돼지 도우미">
+      🐷
+    </button>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+  <script src="./destiny-flower.js" defer></script>
+</body>
+</html>
