@@ -2202,6 +2202,10 @@ function getStoredAuthUser(){
   }
 }
 
+function isGuestFortuneModeEnabled(){
+  return window.__ALLOW_GUEST_FORTUNE !== false;
+}
+
 function updateFortunePointNotice(points){
   var costEl = document.getElementById('fortuneCostLabel');
   if (costEl) costEl.textContent = formatPointAmount(FORTUNE_COST_POINTS);
@@ -2218,7 +2222,7 @@ function updateFortunePointNotice(points){
   if (user && typeof user.points === 'number') {
     currentEl.textContent = formatPointAmount(user.points);
   } else {
-    currentEl.textContent = '로그인 후 확인';
+    currentEl.textContent = isGuestFortuneModeEnabled() ? '비회원 무료 이용' : '로그인 후 확인';
   }
 }
 
@@ -2269,6 +2273,11 @@ async function checkFortunePointEligibility(){
 
   var token = getFortuneAuthToken();
   if (!token) {
+    if (isGuestFortuneModeEnabled()) {
+      updateFortunePointNotice();
+      return true;
+    }
+
     var goLogin = window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?');
     if (goLogin) redirectToLoginForFortune();
     return false;
@@ -2326,7 +2335,10 @@ async function consumeFortunePointAfterCalculation(){
   if (__fortuneConsumeInFlight) return false;
 
   var token = getFortuneAuthToken();
-  if (!token) return false;
+  if (!token) {
+    if (isGuestFortuneModeEnabled()) return true;
+    return false;
+  }
 
   __fortuneConsumeInFlight = true;
   try {

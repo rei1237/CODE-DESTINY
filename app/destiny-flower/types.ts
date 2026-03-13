@@ -146,6 +146,34 @@ export interface FinalDestinyFlower {
   report: LongFormReport;
 }
 
+export type FateChannelKey = "saju" | "ziwei" | "astrologySukuyo";
+
+export interface FateChannelScore {
+  channel: FateChannelKey;
+  weight: number;
+  rawScore: number;
+  weightedScore: number;
+  candidateFlowerIds: string[];
+}
+
+export interface FateFlowerScore {
+  flowerId: string;
+  score: number;
+}
+
+export interface FateAnalysisEngineResult {
+  input: DivinationInput;
+  results: DivinationResult[];
+  channelScores: FateChannelScore[];
+  weightedConfig: {
+    saju: number;
+    ziwei: number;
+    astrologySukuyo: number;
+  };
+  finalFlowerId: string;
+  rankedFlowerScores: FateFlowerScore[];
+}
+
 export type DestinyFlowerStage = "input" | "results" | "tarot" | "final";
 
 export type DiscoveryPhaseKey = "saju" | "ziweiSukuyo" | "astrology";
@@ -155,6 +183,7 @@ export type ProfileStatus = "loading" | "ready" | "missing";
 export interface DestinyAnalysisStore {
   input?: DivinationInput;
   discovery?: DestinyExtractedSignals;
+  fateAnalysis?: FateAnalysisEngineResult;
   phaseConfirmed: Record<DiscoveryPhaseKey, boolean>;
   results: DivinationResult[];
 }

@@ -9,6 +9,7 @@ import type { SajuElement } from "./types";
 interface FlowerCanvasProps {
   bloomStage: 0 | 1 | 2 | 3;
   dayStemElement?: SajuElement;
+  dominantElement?: SajuElement;
   ziweiMainStar?: string;
   sunSignSymbol?: string;
   onClick?: () => void;
@@ -16,6 +17,23 @@ interface FlowerCanvasProps {
 
 const PETAL_ANGLES = [0, 60, 120, 180, 240, 300];
 const PARTICLE_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
+const ELEMENT_PARTICLE_X = [8, 18, 27, 36, 48, 59, 71, 82, 91, 96];
+
+const PARTICLE_LAYER_CLASS: Record<SajuElement, string> = {
+  wood: styles.particleLayerWood,
+  fire: styles.particleLayerFire,
+  earth: styles.particleLayerEarth,
+  metal: styles.particleLayerMetal,
+  water: styles.particleLayerWater,
+};
+
+const PARTICLE_ITEM_CLASS: Record<SajuElement, string> = {
+  wood: styles.particleWood,
+  fire: styles.particleFire,
+  earth: styles.particleEarth,
+  metal: styles.particleMetal,
+  water: styles.particleWater,
+};
 
 const PETAL_SCALE: Record<0 | 1 | 2 | 3, number> = {
   0: 0,
@@ -37,14 +55,58 @@ const TOUCH_HINT: Record<0 | 1 | 2, string> = {
   2: "✦ 별자리의 형상이 나타납니다",
 };
 
+type ParticleStyle = CSSProperties & {
+  "--particle-x": string;
+  "--particle-size": string;
+  "--particle-delay": string;
+  "--particle-color": string;
+};
+
+function ElementParticleLayer({
+  activeElement,
+  elementColor,
+  bloomStage,
+}: {
+  activeElement: SajuElement;
+  elementColor: string;
+  bloomStage: 0 | 1 | 2 | 3;
+}) {
+  const layerClass = PARTICLE_LAYER_CLASS[activeElement];
+  const particleClass = PARTICLE_ITEM_CLASS[activeElement];
+  const particleCount = bloomStage >= 3 ? 10 : 7;
+
+  return (
+    <div className={`${styles.elementParticleLayer} ${layerClass}`} aria-hidden="true">
+      {ELEMENT_PARTICLE_X.slice(0, particleCount).map((x, index) => {
+        const style: ParticleStyle = {
+          "--particle-x": `${x}%`,
+          "--particle-size": `${bloomStage >= 3 ? 8 + (index % 3) : 6 + (index % 2)}px`,
+          "--particle-delay": `${(index % 6) * 0.34}s`,
+          "--particle-color": elementColor,
+        };
+
+        return (
+          <span
+            key={`${activeElement}-${index}`}
+            className={`${styles.elementParticle} ${particleClass}`}
+            style={style}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export function FlowerCanvas({
   bloomStage,
   dayStemElement = "fire",
+  dominantElement,
   ziweiMainStar,
   sunSignSymbol,
   onClick,
 }: FlowerCanvasProps) {
-  const elementColor = getElementColorHex(dayStemElement);
+  const activeElement = dominantElement ?? dayStemElement;
+  const elementColor = getElementColorHex(activeElement);
   const clickable = bloomStage < 3 && !!onClick;
 
   const centerLabel =
@@ -97,26 +159,33 @@ export function FlowerCanvas({
       {/* Aura ring with particles — stage 2+ */}
       <AnimatePresence>
         {bloomStage >= 2 && (
-          <motion.div
-            className={styles.flowerAuraRing}
-            initial={{ opacity: 0, scale: 0.35 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.35 }}
-            transition={{ duration: 1.4, ease: [0.18, 0.83, 0.34, 1] }}
-            style={{ borderColor: `${elementColor}55` } as CSSProperties}
-          >
-            {PARTICLE_ANGLES.map((angle) => (
-              <span
-                key={angle}
-                className={styles.flowerParticle}
-                style={{
-                  transform: `rotate(${angle}deg) translateX(78px)`,
-                  backgroundColor: elementColor,
-                  boxShadow: `0 0 5px 2px ${elementColor}88`,
-                }}
-              />
-            ))}
-          </motion.div>
+          <>
+            <motion.div
+              className={styles.flowerAuraRing}
+              initial={{ opacity: 0, scale: 0.35 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.35 }}
+              transition={{ duration: 1.4, ease: [0.18, 0.83, 0.34, 1] }}
+              style={{ borderColor: `${elementColor}55` } as CSSProperties}
+            >
+              {PARTICLE_ANGLES.map((angle) => (
+                <span
+                  key={angle}
+                  className={styles.flowerParticle}
+                  style={{
+                    transform: `rotate(${angle}deg) translateX(78px)`,
+                    backgroundColor: elementColor,
+                    boxShadow: `0 0 5px 2px ${elementColor}88`,
+                  }}
+                />
+              ))}
+            </motion.div>
+            <ElementParticleLayer
+              activeElement={activeElement}
+              elementColor={elementColor}
+              bloomStage={bloomStage}
+            />
+          </>
         )}
       </AnimatePresence>
 

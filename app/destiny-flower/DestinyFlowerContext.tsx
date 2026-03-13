@@ -2,13 +2,12 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
 import {
-  buildDivinationResults,
   buildTarotSpread,
-  deriveDivinationInput,
   extractDestinySignals,
   resolveFinalDestinyFlower,
 } from "./flowerData";
 import { getCurrentDestinyProfile, subscribeDestinyProfileChange } from "./profileBridge";
+import { runFateAnalysisFromProfile } from "./FateAnalysisEngine";
 import { DestinyFlowerState, DestinyProfile, DiscoveryPhaseKey } from "./types";
 
 type Action =
@@ -61,7 +60,8 @@ function reducer(state: DestinyFlowerState, action: Action): DestinyFlowerState 
         };
       }
 
-      const input = deriveDivinationInput(action.payload);
+      const fateAnalysis = runFateAnalysisFromProfile(action.payload);
+      const input = fateAnalysis.input;
       const discovery = extractDestinySignals(input);
 
       return {
@@ -71,6 +71,7 @@ function reducer(state: DestinyFlowerState, action: Action): DestinyFlowerState 
         analysis: {
           input,
           discovery,
+          fateAnalysis,
           phaseConfirmed: { ...INITIAL_PHASE_CONFIRMED },
           results: [],
         },
@@ -113,15 +114,17 @@ function reducer(state: DestinyFlowerState, action: Action): DestinyFlowerState 
         return state;
       }
 
-      const input = state.analysis.input ?? deriveDivinationInput(state.profile);
-      const results = buildDivinationResults(input);
-      const tarotSpread = buildTarotSpread(input.baseSeed, input, 22);
+      const fateAnalysis = state.analysis.fateAnalysis ?? runFateAnalysisFromProfile(state.profile);
+      const input = fateAnalysis.input;
+      const results = fateAnalysis.results;
+      const tarotSpread = buildTarotSpread(input.baseSeed, input, 3);
 
       return {
         ...state,
         analysis: {
           ...state.analysis,
           input,
+          fateAnalysis,
           results,
         },
         tarot: {
@@ -146,7 +149,12 @@ function reducer(state: DestinyFlowerState, action: Action): DestinyFlowerState 
       const pickedTarot = state.tarot.spread.find((card) => card.id === action.payload.cardId);
       if (!pickedTarot || !state.analysis.input) return state;
 
-      const finalFlower = resolveFinalDestinyFlower(state.analysis.input, state.analysis.results, pickedTarot);
+      const finalFlower = resolveFinalDestinyFlower(
+        state.analysis.input,
+        state.analysis.results,
+        pickedTarot,
+        state.analysis.fateAnalysis?.finalFlowerId,
+      );
 
       return {
         ...state,
@@ -167,13 +175,15 @@ function reducer(state: DestinyFlowerState, action: Action): DestinyFlowerState 
         };
       }
 
-      const refreshedInput = deriveDivinationInput(state.profile);
+      const refreshedFateAnalysis = runFateAnalysisFromProfile(state.profile);
+      const refreshedInput = refreshedFateAnalysis.input;
 
       return {
         ...state,
         analysis: {
           input: refreshedInput,
           discovery: extractDestinySignals(refreshedInput),
+          fateAnalysis: refreshedFateAnalysis,
           phaseConfirmed: { ...INITIAL_PHASE_CONFIRMED },
           results: [],
         },

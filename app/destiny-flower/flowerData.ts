@@ -11,6 +11,7 @@ import {
   SajuElement,
   TarotFinaleCard,
 } from "./types";
+import flowerDb from "./flower-db.json";
 
 const ELEMENT_ORDER: SajuElement[] = ["wood", "fire", "earth", "metal", "water"];
 
@@ -108,155 +109,50 @@ const BRANCH_ELEMENT_MAP: Record<(typeof EARTHLY_BRANCHES)[number], SajuElement>
   亥: "water",
 };
 
-const FLOWERS: Record<string, FlowerDefinition> = {
-  peony: {
-    id: "peony",
-    name: "Peony",
-    koreanAlias: "모란",
-    aura: "풍요와 품격",
-    palette: ["#ffd6e5", "#f7b2d9"],
-    story: "크게 피어나는 꽃잎처럼, 당신의 잠재력이 주변을 환하게 비춥니다.",
-  },
-  rose: {
-    id: "rose",
-    name: "Rose",
-    koreanAlias: "장미",
-    aura: "열정과 매혹",
-    palette: ["#ff9aa2", "#ff6f91"],
-    story: "강렬한 심장박동처럼, 당신의 욕망이 현실을 밀어 올리는 꽃입니다.",
-  },
-  lotus: {
-    id: "lotus",
-    name: "Lotus",
-    koreanAlias: "연꽃",
-    aura: "정화와 회복",
-    palette: ["#d9f0ff", "#9cd6f7"],
-    story: "흐린 물 위에서도 고요히 피어나는, 깊은 치유의 에너지를 품고 있습니다.",
-  },
-  camellia: {
-    id: "camellia",
-    name: "Camellia",
-    koreanAlias: "동백",
-    aura: "강인함과 진심",
-    palette: ["#ffb6c1", "#ff7f9f"],
-    story: "추운 계절에도 고개를 들고 피어나는, 끈기 있는 사랑의 상징입니다.",
-  },
-  chrysanthemum: {
-    id: "chrysanthemum",
-    name: "Chrysanthemum",
-    koreanAlias: "국화",
-    aura: "안정과 지혜",
-    palette: ["#ffe9a8", "#ffd166"],
-    story: "성숙한 계절의 결실처럼, 오래 갈 결과를 만드는 집중력을 드러냅니다.",
-  },
-  orchid: {
-    id: "orchid",
-    name: "Orchid",
-    koreanAlias: "난초",
-    aura: "기품과 세련",
-    palette: ["#f1d4ff", "#c7a6ff"],
-    story: "조용하지만 뚜렷한 존재감으로, 당신만의 결을 우아하게 완성합니다.",
-  },
-  lily: {
-    id: "lily",
-    name: "Lily",
-    koreanAlias: "백합",
-    aura: "순수와 보호",
-    palette: ["#ffffff", "#f2f2f2"],
-    story: "맑은 향기처럼 복잡한 상황을 정리하고, 중요한 기준을 지켜줍니다.",
-  },
-  edelweiss: {
-    id: "edelweiss",
-    name: "Edelweiss",
-    koreanAlias: "에델바이스",
-    aura: "절제와 고결",
-    palette: ["#f5f7fb", "#d9e2f2"],
-    story: "높은 고도에서도 흔들리지 않는 중심처럼, 압박 속에서도 기준을 지키는 힘을 보여줍니다.",
-  },
-  magnolia: {
-    id: "magnolia",
-    name: "Magnolia",
-    koreanAlias: "목련",
-    aura: "품위와 탄생",
-    palette: ["#fff1e8", "#ffd8c2"],
-    story: "계절의 문을 여는 선두주자처럼, 새로운 시작의 깃발이 되어줍니다.",
-  },
-  sunflower: {
-    id: "sunflower",
-    name: "Sunflower",
-    koreanAlias: "해바라기",
-    aura: "활력과 낙관",
-    palette: ["#ffe57f", "#ffca28"],
-    story: "빛을 향해 고개를 돌리듯, 당신의 시선을 기회로 연결하는 꽃입니다.",
-  },
-  hydrangea: {
-    id: "hydrangea",
-    name: "Hydrangea",
-    koreanAlias: "수국",
-    aura: "감수성과 공감",
-    palette: ["#bde0fe", "#a2d2ff"],
-    story: "섬세한 색의 겹처럼, 복합적인 감정을 정교하게 읽어냅니다.",
-  },
-  lavender: {
-    id: "lavender",
-    name: "Lavender",
-    koreanAlias: "라벤더",
-    aura: "진정과 통찰",
-    palette: ["#d7c6ff", "#b8a7ff"],
-    story: "잔잔한 향기처럼 사고를 맑게 하고, 마음의 파동을 고르게 만듭니다.",
-  },
-  plum: {
-    id: "plum",
-    name: "Plum Blossom",
-    koreanAlias: "매화",
-    aura: "절개와 희망",
-    palette: ["#ffe2f1", "#ffc8dd"],
-    story: "차가운 시절 끝에서 먼저 피어나는, 인내 끝의 기적을 상징합니다.",
-  },
-  tulip: {
-    id: "tulip",
-    name: "Tulip",
-    koreanAlias: "튤립",
-    aura: "선명한 선택",
-    palette: ["#ffadad", "#ff7b7b"],
-    story: "간결하지만 확실한 결단으로, 망설임을 행동으로 바꾸어 줍니다.",
-  },
-  daisy: {
-    id: "daisy",
-    name: "Daisy",
-    koreanAlias: "데이지",
-    aura: "순간의 기쁨",
-    palette: ["#fffce0", "#ffe66d"],
-    story: "작고 환한 미소처럼, 일상의 기회를 가볍게 붙잡게 합니다.",
-  },
-  narcissus: {
-    id: "narcissus",
-    name: "Narcissus",
-    koreanAlias: "수선화",
-    aura: "자기회복과 각성",
-    palette: ["#fff3bf", "#ffd43b"],
-    story: "얼어 있던 감각을 깨우며, 새로운 시즌의 주인공으로 세워줍니다.",
-  },
+type FlowerDbEntry = FlowerDefinition & {
+  primaryElement: SajuElement;
 };
 
-const FLOWER_PRIMARY_ELEMENT: Record<string, SajuElement> = {
-  peony: "earth",
-  rose: "fire",
-  lotus: "water",
-  camellia: "fire",
-  chrysanthemum: "earth",
-  orchid: "wood",
-  lily: "metal",
-  edelweiss: "metal",
-  magnolia: "earth",
-  sunflower: "fire",
-  hydrangea: "water",
-  lavender: "water",
-  plum: "wood",
-  tulip: "fire",
-  daisy: "metal",
-  narcissus: "water",
+const FALLBACK_FLOWER: FlowerDefinition = {
+  id: "peony",
+  name: "Peony",
+  koreanAlias: "모란",
+  aura: "풍요와 품격",
+  palette: ["#ffd6e5", "#f7b2d9"],
+  story: "크게 피어나는 꽃잎처럼, 당신의 잠재력이 주변을 환하게 비춥니다.",
 };
+
+const FLOWER_DB: FlowerDbEntry[] = (flowerDb.flowers as FlowerDbEntry[]).map((entry) => {
+  const [primary, accent] = Array.isArray(entry.palette) ? entry.palette : FALLBACK_FLOWER.palette;
+  return {
+    id: entry.id || FALLBACK_FLOWER.id,
+    name: entry.name || FALLBACK_FLOWER.name,
+    koreanAlias: entry.koreanAlias || FALLBACK_FLOWER.koreanAlias,
+    aura: entry.aura || FALLBACK_FLOWER.aura,
+    palette: [primary || FALLBACK_FLOWER.palette[0], accent || FALLBACK_FLOWER.palette[1]],
+    story: entry.story || FALLBACK_FLOWER.story,
+    primaryElement: ELEMENT_ORDER.includes(entry.primaryElement) ? entry.primaryElement : "earth",
+  };
+});
+
+const FLOWERS: Record<string, FlowerDefinition> = FLOWER_DB.reduce<Record<string, FlowerDefinition>>((acc, entry) => {
+  acc[entry.id] = {
+    id: entry.id,
+    name: entry.name,
+    koreanAlias: entry.koreanAlias,
+    aura: entry.aura,
+    palette: [entry.palette[0], entry.palette[1]],
+    story: entry.story,
+  };
+  return acc;
+}, {});
+
+const FLOWER_PRIMARY_ELEMENT: Record<string, SajuElement> = FLOWER_DB.reduce<Record<string, SajuElement>>((acc, entry) => {
+  acc[entry.id] = entry.primaryElement;
+  return acc;
+}, {});
+
+const RESOLVED_FALLBACK_FLOWER = FLOWERS.peony || FLOWERS[Object.keys(FLOWERS)[0]] || FALLBACK_FLOWER;
 
 export const ZIWEI_STAR_OPTIONS = [
   "자미(紫微)",
@@ -367,6 +263,24 @@ const SUKUYO_FLOWER_BY_MANSION: Record<string, string> = {
   익숙: "lavender",
   진숙: "narcissus",
 };
+
+const POSITIVE_FLOWERS_BY_DAILY_ELEMENT: Record<SajuElement, string[]> = {
+  wood: ["orchid", "plum", "magnolia", "peony"],
+  fire: ["sunflower", "rose", "tulip", "camellia"],
+  earth: ["chrysanthemum", "peony", "lily", "magnolia"],
+  metal: ["lily", "edelweiss", "daisy", "narcissus"],
+  water: ["lotus", "hydrangea", "lavender", "narcissus"],
+};
+
+const GLOBAL_POSITIVE_FLOWERS = new Set<string>([
+  "peony",
+  "sunflower",
+  "lotus",
+  "orchid",
+  "lily",
+  "hydrangea",
+  "narcissus",
+]);
 
 const PALACE_CARD_BONUS: Record<string, string[]> = {
   명궁: ["sun", "star", "judgement"],
@@ -935,11 +849,27 @@ function resolveSajuFlowerByCrossSignal(input: DivinationInput): string {
 function computeTarotWeight(card: TarotFinaleCard, input: DivinationInput): number {
   let weight = card.baseWeight;
 
+  const favorableFlowers = new Set<string>([
+    ...(POSITIVE_FLOWERS_BY_DAILY_ELEMENT[input.dailyElement] || []),
+    resolveSajuFlowerByCrossSignal(input),
+    SAJU_FLOWER_BY_ELEMENT[input.supportElement] || "peony",
+  ]);
+
   if (card.affinityElements.includes(input.dominantElement)) weight += 1.45;
   if (card.affinityElements.includes(input.supportElement)) weight += 0.95;
   if (card.affinityElements.includes(input.lackingElement)) weight += 0.75;
   if (card.affinityElements.includes(input.dayElement)) weight += 1.2;
   if (card.affinityElements.includes(input.dailyElement)) weight += 0.8;
+
+  const favorableMatchCount = card.boostFlowerIds.filter((flowerId) => favorableFlowers.has(flowerId)).length;
+  if (favorableMatchCount > 0) {
+    weight += favorableMatchCount * 0.72;
+  }
+
+  const globalPositiveMatchCount = card.boostFlowerIds.filter((flowerId) => GLOBAL_POSITIVE_FLOWERS.has(flowerId)).length;
+  if (globalPositiveMatchCount > 0) {
+    weight += globalPositiveMatchCount * 0.28;
+  }
 
   const palaceCards = PALACE_CARD_BONUS[input.ziweiPalace] || [];
   if (palaceCards.includes(card.id)) weight += 1.05;
@@ -954,47 +884,61 @@ function buildLongFormReport(
   pickedTarot: TarotFinaleCard,
 ): LongFormReport {
   const scoreSummary = results.map((item) => `${item.title} ${item.score}점`).join(" · ");
-  const keyElementLine = `${ELEMENT_LABEL[input.dominantElement]}(${input.elementWeights[input.dominantElement]}%) 중심, ${ELEMENT_LABEL[input.lackingElement]}(${input.elementWeights[input.lackingElement]}%) 보강`;
   const resultSignals = results.map((item) => `${item.subtitle}`).join(" / ");
+  const sajuResult = results.find((item) => item.kind === "saju");
+  const ziweiResult = results.find((item) => item.kind === "ziwei");
+  const sukuyoResult = results.find((item) => item.kind === "sukuyo");
+  const astrologyResult = results.find((item) => item.kind === "astrology");
+
+  const birthTimeLine = input.isBirthTimeKnown
+    ? "생시 정보가 반영된 차트로 정밀 계산되어 시간대별 기운 변화가 분석에 반영되었습니다."
+    : "생시 정보가 없어 12:00 평시 보정 차트로 계산했으며, 시간 오차 가능성은 보수적으로 반영되었습니다.";
 
   const opening =
-    `${input.profileName}님의 이번 운명 꽃 리포트는 사주 오행 비율, 자미두수 명궁 교차, 점성술 성향, 숙요 27수 타이밍을 하나의 축으로 합성해 도출했습니다. ` +
-    `이번 분석에서 핵심은 ${keyElementLine}이며, ${pickedTarot.name} 카드가 최종 트리거로 작동해 ${winner.koreanAlias} 상징이 확정되었습니다.`;
+    `${input.profileName}님의 리포트는 생년월일시 명리 데이터와 자미두수·숙요·점성술 신호를 교차 검증해 작성한 장문 분석입니다. ` +
+    `핵심 흐름은 ${ELEMENT_LABEL[input.dominantElement]}(${input.elementWeights[input.dominantElement]}%) 우세와 ${ELEMENT_LABEL[input.supportElement]} 보조, ${ELEMENT_LABEL[input.lackingElement]} 보완이라는 삼각 구조이며, 최종적으로 ${pickedTarot.name} 카드가 결론의 방향을 고정해 ${winner.koreanAlias} 상징으로 수렴했습니다.`;
 
   const sections = [
     {
-      title: "1) 사주 오행 기반 핵심 성향",
+      title: "섹션 1 [운명의 근원]",
       body:
-        `만세력 기반 계산에서 ${ELEMENT_LABEL[input.dominantElement]} 에너지가 우세하게 형성되어 기본 기질은 ${ELEMENT_NARRATIVE[input.dominantElement]} 쪽으로 기울어집니다. ` +
-        `반대로 ${ELEMENT_LABEL[input.lackingElement]} 구간은 피로 누적 시 즉시 흔들릴 수 있어, 중요한 선택 전에는 과감한 확장보다 점검·정리·휴식 루틴을 먼저 배치하는 편이 안정적입니다. ` +
-        `이번 주 운영 키워드는 “강점 집중 + 취약 구간 선제 보정”이며, 해당 패턴을 지키면 불필요한 감정 소모를 줄이고 성과 집중도를 높일 수 있습니다.`,
+        `${input.birthLabel} 기준으로 계산된 일간은 ${input.dayStem}이며, 기본 운용 축은 ${ELEMENT_LABEL[input.dominantElement]} 중심의 ${ELEMENT_NARRATIVE[input.dominantElement]} 성향으로 읽힙니다. ` +
+        `보조 축인 ${ELEMENT_LABEL[input.supportElement]}은 실행의 안정성을 높여 주는 반면, ${ELEMENT_LABEL[input.lackingElement]}은 과부하 시 균형이 무너지기 쉬운 취약점으로 작동합니다. ` +
+        `${birthTimeLine} 또한 오늘의 일진 ${input.dailyStemBranch}은 즉흥 결정보다 구조화된 선택을 권하며, 단기 성과보다 중기 누적 효율을 선택할 때 운세 체감이 더 크게 나타나는 패턴입니다. ` +
+        `따라서 이번 사이클의 명리 요약은 “강점의 선명한 발현 + 취약 요소의 선제 보정 + 일정 리듬의 일관성 유지”로 정리할 수 있습니다.`,
     },
     {
-      title: "2) 자미두수 + 숙요 교차 해석",
+      title: "섹션 2 [당신을 닮은 꽃]",
       body:
-        `${input.ziweiStar}(${input.ziweiPalace}) 축은 역할 분담과 책임 경계 설정에 강점을 줍니다. 여기에 ${input.zodiacSign} 성향이 겹치면서 대외 커뮤니케이션에서는 “짧고 정확한 메시지 + 분명한 마감선” 전략이 유효합니다. ` +
-        `숙요 ${input.sukuyoMansion} 신호는 타이밍 조절 능력을 높여 주기 때문에, 협업에서는 빠른 합의보다 체크포인트를 촘촘히 두는 구조가 오히려 결과를 단단하게 만듭니다. ` +
-        `즉, 이번 흐름은 밀어붙이는 속도전보다 설계와 조율을 통한 누적 승리가 핵심이며, 특히 재확인 메시지 한 줄이 리스크를 크게 줄이는 구간입니다.`,
+        `이번 분석에서 선정된 꽃은 ${winner.koreanAlias}(${winner.name})이며, 아우라는 “${winner.aura}”로 해석됩니다. ` +
+        `${winner.story} 이 상징은 단순 취향 묘사가 아니라, 사용자의 반응 방식·관계 온도·의사결정 리듬을 압축한 심리적 메타포에 가깝습니다. ` +
+        `${winner.koreanAlias}이 지닌 이미지는 외부 자극에 즉시 흔들리기보다 스스로 리듬을 만들고 환경을 정돈해 개화하는 흐름입니다. ` +
+        `즉, 당신의 기질은 감정의 파고를 부정하기보다 패턴으로 읽고, 필요한 순간에 기준을 세워 에너지를 재배치할 때 가장 아름답게 확장됩니다. ` +
+        `이 꽃은 “타고난 성향”을 말하는 동시에, 앞으로 선택해야 할 삶의 운영 방식까지 제안하는 상징으로 기능합니다.`,
     },
     {
-      title: "3) 오늘의 반전 포인트",
+      title: "섹션 3 [심층 분석]",
       body:
-        `오늘 일진 ${input.dailyStemBranch}와 ${pickedTarot.name} 카드의 공명은 “멈춰 있던 과제를 다시 활성화하는 반전”을 시사합니다. ` +
-        `다만 반전의 조건은 단순한 자신감이 아니라 우선순위 재정렬입니다. 지금 당장 해야 하는 1개, 이번 주 안에 끝낼 2개, 보류할 3개를 분리하면 선택 피로가 크게 줄어듭니다. ` +
-        `또한 감정 소모가 큰 대화는 밤보다 오전에 배치하고, 기록 중심으로 남겨야 다음 의사결정에서 흔들림이 줄어듭니다. 이번 반전은 운보다 구조에서 먼저 시작됩니다.`,
+        `사주 결과(${sajuResult?.title ?? "사주"})에서는 ${sajuResult?.basisLine ?? "일간 오행 비율"}을 근거로 ${sajuResult?.flowerName ?? winner.koreanAlias} 후보가 강하게 형성되었습니다. ` +
+        `자미두수 결과(${ziweiResult?.title ?? "자미두수"})는 ${input.ziweiStar}·${input.ziweiPalace} 축에서 나타나는 역할 책임성과 대인 조율 패턴을 통해 ${ziweiResult?.flowerName ?? winner.koreanAlias} 계열의 상징을 보강했습니다. ` +
+        `숙요 결과(${sukuyoResult?.title ?? "숙요"})는 ${input.sukuyoMansion} 타이밍에서 드러나는 감정 리듬과 관계 민감도를 반영해 최종 후보군의 우선순위를 미세 조정했습니다. ` +
+        `점성술 결과(${astrologyResult?.title ?? "점성술"})는 ${input.sunSignLabel} 신호를 통해 표현 방식과 외부 노출 에너지의 방향성을 확인했습니다. ` +
+        `종합하면 “당신의 차트에서 ${ELEMENT_LABEL[input.dominantElement]} 기운이 강하게 작동하고, ${ELEMENT_LABEL[input.supportElement]}이 이를 지지하며, ${ELEMENT_LABEL[input.lackingElement]} 보완이 필요하기 때문에” 현재 운세 지형에서 ${winner.koreanAlias}이 가장 논리적으로 높은 적합도를 보입니다.`,
     },
     {
-      title: "4) 오늘의 운명 꽃 실천 가이드",
+      title: "섹션 4 [조언]",
       body:
-        `첫째, 하루 시작 15분은 ${ELEMENT_LABEL[input.supportElement]} 강점 루틴(정리, 기획, 기록 등)에 고정해 기준선을 세우세요. 둘째, ${ELEMENT_LABEL[input.lackingElement]} 보완을 위해 식사/수면/휴식 중 한 항목을 매일 같은 시간에 유지하세요. ` +
-        `셋째, 핵심 작업은 50분 집중 + 10분 정리로 끊어 작업 종료 시점마다 다음 행동 한 줄을 남기세요. 넷째, 관계 이슈는 즉답보다 “확인 후 회신” 문장을 사용해 불필요한 오해를 줄이세요. ` +
-        `다섯째, 주말에는 결과 복기 20분으로 이번 주 성과와 실수를 분리해 다음 주 루틴으로 즉시 연결하면, ${winner.koreanAlias} 상징의 장기 개화 흐름이 안정적으로 이어집니다.`,
+        `개운법(運을 여는 법)의 첫 단계는 에너지 누수를 막는 생활 리듬 고정입니다. 매일 같은 시간대에 시작 루틴(물 한 잔, 5분 호흡, 오늘의 1순위 기록)을 반복해 운의 기저 진동을 안정화하세요. ` +
+        `둘째, 환경 제언으로는 작업 공간을 “집중 구역 1개 + 정리 구역 1개”로 단순화하고, 시야에 들어오는 물건 수를 줄여 결정 피로를 낮추는 것이 유리합니다. ` +
+        `셋째, ${ELEMENT_LABEL[input.lackingElement]} 보완을 위해 수면·수분·정리 중 하나를 핵심 습관으로 지정해 14일 연속 유지하면 체감 운이 빠르게 회복됩니다. ` +
+        `넷째, 인간관계에서는 즉답보다 확인 문장을 먼저 두어 오해를 줄이고, 중요한 제안은 오전 시간대에 전달해 수용 확률을 높이세요. ` +
+        `다섯째, 주 1회 20분 복기(잘한 점 3개, 멈출 점 1개, 다음 실험 1개)를 실행하면 ${winner.koreanAlias} 상징의 장점이 일시적 행운이 아닌 재현 가능한 성과 루틴으로 고정됩니다.`,
     },
   ];
 
   let closing =
-    `요약하면 이번 운명 꽃 사이클은 ${resultSignals}가 한 축으로 수렴하면서 “과한 확장보다 정밀한 운용”에서 최고 효율이 나오는 주기입니다. ` +
-    `점수 축(${scoreSummary})을 보면 이미 기반은 충분하므로, 작은 습관의 정확도가 곧 성과 곡선의 기울기를 결정합니다.`;
+    `최종 결론은 ${resultSignals} 신호가 하나의 축으로 모이며 ${winner.koreanAlias} 상징을 강화했다는 점입니다. ` +
+    `점수 분포(${scoreSummary})는 이미 성장 가능한 기반이 충분함을 보여 주며, 이제 성패를 가르는 변수는 거대한 변화가 아니라 작은 반복의 정확도입니다.`;
 
   let fullText = [
     opening,
@@ -1003,9 +947,9 @@ function buildLongFormReport(
   ].join("\n\n");
 
   const filler =
-    `추가 코멘트: 이번 주에는 빠른 결론보다 근거를 남기는 습관이 특히 중요합니다. ` +
-    `메모 한 줄, 체크리스트 한 칸, 일정 확정 메시지 한 문장이 작은 오차를 줄이고 장기적으로는 신뢰 자산을 크게 늘립니다. ` +
-    `이 과정을 7일만 유지해도 운의 체감은 단발성 상승이 아니라 재현 가능한 루틴으로 고정됩니다.`;
+    `보강 해설: 이번 주는 빠른 결론보다 근거를 남기는 태도가 운세 안정성에 직접 기여합니다. ` +
+    `메모 한 줄, 일정 확인 메시지 한 번, 종료 전 점검 3분이 누적되면 실수 비용이 줄고 관계 신뢰가 함께 상승합니다. ` +
+    `같은 루틴을 7일 이상 유지하면 운의 체감은 단발적 상승이 아니라 장기 패턴으로 고정됩니다.`;
 
   while (fullText.length < 1000) {
     closing = `${closing} ${filler}`;
@@ -1026,7 +970,7 @@ function buildLongFormReport(
 }
 
 export function getFlowerDefinition(flowerId: string): FlowerDefinition {
-  return FLOWERS[flowerId] ?? FLOWERS.peony;
+  return FLOWERS[flowerId] ?? RESOLVED_FALLBACK_FLOWER;
 }
 
 export function deriveDivinationInput(profile: DestinyProfile): DivinationInput {
@@ -1189,6 +1133,7 @@ export function resolveFinalDestinyFlower(
   input: DivinationInput,
   results: DivinationResult[],
   pickedTarot: TarotFinaleCard,
+  preferredFlowerId?: string,
 ): FinalDestinyFlower {
   const scoreByFlower: Record<string, number> = {};
 
@@ -1199,6 +1144,10 @@ export function resolveFinalDestinyFlower(
   pickedTarot.boostFlowerIds.forEach((id) => {
     scoreByFlower[id] = (scoreByFlower[id] || 0) + 24;
   });
+
+  if (preferredFlowerId) {
+    scoreByFlower[preferredFlowerId] = (scoreByFlower[preferredFlowerId] || 0) + 18;
+  }
 
   Object.keys(scoreByFlower).forEach((flowerId) => {
     const element = FLOWER_PRIMARY_ELEMENT[flowerId] || input.supportElement;

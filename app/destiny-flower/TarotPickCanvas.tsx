@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 import styles from "./destiny-flower.module.css";
 import { getTarotCardImage } from "./flowerAssetMap";
 import type { TarotFinaleCard } from "./types";
@@ -9,27 +9,37 @@ interface TarotPickCanvasProps {
   cards: TarotFinaleCard[];
   selectedCardId?: string;
   onPick: (cardId: string) => void;
+  title?: string;
+  description?: ReactNode;
+  lockAfterPick?: boolean;
 }
 
 export const TarotPickCanvas = memo(function TarotPickCanvas({
   cards,
   selectedCardId,
   onPick,
+  title,
+  description,
+  lockAfterPick = true,
 }: TarotPickCanvasProps) {
   return (
     <section className={styles.tarotCanvas} aria-label="최종 계시 카드 선택">
       <header className={styles.tarotHeader}>
-        <h3>✦ 最終 啓示 · 최종 계시</h3>
-        <p>
-          꽃 아래에 놓인 세 장의 카드 중 하나를 선택하면,<br />
-          카드가 뒤집히며 오늘의 최종 조언이 열립니다.
-        </p>
+        <h3>{title ?? "✦ 最終 啓示 · 최종 계시"}</h3>
+        {description ? (
+          <p>{description}</p>
+        ) : (
+          <p>
+            꽃 아래에 놓인 세 장의 카드 중 하나를 선택하면,<br />
+            카드가 뒤집히며 오늘의 최종 조언이 열립니다.
+          </p>
+        )}
       </header>
 
       <div className={styles.tarotDeck}>
         {cards.map((card, index) => {
           const isSelected = selectedCardId === card.id;
-          const isLocked = !!selectedCardId && !isSelected;
+          const isLocked = lockAfterPick && !!selectedCardId && !isSelected;
 
           return (
             <button

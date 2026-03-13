@@ -43,12 +43,29 @@ function parseBirthDateParts(rawDate: unknown): { year: number; month: number; d
   return { year, month, day };
 }
 
+function parseBirthTimeParts(rawTime: unknown): { hour: number; minute: number } | null {
+  const text = String(rawTime ?? "").trim();
+  if (!text) return null;
+
+  const match = text.match(/^(\d{1,2}):(\d{1,2})$/);
+  if (!match) return null;
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+
+  return { hour, minute };
+}
+
 function normalizeProfile(raw: unknown): DestinyProfile | null {
   if (!raw || typeof raw !== "object") return null;
 
   const source = raw as AnyProfile;
   const birth = (source.birth as AnyProfile | undefined) || {};
   const parsedBirthDate = parseBirthDateParts(source.birthDate ?? birth.date);
+  const parsedBirthTime = parseBirthTimeParts(source.birthTime ?? birth.time);
 
   const year = pickFirstFinite(birth.year, source.birthYear, parsedBirthDate?.year);
   const month = pickFirstFinite(birth.month, source.birthMonth, parsedBirthDate?.month);
@@ -56,8 +73,8 @@ function normalizeProfile(raw: unknown): DestinyProfile | null {
 
   if (!year || !month || !day) return null;
 
-  const hour = pickFirstFinite(birth.hour, source.birthHour);
-  const minute = pickFirstFinite(birth.minute, source.birthMinute);
+  const hour = pickFirstFinite(birth.hour, source.birthHour, parsedBirthTime?.hour);
+  const minute = pickFirstFinite(birth.minute, source.birthMinute, parsedBirthTime?.minute);
   const location = (source.location as AnyProfile | undefined) || {};
 
   return {
@@ -82,6 +99,37 @@ function normalizeProfile(raw: unknown): DestinyProfile | null {
       dstMinutes: pickFirstFinite(location.dstMinutes, source.dstMinutes),
     },
   };
+}
+
+function readProfileFromUserProfileStorage(): DestinyProfile | null {
+  try {
+    const rawUserProfile = localStorage.getItem("user_profile");
+    if (rawUserProfile) {
+      const parsed = JSON.parse(rawUserProfile) as unknown;
+      const candidates: unknown[] = [
+        parsed,
+        (parsed as AnyProfile | undefined)?.profile,
+        (parsed as AnyProfile | undefined)?.user,
+        (parsed as AnyProfile | undefined)?.user_profile,
+      ];
+
+      for (const candidate of candidates) {
+        const normalized = normalizeProfile(candidate);
+        if (normalized) return normalized;
+      }
+    }
+
+    const rawAuthUser = localStorage.getItem("fortune_auth_user");
+    if (rawAuthUser) {
+      const parsedAuthUser = JSON.parse(rawAuthUser) as unknown;
+      const normalizedAuthUser = normalizeProfile(parsedAuthUser);
+      if (normalizedAuthUser) return normalizedAuthUser;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 function readProfileFromManager(): DestinyProfile | null {
@@ -126,7 +174,7 @@ function readProfileFromLocalStorage(): DestinyProfile | null {
 
 export function getCurrentDestinyProfile(): DestinyProfile | null {
   if (typeof window === "undefined") return null;
-  return readProfileFromManager() || readProfileFromLocalStorage();
+  return readProfileFromUserProfileStorage() || readProfileFromManager() || readProfileFromLocalStorage();
 }
 
 export function subscribeDestinyProfileChange(

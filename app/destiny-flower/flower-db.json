@@ -1,0 +1,148 @@
+{
+  "flowers": [
+    {
+      "id": "peony",
+      "name": "Peony",
+      "koreanAlias": "모란",
+      "aura": "풍요와 품격",
+      "palette": ["#ffd6e5", "#f7b2d9"],
+      "story": "크게 피어나는 꽃잎처럼, 당신의 잠재력이 주변을 환하게 비춥니다.",
+      "primaryElement": "earth"
+    },
+    {
+      "id": "rose",
+      "name": "Rose",
+      "koreanAlias": "장미",
+      "aura": "열정과 매혹",
+      "palette": ["#ff9aa2", "#ff6f91"],
+      "story": "강렬한 심장박동처럼, 당신의 욕망이 현실을 밀어 올리는 꽃입니다.",
+      "primaryElement": "fire"
+    },
+    {
+      "id": "lotus",
+      "name": "Lotus",
+      "koreanAlias": "연꽃",
+      "aura": "정화와 회복",
+      "palette": ["#d9f0ff", "#9cd6f7"],
+      "story": "흐린 물 위에서도 고요히 피어나는, 깊은 치유의 에너지를 품고 있습니다.",
+      "primaryElement": "water"
+    },
+    {
+      "id": "camellia",
+      "name": "Camellia",
+      "koreanAlias": "동백",
+      "aura": "강인함과 진심",
+      "palette": ["#ffb6c1", "#ff7f9f"],
+      "story": "추운 계절에도 고개를 들고 피어나는, 끈기 있는 사랑의 상징입니다.",
+      "primaryElement": "fire"
+    },
+    {
+      "id": "chrysanthemum",
+      "name": "Chrysanthemum",
+      "koreanAlias": "국화",
+      "aura": "안정과 지혜",
+      "palette": ["#ffe9a8", "#ffd166"],
+      "story": "성숙한 계절의 결실처럼, 오래 갈 결과를 만드는 집중력을 드러냅니다.",
+      "primaryElement": "earth"
+    },
+    {
+      "id": "orchid",
+      "name": "Orchid",
+      "koreanAlias": "난초",
+      "aura": "기품과 세련",
+      "palette": ["#f1d4ff", "#c7a6ff"],
+      "story": "조용하지만 뚜렷한 존재감으로, 당신만의 결을 우아하게 완성합니다.",
+      "primaryElement": "wood"
+    },
+    {
+      "id": "lily",
+      "name": "Lily",
+      "koreanAlias": "백합",
+      "aura": "순수와 보호",
+      "palette": ["#ffffff", "#f2f2f2"],
+      "story": "맑은 향기처럼 복잡한 상황을 정리하고, 중요한 기준을 지켜줍니다.",
+      "primaryElement": "metal"
+    },
+    {
+      "id": "edelweiss",
+      "name": "Edelweiss",
+      "koreanAlias": "에델바이스",
+      "aura": "절제와 고결",
+      "palette": ["#f5f7fb", "#d9e2f2"],
+      "story": "높은 고도에서도 흔들리지 않는 중심처럼, 압박 속에서도 기준을 지키는 힘을 보여줍니다.",
+      "primaryElement": "metal"
+    },
+    {
+      "id": "magnolia",
+      "name": "Magnolia",
+      "koreanAlias": "목련",
+      "aura": "품위와 탄생",
+      "palette": ["#fff1e8", "#ffd8c2"],
+      "story": "계절의 문을 여는 선두주자처럼, 새로운 시작의 깃발이 되어줍니다.",
+      "primaryElement": "earth"
+    },
+    {
+      "id": "sunflower",
+      "name": "Sunflower",
+      "koreanAlias": "해바라기",
+      "aura": "활력과 낙관",
+      "palette": ["#ffe57f", "#ffca28"],
+      "story": "빛을 향해 고개를 돌리듯, 당신의 시선을 기회로 연결하는 꽃입니다.",
+      "primaryElement": "fire"
+    },
+    {
+      "id": "hydrangea",
+      "name": "Hydrangea",
+      "koreanAlias": "수국",
+      "aura": "감수성과 공감",
+      "palette": ["#bde0fe", "#a2d2ff"],
+      "story": "섬세한 색의 겹처럼, 복합적인 감정을 정교하게 읽어냅니다.",
+      "primaryElement": "water"
+    },
+    {
+      "id": "lavender",
+      "name": "Lavender",
+      "koreanAlias": "라벤더",
+      "aura": "진정과 통찰",
+      "palette": ["#d7c6ff", "#b8a7ff"],
+      "story": "잔잔한 향기처럼 사고를 맑게 하고, 마음의 파동을 고르게 만듭니다.",
+      "primaryElement": "water"
+    },
+    {
+      "id": "plum",
+      "name": "Plum Blossom",
+      "koreanAlias": "매화",
+      "aura": "절개와 희망",
+      "palette": ["#ffe2f1", "#ffc8dd"],
+      "story": "차가운 시절 끝에서 먼저 피어나는, 인내 끝의 기적을 상징합니다.",
+      "primaryElement": "wood"
+    },
+    {
+      "id": "tulip",
+      "name": "Tulip",
+      "koreanAlias": "튤립",
+      "aura": "선명한 선택",
+      "palette": ["#ffadad", "#ff7b7b"],
+      "story": "간결하지만 확실한 결단으로, 망설임을 행동으로 바꾸어 줍니다.",
+      "primaryElement": "fire"
+    },
+    {
+      "id": "daisy",
+      "name": "Daisy",
+      "koreanAlias": "데이지",
+      "aura": "순간의 기쁨",
+      "palette": ["#fffce0", "#ffe66d"],
+      "story": "작고 환한 미소처럼, 일상의 기회를 가볍게 붙잡게 합니다.",
+      "primaryElement": "metal"
+    },
+    {
+      "id": "narcissus",
+      "name": "Narcissus",
+      "koreanAlias": "수선화",
+      "aura": "자기회복과 각성",
+      "palette": ["#fff3bf", "#ffd43b"],
+      "story": "얼어 있던 감각을 깨우며, 새로운 시즌의 주인공으로 세워줍니다.",
+      "primaryElement": "water"
+    }
+  ]
+}

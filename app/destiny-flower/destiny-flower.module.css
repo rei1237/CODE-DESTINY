@@ -5,13 +5,22 @@
 
 /* ── Page Wrap ── */
 .pageWrap {
+  --flower-bg: #0a0e14;
+  --flower-accent: #c9a84c;
+  --flower-font-color: rgba(255, 249, 224, 0.9);
+  --flower-glow: rgba(201, 168, 76, 0.45);
+  --flower-font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+
   position: relative;
   min-height: 100dvh;
   padding: 40px 18px 110px;
   max-width: 620px;
   margin: 0 auto;
-  background: #0a0e14;
-  color: rgba(255, 249, 224, 0.9);
+  background:
+    radial-gradient(circle at 84% 10%, var(--flower-glow) 0%, transparent 32%),
+    var(--flower-bg);
+  color: var(--flower-font-color);
+  font-family: var(--flower-font-family);
   overflow-x: hidden;
 }
 
@@ -24,7 +33,7 @@
   z-index: 0;
   background-image:
     radial-gradient(circle, rgba(255, 255, 255, 0.6) 1px, transparent 1.1px),
-    radial-gradient(circle, rgba(201, 168, 76, 0.45) 0.8px, transparent 0.9px),
+    radial-gradient(circle, var(--flower-glow) 0.8px, transparent 0.9px),
     radial-gradient(circle, rgba(150, 120, 255, 0.3) 1px, transparent 1.1px);
   background-size: 46px 46px, 70px 70px, 92px 92px;
   background-position: 0 0, 23px 31px, 46px 16px;
@@ -59,9 +68,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(201, 168, 76, 0.1);
-  border: 1px solid rgba(201, 168, 76, 0.35);
-  color: #c9a84c;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--flower-accent);
+  color: var(--flower-accent);
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.22em;
@@ -77,7 +86,7 @@
   font-size: clamp(2.2rem, 7vw, 3.2rem);
   font-weight: 800;
   letter-spacing: 0.12em;
-  background: linear-gradient(135deg, #e8c96d 0%, #fff8d6 50%, #c6934a 100%);
+  background: linear-gradient(135deg, var(--flower-accent) 0%, #fff8d6 52%, var(--flower-accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -85,42 +94,123 @@
 
 .headerSubtitle {
   margin: 12px 0 0;
-  color: rgba(201, 175, 120, 0.7);
+  color: var(--flower-accent);
   font-size: 0.9rem;
   letter-spacing: 0.05em;
   line-height: 1.7;
+  opacity: 0.82;
 }
 
-/* ── Soul Sync (Loading) ── */
-.soulSyncPanel {
+/* ── Loading Bloom Splash ── */
+.loadingBloomPanel {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding: 56px 24px;
+  gap: 14px;
+  padding: 46px 22px 34px;
   text-align: center;
+  border-radius: 24px;
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  background:
+    radial-gradient(circle at 50% 34%, rgba(201, 168, 76, 0.2), transparent 62%),
+    rgba(12, 16, 26, 0.88);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
 }
 
-.soulSyncOrb {
-  width: 76px;
-  height: 76px;
+.loadingBloomPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.28) 1px, transparent 1.2px),
+    radial-gradient(circle, rgba(201, 168, 76, 0.22) 1px, transparent 1.2px);
+  background-size: 44px 44px, 62px 62px;
+  background-position: 0 0, 20px 24px;
+  opacity: 0.26;
+  animation: loadingBloomStarDrift 14s linear infinite;
+}
+
+.loadingBloomScene {
+  position: relative;
+  width: 188px;
+  height: 188px;
+  display: grid;
+  place-items: center;
+}
+
+.loadingBloomHalo {
+  position: absolute;
+  inset: 18px;
   border-radius: 50%;
-  background: radial-gradient(circle at 38% 35%, rgba(255, 245, 180, 0.85), rgba(201, 168, 76, 0.45));
-  box-shadow: 0 0 44px 14px rgba(201, 168, 76, 0.28), 0 0 80px 30px rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  box-shadow: 0 0 26px rgba(201, 168, 76, 0.2);
+  animation: loadingBloomHaloPulse 3.8s ease-in-out infinite;
 }
 
-.soulSyncText {
+.loadingBloomPetalField {
+  position: absolute;
+  inset: 0;
+  animation: loadingBloomRotate 18s linear infinite;
+}
+
+.loadingBloomPetal {
+  --petal-rotate: 0deg;
+  --petal-delay: 0s;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 78px;
+  border-radius: 52% 48% 68% 72% / 80% 78% 30% 28%;
+  transform-origin: 50% 110%;
+  transform: rotate(var(--petal-rotate)) translateY(-44px) scale(0.56);
+  background: linear-gradient(180deg, rgba(255, 236, 205, 0.94), rgba(255, 173, 206, 0.72));
+  filter: drop-shadow(0 0 9px rgba(201, 168, 76, 0.35));
+  opacity: 0.24;
+  animation: loadingPetalBloom 3.2s ease-in-out infinite;
+  animation-delay: var(--petal-delay);
+}
+
+.loadingBloomGlow {
+  position: absolute;
+  width: 126px;
+  height: 126px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 246, 200, 0.42), rgba(201, 168, 76, 0.06) 70%);
+  filter: blur(2px);
+  animation: loadingBloomGlowPulse 2.7s ease-in-out infinite;
+}
+
+.loadingBloomCore {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 32%, rgba(255, 252, 233, 0.98), rgba(201, 168, 76, 0.78));
+  box-shadow:
+    0 0 18px rgba(255, 239, 170, 0.66),
+    0 0 34px rgba(201, 168, 76, 0.38);
+  animation: loadingBloomCorePulse 2.4s ease-in-out infinite;
+}
+
+.loadingBloomText {
   margin: 0;
-  color: rgba(255, 249, 224, 0.92);
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  color: rgba(255, 249, 224, 0.94);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
-.soulSyncPanel small {
-  color: rgba(201, 168, 76, 0.55);
+.loadingBloomSubtext {
+  display: block;
+  color: rgba(201, 168, 76, 0.62);
   font-size: 0.82rem;
-  line-height: 1.7;
+  line-height: 1.72;
+  max-width: 330px;
 }
 
 /* ── Missing Garden ── */
@@ -231,7 +321,8 @@
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.44);
+  color: var(--flower-accent);
+  opacity: 0.58;
 }
 
 /* ── Flower Canvas Wrap ── */
@@ -248,6 +339,8 @@
   max-width: 308px;
   height: 400px;
   margin: 0 auto;
+  border-radius: 28px;
+  background: radial-gradient(circle at 50% 56%, var(--flower-glow), transparent 58%);
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -310,9 +403,10 @@
   height: 172px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 1px dashed rgba(201, 168, 76, 0.28);
+  border: 1px dashed var(--flower-accent);
   animation: auroraSpin 20s linear infinite;
   z-index: 5;
+  opacity: 0.66;
 }
 
 /* Individual particle dot */
@@ -325,6 +419,67 @@
   border-radius: 50%;
   margin: -2.5px 0 0 -2.5px;
   opacity: 0.82;
+}
+
+/* Element Particle Layers */
+.elementParticleLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 7;
+}
+
+.particleLayerWood,
+.particleLayerFire,
+.particleLayerWater,
+.particleLayerMetal {
+  mix-blend-mode: screen;
+}
+
+.elementParticle {
+  position: absolute;
+  left: var(--particle-x, 50%);
+  bottom: 24%;
+  width: var(--particle-size, 8px);
+  height: var(--particle-size, 8px);
+  background: var(--particle-color, #c9a84c);
+  transform: translateX(-50%);
+  opacity: 0;
+  filter: drop-shadow(0 0 8px var(--particle-color, #c9a84c));
+}
+
+.particleWood {
+  border-radius: 62% 38% 60% 40% / 58% 50% 50% 42%;
+  animation: leafDrift 6.2s ease-in-out infinite;
+  animation-delay: var(--particle-delay, 0s);
+}
+
+.particleFire {
+  border-radius: 42% 58% 48% 52% / 66% 34% 66% 34%;
+  animation: fireSpark 2.6s ease-out infinite;
+  animation-delay: var(--particle-delay, 0s);
+}
+
+.particleWater {
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--particle-color, #4f88d8);
+  animation: waterRipple 4.3s ease-out infinite;
+  animation-delay: var(--particle-delay, 0s);
+}
+
+.particleEarth {
+  border-radius: 50%;
+  opacity: 0.78;
+  animation: earthDust 5.3s ease-in-out infinite;
+  animation-delay: var(--particle-delay, 0s);
+}
+
+.particleMetal {
+  clip-path: polygon(50% 0%, 72% 36%, 100% 50%, 72% 64%, 50% 100%, 28% 64%, 0% 50%, 28% 36%);
+  animation: metalGleam 3.5s ease-in-out infinite;
+  animation-delay: var(--particle-delay, 0s);
 }
 
 /* Petals container */
@@ -401,7 +556,8 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: rgba(201, 168, 76, 0.58);
+  color: var(--flower-accent);
+  opacity: 0.68;
 }
 
 /* ── Garden CTA ── */
@@ -820,7 +976,7 @@
   border-radius: 14px;
   border: 1px solid rgba(201, 168, 76, 0.16);
   background: rgba(8, 12, 20, 0.72);
-  padding: 16px;
+  padding: 18px;
 }
 
 .longReportHeader {
@@ -844,40 +1000,143 @@
   font-weight: 700;
 }
 
+.longReportScrollHint {
+  margin: 0 0 12px;
+  font-size: 0.74rem;
+  color: rgba(201, 168, 76, 0.65);
+  line-height: 1.6;
+}
+
 .longReportOpening,
 .longReportClosing {
-  margin: 0 0 12px;
-  line-height: 1.82;
-  color: rgba(255, 249, 224, 0.7);
-  font-size: 0.84rem;
+  margin: 0 0 14px;
+  line-height: 1.92;
+  color: rgba(255, 249, 224, 0.76);
+  font-size: 0.86rem;
 }
 
 .longReportGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 14px 0;
 }
 
 .longReportCard {
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid rgba(201, 168, 76, 0.14);
   background: rgba(12, 16, 26, 0.72);
-  padding: 12px;
+  padding: 14px;
 }
 
 .longReportCard h5 {
-  margin: 0 0 7px;
-  font-size: 0.78rem;
-  color: rgba(201, 168, 76, 0.78);
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: rgba(201, 168, 76, 0.86);
   font-weight: 800;
+}
+
+.longReportCard h5 small {
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  color: rgba(201, 168, 76, 0.58);
 }
 
 .longReportCard p {
   margin: 0;
-  line-height: 1.72;
-  color: rgba(255, 249, 224, 0.65);
-  font-size: 0.77rem;
+  line-height: 1.84;
+  color: rgba(255, 249, 224, 0.72);
+  font-size: 0.8rem;
+}
+
+/* ── Today Flower Tarot (Report Bottom) ── */
+.todayTarotSection {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tarotSaveArea {
+  border-radius: 14px;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  background: rgba(8, 12, 20, 0.68);
+  padding: 12px;
+}
+
+.tarotSaveCard {
+  display: grid;
+  grid-template-columns: minmax(0, 116px) 1fr;
+  gap: 10px;
+  align-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 76, 0.24);
+  background: linear-gradient(145deg, rgba(18, 24, 38, 0.92), rgba(10, 14, 24, 0.94));
+  padding: 10px;
+}
+
+.tarotSaveImage {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 9px;
+  border: 1px solid rgba(201, 168, 76, 0.26);
+  background: rgba(9, 13, 21, 0.82);
+}
+
+.tarotSaveTextBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tarotSaveTextBox span {
+  color: rgba(201, 168, 76, 0.72);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tarotSaveTextBox strong {
+  color: rgba(255, 249, 224, 0.95);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.tarotSaveTextBox p {
+  margin: 0;
+  color: rgba(255, 249, 224, 0.7);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.tarotSaveButton {
+  margin-top: 10px;
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 76, 0.36);
+  background: linear-gradient(135deg, rgba(201, 120, 50, 0.28), rgba(201, 168, 76, 0.4));
+  color: rgba(255, 249, 224, 0.95);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.tarotSaveButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(201, 168, 76, 0.2);
+}
+
+.tarotSaveButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* ── Results Stage: Floral Timeline ── */
@@ -1108,7 +1367,7 @@
 .divinationCard {
   border-radius: 16px;
   border: 1px solid rgba(201, 168, 76, 0.18);
-  background: linear-gradient(152deg, rgba(14, 20, 32, 0.94), rgba(8, 12, 20, 0.9));
+  background: linear-gradient(152deg, var(--flower-bg, rgba(14, 20, 32, 0.94)), rgba(8, 12, 20, 0.9));
   box-shadow: inset 0 1px 0 rgba(255, 249, 224, 0.06), 0 8px 24px rgba(0, 0, 0, 0.35);
   padding: 13px;
 }
@@ -1123,13 +1382,13 @@
 
 .divinationChip {
   border-radius: 999px;
-  border: 1px solid rgba(201, 168, 76, 0.25);
-  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid var(--flower-accent, rgba(201, 168, 76, 0.25));
+  background: rgba(255, 255, 255, 0.08);
   padding: 4px 10px;
   font-size: 0.67rem;
   letter-spacing: 0.08em;
   font-weight: 800;
-  color: rgba(201, 168, 76, 0.88);
+  color: var(--flower-accent);
 }
 
 .divinationSubtitle {
@@ -1148,9 +1407,9 @@
 
 .elementTag {
   border-radius: 999px;
-  border: 1px solid rgba(201, 168, 76, 0.18);
-  background: rgba(201, 168, 76, 0.06);
-  color: rgba(201, 168, 76, 0.74);
+  border: 1px solid var(--flower-accent, rgba(201, 168, 76, 0.18));
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--flower-accent);
   font-size: 0.68rem;
   font-weight: 700;
   padding: 4px 10px;
@@ -1184,7 +1443,7 @@
   inset: 0;
   background-image:
     radial-gradient(circle, rgba(255, 255, 255, 0.34) 1px, transparent 1.1px),
-    radial-gradient(circle, rgba(201, 168, 76, 0.3) 0.8px, transparent 0.9px);
+    radial-gradient(circle, var(--flower-glow, rgba(201, 168, 76, 0.3)) 0.8px, transparent 0.9px);
   background-size: 28px 28px, 38px 38px;
   opacity: 0.25;
   animation: pollenDrift 9s linear infinite;
@@ -1192,16 +1451,17 @@
 
 .flowerName {
   margin: 10px 0 4px;
-  color: rgba(255, 249, 224, 0.95);
+  color: var(--flower-font-color, rgba(255, 249, 224, 0.95));
   font-size: 0.9rem;
   font-weight: 800;
 }
 
 .flowerSummary {
   margin: 0;
-  color: rgba(201, 168, 76, 0.72);
+  color: var(--flower-accent, rgba(201, 168, 76, 0.72));
   font-size: 0.78rem;
   line-height: 1.6;
+  opacity: 0.84;
 }
 
 .flowerDetails {
@@ -1213,9 +1473,10 @@
 
 .basisLine {
   margin: 8px 0 0;
-  color: rgba(201, 168, 76, 0.58);
+  color: var(--flower-accent, rgba(201, 168, 76, 0.58));
   font-size: 0.72rem;
   line-height: 1.58;
+  opacity: 0.78;
 }
 
 .scoreBar {
@@ -1234,6 +1495,58 @@
 }
 
 /* ══ Animations ══ */
+@keyframes loadingBloomStarDrift {
+  0% { background-position: 0 0, 20px 24px; }
+  100% { background-position: 0 128px, 22px 88px; }
+}
+
+@keyframes loadingBloomRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loadingBloomHaloPulse {
+  0%, 100% {
+    transform: scale(0.98);
+    opacity: 0.66;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.94;
+  }
+}
+
+@keyframes loadingPetalBloom {
+  0%, 100% {
+    transform: rotate(var(--petal-rotate)) translateY(-42px) scale(0.54);
+    opacity: 0.2;
+  }
+  46% {
+    transform: rotate(var(--petal-rotate)) translateY(-80px) scale(1);
+    opacity: 0.96;
+  }
+}
+
+@keyframes loadingBloomGlowPulse {
+  0%, 100% {
+    transform: scale(0.88);
+    opacity: 0.52;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.9;
+  }
+}
+
+@keyframes loadingBloomCorePulse {
+  0%, 100% {
+    transform: scale(0.92);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
 @keyframes twinkleDrift {
   from {
     background-position: 0 0, 23px 31px, 46px 16px;
@@ -1280,6 +1593,76 @@
   100% { background-position: 0 120px, 20px 80px; }
 }
 
+@keyframes leafDrift {
+  0% {
+    transform: translate(-50%, 20px) rotate(-18deg) scale(0.88);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(calc(-50% + 26px), -212px) rotate(28deg) scale(1.08);
+    opacity: 0;
+  }
+}
+
+@keyframes fireSpark {
+  0% {
+    transform: translate(-50%, 0) scale(0.45);
+    opacity: 0;
+  }
+  22% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(calc(-50% + 10px), -176px) scale(0.1);
+    opacity: 0;
+  }
+}
+
+@keyframes waterRipple {
+  0% {
+    transform: translate(-50%, -20px) scale(0.22);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.66;
+  }
+  100% {
+    transform: translate(-50%, -170px) scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes earthDust {
+  0% {
+    transform: translate(-50%, 0) scale(0.78);
+    opacity: 0;
+  }
+  26% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(calc(-50% + 14px), -130px) scale(1.18);
+    opacity: 0;
+  }
+}
+
+@keyframes metalGleam {
+  0% {
+    transform: translate(-50%, 10px) rotate(0deg) scale(0.4);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.86;
+  }
+  100% {
+    transform: translate(calc(-50% - 10px), -158px) rotate(220deg) scale(0.95);
+    opacity: 0;
+  }
+}
+
 /* ══ Responsive ══ */
 @media (max-width: 640px) {
   .pageWrap {
@@ -1310,6 +1693,14 @@
     grid-template-columns: 1fr;
   }
 
+  .tarotSaveCard {
+    grid-template-columns: 1fr;
+  }
+
+  .tarotSaveImage {
+    max-width: 150px;
+  }
+
   .gardenCTA {
     font-size: 0.86rem;
     min-height: 50px;
@@ -1325,7 +1716,14 @@
   .tarotBackSymbol,
   .flowerZodiacRing,
   .flowerTouchHint,
-  .headerBadge {
+  .headerBadge,
+  .elementParticle,
+  .loadingBloomPanel::before,
+  .loadingBloomHalo,
+  .loadingBloomPetalField,
+  .loadingBloomPetal,
+  .loadingBloomGlow,
+  .loadingBloomCore {
     animation: none !important;
     transition: none !important;
   }

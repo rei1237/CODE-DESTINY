@@ -1,9 +1,9 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, type CSSProperties } from "react";
 import styles from "./destiny-flower.module.css";
 import { formatElementLabel } from "./flowerData";
-import { getFlowerImageAt, getFlowerImageCandidates } from "./flowerAssetMap";
+import { getFlowerImageAt, getFlowerImageCandidates, getFlowerThemeTokens } from "./flowerAssetMap";
 import { DivinationResult } from "./types";
 
 interface DivinationResultCardProps {
@@ -14,12 +14,20 @@ interface DivinationResultCardProps {
 export const DivinationResultCard = memo(function DivinationResultCard({ result, order }: DivinationResultCardProps) {
   const [assetIndex, setAssetIndex] = useState<number>(0);
   const candidates = useMemo(() => getFlowerImageCandidates(result.flowerId), [result.flowerId]);
+  const flowerTheme = useMemo(() => getFlowerThemeTokens(result.flowerId), [result.flowerId]);
   const imageSrc = getFlowerImageAt(result.flowerId, assetIndex);
+
+  const cardThemeStyle: CSSProperties = {
+    "--flower-bg": flowerTheme.background,
+    "--flower-accent": flowerTheme.accent,
+    "--flower-font-color": flowerTheme.fontColor,
+  } as CSSProperties;
 
   return (
     <article
       className={styles.divinationCard}
       style={{
+        ...cardThemeStyle,
         animationDelay: `${order * 120}ms`,
         borderColor: `${result.accentHex}66`,
       }}

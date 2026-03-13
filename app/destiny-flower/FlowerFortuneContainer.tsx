@@ -2,17 +2,25 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import styles from "./destiny-flower.module.css";
 import { useDestinyFlower } from "./DestinyFlowerContext";
 import { TarotPickCanvas } from "./TarotPickCanvas";
 import { FlowerCanvas } from "./FlowerCanvas";
-import { getFlowerImageCandidates } from "./flowerAssetMap";
+import { getFlowerImageAt, getFlowerImageCandidates, getFlowerThemeTokens } from "./flowerAssetMap";
 import { formatElementLabel, getElementColorHex } from "./flowerData";
 import { LongFormReport } from "./LongFormReport";
 import { DivinationResultCard } from "./DivinationResultCard";
 import { formatProfileBirth } from "./profileBridge";
 import type { DiscoveryPhaseKey } from "./types";
+
+type FlowerThemeStyle = CSSProperties & {
+  "--flower-bg": string;
+  "--flower-accent": string;
+  "--flower-font-color": string;
+  "--flower-glow": string;
+  "--flower-font-family": string;
+};
 
 // ── 블룸 스테이지 헬퍼 ─────────────────────────────────────────────────────
 function getBloomStage(confirmedCount: number): 0 | 1 | 2 | 3 {
@@ -137,6 +145,8 @@ export function FlowerFortuneContainer() {
   const pickedTarot = tarot.picked;
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isTarotSaving, setIsTarotSaving] = useState(false);
+  const tarotSaveCaptureRef = useRef<HTMLDivElement | null>(null);
 
   const confirmedCount = useMemo(
     () => Object.values(phaseConfirmed).filter(Boolean).length,
@@ -144,6 +154,40 @@ export function FlowerFortuneContainer() {
   );
   const allPhasesConfirmed = confirmedCount >= 3;
   const bloomStage = getBloomStage(confirmedCount);
+
+  const activeThemeFlowerId = useMemo(() => {
+    if (finalFlower?.flowerId) return finalFlower.flowerId;
+    if (analysis.results.length > 0) return analysis.results[0].flowerId;
+    return undefined;
+  }, [analysis.results, finalFlower?.flowerId]);
+
+  const pageThemeStyle = useMemo(() => {
+    const dominantElement =
+      finalFlower?.dominantElement ??
+      analysis.input?.dominantElement ??
+      discovery?.dayStemElement ??
+      "earth";
+    const fallbackAccent = getElementColorHex(dominantElement);
+    const themeTokens = activeThemeFlowerId ? getFlowerThemeTokens(activeThemeFlowerId) : undefined;
+    const fontFamily =
+      themeTokens?.fontFamily ??
+      (dominantElement === "water" || dominantElement === "wood"
+        ? '"MaruBuri", "Noto Serif KR", serif'
+        : '"Pretendard", "Noto Sans KR", system-ui, sans-serif');
+
+    return {
+      "--flower-bg": themeTokens?.background ?? "#0a0e14",
+      "--flower-accent": themeTokens?.accent ?? fallbackAccent,
+      "--flower-font-color": themeTokens?.fontColor ?? "rgba(255, 249, 224, 0.9)",
+      "--flower-glow": themeTokens?.glow ?? `${fallbackAccent}77`,
+      "--flower-font-family": fontFamily,
+    } as FlowerThemeStyle;
+  }, [
+    activeThemeFlowerId,
+    analysis.input?.dominantElement,
+    discovery?.dayStemElement,
+    finalFlower?.dominantElement,
+  ]);
 
   const nextPhase = useMemo((): DiscoveryPhaseKey | null => {
     if (!phaseConfirmed.saju) return "saju";
@@ -181,6 +225,33 @@ export function FlowerFortuneContainer() {
     }
   };
 
+  const handleSaveTarotCard = async () => {
+    if (!tarotSaveCaptureRef.current || !finalFlower || !pickedTarot) return;
+
+    setIsTarotSaving(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(tarotSaveCaptureRef.current, {
+        backgroundColor: "#0d1322",
+        useCORS: true,
+        logging: false,
+        scale: Math.max(2, Math.min(3, window.devicePixelRatio || 2)),
+      });
+
+      const pngUrl = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = pngUrl;
+      a.download = `today-flower-tarot-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch {
+      alert("카드 저장에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setIsTarotSaving(false);
+    }
+  };
+
   const handleShare = async () => {
     if (!finalFlower) return;
     if (navigator.share) {
@@ -200,7 +271,7 @@ export function FlowerFortuneContainer() {
   const storyEntry = STORY[bloomStage];
 
   return (
-    <main className={styles.pageWrap}>
+    <main className={styles.pageWrap} style={pageThemeStyle}>
       {/* 그레인 노이즈 오버레이 */}
       <div className={styles.grainOverlay} aria-hidden="true" />
 
@@ -213,14 +284,31 @@ export function FlowerFortuneContainer() {
 
       {/* 로딩 */}
       {profileStatus === "loading" && (
-        <div className={styles.soulSyncPanel}>
-          <motion.div
-            className={styles.soulSyncOrb}
-            animate={{ scale: [1, 1.22, 1], opacity: [0.5, 1, 0.5] }}
-            transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
-          />
-          <p className={styles.soulSyncText}>당신의 영혼의 지문을 정원에 심는 중...</p>
-          <small>천문의 궤적이 당신의 씨앗에 닿고 있습니다. 잠시 기다려주세요.</small>
+        <div className={styles.loadingBloomPanel} role="status" aria-live="polite">
+          <div className={styles.loadingBloomScene} aria-hidden="true">
+            <div className={styles.loadingBloomHalo} />
+            <div className={styles.loadingBloomPetalField}>
+              {Array.from({ length: 12 }).map((_, index) => (
+                <span
+                  key={`loading-bloom-petal-${index}`}
+                  className={styles.loadingBloomPetal}
+                  style={
+                    {
+                      "--petal-rotate": `${index * 30}deg`,
+                      "--petal-delay": `${index * 0.14}s`,
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </div>
+            <div className={styles.loadingBloomGlow} />
+            <div className={styles.loadingBloomCore} />
+          </div>
+
+          <p className={styles.loadingBloomText}>당신의 운명 씨앗이 꽃잎을 펼치는 중...</p>
+          <small className={styles.loadingBloomSubtext}>
+            천문의 궤적과 점술 신호를 정렬하고 있습니다. 잠시만 기다려 주세요.
+          </small>
         </div>
       )}
 
@@ -294,6 +382,7 @@ export function FlowerFortuneContainer() {
               <FlowerCanvas
                 bloomStage={bloomStage}
                 dayStemElement={discovery.dayStemElement}
+                dominantElement={analysis.input?.dominantElement}
                 ziweiMainStar={discovery.ziweiMainStar}
                 sunSignSymbol={discovery.sunSignSymbol}
                 onClick={!allPhasesConfirmed ? handleFlowerTouch : undefined}
@@ -391,6 +480,7 @@ export function FlowerFortuneContainer() {
                 <FlowerCanvas
                   bloomStage={3}
                   dayStemElement={discovery.dayStemElement}
+                  dominantElement={analysis.input?.dominantElement}
                   ziweiMainStar={discovery.ziweiMainStar}
                   sunSignSymbol={discovery.sunSignSymbol}
                 />
@@ -417,6 +507,7 @@ export function FlowerFortuneContainer() {
               <FlowerCanvas
                 bloomStage={3}
                 dayStemElement={discovery.dayStemElement}
+                dominantElement={finalFlower.dominantElement}
                 ziweiMainStar={discovery.ziweiMainStar}
                 sunSignSymbol={discovery.sunSignSymbol}
               />
@@ -432,6 +523,49 @@ export function FlowerFortuneContainer() {
                   ))}
                 </div>
                 <LongFormReport report={finalFlower.report} />
+
+                <section className={styles.todayTarotSection}>
+                  <TarotPickCanvas
+                    cards={tarot.spread.slice(0, 3)}
+                    selectedCardId={pickedTarot?.id}
+                    onPick={pickTarot}
+                    lockAfterPick={false}
+                    title="🌸 오늘의 꽃 타로"
+                    description={
+                      <>
+                        오늘 일진 {analysis.input?.dailyStemBranch ?? "-"} 가중치를 반영해 배치된 3장의 꽃 카드입니다.<br />
+                        원하는 카드를 다시 선택하면 오늘의 꽃 문구와 결과 카드가 즉시 갱신됩니다.
+                      </>
+                    }
+                  />
+
+                  <div className={styles.tarotSaveArea}>
+                    <div className={styles.tarotSaveCard} ref={tarotSaveCaptureRef}>
+                      <img
+                        src={getFlowerImageAt(finalFlower.flowerId, 0)}
+                        alt={finalFlower.flowerName}
+                        className={styles.tarotSaveImage}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className={styles.tarotSaveTextBox}>
+                        <span>오늘의 선택</span>
+                        <strong>{pickedTarot?.name ?? "Tarot"} · {finalFlower.flowerName}</strong>
+                        <p>{pickedTarot?.reveal ?? finalFlower.finalNarrative.slice(0, 120)}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className={styles.tarotSaveButton}
+                      onClick={handleSaveTarotCard}
+                      disabled={isTarotSaving}
+                    >
+                      {isTarotSaving ? "저장 중..." : "카드 저장하기"}
+                    </button>
+                  </div>
+                </section>
+
                 <div className={styles.finalActions}>
                   <button type="button" onClick={handleSave} disabled={isSaving}>
                     {isSaving ? "생성 중..." : "🖼 카드 저장"}

@@ -15,12 +15,17 @@ export function LongFormReport({ report }: LongFormReportProps) {
         <span>{report.totalLength.toLocaleString()}자</span>
       </header>
 
+      <p className={styles.longReportScrollHint}>아래로 이어지는 4개 섹션을 순서대로 읽어 보세요.</p>
+
       <p className={styles.longReportOpening}>{report.opening}</p>
 
       <div className={styles.longReportGrid}>
-        {report.sections.map((section) => (
+        {report.sections.map((section, index) => (
           <article key={section.title} className={styles.longReportCard}>
-            <h5>{section.title}</h5>
+            <h5>
+              {section.title}
+              <small>{`PART ${index + 1}`}</small>
+            </h5>
             <p>{section.body}</p>
           </article>
         ))}
