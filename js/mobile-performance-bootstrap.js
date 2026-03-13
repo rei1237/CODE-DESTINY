@@ -210,11 +210,9 @@ function setupLazySectionHydration() {
     'compatCard',
     'skillTreeCard',
     'energyCoordCard',
-    'healthReportCard',
+    // Keep health/teto/hormone cards always hydrated to prevent white-gap regressions.
     // lottoCard has runtime-bound button handlers; keep DOM stable to preserve interactions.
     'egyptCard',
-    'hormone-vibe-section',
-    'tTestCard',
     'shareSection',
     'emailSubBox'
   ];

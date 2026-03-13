@@ -82,140 +82,6 @@ function _clonePlain(obj) {
   }
 }
 
-function _kasiToInt(v) {
-  var n = parseInt(v, 10);
-  return isNaN(n) ? null : n;
-}
-
-function _isSameSolarDate(a, b) {
-  return !!(a && b &&
-    _kasiToInt(a.year) === _kasiToInt(b.year) &&
-    _kasiToInt(a.month) === _kasiToInt(b.month) &&
-    _kasiToInt(a.day) === _kasiToInt(b.day));
-}
-
-function _isSameLunarDate(a, b) {
-  return !!(a && b &&
-    _kasiToInt(a.year) === _kasiToInt(b.year) &&
-    _kasiToInt(a.month) === _kasiToInt(b.month) &&
-    _kasiToInt(a.day) === _kasiToInt(b.day) &&
-    !!a.isLeap === !!b.isLeap);
-}
-
-function _rawLocalSolarToLunar(dateObj) {
-  if (!dateObj || isNaN(dateObj.getTime())) return null;
-  try {
-    if (typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return null;
-    var s = Solar.fromYmdHms(
-      dateObj.getFullYear(),
-      dateObj.getMonth() + 1,
-      dateObj.getDate(),
-      dateObj.getHours(),
-      dateObj.getMinutes(),
-      dateObj.getSeconds()
-    );
-    var l = s && s.getLunar ? s.getLunar() : null;
-    if (!l || typeof l.getYear !== 'function') return null;
-    return {
-      year: l.getYear(),
-      month: Math.abs(l.getMonth()),
-      day: l.getDay(),
-      isLeap: l.getMonth() < 0
-    };
-  } catch (e) {
-    return null;
-  }
-}
-
-function _rawLocalLunarToSolar(year, month, day, isLeap) {
-  try {
-    if (typeof Lunar === 'undefined' || typeof Lunar.fromYmd !== 'function') return null;
-    var m = isLeap ? -Math.abs(month) : Math.abs(month);
-    var lunar = Lunar.fromYmd(year, m, day);
-    if (isLeap && (!lunar || Math.abs(lunar.getMonth()) !== Math.abs(month))) {
-      lunar = Lunar.fromYmd(year, Math.abs(month), day);
-    }
-    var solar = lunar && lunar.getSolar ? lunar.getSolar() : null;
-    if (!solar || typeof solar.getYear !== 'function') return null;
-    return {
-      year: solar.getYear(),
-      month: solar.getMonth(),
-      day: solar.getDay()
-    };
-  } catch (e) {
-    return null;
-  }
-}
-
-function _hasKasiCalendarFallbackDiagnostics(ctx) {
-  if (!ctx || !ctx.meta || !Array.isArray(ctx.meta.diagnostics)) return false;
-  var diagnostics = ctx.meta.diagnostics;
-  for (var i = 0; i < diagnostics.length; i++) {
-    var d = String(diagnostics[i] || '').toLowerCase();
-    if (d.indexOf('solar conversion fallback') !== -1) return true;
-    if (d.indexOf('lunar conversion fallback') !== -1) return true;
-  }
-  return false;
-}
-
-function _isAuthoritativeKasiContext(ctx) {
-  if (!ctx || !ctx.solar || !ctx.lunar) return false;
-  var source = String(ctx.source || '').toLowerCase();
-  if (source === 'fallback') return false;
-  if (_hasKasiCalendarFallbackDiagnostics(ctx)) return false;
-  return true;
-}
-
-function _ensureKasiLocalPatchStoreShape() {
-  if (!_kasiLocalPatchStore || typeof _kasiLocalPatchStore !== 'object') {
-    _kasiLocalPatchStore = _clonePlain(KASI_LOCAL_PATCH_SEED);
-  }
-  if (!_kasiLocalPatchStore.solarToLunar || typeof _kasiLocalPatchStore.solarToLunar !== 'object') {
-    _kasiLocalPatchStore.solarToLunar = {};
-  }
-  if (!_kasiLocalPatchStore.lunarToSolar || typeof _kasiLocalPatchStore.lunarToSolar !== 'object') {
-    _kasiLocalPatchStore.lunarToSolar = {};
-  }
-}
-
-function _upsertKasiPatchPairNoSave(solar, lunar, source) {
-  _ensureKasiLocalPatchStoreShape();
-
-  var changed = false;
-  var src = source || 'kasi_sync';
-
-  var solarKey = _kasiSolarKey(solar.year, solar.month, solar.day);
-  var expectedSolarToLunar = {
-    year: lunar.year,
-    month: lunar.month,
-    day: lunar.day,
-    isLeap: !!lunar.isLeap,
-    source: src
-  };
-  var prevSolarToLunar = _kasiLocalPatchStore.solarToLunar[solarKey];
-  if (!prevSolarToLunar || !(_isSameLunarDate(prevSolarToLunar, expectedSolarToLunar) && String(prevSolarToLunar.source || '') === src)) {
-    _kasiLocalPatchStore.solarToLunar[solarKey] = expectedSolarToLunar;
-    changed = true;
-  }
-
-  var lunarKey = _kasiLunarKey(lunar.year, lunar.month, lunar.day, !!lunar.isLeap);
-  var expectedDateStr = String(solar.year) + '-' + _kasiPad2(solar.month) + '-' + _kasiPad2(solar.day);
-  var expectedLunarToSolar = {
-    year: solar.year,
-    month: solar.month,
-    day: solar.day,
-    dateStr: expectedDateStr,
-    source: src
-  };
-  var prevLunarToSolar = _kasiLocalPatchStore.lunarToSolar[lunarKey];
-  if (!prevLunarToSolar || !(_isSameSolarDate(prevLunarToSolar, expectedLunarToSolar) && String(prevLunarToSolar.source || '') === src && String(prevLunarToSolar.dateStr || '') === expectedDateStr)) {
-    _kasiLocalPatchStore.lunarToSolar[lunarKey] = expectedLunarToSolar;
-    changed = true;
-  }
-
-  return changed;
-}
-
 function _loadKasiLocalPatchStore() {
   var base = _clonePlain(KASI_LOCAL_PATCH_SEED);
   try {
@@ -238,14 +104,6 @@ function _saveKasiLocalPatchStore(store) {
 }
 
 var _kasiLocalPatchStore = _loadKasiLocalPatchStore();
-
-if (_upsertKasiPatchPairNoSave(
-  { year: 1997, month: 2, day: 10 },
-  { year: 1997, month: 1, day: 3, isLeap: false },
-  'kasi_seed'
-)) {
-  _saveKasiLocalPatchStore(_kasiLocalPatchStore);
-}
 
 function _getPatchedSolarToLunar(y, m, d) {
   var key = _kasiSolarKey(y, m, d);
@@ -275,37 +133,38 @@ function _getPatchedLunarToSolar(year, month, day, isLeap) {
 
 function rememberKasiCalendarReference(reference) {
   if (!reference || !reference.solar || !reference.lunar) return false;
-  var sy = _kasiToInt(reference.solar.year);
-  var sm = _kasiToInt(reference.solar.month);
-  var sd = _kasiToInt(reference.solar.day);
-  var ly = _kasiToInt(reference.lunar.year);
-  var lm = _kasiToInt(reference.lunar.month);
-  var ld = _kasiToInt(reference.lunar.day);
+  var sy = parseInt(reference.solar.year, 10);
+  var sm = parseInt(reference.solar.month, 10);
+  var sd = parseInt(reference.solar.day, 10);
+  var ly = parseInt(reference.lunar.year, 10);
+  var lm = parseInt(reference.lunar.month, 10);
+  var ld = parseInt(reference.lunar.day, 10);
   var leap = !!reference.lunar.isLeap;
   if (!sy || !sm || !sd || !ly || !lm || !ld) return false;
 
+  if (!_kasiLocalPatchStore || typeof _kasiLocalPatchStore !== 'object') {
+    _kasiLocalPatchStore = _clonePlain(KASI_LOCAL_PATCH_SEED);
+  }
+  if (!_kasiLocalPatchStore.solarToLunar) _kasiLocalPatchStore.solarToLunar = {};
+  if (!_kasiLocalPatchStore.lunarToSolar) _kasiLocalPatchStore.lunarToSolar = {};
+
   var source = reference.source || 'kasi_sync';
-  var solar = { year: sy, month: sm, day: sd };
-  var lunar = { year: ly, month: lm, day: ld, isLeap: leap };
-  var changed = _upsertKasiPatchPairNoSave(solar, lunar, source);
+  _kasiLocalPatchStore.solarToLunar[_kasiSolarKey(sy, sm, sd)] = {
+    year: ly,
+    month: lm,
+    day: ld,
+    isLeap: leap,
+    source: source
+  };
+  _kasiLocalPatchStore.lunarToSolar[_kasiLunarKey(ly, lm, ld, leap)] = {
+    year: sy,
+    month: sm,
+    day: sd,
+    dateStr: String(sy) + '-' + _kasiPad2(sm) + '-' + _kasiPad2(sd),
+    source: source
+  };
 
-  var shouldAnalyzeLocalException = (reference.analyzeLocal !== false);
-  if (shouldAnalyzeLocalException) {
-    var localSolarDate = new Date(sy, sm - 1, sd, 12, 0, 0);
-    var localLunar = _rawLocalSolarToLunar(localSolarDate);
-    var localSolar = _rawLocalLunarToSolar(ly, lm, ld, leap);
-    var hasSolarToLunarMismatch = !!(localLunar && !_isSameLunarDate(localLunar, lunar));
-    var hasLunarToSolarMismatch = !!(localSolar && !_isSameSolarDate(localSolar, solar));
-
-    if (hasSolarToLunarMismatch || hasLunarToSolarMismatch) {
-      changed = _upsertKasiPatchPairNoSave(solar, lunar, 'kasi_exception_auto') || changed;
-    }
-  }
-
-  if (changed) {
-    _saveKasiLocalPatchStore(_kasiLocalPatchStore);
-  }
-
+  _saveKasiLocalPatchStore(_kasiLocalPatchStore);
   return true;
 }
 
@@ -395,21 +254,484 @@ function getActualSolarDate(dateStr, typeStr) {
     } catch(e) { console.error(e); return null; }
 }
 
+var KASI_GAN_MAP = {
+  '甲':'甲','乙':'乙','丙':'丙','丁':'丁','戊':'戊','己':'己','庚':'庚','辛':'辛','壬':'壬','癸':'癸',
+  '갑':'甲','을':'乙','병':'丙','정':'丁','무':'戊','기':'己','경':'庚','신':'辛','임':'壬','계':'癸'
+};
+var KASI_JI_MAP = {
+  '子':'子','丑':'丑','寅':'寅','卯':'卯','辰':'辰','巳':'巳','午':'午','未':'未','申':'申','酉':'酉','戌':'戌','亥':'亥',
+  '자':'子','축':'丑','인':'寅','묘':'卯','진':'辰','사':'巳','오':'午','미':'未','신':'申','유':'酉','술':'戌','해':'亥'
+};
+
+function parseKasiGanjiPair(raw) {
+  if (!raw) return null;
+  var s = String(raw).replace(/\s+/g, '').trim();
+  if (!s) return null;
+
+  var g = null;
+  var j = null;
+  for (var i = 0; i < s.length; i++) {
+    var ch = s.charAt(i);
+    if (!g && KASI_GAN_MAP[ch]) {
+      g = KASI_GAN_MAP[ch];
+      continue;
+    }
+    if (!j && KASI_JI_MAP[ch]) {
+      j = KASI_JI_MAP[ch];
+      continue;
+    }
+    if (g && j) break;
+  }
+  if (!g || !j) return null;
+  return { g: g, j: j };
+}
+
+async function resolveKasiDateContextSafe(input, options) {
+  if (!window.KasiCalendarService || typeof window.KasiCalendarService.resolveDateContext !== 'function') return null;
+  try {
+    return await window.KasiCalendarService.resolveDateContext(input, options || {});
+  } catch (e) {
+    console.warn('[KASI] resolveDateContext failed:', e);
+    return null;
+  }
+}
+
+function normalizeCalendarTypeInput(typeVal) {
+  var t = String(typeVal || '').trim().toLowerCase();
+  if (t === 'lunar' || t === '음력') return 'lunar';
+  if (t === 'lunar_leap' || t === '윤달' || t === '음력윤달' || t === 'leap') return 'lunar_leap';
+  return 'solar';
+}
+
+function buildFallbackDateContext(input, reason) {
+  try {
+    var calType = normalizeCalendarTypeInput(input.calendarType || input.calType || 'solar');
+    var year = parseInt(input.year, 10);
+    var month = parseInt(input.month, 10);
+    var day = parseInt(input.day, 10);
+    var hour = parseInt(input.hour, 10);
+    var minute = parseInt(input.minute, 10);
+    var second = parseInt(input.second, 10);
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+    if (isNaN(hour)) hour = 12;
+    if (isNaN(minute)) minute = 0;
+    if (isNaN(second)) second = 0;
+
+    var solarDate = null;
+    var lunarObj = null;
+    var hasSolarLib = (typeof Solar !== 'undefined' && typeof Solar.fromYmdHms === 'function');
+    var hasLunarLib = (typeof Lunar !== 'undefined' && typeof Lunar.fromYmd === 'function');
+    var canUseEngine = (typeof KasiEngine !== 'undefined');
+
+    function isValidLunar(obj) {
+      return !!(obj && obj.year && obj.month && obj.day);
+    }
+
+    function safeSolarToLunar(dateObj) {
+      if (!dateObj || isNaN(dateObj.getTime())) return null;
+      try {
+        if (canUseEngine && typeof KasiEngine.solarToLunar === 'function') {
+          var byEngine = KasiEngine.solarToLunar(dateObj);
+          if (isValidLunar(byEngine)) return byEngine;
+        }
+      } catch (_e0) {}
+      try {
+        if (hasSolarLib) {
+          var s = Solar.fromYmdHms(
+            dateObj.getFullYear(),
+            dateObj.getMonth() + 1,
+            dateObj.getDate(),
+            dateObj.getHours(),
+            dateObj.getMinutes(),
+            dateObj.getSeconds()
+          );
+          var l = s && s.getLunar ? s.getLunar() : null;
+          if (l && typeof l.getYear === 'function') {
+            return {
+              year: l.getYear(),
+              month: Math.abs(l.getMonth()),
+              day: l.getDay(),
+              isLeap: l.getMonth() < 0
+            };
+          }
+        }
+      } catch (_e1) {}
+      return null;
+    }
+
+    function safeLunarToSolar(y, mo, da, isLeap) {
+      try {
+        if (canUseEngine && typeof KasiEngine.lunarToSolar === 'function') {
+          var conv = KasiEngine.lunarToSolar(y, mo, da, isLeap);
+          if (conv && conv.year && conv.month && conv.day) return conv;
+        }
+      } catch (_e2) {}
+      try {
+        if (hasLunarLib) {
+          var lm = isLeap ? -Math.abs(mo) : Math.abs(mo);
+          var lobj = Lunar.fromYmd(y, lm, da);
+          if (!lobj && isLeap) {
+            lobj = Lunar.fromYmd(y, Math.abs(mo), da);
+          }
+          var sobj = lobj && lobj.getSolar ? lobj.getSolar() : null;
+          if (sobj && typeof sobj.getYear === 'function') {
+            return {
+              year: sobj.getYear(),
+              month: sobj.getMonth(),
+              day: sobj.getDay(),
+              dateStr: sobj.getYear() + '-' + String(sobj.getMonth()).padStart(2, '0') + '-' + String(sobj.getDay()).padStart(2, '0')
+            };
+          }
+        }
+      } catch (_e3) {}
+      return null;
+    }
+
+    if (calType === 'solar') {
+      solarDate = new Date(year, month - 1, day, hour, minute, second);
+      lunarObj = safeSolarToLunar(solarDate);
+    } else {
+      var conv = safeLunarToSolar(year, month, day, calType === 'lunar_leap');
+      if (!conv) return null;
+      solarDate = new Date(conv.year, conv.month - 1, conv.day, hour, minute, second);
+      lunarObj = {
+        year: year,
+        month: month,
+        day: day,
+        isLeap: calType === 'lunar_leap'
+      };
+    }
+    if (!solarDate || isNaN(solarDate.getTime())) return null;
+    if (!isValidLunar(lunarObj)) {
+      lunarObj = safeSolarToLunar(solarDate);
+    }
+    if (!isValidLunar(lunarObj)) return null;
+
+    var gj = null;
+    try {
+      if (canUseEngine && typeof KasiEngine.getGanji === 'function') {
+        gj = KasiEngine.getGanji(solarDate);
+      }
+    } catch (_e) {}
+    if (!gj || !gj.secha || !gj.weolgeon || !gj.iljin) {
+      try {
+        if (hasSolarLib) {
+          var _solar = Solar.fromYmdHms(
+            solarDate.getFullYear(),
+            solarDate.getMonth() + 1,
+            solarDate.getDate(),
+            solarDate.getHours(),
+            solarDate.getMinutes(),
+            solarDate.getSeconds()
+          );
+          var _lunar = _solar && _solar.getLunar ? _solar.getLunar() : null;
+          var _bazi = _lunar && _lunar.getEightChar ? _lunar.getEightChar() : null;
+          if (_bazi) {
+            gj = { secha: _bazi.getYear(), weolgeon: _bazi.getMonth(), iljin: _bazi.getDay() };
+          }
+        }
+      } catch (_e4) {}
+    }
+
+    return {
+      source: 'fallback',
+      input: {
+        calendarType: calType,
+        year: year,
+        month: month,
+        day: day,
+        hour: hour,
+        minute: minute,
+        second: second,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        tzOffsetHours: input.tzOffsetHours
+      },
+      solar: {
+        year: solarDate.getFullYear(),
+        month: solarDate.getMonth() + 1,
+        day: solarDate.getDate(),
+        hour: solarDate.getHours(),
+        minute: solarDate.getMinutes(),
+        second: solarDate.getSeconds()
+      },
+      lunar: {
+        year: lunarObj && lunarObj.year,
+        month: lunarObj && lunarObj.month,
+        day: lunarObj && lunarObj.day,
+        isLeap: !!(lunarObj && lunarObj.isLeap)
+      },
+      ganji: {
+        year: gj && gj.secha,
+        month: gj && gj.weolgeon,
+        day: gj && gj.iljin
+      },
+      meta: {
+        fallbackUsed: true,
+        diagnostics: [reason || 'local fallback used']
+      }
+    };
+  } catch (e) {
+    console.warn('[KASI] buildFallbackDateContext failed:', e);
+    return null;
+  }
+}
+
+async function resolvePrimaryCalendarContext(input, options) {
+  options = options || {};
+  var norm = Object.assign({}, input || {});
+  norm.calendarType = normalizeCalendarTypeInput(norm.calendarType || norm.calType || 'solar');
+
+  var hasCompleteCalendar = function(ctx) {
+    return !!(ctx && ctx.solar && ctx.lunar && ctx.solar.year && ctx.solar.month && ctx.solar.day && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day);
+  };
+
+  var localOnly = (options.localOnly === true);
+  var localCtx = buildFallbackDateContext(norm, localOnly ? 'local-only mode' : 'kasi fallback');
+
+  if (localOnly && hasCompleteCalendar(localCtx)) {
+    return localCtx;
+  }
+
+  var ctx = await resolveKasiDateContextSafe(norm, options || {});
+  var isValid = hasCompleteCalendar(ctx);
+  if (isValid) {
+    try {
+      if (KasiEngine && typeof KasiEngine.registerCalendarReference === 'function') {
+        KasiEngine.registerCalendarReference({
+          solar: {
+            year: ctx.solar.year,
+            month: ctx.solar.month,
+            day: ctx.solar.day
+          },
+          lunar: {
+            year: ctx.lunar.year,
+            month: ctx.lunar.month,
+            day: ctx.lunar.day,
+            isLeap: !!ctx.lunar.isLeap
+          },
+          source: 'kasi_primary'
+        });
+      }
+    } catch (e) {
+      console.warn('[KASI] local engine sync failed:', e && e.message ? e.message : e);
+    }
+    return ctx;
+  }
+
+  if (hasCompleteCalendar(localCtx)) {
+    try {
+      if (ctx && ctx.meta && Array.isArray(ctx.meta.diagnostics)) {
+        localCtx.meta = localCtx.meta || {};
+        localCtx.meta.diagnostics = (localCtx.meta.diagnostics || []).concat(['kasi-invalid-fallback']);
+      }
+    } catch (_e5) {}
+    return localCtx;
+  }
+
+  var fallbackReason = ctx ? 'kasi response invalid' : 'kasi unavailable';
+  var fallback = buildFallbackDateContext(norm, fallbackReason);
+  if (fallback) return fallback;
+  return ctx;
+}
+
+async function getActualSolarDateWithContext(dateStr, typeStr, options) {
+  if (!dateStr) return null;
+  var parts = String(dateStr).split('-').map(function(v) { return parseInt(v, 10); });
+  if (parts.length < 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) return null;
+  var opts = options || {};
+  var ctx = await resolvePrimaryCalendarContext({
+    calendarType: normalizeCalendarTypeInput(typeStr || 'solar'),
+    year: parts[0],
+    month: parts[1],
+    day: parts[2],
+    hour: (opts.hour != null ? opts.hour : 12),
+    minute: (opts.minute != null ? opts.minute : 0),
+    second: (opts.second != null ? opts.second : 0),
+    latitude: (opts.latitude != null ? opts.latitude : 37.5665),
+    longitude: (opts.longitude != null ? opts.longitude : 126.9780),
+    tzOffsetHours: (opts.tzOffsetHours != null ? opts.tzOffsetHours : 9)
+  }, { setCurrent: opts.setCurrent !== false });
+
+  if (ctx && ctx.solar && ctx.solar.year && ctx.solar.month && ctx.solar.day) {
+    return {
+      y: ctx.solar.year,
+      m: ctx.solar.month,
+      d: ctx.solar.day,
+      dateStr: String(ctx.solar.year) + '-' + String(ctx.solar.month).padStart(2, '0') + '-' + String(ctx.solar.day).padStart(2, '0'),
+      context: ctx,
+      source: ctx.source || 'kasi'
+    };
+  }
+
+  return getActualSolarDate(dateStr, normalizeCalendarTypeInput(typeStr || 'solar'));
+}
+
+function _zwCompatPalSnapshotLite(zwData, palaceName) {
+  if (!zwData || !zwData.palacesByIndex || !zwData.stars) {
+    return { main: [], aux: [], bad: [] };
+  }
+  var idx = zwData.palacesByIndex.indexOf(palaceName);
+  if (idx < 0 && palaceName === '부처궁') idx = zwData.palacesByIndex.indexOf('부부궁');
+  if (idx < 0 && palaceName === '부부궁') idx = zwData.palacesByIndex.indexOf('부처궁');
+  if (idx < 0) return { main: [], aux: [], bad: [] };
+
+  var st = zwData.stars[idx] || { main: [], aux: [], bad: [], borrowedMain: [] };
+  var normalize = function(arr) {
+    return (arr || []).map(function(v) {
+      return String(v || '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/화록|화권|화과|화기|\(차성\)/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')[0];
+    }).filter(Boolean);
+  };
+
+  var main = normalize((st.main && st.main.length) ? st.main : (st.borrowedMain || []));
+  return {
+    main: main,
+    aux: normalize(st.aux || []),
+    bad: normalize(st.bad || [])
+  };
+}
+
+function computeZiweiCompatLite(meBirth, partnerBirth) {
+  try {
+    if (!meBirth || !partnerBirth) return { score: 50, source: 'none' };
+    var meData = window._currentZiweiData || calcZiweiPalaces(meBirth.year, meBirth.month, meBirth.day, meBirth.hour, meBirth.minute);
+    var youData = calcZiweiPalaces(partnerBirth.year, partnerBirth.month, partnerBirth.day, partnerBirth.hour, partnerBirth.minute);
+
+    var mePal = {
+      meng: _zwCompatPalSnapshotLite(meData, '명궁'),
+      spouse: _zwCompatPalSnapshotLite(meData, '부처궁'),
+      bok: _zwCompatPalSnapshotLite(meData, '복덕궁'),
+      wealth: _zwCompatPalSnapshotLite(meData, '재백궁'),
+      job: _zwCompatPalSnapshotLite(meData, '관록궁')
+    };
+    var youPal = {
+      meng: _zwCompatPalSnapshotLite(youData, '명궁'),
+      spouse: _zwCompatPalSnapshotLite(youData, '부처궁'),
+      bok: _zwCompatPalSnapshotLite(youData, '복덕궁'),
+      wealth: _zwCompatPalSnapshotLite(youData, '재백궁'),
+      job: _zwCompatPalSnapshotLite(youData, '관록궁')
+    };
+
+    var intersect = function(a, b) {
+      var m = Object.create(null);
+      (a || []).forEach(function(v) { m[v] = 1; });
+      var c = 0;
+      (b || []).forEach(function(v) { if (m[v]) c += 1; });
+      return c;
+    };
+
+    var pairScore = function(a, b, base, mw, aw, bw) {
+      var mainMatch = intersect(a.main, b.main);
+      var auxMatch = intersect(a.aux, b.aux);
+      var badMix = (a.bad.length + b.bad.length);
+      var s = base + mainMatch * mw + auxMatch * aw - badMix * bw;
+      return Math.max(20, Math.min(96, Math.round(s)));
+    };
+
+    var love = pairScore(mePal.spouse, youPal.spouse, 52, 12, 4, 2.2);
+    var marriage = pairScore(mePal.bok, youPal.bok, 50, 10, 4, 1.8);
+    var work = pairScore(mePal.job, youPal.job, 49, 11, 4, 2.1);
+    var money = pairScore(mePal.wealth, youPal.wealth, 50, 11, 4, 2.0);
+    var persona = pairScore(mePal.meng, youPal.meng, 50, 10, 4, 1.9);
+
+    var finalScore = Math.round((love * 0.30) + (marriage * 0.20) + (work * 0.20) + (money * 0.15) + (persona * 0.15));
+    return { score: Math.max(20, Math.min(96, finalScore)), source: 'ziwei-lite' };
+  } catch (e) {
+    console.warn('[ZiweiLiteCompat] failed:', e);
+    return { score: 50, source: 'fallback' };
+  }
+}
+
+function computeAstroCompatLite(meBirth, partnerBirth) {
+  try {
+    if (!meBirth || !partnerBirth || typeof AstroEngine === 'undefined' || typeof AstroEngine.calcAll !== 'function') {
+      return { score: 50, source: 'none' };
+    }
+
+    var hs = (window.ASTRO_HOUSE_SYSTEM || 'P');
+    var meLocalHour = (meBirth.hour || 0) + ((meBirth.minute || 0) / 60);
+    var youLocalHour = (partnerBirth.hour || 0) + ((partnerBirth.minute || 0) / 60);
+    var meChart = AstroEngine.calcAll(meBirth.year, meBirth.month, meBirth.day, meLocalHour, meBirth.lat || 37.5665, meBirth.lon || 126.9780, meBirth.tz || 9, { houseSystem: hs });
+    var youChart = AstroEngine.calcAll(partnerBirth.year, partnerBirth.month, partnerBirth.day, youLocalHour, partnerBirth.lat || 37.5665, partnerBirth.lon || 126.9780, partnerBirth.tz || 9, { houseSystem: hs });
+
+    var signIdx = function(chartObj, key) {
+      if (key === 'Sun') return (chartObj.sun && chartObj.sun.idx != null) ? chartObj.sun.idx : null;
+      if (key === 'Moon') return (chartObj.moon && chartObj.moon.idx != null) ? chartObj.moon.idx : null;
+      return (chartObj.planets && chartObj.planets[key] && chartObj.planets[key].sign && chartObj.planets[key].sign.idx != null)
+        ? chartObj.planets[key].sign.idx : null;
+    };
+    var pairRelScore = function(a, b) {
+      if (a == null || b == null) return 0;
+      var d = Math.abs(a - b);
+      if (d > 6) d = 12 - d;
+      if (d === 0) return 11;
+      if (d === 2 || d === 4) return 9;
+      if (d === 1 || d === 5) return 5;
+      if (d === 3) return -4;
+      if (d === 6) return -6;
+      return 0;
+    };
+
+    var meSun = signIdx(meChart, 'Sun');
+    var meMoon = signIdx(meChart, 'Moon');
+    var meVenus = signIdx(meChart, 'Venus');
+    var meMars = signIdx(meChart, 'Mars');
+    var youSun = signIdx(youChart, 'Sun');
+    var youMoon = signIdx(youChart, 'Moon');
+    var youVenus = signIdx(youChart, 'Venus');
+    var youMars = signIdx(youChart, 'Mars');
+
+    var raw = 50;
+    raw += pairRelScore(meSun, youSun) * 1.1;
+    raw += pairRelScore(meMoon, youMoon) * 1.35;
+    raw += pairRelScore(meVenus, youMars) * 1.4;
+    raw += pairRelScore(meMars, youVenus) * 1.3;
+    raw += pairRelScore(meMoon, youSun) * 0.9;
+    raw += pairRelScore(meSun, youMoon) * 0.9;
+
+    var score = Math.max(20, Math.min(96, Math.round(raw)));
+    return { score: score, source: 'astro-lite' };
+  } catch (e) {
+    console.warn('[AstroLiteCompat] failed:', e);
+    return { score: 50, source: 'fallback' };
+  }
+}
+
+var _lunarPreviewRequestSeq = 0;
 window.updateLunarPreview = function(dateId, radioName, previewId) {
-    var dVal = document.getElementById(dateId).value;
+    var dateEl = document.getElementById(dateId);
+    var pEl = document.getElementById(previewId);
+    if(!dateEl || !pEl) return;
+
+    var dVal = dateEl.value;
     var rBtns = document.getElementsByName(radioName);
     var typeVal = 'solar';
     for(var i=0; i<rBtns.length; i++) { if(rBtns[i].checked) { typeVal = rBtns[i].value; break; } }
-    var pEl = document.getElementById(previewId);
     if(!dVal || typeVal === 'solar') { pEl.style.display = 'none'; return; }
-      if(typeof Lunar === 'undefined') { pEl.style.display = 'block'; pEl.innerHTML = "계산 중..."; return; }
-    var actualDates = getActualSolarDate(dVal, typeVal);
-    if(actualDates) { 
+
+    var reqSeq = ++_lunarPreviewRequestSeq;
+    pEl.style.display = 'block';
+    pEl.innerHTML = '계산 중...';
+
+    getActualSolarDateWithContext(dVal, typeVal, { setCurrent: false }).then(function(actualDates) {
+      if (reqSeq !== _lunarPreviewRequestSeq) return;
+      if(actualDates) {
         var isLeapStr = typeVal === 'lunar_leap' ? '(윤달)' : '(평달)';
-        pEl.style.display = 'block'; 
-        pEl.innerHTML = `➡ 변환 완료: 양력 <strong>${actualDates.y}년 ${actualDates.m}월 ${actualDates.d}일</strong> / 음력${isLeapStr} <strong>${dVal.split('-')[0]}년 ${dVal.split('-')[1]}월 ${dVal.split('-')[2]}일</strong>`; 
-    }
-    else pEl.style.display = 'none';
+        pEl.style.display = 'block';
+        pEl.innerHTML = `➡ 변환 완료: 양력 <strong>${actualDates.y}년 ${actualDates.m}월 ${actualDates.d}일</strong> / 음력${isLeapStr} <strong>${dVal.split('-')[0]}년 ${dVal.split('-')[1]}월 ${dVal.split('-')[2]}일</strong>`;
+      } else {
+        pEl.style.display = 'none';
+      }
+    }).catch(function(err) {
+      if (reqSeq !== _lunarPreviewRequestSeq) return;
+      console.warn('[KASI] lunar preview fallback:', err);
+      pEl.style.display = 'none';
+    });
 };
 
 function loadNext(){
@@ -2726,21 +3048,32 @@ async function calculate(){
   var calTypeBtns = document.getElementsByName('calType');
   var calType = 'solar';
   for(var i=0; i<calTypeBtns.length; i++) { if(calTypeBtns[i].checked) { calType = calTypeBtns[i].value; break; } }
-  
-  var actualDateInfo = getActualSolarDate(bd, calType);
-  if(!actualDateInfo) { alert('날짜 변환에 실패했습니다. 다시 확인해주세요.'); return; }
-  
-  var year=actualDateInfo.y, month=actualDateInfo.m, day=actualDateInfo.d;
+
   var hour=parseInt(document.getElementById('birthHour').value)||12;
   var minute=parseInt(document.getElementById('birthMinute').value)||0;
-  var inputTimeStr = String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')+':00';
 
   var countrySel = document.getElementById('birthCountry');
-  var bTz = countrySel ? countrySel.value : 'Asia/Seoul';
   var opt = countrySel ? countrySel.options[countrySel.selectedIndex] : null;
   var bLong = opt ? parseFloat(opt.getAttribute('data-long')) : 127.0;
   var bLat  = opt ? parseFloat(opt.getAttribute('data-lat'))  : 37.6;
   var bBaseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9') : 9;
+
+  var actualDateInfo = await getActualSolarDateWithContext(bd, calType, {
+    hour: hour,
+    minute: minute,
+    second: 0,
+    latitude: bLat,
+    longitude: bLong,
+    tzOffsetHours: bBaseTzOff,
+    setCurrent: true
+  });
+  if(!actualDateInfo) { alert('날짜 변환에 실패했습니다. 다시 확인해주세요.'); return; }
+
+  var primaryDateCtx = actualDateInfo.context || null;
+  var year=actualDateInfo.y, month=actualDateInfo.m, day=actualDateInfo.d;
+  var inputTimeStr = String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')+':00';
+
+  var bTz = countrySel ? countrySel.value : 'Asia/Seoul';
   var tzResolved = resolveBirthTimezoneOffset(year, month, day, hour, minute, bTz, bBaseTzOff);
   var bTzOff = tzResolved.tzOffsetHours;
   var stdLong = bTzOff * 15;
@@ -2777,6 +3110,8 @@ async function calculate(){
   window._ziweiBirth={year:year,month:month,day:day,hour:correctedHour,minute:correctedMinute,lat:bLat,lon:bLong,tz:bTzOff};
   window._ziweiInputMeta={
     calType: calType,
+    kasiSource: primaryDateCtx && primaryDateCtx.source ? primaryDateCtx.source : 'unknown',
+    kasiDiagnostics: (primaryDateCtx && primaryDateCtx.meta && Array.isArray(primaryDateCtx.meta.diagnostics)) ? primaryDateCtx.meta.diagnostics.slice() : [],
     inputDate: { year: year, month: month, day: day, hour: hour, minute: minute },
     correctedTime: { hour: correctedHour, minute: correctedMinute },
     placeLabel: opt ? opt.text : '',
@@ -2792,19 +3127,31 @@ async function calculate(){
   try{
     var solar=Solar.fromYmdHms(year,month,day,correctedHour,correctedMinute,0);
     var bazi=solar.getLunar().getEightChar();
-    
-    try {
-      var _d = new Date(year, month-1, day, correctedHour, correctedMinute);
-      var _gj = KasiEngine.getGanji(_d); 
-      if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
-          bazi.getYearGan = function() { return _gj.secha[0]; };
-          bazi.getYearZhi = function() { return _gj.secha[1]; };
-          bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
-          bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
-          bazi.getDayGan = function() { return _gj.iljin[0]; };
-          bazi.getDayZhi = function() { return _gj.iljin[1]; };
-      }
-    } catch(e) {}
+
+    var kasiYearPair = primaryDateCtx && primaryDateCtx.ganji ? parseKasiGanjiPair(primaryDateCtx.ganji.year) : null;
+    var kasiMonthPair = primaryDateCtx && primaryDateCtx.ganji ? parseKasiGanjiPair(primaryDateCtx.ganji.month) : null;
+    var kasiDayPair = primaryDateCtx && primaryDateCtx.ganji ? parseKasiGanjiPair(primaryDateCtx.ganji.day) : null;
+    if (kasiYearPair && kasiMonthPair && kasiDayPair) {
+      bazi.getYearGan = function() { return kasiYearPair.g; };
+      bazi.getYearZhi = function() { return kasiYearPair.j; };
+      bazi.getMonthGan = function() { return kasiMonthPair.g; };
+      bazi.getMonthZhi = function() { return kasiMonthPair.j; };
+      bazi.getDayGan = function() { return kasiDayPair.g; };
+      bazi.getDayZhi = function() { return kasiDayPair.j; };
+    } else {
+      try {
+        var _d = new Date(year, month-1, day, correctedHour, correctedMinute);
+        var _gj = KasiEngine.getGanji(_d);
+        if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
+            bazi.getYearGan = function() { return _gj.secha[0]; };
+            bazi.getYearZhi = function() { return _gj.secha[1]; };
+            bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
+            bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
+            bazi.getDayGan = function() { return _gj.iljin[0]; };
+            bazi.getDayZhi = function() { return _gj.iljin[1]; };
+        }
+      } catch(e) {}
+    }
     
     var yg=bazi.getYearGan(),yz=bazi.getYearZhi();
     var mg=bazi.getMonthGan(),mz=bazi.getMonthZhi();
@@ -2861,8 +3208,19 @@ async function calculate(){
     }
 
     var lunarInfo = '';
+    var lunarDateObj = null;
     try {
-      var lunarDateObj = KasiEngine.solarToLunar(new Date(year, month-1, day, correctedHour, correctedMinute));
+      if (primaryDateCtx && primaryDateCtx.lunar && primaryDateCtx.lunar.year && primaryDateCtx.lunar.month && primaryDateCtx.lunar.day) {
+        lunarDateObj = {
+          year: primaryDateCtx.lunar.year,
+          month: primaryDateCtx.lunar.month,
+          day: primaryDateCtx.lunar.day,
+          isLeap: !!primaryDateCtx.lunar.isLeap
+        };
+      }
+      if (!lunarDateObj) {
+        lunarDateObj = KasiEngine.solarToLunar(new Date(year, month-1, day, correctedHour, correctedMinute));
+      }
       var leapStr = lunarDateObj.isLeap ? '(윤달)' : '(평달)';
       lunarInfo = `<div class="hero-lunar-row"><span class="hero-lunar-label">입춘기준 년도</span><span class="hero-lunar-value">${bazi.getYearGan()}${bazi.getYearZhi()}년</span></div>`
                + `<div class="hero-lunar-row"><span class="hero-lunar-label">음력</span><span class="hero-lunar-value">${lunarDateObj.year}년 ${lunarDateObj.month}월 ${lunarDateObj.day}일 ${leapStr}</span></div>`;
@@ -2894,7 +3252,12 @@ async function calculate(){
     try { renderQuantumStrategy(p, natal, bazi); } catch(e) { console.error('QuantumStrategy 에러:', e); }
     try { renderSpecialCharm(p, natal); } catch(e) { console.error('SpecialCharm 에러:', e); }
     try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); }
-    try { renderDailyMonthlyFortune(p); } catch(e) { console.error('DailyMonthlyFortune 에러:', e, e.stack); }
+    try {
+      var _dailyMonthlyPromise = renderDailyMonthlyFortune(p);
+      if (_dailyMonthlyPromise && typeof _dailyMonthlyPromise.catch === 'function') {
+        _dailyMonthlyPromise.catch(function(e){ console.error('DailyMonthlyFortune 에러:', e, e && e.stack); });
+      }
+    } catch(e) { console.error('DailyMonthlyFortune 에러:', e, e.stack); }
     try { renderLetter(p); } catch(e) { console.error('Letter 에러:', e); }
     try { renderTodayDestinyCard(p); } catch(e) { console.error('TodayDestinyCard 에러:', e); }
     findSimilarCelebs(p);
@@ -6529,7 +6892,7 @@ function renderAstroInsight() {
 
         resultDiv.innerHTML = '<div style="color:#f59e0b;font-size:0.85rem;padding:10px;text-align:center;">✦ 천체 계산 중…</div>';
 
-        setTimeout(function() {
+        setTimeout(async function() {
             try {
                 var dp = dateVal.split('-');
                 var tp = timeVal.split(':');
@@ -6551,8 +6914,30 @@ function renderAstroInsight() {
                 }
               }
 
+              try {
+                var directCtx = await resolveKasiDateContextSafe({
+                  calendarType: 'solar',
+                  year: py,
+                  month: pm,
+                  day: pd,
+                  hour: ph,
+                  minute: pmin,
+                  second: 0,
+                  latitude: latVal,
+                  longitude: lonVal,
+                  tzOffsetHours: tzVal
+                }, { setCurrent: false });
+                if (directCtx && directCtx.solar) {
+                  py = directCtx.solar.year || py;
+                  pm = directCtx.solar.month || pm;
+                  pd = directCtx.solar.day || pd;
+                }
+              } catch (ctxErr) {
+                console.warn('[AstroDirect] KASI context fallback:', ctxErr);
+              }
+
                 var localHour = parseInt(tp[0], 10) + parseInt(tp[1] || '0', 10) / 60;
-                var partnerChart = calcAstroApiChartOrThrow(+dp[0], +dp[1], +dp[2], localHour, latVal, lonVal, tzVal, (window.ASTRO_HOUSE_SYSTEM || 'P'));
+                var partnerChart = calcAstroApiChartOrThrow(py, pm, pd, localHour, latVal, lonVal, tzVal, (window.ASTRO_HOUSE_SYSTEM || 'P'));
 
                 var pSunIdx   = _sySignIdx(partnerChart, 'Sun') || 0;
                 var pMoonIdx  = _sySignIdx(partnerChart, 'Moon') || 0;
@@ -9119,7 +9504,7 @@ function renderZiwei(p, natal, targetId) {
       }
       outEl.innerHTML = '<div style="color:#ddd6fe;font-size:0.9rem;">궁합을 계산하는 중입니다...</div>';
 
-      var runCompatCalc = function() {
+      var runCompatCalc = async function() {
       try {
       var cityOpt = cityEl.options[cityEl.selectedIndex];
       var cityTz = cityOpt ? (cityOpt.value || '') : '';
@@ -9142,6 +9527,28 @@ function renderZiwei(p, natal, targetId) {
       if (isNaN(py) || isNaN(pm) || isNaN(pdm) || isNaN(ph) || isNaN(pmin)) {
         outEl.innerHTML = '<div style="color:#fda4af;font-size:0.9rem;">입력 형식을 다시 확인해 주세요.</div>';
         return;
+      }
+
+      try {
+        var zwCtx = await resolveKasiDateContextSafe({
+          calendarType: 'solar',
+          year: py,
+          month: pm,
+          day: pdm,
+          hour: ph,
+          minute: pmin,
+          second: 0,
+          latitude: cityLat,
+          longitude: cityLong,
+          tzOffsetHours: isNaN(cityTzOff) ? 9 : cityTzOff
+        }, { setCurrent: false });
+        if (zwCtx && zwCtx.solar) {
+          py = zwCtx.solar.year || py;
+          pm = zwCtx.solar.month || pm;
+          pdm = zwCtx.solar.day || pdm;
+        }
+      } catch (ctxErr) {
+        console.warn('[ZiweiCompat] KASI context fallback:', ctxErr);
       }
 
       var correctedHour = ph;
@@ -12544,42 +12951,141 @@ function setCeleb(c){
   runCompat();
 }
 
-function runCompat(){
+async function runCompat(){
   if(!G_PILLARS||!G_NATAL||!G_POWER||!G_JOHU){
     alert('먼저 내 사주를 계산한 뒤에 궁합을 볼 수 있어요 🐷');return;
+  }
+  var compatRunBtn = document.getElementById('compatRunBtn');
+  if (compatRunBtn) {
+    compatRunBtn.disabled = true;
+    compatRunBtn.style.opacity = '0.7';
   }
   var name=(document.getElementById('compatName').value||'상대방').trim();
   var bd=document.getElementById('compatBirthDate').value;
   var type=document.getElementById('compatType').value||'love';
-  if(!bd){alert('상대의 생년월일을 입력해주세요');return;}
+  if(!bd){
+    alert('상대의 생년월일을 입력해주세요');
+    if (compatRunBtn) {
+      compatRunBtn.disabled = false;
+      compatRunBtn.style.opacity = '';
+    }
+    return;
+  }
   
   var compatCalBtns = document.getElementsByName('compatCalType');
   var compatCalType = 'solar';
   for(var i=0; i<compatCalBtns.length; i++) { if(compatCalBtns[i].checked) { compatCalType = compatCalBtns[i].value; break; } }
-  
-  var actualDateInfo = getActualSolarDate(bd, compatCalType);
-  if(!actualDateInfo) { alert('날짜 변환에 실패했습니다. 다시 확인해주세요.'); return; }
-  
-  var year=actualDateInfo.y, month=actualDateInfo.m, day=actualDateInfo.d;
+
   var hour=parseInt(document.getElementById('compatBirthHour').value)||12;
   var minute=parseInt(document.getElementById('compatBirthMinute').value)||0;
 
+  var actualDateInfo = await getActualSolarDateWithContext(bd, compatCalType, {
+    hour: hour,
+    minute: minute,
+    second: 0,
+    setCurrent: false
+  });
+  if(!actualDateInfo) {
+    alert('날짜 변환에 실패했습니다. 다시 확인해주세요.');
+    if (compatRunBtn) {
+      compatRunBtn.disabled = false;
+      compatRunBtn.style.opacity = '';
+    }
+    return;
+  }
+
+  var rawBdParts = bd.split('-').map(function(v){ return parseInt(v, 10); });
+  
+  var year=actualDateInfo.y, month=actualDateInfo.m, day=actualDateInfo.d;
+
   try{
+    var meMeta = window._ziweiInputMeta || {};
+    var meInputDate = meMeta.inputDate || {};
+    var meBirth = window._ziweiBirth || window._astroBirth || null;
+    var meCalType = meMeta.calType || 'solar';
+    var meYear = meInputDate.year || (window._astroBirth && window._astroBirth.year) || (meBirth && meBirth.year) || null;
+    var meMonth = meInputDate.month || (window._astroBirth && window._astroBirth.month) || (meBirth && meBirth.month) || null;
+    var meDay = meInputDate.day || (window._astroBirth && window._astroBirth.day) || (meBirth && meBirth.day) || null;
+
+    var selfKasiInput = null;
+    if (meYear && meMonth && meDay) {
+      selfKasiInput = {
+        calendarType: meCalType,
+        year: meYear,
+        month: meMonth,
+        day: meDay,
+        hour: (meInputDate.hour != null ? meInputDate.hour : ((window._astroBirth && window._astroBirth.hour) || (meBirth && meBirth.hour) || 12)),
+        minute: (meInputDate.minute != null ? meInputDate.minute : ((window._astroBirth && window._astroBirth.minute) || (meBirth && meBirth.minute) || 0)),
+        second: 0,
+        latitude: meMeta.latitude != null ? meMeta.latitude : ((meBirth && meBirth.lat) || 37.5665),
+        longitude: meMeta.longitude != null ? meMeta.longitude : ((meBirth && meBirth.lon) || 126.9780),
+        tzOffsetHours: meBirth && meBirth.tz != null ? meBirth.tz : 9
+      };
+    }
+
+    var partnerKasiInput = {
+      calendarType: compatCalType,
+      year: rawBdParts[0] || year,
+      month: rawBdParts[1] || month,
+      day: rawBdParts[2] || day,
+      hour: hour,
+      minute: minute,
+      second: 0,
+      latitude: meMeta.latitude != null ? meMeta.latitude : ((meBirth && meBirth.lat) || 37.5665),
+      longitude: meMeta.longitude != null ? meMeta.longitude : ((meBirth && meBirth.lon) || 126.9780),
+      tzOffsetHours: meBirth && meBirth.tz != null ? meBirth.tz : 9
+    };
+
+    var pairCtx = null;
+    try {
+      var selfLocalCtx = selfKasiInput
+        ? await resolvePrimaryCalendarContext(selfKasiInput, { setCurrent: false })
+        : null;
+      var partnerLocalCtx = await resolvePrimaryCalendarContext(partnerKasiInput, { setCurrent: false });
+      pairCtx = { self: selfLocalCtx, partner: partnerLocalCtx };
+      if (window.KasiCalendarService && typeof window.KasiCalendarService.setContextAlias === 'function') {
+        if (selfLocalCtx) window.KasiCalendarService.setContextAlias('compat-self', selfLocalCtx);
+        if (partnerLocalCtx) window.KasiCalendarService.setContextAlias('compat-partner', partnerLocalCtx);
+      }
+    } catch (pairErr) {
+      console.warn('[Compat] local pair context fallback:', pairErr);
+    }
+
+    if (pairCtx && pairCtx.partner && pairCtx.partner.solar) {
+      year = pairCtx.partner.solar.year || year;
+      month = pairCtx.partner.solar.month || month;
+      day = pairCtx.partner.solar.day || day;
+    }
+
     var solar=Solar.fromYmdHms(year,month,day,hour,minute,0);
     var bazi=solar.getLunar().getEightChar();
+
+    var kasiYearPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.year) : null;
+    var kasiMonthPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.month) : null;
+    var kasiDayPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.day) : null;
+    var kasiApplied = !!(kasiYearPair && kasiMonthPair && kasiDayPair);
     
-    try {
-      var _d = new Date(year, month-1, day, hour, minute);
-      var _gj = KasiEngine.getGanji(_d); 
-      if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
-          bazi.getYearGan = function() { return _gj.secha[0]; };
-          bazi.getYearZhi = function() { return _gj.secha[1]; };
-          bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
-          bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
-          bazi.getDayGan = function() { return _gj.iljin[0]; };
-          bazi.getDayZhi = function() { return _gj.iljin[1]; };
-      }
-    } catch(e) {}
+    if (kasiApplied) {
+      bazi.getYearGan = function() { return kasiYearPair.g; };
+      bazi.getYearZhi = function() { return kasiYearPair.j; };
+      bazi.getMonthGan = function() { return kasiMonthPair.g; };
+      bazi.getMonthZhi = function() { return kasiMonthPair.j; };
+      bazi.getDayGan = function() { return kasiDayPair.g; };
+      bazi.getDayZhi = function() { return kasiDayPair.j; };
+    } else {
+      try {
+        var _d = new Date(year, month-1, day, hour, minute);
+        var _gj = KasiEngine.getGanji(_d);
+        if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
+            bazi.getYearGan = function() { return _gj.secha[0]; };
+            bazi.getYearZhi = function() { return _gj.secha[1]; };
+            bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
+            bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
+            bazi.getDayGan = function() { return _gj.iljin[0]; };
+            bazi.getDayZhi = function() { return _gj.iljin[1]; };
+        }
+      } catch(e) {}
+    }
     
     var yg=bazi.getYearGan(),yz=bazi.getYearZhi();
     var mg=bazi.getMonthGan(),mz=bazi.getMonthZhi();
@@ -12597,8 +13103,51 @@ function runCompat(){
     var power2=calcPower(p2);
     var jong2=detectJong(p2);
 
+    var partnerBirthForZiwei = {
+      year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
+      lat: meMeta.latitude != null ? meMeta.latitude : ((meBirth && meBirth.lat) || 37.5665),
+      lon: meMeta.longitude != null ? meMeta.longitude : ((meBirth && meBirth.lon) || 126.9780),
+      tz: meBirth && meBirth.tz != null ? meBirth.tz : 9
+    };
+    var meBirthForZiwei = meBirth || {
+      year: meYear || year,
+      month: meMonth || month,
+      day: meDay || day,
+      hour: 12,
+      minute: 0,
+      lat: partnerBirthForZiwei.lat,
+      lon: partnerBirthForZiwei.lon,
+      tz: partnerBirthForZiwei.tz
+    };
+    var meBirthForAstro = window._astroBirth || meBirthForZiwei;
+    var partnerBirthForAstro = {
+      year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
+      lat: partnerBirthForZiwei.lat,
+      lon: partnerBirthForZiwei.lon,
+      tz: partnerBirthForZiwei.tz
+    };
+
+    var ziweiLite = computeZiweiCompatLite(meBirthForZiwei, partnerBirthForZiwei);
+    var astroLite = computeAstroCompatLite(meBirthForAstro, partnerBirthForAstro);
+    var blendInfo = {
+      ziwei: ziweiLite,
+      astro: astroLite,
+      source: {
+        kasiPairResolved: !!pairCtx,
+        kasiGanjiApplied: kasiApplied
+      }
+    };
+
     var resultArea=document.getElementById('compatResult');
-    var compat=analyzeCompat(G_PILLARS,G_NATAL,G_POWER,G_JOHU,G_JONG,p2,natal2,power2,johu2,jong2,type,name);
+    var compat=analyzeCompat(G_PILLARS,G_NATAL,G_POWER,G_JOHU,G_JONG,p2,natal2,power2,johu2,jong2,type,name,blendInfo);
     if(resultArea) resultArea.innerHTML=compat.html;
     var pastHtml=analyzePastLifeCompat(G_PILLARS,p2,name);
     if(resultArea) resultArea.insertAdjacentHTML('beforeend',pastHtml);
@@ -12606,10 +13155,15 @@ function runCompat(){
   }catch(e){
     console.error('compat error',e);
     alert('궁합 계산 중 오류가 발생했어요: '+e.message);
+  }finally{
+    if (compatRunBtn) {
+      compatRunBtn.disabled = false;
+      compatRunBtn.style.opacity = '';
+    }
   }
 }
 
-function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
+function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name,blendInfo){
   var score=0;
   var reasons=[];
 
@@ -12808,6 +13362,19 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   var sok=analyzeSokCompat(jh1,p1.m.j,jh2,p2.m.j,p1,p2,type,n1,n2);
   score+=sok.scoreAdj;
 
+  var normalizeMyeongri = function(raw) {
+    return Math.max(20, Math.min(96, Math.round(58 + (raw * 2.8))));
+  };
+  var scoreMyeongri = normalizeMyeongri(score);
+  var scoreZiwei = (blendInfo && blendInfo.ziwei && typeof blendInfo.ziwei.score === 'number') ? blendInfo.ziwei.score : 50;
+  var scoreAstro = (blendInfo && blendInfo.astro && typeof blendInfo.astro.score === 'number') ? blendInfo.astro.score : 50;
+  var integratedScore = Math.max(20, Math.min(96, Math.round((scoreMyeongri * 0.58) + (scoreZiwei * 0.24) + (scoreAstro * 0.18))));
+  var integratedSourceBadges = [];
+  if (blendInfo && blendInfo.source) {
+    if (blendInfo.source.kasiPairResolved) integratedSourceBadges.push('KASI Pair Sync');
+    if (blendInfo.source.kasiGanjiApplied) integratedSourceBadges.push('KASI Ganji Applied');
+  }
+
   var grade,gradeCls,gradeLabel,gradeComment;
   if(score>=13){grade='S급';gradeCls='grade-s';gradeLabel='🌟 전생의 은인';gradeComment='타고난 인연입니다. 서로의 부족한 에너지를 정확히 채워주고 기신까지 제거해주는, 명리학적으로 가장 이상적인 궁합입니다.';}
   else if(score>=8){grade='A급';gradeCls='grade-a';gradeLabel='✨ 운명 궁합';gradeComment='기본 코드와 에너지 방향이 잘 맞는 강한 인연입니다. 노력과 배려가 더해지면 오래 함께 성장할 수 있는 무게 있는 궁합입니다.';}
@@ -12867,7 +13434,15 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     '<div class="compat-grade-badge '+gradeCls+'">'+grade+'</div>'+
     '<div class="compat-grade-label">'+titleMap[type]+' — '+USER_NAME+' × '+name+'<br><span style="font-size:.78rem;color:#888;font-weight:600">'+gradeLabel+'</span></div>'+
     '<div class="compat-grade-desc">'+gradeComment+'</div>'+
+    '<div style="margin-top:6px;font-size:.79rem;color:#5f6368;font-weight:700;">멀티 엔진 종합 점수: '+integratedScore+'/100</div>'+
     '</div></div>'+
+    '<div class="compat-section">'+
+    '<div class="compat-section-title">🧭 다각도 통합 스코어</div>'+
+    '<div style="font-size:.8rem;color:#4e5358;line-height:1.7">'
+      +'명리 '+scoreMyeongri+' · 자미 '+scoreZiwei+' · 점성 '+scoreAstro+' → <b>종합 '+integratedScore+'</b>/100'
+      +(integratedSourceBadges.length ? ('<br><span style="font-size:.72rem;color:#7a7f86">'+integratedSourceBadges.join(' · ')+'</span>') : '')+
+    '</div>'+
+    '</div>'+
     '<div class="compat-section">'+
     '<div class="compat-section-title">🌡️ 에너지 조화</div>'+
     '<div style="font-size:.8rem;color:#555;line-height:1.7">'+sok.text+'</div>'+
@@ -12889,7 +13464,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     '</div>'+
     '</div>';
 
-  return{score:score,grade:grade,gradeCls:gradeCls,label:gradeLabel,emoji:gradeIcon,html:html};
+  return{score:score,integratedScore:integratedScore,grade:grade,gradeCls:gradeCls,label:gradeLabel,emoji:gradeIcon,html:html};
 }
 function analyzeSokCompat(jh1,mj1,jh2,mj2,p1,p2,type,n1,n2){
   type = type || 'love';
@@ -14383,7 +14958,7 @@ function renderVillain(p, power) {
       feedbackEl.classList.add('is-show', 'is-' + gradeCls);
 
       // 모바일에서 피드백 박스 하단이 가려지지 않도록 안전하게 스크롤 보정
-      setTimeout(function() {
+      setTimeout(async function() {
         try {
           feedbackEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } catch (_e) {}
@@ -14396,9 +14971,20 @@ function renderVillain(p, power) {
    🧬 호르몬 관상 — 테토 vs 에겐
 ══════════════════════════════════════════ */
 function calculateHormoneVibe(p, power) {
-  var dg = p.d.g;
+  p = p || {};
+  var dg = (p.d && p.d.g) ? p.d.g : '甲';
+  var slots = [
+    p.y && p.y.g,
+    p.y && p.y.j,
+    p.m && p.m.g,
+    p.m && p.m.j,
+    p.d && p.d.j,
+    p.h && p.h.g,
+    p.h && p.h.j
+  ].filter(function(c){ return !!c; });
+
   // 일간 제외 7개 자리에서 십성 목록
-  var stars = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j]
+  var stars = slots
     .map(function(c) { return getTenGod(dg, c); })
     .filter(function(t) { return t && t !== '?'; });
 
@@ -14477,7 +15063,27 @@ function renderHormoneVibe(p, power) {
   section.style.display = 'block';
   section.style.visibility = 'visible';
 
-  var vibe = calculateHormoneVibe(p, power);
+  var vibe;
+  try {
+    vibe = calculateHormoneVibe(p || {}, power || {});
+  } catch (err) {
+    console.warn('HormoneVibe fallback:', err);
+    vibe = {
+      result: 'neutral', tetoScore: 35, egenScore: 35,
+      reasons: [{ type:'egen', icon:'⚖️', text:'일부 프로필 데이터가 비어 있어 기본 밸런스 모드로 분석했습니다.' }],
+      bigyuk: 0, siksang: 0, insung: 0, gwansung: 0, jaesung: 0,
+      isStrong: false, cnt: {}
+    };
+  }
+
+  if (!vibe || !isFinite(Number(vibe.tetoScore)) || !isFinite(Number(vibe.egenScore))) {
+    vibe = {
+      result: 'neutral', tetoScore: 35, egenScore: 35,
+      reasons: [{ type:'egen', icon:'🧭', text:'데이터 동기화 중입니다. 새로고침 후 다시 확인하면 더 정확해집니다.' }],
+      bigyuk: 0, siksang: 0, insung: 0, gwansung: 0, jaesung: 0,
+      isStrong: false, cnt: {}
+    };
+  }
   
   var tPct = Math.round(Math.min(100, vibe.tetoScore * 1.2));
   var ePct = Math.round(Math.min(100, vibe.egenScore * 1.2));
@@ -14590,6 +15196,40 @@ function renderHormoneVibe(p, power) {
     + '<div class="hv-bar-wrap"><div class="hv-bar-egen" id="hvBarEgen" style="width:0%"></div></div>'
     + '</div>';
 
+  var missionByResult = {
+    teto: {
+      title: '오늘의 테토 미션',
+      tasks: [
+        '결론 말하기 전, 상대 말 20초 끝까지 듣기',
+        '할 일 3개 중 1개는 위임해서 에너지 분산하기',
+        '운동 20분 후 칭찬 메시지 1개 보내기'
+      ]
+    },
+    egen: {
+      title: '오늘의 에겐 미션',
+      tasks: [
+        '공감 후 즉시 다음 행동 1줄 붙이기',
+        '과몰입 신호 오면 3분 호흡으로 감정 리셋',
+        '요청 1건은 정중히 거절해 경계선 연습하기'
+      ]
+    },
+    neutral: {
+      title: '오늘의 밸런스 미션',
+      tasks: [
+        '오전은 테토 모드(결정), 오후는 에겐 모드(관계)로 운영',
+        '말하기 전 팩트/감정을 구분해 전달하기',
+        '하루 마감에 캐릭터 전환 성공 사례 1건 기록하기'
+      ]
+    }
+  };
+  var mission = missionByResult[vibe.result] || missionByResult.neutral;
+  var missionHtml = '<div style="margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:12px 12px 10px;text-align:left;">'
+    + '<div style="font-size:.85rem;font-weight:900;color:#fde68a;margin-bottom:7px;">🎯 ' + mission.title + '</div>'
+    + '<ul style="margin:0;padding-left:18px;color:#e5e7eb;font-size:.78rem;line-height:1.55;">'
+    + mission.tasks.map(function(t){ return '<li style="margin-bottom:4px;">' + t + '</li>'; }).join('')
+    + '</ul>'
+    + '</div>';
+
   var html = '';
 
   if (vibe.result === 'teto') {
@@ -14618,6 +15258,7 @@ function renderHormoneVibe(p, power) {
       + '<div class="hv-reason-list">' + reasonsHtml + '</div>'
       + statsHtml
       + hormoneStoryHtml
+      + missionHtml
       + tetoQuantum
       + '<div style="margin-top:16px;font-size:.78rem;color:rgba(255,255,255,.35);line-height:1.6; text-align:center;">비겁·관성 중심의 신강 사주는 강한 추진력과 승부욕을 나타냅니다. 다만 모든 것을 성별·개인 편차로 다양하게 해석하는 재미있는 심리 콘텐츠입니다 😄</div>'
       + '</div></div>'
@@ -14647,6 +15288,7 @@ function renderHormoneVibe(p, power) {
       + '<div class="hv-reason-list">' + reasonsHtml + '</div>'
       + statsHtml
       + hormoneStoryHtml
+      + missionHtml
       + egenQuantum
       + '<div style="margin-top:16px;font-size:.78rem;color:rgba(255,255,255,.35);line-height:1.6; text-align:center;">인성·식상 중심 사주는 수용성과 감성 표현이 특징입니다. 성별·개인 편차로 다양하게 해석하는 재미있는 심리 콘텐츠입니다 😊</div>'
       + '</div></div>';
@@ -14667,6 +15309,7 @@ function renderHormoneVibe(p, power) {
       + '<div class="hv-reason-list">' + reasonsHtml + '</div>'
       + statsHtml
         + hormoneStoryHtml
+      + missionHtml
       + neutralQuantum
       + '</div></div>';
   }
@@ -14680,8 +15323,16 @@ function renderHormoneVibe(p, power) {
       var be = document.getElementById('hvBarEgen');
       if (bt) bt.style.width = tPct + '%';
       if (be) be.style.width = ePct + '%';
+      if (typeof syncReportHeightFromNode === 'function') {
+        syncReportHeightFromNode(section);
+      }
     }, 120);
   });
+
+  if (typeof syncReportHeightFromNode === 'function') {
+    syncReportHeightFromNode(section);
+    setTimeout(function(){ syncReportHeightFromNode(section); }, 220);
+  }
 }
 
 
@@ -15688,7 +16339,7 @@ function elColor(e){
   return {wood:'#C8E6C9',fire:'#FFCDD2',earth:'#FFE082',metal:'#CFD8DC',water:'#BBDEFB'}[e]||'#eee';
 }
 
-function renderDailyMonthlyFortune(p){
+async function renderDailyMonthlyFortune(p){
   var card=document.getElementById('dailyMonthlyCard');
   if(!card)return;
   card.style.display='block';
@@ -15697,6 +16348,30 @@ function renderDailyMonthlyFortune(p){
 
   var dayGZ=getGanZhiForDate(ty,tm,td,th);
   var monGZ=getMonthGanZhi(ty,tm);
+
+  try {
+    var todayCtx = await resolveKasiDateContextSafe({
+      calendarType: 'solar',
+      year: ty,
+      month: tm,
+      day: td,
+      hour: th,
+      minute: today.getMinutes(),
+      second: today.getSeconds(),
+      latitude: (window._astroBirth && window._astroBirth.lat) || 37.5665,
+      longitude: (window._astroBirth && window._astroBirth.lon) || 126.9780,
+      tzOffsetHours: (window._astroBirth && window._astroBirth.tz != null) ? window._astroBirth.tz : 9
+    }, { setCurrent: false });
+
+    if (todayCtx && todayCtx.ganji) {
+      var dayPair = parseKasiGanjiPair(todayCtx.ganji.day);
+      var monthPair = parseKasiGanjiPair(todayCtx.ganji.month);
+      if (dayPair) dayGZ = dayPair.g + dayPair.j;
+      if (monthPair) monGZ = monthPair.g + monthPair.j;
+    }
+  } catch (e) {
+    console.warn('[Fortune] KASI day/month context fallback:', e);
+  }
 
   var dayRes=analyzeFortuneGZ(dayGZ,p,'오늘 일진');
   var monRes=analyzeFortuneGZ(monGZ,p,'이달 월운');
@@ -15948,29 +16623,29 @@ function renderEnergyCoord(natal){
       '<div class="ec-element-badge '+badgeClass+'">'+
         (EL_E[target]||'')+' 보충 필요: '+(EL_K[target]||'')+' &nbsp;|&nbsp; 결핍도 '+lacking+'%'+
       '</div>'+
-      '<div style="background:rgba(255,255,255,0.6);border-radius:8px;padding:12px;margin-bottom:16px;font-size:0.85rem;color:#444;line-height:1.6;">'+
+      '<div style="background:rgba(248,250,252,0.94);border:1px solid rgba(148,163,184,0.36);border-radius:10px;padding:13px;margin-bottom:16px;font-size:0.9rem;color:#1f2937;line-height:1.68;">'+
         '<div>🌟 <b>나를 돕는 기운:</b> 용신('+yongText+') · 희신('+heeText+')</div>'+
         '<div>🚧 <b>나를 힘들게 하는 기운:</b> 기신('+giText+') · 구신('+gooText+')</div>'+
-        '<div style="margin-top:6px;color:#d32f2f;">⚠️ <b>피해야 할 방향:</b> '+avoidDirs+'</div>'+
+        '<div style="margin-top:6px;color:#b91c1c;">⚠️ <b>피해야 할 방향:</b> '+avoidDirs+'</div>'+
       '</div>'+
-      '<div style="background:rgba(15,23,42,0.05);border:1px solid rgba(148,163,184,0.35);border-radius:8px;padding:12px;margin-bottom:14px;font-size:0.83rem;color:#334155;line-height:1.62;">'+
+      '<div style="background:linear-gradient(135deg,rgba(14,26,48,0.88),rgba(15,23,42,0.8));border:1px solid rgba(125,211,252,0.42);border-radius:10px;padding:14px;margin-bottom:14px;font-size:0.9rem;color:#e2e8f0;line-height:1.72;text-shadow:0 1px 0 rgba(0,0,0,0.35);">'+
         '<div>🧾 <b>분석 기준:</b> '+analysisBasis+'</div>'+
         '<div>🧬 <b>현재 사주 핵심 보완 오행:</b> '+primaryNeedText+'</div>'+
         '<div>⏳ <b>시기 보완 오행 ('+seasonNeed.label+'):</b> '+seasonNeedText+'</div>'+
-        '<div style="margin-top:5px;color:#475569;">• '+seasonNeed.note+'</div>'+
-        '<div style="margin-top:6px;color:#1f2937;">'+timingNarrative+'</div>'+
+        '<div style="margin-top:5px;color:#bfdbfe;">• '+seasonNeed.note+'</div>'+
+        '<div style="margin-top:7px;color:#f8fafc;font-weight:500;">'+timingNarrative+'</div>'+
       '</div>'+
-      '<div style="background:rgba(6,95,70,0.08);border:1px solid rgba(16,185,129,0.35);border-radius:10px;padding:12px;margin-bottom:16px;font-size:0.82rem;color:#0f172a;line-height:1.62;">'+
+      '<div style="background:linear-gradient(135deg,rgba(2,44,34,0.9),rgba(6,78,59,0.82));border:1px solid rgba(52,211,153,0.5);border-radius:10px;padding:14px;margin-bottom:16px;font-size:0.9rem;color:#dcfce7;line-height:1.72;text-shadow:0 1px 0 rgba(0,0,0,0.28);">'+
         '<div>🌍 <b>국가/장소 보완 루트:</b> 국내 '+focusDomestic+' · 해외 '+focusGlobal+'</div>'+
         '<div style="margin-top:5px;">🏡 <b>환경 처방:</b> '+envPlan.env+'</div>'+
         '<div style="margin-top:6px;">⚡ <b>'+primaryNeedText+' 보충 시 기대되는 장점</b></div>'+
         '<ul style="margin:6px 0 0 18px;padding:0;">'+benefitHtml+'</ul>'+
-        '<div style="margin-top:6px;color:#065f46;">'+envPlan.tip+'</div>'+
+        '<div style="margin-top:7px;color:#bbf7d0;">'+envPlan.tip+'</div>'+
       '</div>'+
       '<div class="ec-direction">'+
         '<span class="ec-dir-label">🚩 타겟 에너지 방위 &nbsp;</span>'+
         '<span class="ec-dir-value">'+db.dirEmoji+' '+db.direction+'</span>'+
-        '<span style="font-size:.74rem;color:#64748b">— '+db.theme+'</span>'+
+        '<span style="font-size:.78rem;color:#cbd5e1">— '+db.theme+'</span>'+
       '</div>'+
       '<div class="ec-section-title">📍 오늘의 국내 에너지 좌표</div>'+
       '<div class="ec-loc-grid">'+
@@ -16069,6 +16744,33 @@ function renderTTest(p, natal, johu, pw) {
             '<span style="color:#feca57;font-weight:bold;">[디버깅 권장]</span> 타인의 과도한 감정 데이터 전송을 차단하는 개인 방화벽 장착이 시급합니다. 가끔은 차갑고 건조한 \'금속성 팩트\'를 방패 삼아 본인의 에너지를 지키는 법을 터득하세요.';
   }
 
+  var tMission = finalScore >= 80
+    ? {
+        title: '냉정 모드 디버깅 미션',
+        items: ['대화 1회는 해결책 대신 공감 한 줄 먼저 출력', '피드백에 좋았던 점 1개를 먼저 제시', '결론 제시 전 상대 의도 확인 질문 1회']
+      }
+    : finalScore >= 50
+      ? {
+          title: '로직 밸런스 미션',
+          items: ['팩트 2개 + 배려 문장 1개 조합으로 말하기', '불필요한 논쟁 1건 스킵해 에너지 절약', '피로 누적 시 10분 산책 후 의사결정']
+        }
+      : finalScore >= 20
+        ? {
+            title: '하이브리드 미션',
+            items: ['감정/논리 중 오늘의 우선 모드 하나 고정', '결정 지연 과제 1건은 데드라인 설정', '좋은 판단 1건을 자기 피드백으로 기록']
+          }
+        : {
+            title: '공감형 방화벽 미션',
+            items: ['요청 1건은 생각해볼게요로 즉답 차단', '감정 소모 대화 후 물 1잔+호흡 1분', '오늘의 손해 패턴 1개 메모 후 차단 규칙 작성']
+          };
+
+  var missionHtml = '<div style="margin-top:14px;border:1px solid rgba(0,255,65,.35);background:rgba(0,255,65,.06);border-radius:8px;padding:10px 12px;">'
+    + '<div style="font-size:.82rem;font-weight:800;color:#86efac;margin-bottom:6px;">🧪 ' + tMission.title + '</div>'
+    + '<ul style="margin:0;padding-left:18px;font-size:.78rem;line-height:1.55;color:#d1fae5;">'
+    + tMission.items.map(function(item){ return '<li style="margin-bottom:4px;">' + item + '</li>'; }).join('')
+    + '</ul>'
+    + '</div>';
+
   var html = '<div class="t-test-wrapper">';
   html += '<div style="font-size:0.75rem; color:#00ff41; margin-bottom:5px;">INITIATING T-BAL-NOM SCAN...</div>';
   html += '<div class="t-test-score"><span class="t-test-val">' + finalScore + '</span><span class="t-test-pct">%</span></div>';
@@ -16080,10 +16782,16 @@ function renderTTest(p, natal, johu, pw) {
   html += '<div class="t-test-item"><div>> [관성] 강제 통제 수호 의식</div><div class="t-val">' + (gwanCount * 15) + '%</div></div>';
   html += '<div class="t-test-item"><div>> [식상] 팩트폭행 디버깅</div><div class="t-val">' + (isMetalEarthSS ? '활성(+20%)' : '비활성') + '</div></div>';
   html += '<div class="t-test-item"><div>> [조후] 냉각/건조 성궁 진법</div><div class="t-val">' + (isColdDry ? '가동(+25%)' : '정지') + '</div></div>';
-  html += '</div></div>';
+  html += '</div>';
+  html += missionHtml;
+  html += '</div>';
 
   area.innerHTML = html;
   card.style.display = 'block';
+  if (typeof syncReportHeightFromNode === 'function') {
+    syncReportHeightFromNode(card);
+    setTimeout(function(){ syncReportHeightFromNode(card); }, 200);
+  }
 }
 
 /* ── renderHealthReport: 명리 헬스 리포트 ── */
@@ -16091,6 +16799,8 @@ function renderHealthReport(p, natal, johu, pw, jg) {
   var area = document.getElementById('healthReportSection');
   var card = document.getElementById('healthReportCard');
   if(!area || !card) return;
+
+  try {
 
   natal = natal || {};
   johu = johu || {};
@@ -16160,6 +16870,9 @@ function renderHealthReport(p, natal, johu, pw, jg) {
     }
   };
 
+  // 강한 오행의 상극(剋)으로 피극(被剋) 오행 장부가 약해지는 패턴을 반영한다.
+  var CONTROL_REL = { wood:'earth', fire:'metal', earth:'water', metal:'wood', water:'fire' };
+
   function classifyEl(v) {
     if (v <= 11) return { state: 'deficient', label: '심한 결핍', color: '#c0392b' };
     if (v < 16) return { state: 'deficient', label: '결핍 경향', color: '#d35400' };
@@ -16176,24 +16889,92 @@ function renderHealthReport(p, natal, johu, pw, jg) {
   var strongestType = classifyEl(strongestVal);
   var weakestType = classifyEl(weakestVal);
 
+  var controlImpactByTarget = {};
+  var controlImpacts = [];
+
+  els.forEach(function(controller){
+    var target = CONTROL_REL[controller];
+    if(!target) return;
+
+    var cVal = Math.round((ratios[controller] || 0) * 10) / 10;
+    var tVal = Math.round((ratios[target] || 0) * 10) / 10;
+    var pressure = Math.max(0, cVal - 28);
+    var fragility = Math.max(0, 22 - tVal);
+
+    var score = pressure * 1.1 + fragility;
+    if(cVal >= 34) score += 3;
+    if(tVal <= 16) score += 3;
+    if(score < 7) return;
+
+    var impact = {
+      controller: controller,
+      target: target,
+      score: Math.round(score * 10) / 10,
+      severity: score >= 14 ? '강한' : '중간',
+      risk: elNames[controller]+' 과다의 극(剋) 압박으로 '+elOrgans[target]+' 기능 부담이 커질 수 있습니다.',
+      care: elNames[target]+' 보강 루틴(수면·영양·유산소·스트레칭)과 '+elNames[controller]+' 과열 요인 절제가 필요합니다.'
+    };
+
+    if(!controlImpactByTarget[target] || impact.score > controlImpactByTarget[target].score) {
+      controlImpactByTarget[target] = impact;
+    }
+    controlImpacts.push(impact);
+  });
+
+  controlImpacts.sort(function(a,b){ return b.score - a.score; });
+
   var imbalanceRows = els.map(function(el){
     var val = Math.round((ratios[el] || 0) * 10) / 10;
     var c = classifyEl(val);
-    if(c.state === 'balanced') return '';
+    var controlImpact = controlImpactByTarget[el] || null;
+    if(c.state === 'balanced' && !controlImpact) return '';
+
     var guide = (HEALTH_SIGNAL_DB[el] || {})[c.state] || { risk:'건강 변동성 주의', care:'생활 리듬 점검 필요' };
+    var label = c.label;
+    var leftColor = c.color;
+    var riskText = guide.risk;
+    var careText = guide.care;
+
+    if(controlImpact) {
+      leftColor = '#b91c1c';
+      label = (c.state === 'balanced') ? '균형 범위(상극 압박)' : (c.label + ' + 상극 압박');
+      riskText += ' / ' + controlImpact.risk;
+      careText += ' / ' + controlImpact.care;
+    }
+
     return '<div style="margin-bottom:8px; border:1px solid #ececec; border-left:4px solid '+c.color+'; border-radius:8px; background:#fff; padding:10px;">'+
-      '<div style="font-weight:700; color:#2c3e50; margin-bottom:4px;">'+elNames[el]+' '+val+'% · '+c.label+'</div>'+
-      '<div style="font-size:0.82rem; color:#555; line-height:1.6;"><b>건강 신호:</b> '+guide.risk+'</div>'+
-      '<div style="font-size:0.82rem; color:#444; line-height:1.6; margin-top:3px;"><b>관리 포인트:</b> '+guide.care+'</div>'+
+      '<div style="font-weight:700; color:#2c3e50; margin-bottom:4px;">'+elNames[el]+' '+val+'% · '+label+'</div>'+
+      '<div style="font-size:0.82rem; color:#555; line-height:1.6;"><b>건강 신호:</b> '+riskText+'</div>'+
+      '<div style="font-size:0.82rem; color:#444; line-height:1.6; margin-top:3px;"><b>관리 포인트:</b> '+careText+'</div>'+
     '</div>';
   }).filter(Boolean);
 
+  var controlImpactHtml = controlImpacts.length
+    ? '<div style="margin-top:10px; border:1px solid #fee2e2; background:#fff5f5; border-radius:8px; padding:10px; font-size:.82rem; line-height:1.65; color:#7f1d1d;">'
+      +'<b>상극 압박 진단:</b><br>'
+      +controlImpacts.slice(0,2).map(function(ci){
+        return '- '+elNames[ci.controller]+' → '+elNames[ci.target]+' : '+ci.severity+' 압박 (지수 '+ci.score+')';
+      }).join('<br>')
+      +'</div>'
+    : '';
+
   var imbalanceHtml = imbalanceRows.length
-    ? imbalanceRows.join('')
+    ? imbalanceRows.join('') + controlImpactHtml
     : '<div style="border:1px solid #d1fae5; background:#ecfdf5; color:#065f46; border-radius:8px; padding:10px; font-size:.84rem; line-height:1.6;">현재 오행 분포는 전반적으로 중화 범위입니다. 과로·수면 부족·야식 같은 생활 요인이 건강운을 먼저 흔들 수 있으니 생활 리듬을 우선 관리하세요.</div>';
 
-  var strongestGuide = (HEALTH_SIGNAL_DB[strongestEl] || {}).excess || { risk: '해당 오행 과열 시 기능 저하 가능', care: '과열 신호를 조절하세요.' };
+  var strongestGuideState = strongestType.state === 'deficient' ? 'deficient' : 'excess';
+  var strongestGuide = (HEALTH_SIGNAL_DB[strongestEl] || {})[strongestGuideState] || { risk: '해당 오행 과열 시 기능 저하 가능', care: '과열 신호를 조절하세요.' };
   var weakestGuide = (HEALTH_SIGNAL_DB[weakestEl] || {}).deficient || { risk: '해당 오행 결핍 시 기능 저하 가능', care: '보강 루틴을 고정하세요.' };
+
+  var goodHealthSignals = els.filter(function(el){
+    var val = Math.round((ratios[el] || 0) * 10) / 10;
+    var c = classifyEl(val);
+    return c.state === 'balanced' && val >= 20 && val <= 28 && !controlImpactByTarget[el];
+  });
+
+  var goodHealthSummary = goodHealthSignals.length
+    ? '상대적으로 안정 신호가 있는 장부: <b>'+goodHealthSignals.map(function(el){ return elOrgans[el]; }).join(', ')+'</b> 입니다. 이 리듬을 유지하면 건강운이 더 안정됩니다.'
+    : '현재 명식에서는 <b>특별히 강하게 안정된 건강 축이 뚜렷하지 않습니다.</b> 전반적으로 생활 습관(수면·식사·운동) 관리가 최우선입니다.';
 
   var yongshinList = [];
   var kijishinList = [];
@@ -16232,6 +17013,12 @@ function renderHealthReport(p, natal, johu, pw, jg) {
   else if(johuAvoid.length > 0) avoidEl = johuAvoid[0];
   else if(kijishinList.length > 0) avoidEl = kijishinList[0];
 
+  // 상극 압박이 강하면 피극 오행 보강을 우선 목표로 재조정한다.
+  if(controlImpacts.length && controlImpacts[0].score >= 10) {
+    targetEl = controlImpacts[0].target;
+    avoidEl = controlImpacts[0].controller;
+  }
+
   var today = new Date();
   var seedStr = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate()+'-'+(USER_NAME||'');
   var seed = 0;
@@ -16266,6 +17053,34 @@ function renderHealthReport(p, natal, johu, pw, jg) {
   };
   var exTypes = shuffle(recEx.types, seed).slice(0, 2).join(', ');
 
+  var missionByElement = {
+    wood: ['아침 5분 햇빛 + 목·어깨 스트레칭', '점심에 녹색 채소 1가지 추가', '저녁 자기 전 감정 메모 3줄'],
+    fire: ['오후 2시 이후 카페인 중단', '숨찬 유산소 15분으로 순환 깨우기', '취침 1시간 전 휴대폰 밝기 낮추기'],
+    earth: ['식사 시간 고정(불규칙 금지)', '식후 15분 걷기', '야식 대신 따뜻한 물 1컵'],
+    metal: ['복식호흡 3세트(4-4-6)', '실내 환기 2회 + 습도 체크', '당일 할 일 1개는 과감히 정리'],
+    water: ['허리·둔근 강화 동작 10분', '하루 물 7~8잔 분할 섭취', '하복부/요부 보온 루틴 적용']
+  };
+  var avoidByElement = {
+    wood: '과음·분노 누적·야식',
+    fire: '밤늦은 격한 운동·카페인 과다',
+    earth: '폭식·밀가루 과다·장시간 좌식',
+    metal: '건조한 환경 방치·완벽주의 과몰입',
+    water: '냉음식 과다·과수면·무활동'
+  };
+  var funMissionList = missionByElement[targetEl] || missionByElement.earth;
+  var avoidPattern = avoidByElement[avoidEl] || avoidByElement.earth;
+  var funMissionHtml =
+    '<div style="margin-top:20px;">'+
+      '<div style="font-weight:700; color:#34495e; margin-bottom:8px; font-size:1.05rem;">[Section 5: 오늘의 개운 헬스 미션 🎯]</div>'+
+      '<div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:8px; padding:12px; font-size:.86rem; line-height:1.7; color:#334155;">'+
+        '<div style="margin-bottom:6px;"><b>오늘 집중 오행:</b> '+elNames[targetEl]+' · <b>주의 오행:</b> '+elNames[avoidEl]+'</div>'+
+        '<ul style="margin:0 0 8px 18px; padding:0;">'+
+          funMissionList.map(function(task){ return '<li>'+task+'</li>'; }).join('')+
+        '</ul>'+
+        '<div style="padding:8px 10px; border-radius:6px; background:#fff7ed; color:#9a3412; border:1px solid #fed7aa;">⚠️ 오늘 피해야 할 패턴: <b>'+avoidPattern+'</b></div>'+
+      '</div>'+
+    '</div>';
+
   var todayEl = 'earth'; // 일진(오늘의 천간) 오행
   try {
     todayEl = (GAN[G_BAZI.getDayGan()] || {}).e || 'earth';
@@ -16289,6 +17104,7 @@ function renderHealthReport(p, natal, johu, pw, jg) {
         '<div style="background: rgba(255,255,255,0.8); padding: 12px; border-radius: 8px; font-size: 0.9rem; color: #555; border-left: 4px solid #3498db;">'+
           '<b>' + balanceSummary + '</b><br>'+
           '<span style="font-size: 0.85rem; color: #777; margin-top: 4px; display: inline-block;">' + johuDesc + ' 특히 <b>' + elOrgans[targetEl] + '</b> 건강에 신경 쓰면 개운(開運)에 큰 도움이 됩니다.</span>'+
+          '<div style="font-size:0.84rem; margin-top:8px; color:#374151; line-height:1.65;">'+goodHealthSummary+'</div>'+
         '</div>'+
       '</div>'+
 
@@ -16340,11 +17156,32 @@ function renderHealthReport(p, natal, johu, pw, jg) {
           '<div style="font-size: 0.75rem; color:#6b7280; margin-top:8px; line-height:1.5;">※ 본 건강운 분석은 사주 기반 생활 가이드이며 의학적 진단을 대체하지 않습니다.</div>'+
         '</div>'+
       '</div>'+
+      funMissionHtml+
 
     '</div>';
 
   area.innerHTML = html;
   card.style.display = 'block';
+  } catch (err) {
+    console.error('[health-report] render failed:', err);
+    area.innerHTML = ''
+      + '<div style="border:1px solid #fecaca;background:#fff1f2;color:#9f1239;border-radius:10px;padding:12px 14px;line-height:1.65;">'
+      + '<div style="font-weight:800;margin-bottom:4px;">명리 헬스 리포트를 복구 중입니다</div>'
+      + '<div style="font-size:.86rem;">일시적인 렌더 오류가 발생해 안전 모드 리포트를 표시합니다. 새로고침 후 다시 보면 상세 데이터가 정상 반영됩니다.</div>'
+      + '<ul style="margin:8px 0 0 18px;padding:0;font-size:.82rem;">'
+      + '<li>수면 리듬 고정 (23:00 이전 취침 권장)</li>'
+      + '<li>과식·야식·카페인 과다를 하루만이라도 차단</li>'
+      + '<li>15분 걷기 + 가벼운 스트레칭으로 순환 확보</li>'
+      + '</ul>'
+      + '</div>';
+    card.style.display = 'block';
+  }
+
+  if (typeof syncReportHeightFromNode === 'function') {
+    syncReportHeightFromNode(card);
+    requestAnimationFrame(function(){ syncReportHeightFromNode(card); });
+    setTimeout(function(){ syncReportHeightFromNode(card); }, 250);
+  }
 }
 
 /* ── renderLottoNumbers: 퀀텀 로또 수리 에너지 리포트 ── */
@@ -17782,6 +18619,136 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     }
   };
 
+  // ── 숙요 관계성 UI 스토리 데이터 (단계 2: 배지 + 3단 구조) ─────────────
+  var SY_RELATION_STORY_COPY = {
+    yeongchin: {
+      label: '영친(榮親)',
+      badgeDesc: '서로를 성장시키는 따뜻한 인연',
+      lead: '서로의 장점을 현실로 키워주는 동반 성장형 연결입니다. 함께 있을 때 삶의 체력이 올라가고, 작은 성취가 큰 확신으로 이어집니다.',
+      firstMeet: '첫 인상부터 이상하게 편안합니다. 말이 길지 않아도 결이 맞는다는 감각이 빠르게 만들어집니다.',
+      development: '관계가 깊어질수록 응원과 실질적 도움이 동시에 늘어납니다. 연애든 협업이든 "같이 성장한다"는 감각이 관계의 중심이 됩니다.',
+      caution: '너무 편안해 권태가 오지 않도록 주기적으로 새로운 경험을 넣어주세요. 익숙함을 관리하면 오래 갈수록 더 단단해집니다.'
+    },
+    ankai: {
+      label: '안괴(安壞)',
+      badgeDesc: '파괴와 치유가 교차하는 강렬한 인연',
+      lead: '강하게 끌리고 강하게 흔들리는, 인생을 바꾸는 급의 자극을 주는 관계입니다. 감정의 온도는 높지만 경계선 설계가 핵심입니다.',
+      firstMeet: '처음부터 시선이 꽂히고 감정 파고가 크게 움직입니다. 이유보다 감각이 먼저 반응하는 만남입니다.',
+      development: '가까워질수록 서로의 약점과 욕망을 빠르게 건드립니다. 잘 다루면 폭발적인 성장, 놓치면 소모전이 됩니다.',
+      caution: '갈등 직후 바로 결론 내리기보다 냉각 시간을 합의하세요. 강한 감정은 규칙과 약속 위에 올릴 때 관계를 지킵니다.'
+    },
+    usei: {
+      label: '우쇠(友衰)',
+      badgeDesc: '잔잔하지만 깊은 정서형 인연',
+      lead: '마음의 소음을 줄여주는 쉼터 같은 연결입니다. 화려한 이벤트보다 정서적 안정과 공감의 품질이 관계의 본질이 됩니다.',
+      firstMeet: '강렬한 불꽃보다는 은은한 호감이 먼저 옵니다. 함께 있으면 이상하게 긴장이 풀리는 만남입니다.',
+      development: '신뢰가 쌓일수록 깊고 조용한 친밀감이 자랍니다. 서로의 속도를 존중할수록 관계가 더 오래 갑니다.',
+      caution: '불편한 감정을 미루면 거리감으로 번질 수 있습니다. 다정함과 솔직함을 함께 쓰는 대화 습관이 필요합니다.'
+    },
+    seongwi: {
+      label: '성위(成危)',
+      badgeDesc: '목표 지향의 동맹형 인연',
+      lead: '함께 목표를 향할 때 빛나는 관계입니다. 역할 분담이 선명할수록 시너지가 강해지며, 결과를 만들어내는 힘이 큽니다.',
+      firstMeet: '상대의 추진력이나 실행 방식에 빠르게 눈길이 갑니다. 감정보다 가능성을 먼저 보는 만남입니다.',
+      development: '공동 목표가 생기면 관계가 급속히 단단해집니다. 프로젝트, 계획, 루틴이 관계의 엔진이 됩니다.',
+      caution: '성과만 남고 감정이 비면 관계 피로가 누적됩니다. 일과 관계의 경계를 나누는 시간표를 함께 설계하세요.'
+    },
+    life: {
+      label: '생명(命)',
+      badgeDesc: '거울처럼 닮아 서로를 비추는 인연',
+      lead: '서로를 통해 나를 또렷하게 보게 되는 관계입니다. 강한 공감과 닮음이 장점이지만, 경계가 흐려지지 않도록 균형이 필요합니다.',
+      firstMeet: '처음인데도 오래 알던 사람 같은 기시감이 빠르게 생깁니다. 서로의 반응을 놀랄 만큼 잘 읽습니다.',
+      development: '함께할수록 호흡은 쉬워지고 이해 속도도 빨라집니다. 다만 닮음이 커질수록 차이를 존중하는 기술이 중요해집니다.',
+      caution: '"우린 원래 같아"라는 전제를 내려놓고, 서로의 독립성을 확인해 주세요. 거울 인연은 경계를 지킬 때 오래 아름답습니다.'
+    },
+    taegeuk: {
+      label: '태극(業/胎)',
+      badgeDesc: '정산과 회복이 함께 오는 카르마 인연',
+      lead: '주고받음의 균형을 배우게 하는 관계입니다. 누군가에게는 배움, 누군가에게는 치유가 되는 정산형 연결입니다.',
+      firstMeet: '설명하기 어려운 익숙함과 책임감이 동시에 올라옵니다. "왜인지 신경 쓰이는" 감각이 강하게 작동합니다.',
+      development: '베풂과 수용의 패턴이 선명하게 드러납니다. 관계를 통해 감사, 경계, 자존의 균형을 배우게 됩니다.',
+      caution: '일방 헌신이나 일방 의존으로 기울지 않게 점검하세요. 고마움의 표현과 자기 돌봄을 같이 챙기면 업이 빛으로 바뀝니다.'
+    },
+    default: {
+      label: '숙요 인연',
+      badgeDesc: '서로의 궤도를 조율하는 연결',
+      lead: '두 사람의 리듬을 맞춰가며 관계의 품질을 높여가는 흐름입니다.',
+      firstMeet: '낯섦과 호기심이 동시에 올라오며 관계의 문이 열립니다.',
+      development: '대화와 경험이 누적될수록 관계의 결이 또렷해집니다.',
+      caution: '기대치를 문장으로 합의하면 오해를 크게 줄일 수 있습니다.'
+    }
+  };
+
+  var SY_DISTANCE_STORY_COPY = {
+    same: {
+      label: '동숙(同宿)',
+      badgeDesc: '같은 별의 주파수',
+      firstMeetAddon: '닮은 기질이 빠르게 공명해, 초반 친밀도가 매우 높게 형성됩니다.',
+      developmentAddon: '익숙함이 큰 장점인 만큼, 관계의 신선도를 의식적으로 관리하면 강점이 극대화됩니다.',
+      cautionAddon: '서로를 너무 잘 안다고 단정하지 말고, 주기적으로 "요즘의 나"를 업데이트해 주세요.'
+    },
+    near: {
+      label: '근거리',
+      badgeDesc: '감정 밀도가 높은 거리',
+      firstMeetAddon: '반응 속도가 빠르고 체감 온도도 높아, 관계 진입이 빠른 편입니다.',
+      developmentAddon: '일상 공유 비율이 높아지며 결속이 강해집니다. 작은 루틴이 큰 안정감을 만듭니다.',
+      cautionAddon: '가까움이 답답함으로 바뀌지 않도록, 회복 시간을 미리 합의해 두면 좋습니다.'
+    },
+    middle: {
+      label: '중거리',
+      badgeDesc: '균형과 조율의 거리',
+      firstMeetAddon: '서서히 신뢰를 쌓는 타입이라, 급전개보다 안정적 전개에 강합니다.',
+      developmentAddon: '속도 조율이 잘 되면 가장 오래 가는 패턴이 됩니다.',
+      cautionAddon: '표현을 미루면 오해가 쌓일 수 있으니, 마음의 중간 점검을 습관화하세요.'
+    },
+    far: {
+      label: '원거리',
+      badgeDesc: '존중 기반의 성숙한 거리',
+      firstMeetAddon: '처음엔 차분해 보이지만, 서로의 세계를 알수록 깊이가 생깁니다.',
+      developmentAddon: '각자의 삶을 존중하는 구조가 장점이라, 관계의 밀도보다 품질이 중요합니다.',
+      cautionAddon: '방치와 존중은 다릅니다. 정기적인 연결 신호를 만들면 거리가 신뢰로 바뀝니다.'
+    },
+    default: {
+      label: '관계 거리',
+      badgeDesc: '두 사람만의 리듬',
+      firstMeetAddon: '',
+      developmentAddon: '',
+      cautionAddon: ''
+    }
+  };
+
+  function syRelationKeyFromType(typeText) {
+    var t = String(typeText || '');
+    if (t.indexOf('영친') !== -1) return 'yeongchin';
+    if (t.indexOf('안·괴') !== -1 || t.indexOf('안괴') !== -1) return 'ankai';
+    if (t.indexOf('우쇠') !== -1) return 'usei';
+    if (t.indexOf('성위') !== -1) return 'seongwi';
+    if (t.indexOf('명(') !== -1 || t.indexOf('명)') !== -1 || t.indexOf('영혼의 거울') !== -1) return 'life';
+    if (t.indexOf('업(') !== -1 || t.indexOf('태(') !== -1 || t.indexOf('채무') !== -1 || t.indexOf('채권') !== -1) return 'taegeuk';
+    return 'default';
+  }
+
+  function buildSukuyoRelationStory(rel, distInfo) {
+    var relKey = syRelationKeyFromType(rel && (rel.typeLabel || rel.type));
+    var relCopy = SY_RELATION_STORY_COPY[relKey] || SY_RELATION_STORY_COPY.default;
+    var distCopy = SY_DISTANCE_STORY_COPY[(distInfo && distInfo.tier) || 'default'] || SY_DISTANCE_STORY_COPY.default;
+    var roleLine = '';
+    if (rel && rel.ankaiRole) {
+      roleLine = ' 현재 포지션은 나 ' + rel.ankaiRole.me + ', 상대 ' + rel.ankaiRole.other + ' 흐름입니다.';
+    }
+
+    return {
+      relationBadge: relCopy.label + ' - ' + relCopy.badgeDesc,
+      distanceBadge: distCopy.label + ' - ' + distCopy.badgeDesc,
+      lead: relCopy.lead,
+      stages: [
+        { icon: '✨', title: '첫 만남의 끌림', text: relCopy.firstMeet + ' ' + distCopy.firstMeetAddon },
+        { icon: '🌙', title: '관계의 발전 양상', text: relCopy.development + ' ' + distCopy.developmentAddon },
+        { icon: '🧭', title: '주의할 점과 극복법', text: relCopy.caution + ' ' + distCopy.cautionAddon + roleLine }
+      ]
+    };
+  }
+
   window.triggerSynergyCheck = function(myIdx) {
       // ── 모바일 더블탭 / 중복 실행 방어 ──
       if (window._sy3Running) return;
@@ -17839,7 +18806,32 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
 
           try {
               if (calType === 'solar') {
-                  lunarObj = KasiEngine.solarToLunar(tDate);
+                  var syLat = (window._astroBirth && window._astroBirth.lat) || (window._ziweiBirth && window._ziweiBirth.lat) || 37.5665;
+                  var syLon = (window._astroBirth && window._astroBirth.lon) || (window._ziweiBirth && window._ziweiBirth.lon) || 126.9780;
+                  var syTz = (window._astroBirth && window._astroBirth.tz != null) ? window._astroBirth.tz : ((window._ziweiBirth && window._ziweiBirth.tz != null) ? window._ziweiBirth.tz : 9);
+                  var syCtx = await resolvePrimaryCalendarContext({
+                    calendarType: 'solar',
+                    year: y,
+                    month: m,
+                    day: d,
+                    hour: h,
+                    minute: min,
+                    second: 0,
+                    latitude: syLat,
+                    longitude: syLon,
+                    tzOffsetHours: syTz
+                  }, { setCurrent: false, localOnly: true });
+                  if (syCtx && syCtx.lunar && syCtx.lunar.year && syCtx.lunar.month && syCtx.lunar.day) {
+                    lunarObj = {
+                      year: syCtx.lunar.year,
+                      month: syCtx.lunar.month,
+                      day: syCtx.lunar.day,
+                      isLeap: !!syCtx.lunar.isLeap
+                    };
+                  }
+                  if (!lunarObj) {
+                    lunarObj = KasiEngine.solarToLunar(tDate);
+                  }
               } else {
                   if(h >= 23) {
                       let nextDay = new Date(tDate.getTime());
@@ -17895,6 +18887,16 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           const palette = rel.palette || ['#ff6b81','#ff4757'];
           const gradColor = 'linear-gradient(135deg, ' + palette[0] + ', ' + palette[1] + ')';
           const mgVal = rel.magnetism || 60;
+          const relationStory = buildSukuyoRelationStory(rel, distInfo);
+          const relationStageCards = (relationStory.stages || []).map(function(stage, idx) {
+            var tint = idx === 0 ? 'rgba(125,211,252,0.11)' : (idx === 1 ? 'rgba(196,181,253,0.11)' : 'rgba(251,146,60,0.11)');
+            var border = idx === 0 ? 'rgba(125,211,252,0.35)' : (idx === 1 ? 'rgba(196,181,253,0.35)' : 'rgba(251,146,60,0.35)');
+            var titleColor = idx === 0 ? '#7dd3fc' : (idx === 1 ? '#c4b5fd' : '#fb923c');
+            return '<article class="rounded-xl p-4 border" style="background:' + tint + ';border-color:' + border + ';">'
+              + '<div class="text-xs uppercase tracking-[0.12em] font-extrabold mb-2" style="color:' + titleColor + ';">' + stage.icon + ' ' + stage.title + '</div>'
+              + '<p class="text-[0.88rem] leading-7 text-slate-200" style="margin:0;color:#dfe6e9;line-height:1.85;">' + stage.text + '</p>'
+              + '</article>';
+          }).join('');
 
           // <style> 태그 upsert — removeChild+appendChild 대신 textContent만 교체
           // (remove+add 방식은 매 호출마다 head 리플로우를 강제 트리거)
@@ -17947,11 +18949,20 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
               <div style="font-size:0.82rem; color:rgba(255,255,255,0.8); margin-bottom:10px;">인연의 낙인: <strong>${rel.stamp || rel.type}</strong></div>
               <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:0.78rem;">
                 <span style="background:rgba(0,0,0,0.25); padding:3px 10px; border-radius:20px; color:rgba(255,255,255,0.85);">상대방 별: <strong>${tData.mansion}</strong></span>
-                <span style="background:rgba(0,0,0,0.25); padding:3px 10px; border-radius:20px; color:rgba(255,255,255,0.85);">거리: <strong>${distInfo.label}</strong></span>
+                <span style="background:rgba(251,191,36,0.2); border:1px solid rgba(251,191,36,0.45); padding:3px 10px; border-radius:20px; color:#fde68a;">${relationStory.distanceBadge}</span>
+                <span style="background:rgba(196,181,253,0.2); border:1px solid rgba(196,181,253,0.45); padding:3px 10px; border-radius:20px; color:#e9d5ff;">${relationStory.relationBadge}</span>
               </div>
             </div>
 
             <div style="padding:20px 16px;">
+
+              <section class="mb-4 rounded-2xl border border-violet-300/30 bg-slate-900/45 p-4" style="background:rgba(15,23,42,0.45);border:1px solid rgba(196,181,253,0.3);border-radius:14px;padding:14px 14px 12px;margin-bottom:16px;">
+                <div class="text-xs font-extrabold tracking-[0.15em] uppercase mb-2" style="color:#c4b5fd;letter-spacing:1.2px;font-size:0.75rem;font-weight:800;margin-bottom:8px;">관계 해석 로드맵</div>
+                <p class="text-sm leading-7 text-slate-200" style="margin:0 0 12px;color:#dfe6e9;font-size:0.9rem;line-height:1.86;">${relationStory.lead}</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3" style="display:grid;grid-template-columns:1fr;gap:10px;">
+                  ${relationStageCards}
+                </div>
+              </section>
 
               <!-- ── 3종 수치 대시보드 ── -->
               <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
@@ -18582,6 +19593,23 @@ var REPORT_CARDS = [
   { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 기반 추천 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 번호 흐름을 기반으로 흥미로운 조합을 제안합니다.', cta:'🎱 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard'           }
 ];
 
+function handleReportThumbError(imgEl) {
+  if (!imgEl) return;
+  var wrap = imgEl.closest ? imgEl.closest('.rpt-v2-img-wrap') : imgEl.parentNode;
+  if (wrap) wrap.style.display = 'none';
+
+  var row = wrap && wrap.parentNode;
+  if (!row || !row.classList || !row.classList.contains('rpt-v2-img-row')) return;
+
+  var visibleCount = 0;
+  for (var i = 0; i < row.children.length; i++) {
+    if (row.children[i].style.display !== 'none') visibleCount += 1;
+  }
+  if (visibleCount === 0) row.style.display = 'none';
+}
+
+window.handleReportThumbError = handleReportThumbError;
+
 function renderReportDashboard() {
   var container = document.getElementById('reportDashboard');
   var dashCard  = document.getElementById('reportDashboardCard');
@@ -18620,7 +19648,7 @@ function renderReportDashboard() {
     b.images.forEach(function(img) {
       gridHtml += '<div class="rpt-v2-img-wrap">';
       gridHtml += '<img class="rpt-v2-img" src="fuctionassets/' + img.id + '.webp" alt="' + img.label + '" loading="lazy" '
-        + 'onerror="this.parentNode.style.display=\'none\'">';
+        + 'decoding="async" onerror="handleReportThumbError(this)">';
       gridHtml += '</div>';
     });
     gridHtml += '</div>';
@@ -18652,6 +19680,13 @@ function renderReportDashboard() {
     var slot = document.getElementById('rpt-v2-body-' + b.target);
     var targetEl = document.getElementById(b.target);
     if (slot && targetEl) {
+      /* 내부 콘텐츠 div가 비어 있으면 대시보드 블록 자체를 숨김 */
+      var innerSection = targetEl.querySelector('div[id]');
+      if (innerSection && innerSection.innerHTML.trim().length < 30) {
+        var dashBlock = document.getElementById('rpt-v2-section-' + b.target);
+        if (dashBlock) dashBlock.style.display = 'none';
+        return;
+      }
       /* 숨겨진 섹션도 대시보드 안에서 표시 */
       if (targetEl.style.display === 'none') {
         targetEl.style.display = '';
@@ -18669,6 +19704,53 @@ function syncReportBlockHeight(block) {
   detail.style.setProperty('--rpt-open-height', (inner.scrollHeight + 6) + 'px');
 }
 
+var _rptHeightWatchers = (typeof WeakMap !== 'undefined') ? new WeakMap() : null;
+
+function _bindReportHeightWatcher(block) {
+  if (!_rptHeightWatchers || !block) return;
+  if (_rptHeightWatchers.has(block)) return;
+
+  var inner = block.querySelector('.rpt-v2-detail-inner');
+  if (!inner) return;
+
+  var rafId = 0;
+  var schedule = function() {
+    if (!block.classList || !block.classList.contains('open')) return;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(function() {
+      syncReportBlockHeight(block);
+    });
+  };
+
+  var ro = null;
+  if (typeof ResizeObserver !== 'undefined') {
+    ro = new ResizeObserver(schedule);
+    ro.observe(inner);
+  }
+
+  var mo = null;
+  if (typeof MutationObserver !== 'undefined') {
+    mo = new MutationObserver(schedule);
+    mo.observe(inner, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
+  }
+
+  _rptHeightWatchers.set(block, { ro: ro, mo: mo });
+}
+
+function _unbindReportHeightWatcher(block) {
+  if (!_rptHeightWatchers || !block) return;
+  var watcher = _rptHeightWatchers.get(block);
+  if (!watcher) return;
+  if (watcher.ro) watcher.ro.disconnect();
+  if (watcher.mo) watcher.mo.disconnect();
+  _rptHeightWatchers.delete(block);
+}
+
 function syncReportHeightFromNode(node) {
   if (!node || !node.closest) return;
   var block = node.closest('.rpt-v2-block');
@@ -18684,8 +19766,10 @@ function toggleReportFeatureCard(btn) {
   if (detail) {
     detail.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) {
+      _bindReportHeightWatcher(block);
       syncReportBlockHeight(block);
     } else {
+      _unbindReportHeightWatcher(block);
       detail.style.setProperty('--rpt-open-height', '0px');
     }
   }
