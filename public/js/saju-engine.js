@@ -52,6 +52,255 @@ function _hideLibOverlay() {
  * [Backend Engine] 한국 표준 고정밀 음양력 변환 성궁 진법
  * KASI(한국천문연구원) 표준 음양력 변환 데이터 및 1분 1초 24절기 오차 보정 반영
  */
+var KASI_LOCAL_PATCH_STORAGE_KEY = 'kasi:local-calendar-patch:v1';
+var KASI_LOCAL_PATCH_SEED = {
+  solarToLunar: {
+    '1997-02-10': { year: 1997, month: 1, day: 3, isLeap: false, source: 'kasi_seed' }
+  },
+  lunarToSolar: {
+    '1997-01-03|0': { year: 1997, month: 2, day: 10, dateStr: '1997-02-10', source: 'kasi_seed' }
+  }
+};
+
+function _kasiPad2(v) {
+  return String(v).padStart(2, '0');
+}
+
+function _kasiSolarKey(y, m, d) {
+  return String(y) + '-' + _kasiPad2(m) + '-' + _kasiPad2(d);
+}
+
+function _kasiLunarKey(y, m, d, isLeap) {
+  return String(y) + '-' + _kasiPad2(m) + '-' + _kasiPad2(d) + '|' + (isLeap ? '1' : '0');
+}
+
+function _clonePlain(obj) {
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch (e) {
+    return obj;
+  }
+}
+
+function _kasiToInt(v) {
+  var n = parseInt(v, 10);
+  return isNaN(n) ? null : n;
+}
+
+function _isSameSolarDate(a, b) {
+  return !!(a && b &&
+    _kasiToInt(a.year) === _kasiToInt(b.year) &&
+    _kasiToInt(a.month) === _kasiToInt(b.month) &&
+    _kasiToInt(a.day) === _kasiToInt(b.day));
+}
+
+function _isSameLunarDate(a, b) {
+  return !!(a && b &&
+    _kasiToInt(a.year) === _kasiToInt(b.year) &&
+    _kasiToInt(a.month) === _kasiToInt(b.month) &&
+    _kasiToInt(a.day) === _kasiToInt(b.day) &&
+    !!a.isLeap === !!b.isLeap);
+}
+
+function _rawLocalSolarToLunar(dateObj) {
+  if (!dateObj || isNaN(dateObj.getTime())) return null;
+  try {
+    if (typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return null;
+    var s = Solar.fromYmdHms(
+      dateObj.getFullYear(),
+      dateObj.getMonth() + 1,
+      dateObj.getDate(),
+      dateObj.getHours(),
+      dateObj.getMinutes(),
+      dateObj.getSeconds()
+    );
+    var l = s && s.getLunar ? s.getLunar() : null;
+    if (!l || typeof l.getYear !== 'function') return null;
+    return {
+      year: l.getYear(),
+      month: Math.abs(l.getMonth()),
+      day: l.getDay(),
+      isLeap: l.getMonth() < 0
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+function _rawLocalLunarToSolar(year, month, day, isLeap) {
+  try {
+    if (typeof Lunar === 'undefined' || typeof Lunar.fromYmd !== 'function') return null;
+    var m = isLeap ? -Math.abs(month) : Math.abs(month);
+    var lunar = Lunar.fromYmd(year, m, day);
+    if (isLeap && (!lunar || Math.abs(lunar.getMonth()) !== Math.abs(month))) {
+      lunar = Lunar.fromYmd(year, Math.abs(month), day);
+    }
+    var solar = lunar && lunar.getSolar ? lunar.getSolar() : null;
+    if (!solar || typeof solar.getYear !== 'function') return null;
+    return {
+      year: solar.getYear(),
+      month: solar.getMonth(),
+      day: solar.getDay()
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+function _hasKasiCalendarFallbackDiagnostics(ctx) {
+  if (!ctx || !ctx.meta || !Array.isArray(ctx.meta.diagnostics)) return false;
+  var diagnostics = ctx.meta.diagnostics;
+  for (var i = 0; i < diagnostics.length; i++) {
+    var d = String(diagnostics[i] || '').toLowerCase();
+    if (d.indexOf('solar conversion fallback') !== -1) return true;
+    if (d.indexOf('lunar conversion fallback') !== -1) return true;
+  }
+  return false;
+}
+
+function _isAuthoritativeKasiContext(ctx) {
+  if (!ctx || !ctx.solar || !ctx.lunar) return false;
+  var source = String(ctx.source || '').toLowerCase();
+  if (source === 'fallback') return false;
+  if (_hasKasiCalendarFallbackDiagnostics(ctx)) return false;
+  return true;
+}
+
+function _ensureKasiLocalPatchStoreShape() {
+  if (!_kasiLocalPatchStore || typeof _kasiLocalPatchStore !== 'object') {
+    _kasiLocalPatchStore = _clonePlain(KASI_LOCAL_PATCH_SEED);
+  }
+  if (!_kasiLocalPatchStore.solarToLunar || typeof _kasiLocalPatchStore.solarToLunar !== 'object') {
+    _kasiLocalPatchStore.solarToLunar = {};
+  }
+  if (!_kasiLocalPatchStore.lunarToSolar || typeof _kasiLocalPatchStore.lunarToSolar !== 'object') {
+    _kasiLocalPatchStore.lunarToSolar = {};
+  }
+}
+
+function _upsertKasiPatchPairNoSave(solar, lunar, source) {
+  _ensureKasiLocalPatchStoreShape();
+
+  var changed = false;
+  var src = source || 'kasi_sync';
+
+  var solarKey = _kasiSolarKey(solar.year, solar.month, solar.day);
+  var expectedSolarToLunar = {
+    year: lunar.year,
+    month: lunar.month,
+    day: lunar.day,
+    isLeap: !!lunar.isLeap,
+    source: src
+  };
+  var prevSolarToLunar = _kasiLocalPatchStore.solarToLunar[solarKey];
+  if (!prevSolarToLunar || !(_isSameLunarDate(prevSolarToLunar, expectedSolarToLunar) && String(prevSolarToLunar.source || '') === src)) {
+    _kasiLocalPatchStore.solarToLunar[solarKey] = expectedSolarToLunar;
+    changed = true;
+  }
+
+  var lunarKey = _kasiLunarKey(lunar.year, lunar.month, lunar.day, !!lunar.isLeap);
+  var expectedDateStr = String(solar.year) + '-' + _kasiPad2(solar.month) + '-' + _kasiPad2(solar.day);
+  var expectedLunarToSolar = {
+    year: solar.year,
+    month: solar.month,
+    day: solar.day,
+    dateStr: expectedDateStr,
+    source: src
+  };
+  var prevLunarToSolar = _kasiLocalPatchStore.lunarToSolar[lunarKey];
+  if (!prevLunarToSolar || !(_isSameSolarDate(prevLunarToSolar, expectedLunarToSolar) && String(prevLunarToSolar.source || '') === src && String(prevLunarToSolar.dateStr || '') === expectedDateStr)) {
+    _kasiLocalPatchStore.lunarToSolar[lunarKey] = expectedLunarToSolar;
+    changed = true;
+  }
+
+  return changed;
+}
+
+function _loadKasiLocalPatchStore() {
+  var base = _clonePlain(KASI_LOCAL_PATCH_SEED);
+  try {
+    var raw = localStorage.getItem(KASI_LOCAL_PATCH_STORAGE_KEY);
+    if (!raw) return base;
+    var parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return base;
+    base.solarToLunar = Object.assign({}, base.solarToLunar || {}, parsed.solarToLunar || {});
+    base.lunarToSolar = Object.assign({}, base.lunarToSolar || {}, parsed.lunarToSolar || {});
+    return base;
+  } catch (e) {
+    return base;
+  }
+}
+
+function _saveKasiLocalPatchStore(store) {
+  try {
+    localStorage.setItem(KASI_LOCAL_PATCH_STORAGE_KEY, JSON.stringify(store));
+  } catch (e) {}
+}
+
+var _kasiLocalPatchStore = _loadKasiLocalPatchStore();
+
+function _getPatchedSolarToLunar(y, m, d) {
+  var key = _kasiSolarKey(y, m, d);
+  var row = _kasiLocalPatchStore && _kasiLocalPatchStore.solarToLunar ? _kasiLocalPatchStore.solarToLunar[key] : null;
+  if (!row || !row.year || !row.month || !row.day) return null;
+  return {
+    year: row.year,
+    month: row.month,
+    day: row.day,
+    isLeap: !!row.isLeap,
+    source: row.source || 'local_patch'
+  };
+}
+
+function _getPatchedLunarToSolar(year, month, day, isLeap) {
+  var key = _kasiLunarKey(year, month, day, isLeap);
+  var row = _kasiLocalPatchStore && _kasiLocalPatchStore.lunarToSolar ? _kasiLocalPatchStore.lunarToSolar[key] : null;
+  if (!row || !row.year || !row.month || !row.day) return null;
+  return {
+    year: row.year,
+    month: row.month,
+    day: row.day,
+    dateStr: row.dateStr || (String(row.year) + '-' + _kasiPad2(row.month) + '-' + _kasiPad2(row.day)),
+    source: row.source || 'local_patch'
+  };
+}
+
+function rememberKasiCalendarReference(reference) {
+  if (!reference || !reference.solar || !reference.lunar) return false;
+  var sy = _kasiToInt(reference.solar.year);
+  var sm = _kasiToInt(reference.solar.month);
+  var sd = _kasiToInt(reference.solar.day);
+  var ly = _kasiToInt(reference.lunar.year);
+  var lm = _kasiToInt(reference.lunar.month);
+  var ld = _kasiToInt(reference.lunar.day);
+  var leap = !!reference.lunar.isLeap;
+  if (!sy || !sm || !sd || !ly || !lm || !ld) return false;
+
+  var source = reference.source || 'kasi_sync';
+  var solar = { year: sy, month: sm, day: sd };
+  var lunar = { year: ly, month: lm, day: ld, isLeap: leap };
+  var changed = _upsertKasiPatchPairNoSave(solar, lunar, source);
+
+  var shouldAnalyzeLocalException = (reference.analyzeLocal !== false);
+  if (shouldAnalyzeLocalException) {
+    var localSolarDate = new Date(sy, sm - 1, sd, 12, 0, 0);
+    var localLunar = _rawLocalSolarToLunar(localSolarDate);
+    var localSolar = _rawLocalLunarToSolar(ly, lm, ld, leap);
+    var hasSolarToLunarMismatch = !!(localLunar && !_isSameLunarDate(localLunar, lunar));
+    var hasLunarToSolarMismatch = !!(localSolar && !_isSameSolarDate(localSolar, solar));
+
+    if (hasSolarToLunarMismatch || hasLunarToSolarMismatch) {
+      changed = _upsertKasiPatchPairNoSave(solar, lunar, 'kasi_exception_auto') || changed;
+    }
+  }
+
+  if (changed) {
+    _saveKasiLocalPatchStore(_kasiLocalPatchStore);
+  }
+
+  return true;
+}
+
 const KasiEngine = {
     solarToLunar: function(date) {
         if (!date) return null;
@@ -60,6 +309,8 @@ const KasiEngine = {
             tDate.setDate(tDate.getDate() + 1); // 명리학 자시 경계일 보정
         }
         var y = tDate.getFullYear(), m = tDate.getMonth() + 1, d = tDate.getDate();
+        var patched = _getPatchedSolarToLunar(y, m, d);
+        if (patched) return patched;
         var h = tDate.getHours(), min = tDate.getMinutes(), s = tDate.getSeconds();
         var solar = Solar.fromYmdHms(y, m, d, h, min, s);
         var lunar = solar.getLunar();
@@ -71,6 +322,8 @@ const KasiEngine = {
         };
     },
     lunarToSolar: function(year, month, day, isLeap) {
+      var patched = _getPatchedLunarToSolar(year, month, day, !!isLeap);
+      if (patched) return patched;
         var m = isLeap ? -Math.abs(month) : Math.abs(month);
         var lunar = Lunar.fromYmd(year, m, day);
         if (isLeap && (!lunar || Math.abs(lunar.getMonth()) !== Math.abs(month))) {
@@ -84,6 +337,9 @@ const KasiEngine = {
             dateStr: solar.getYear() + '-' + String(solar.getMonth()).padStart(2, '0') + '-' + String(solar.getDay()).padStart(2, '0')
         };
     },
+        registerCalendarReference: function(reference) {
+          return rememberKasiCalendarReference(reference);
+        },
     getGanji: function(date, options = { yaja: true, leapMonthOption: 'prev' }) {
         if (!date) return null;
         var tDate = new Date(date.getTime());
@@ -115,6 +371,8 @@ const KasiEngine = {
         return { secha: secha, weolgeon: weolgeon, iljin: iljin };
     }
 };
+
+    try { window.KasiEngine = KasiEngine; } catch (e) {}
 
 function getActualSolarDate(dateStr, typeStr) {
     if(!dateStr) return null;
@@ -16345,7 +16603,7 @@ function renderLottoNumbers(natal, bazi){
 
     var delay = 0;
     firstGameNums.forEach(function(n, index) {
-      setTimeout(function() {
+      setTimeout(async function() {
         var ball = document.createElement('div');
         ball.className = 'lotto-draw-ball ' + ballColor(n);
         ball.innerText = n;
@@ -17554,7 +17812,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       // loader가 화면에 그려지기 전에 메인 스레드를 블로킹 → 반응이 없어 보이는 프리징 원인
       // void loader.offsetWidth도 레이아웃 강제일 뿐 페인트 강제가 아니므로 제거
       // setTimeout(50ms) ≈ 3프레임(60fps) 여유 → 모든 모바일 브라우저에서 안정적
-      setTimeout(function() {
+      setTimeout(async function() {
         const ld = loader;
         const rd = resDiv;
         try {

@@ -4,7 +4,7 @@
   var DEFAULTS = {
     apiEndpoint: '/api/kasi/calendar',
     maintenanceMessage: '\ud55c\uad6d\ucc9c\ubb38\uc5f0 API \uc11c\ubc84 \uc810\uac80 \uc911\uc73c\ub85c \ub0b4\ubd80 \uacc4\uc0b0\uae30\ub85c \uc804\ud658\ud569\ub2c8\ub2e4.',
-    timeoutMs: 8000,
+    timeoutMs: 3000,
     cacheTtlMs: 1000 * 60 * 60 * 24 * 180,
     storageKeyPrefix: 'kasi:date-context:v1:'
   };
@@ -377,6 +377,24 @@
         return { year: conv.year, month: conv.month, day: conv.day, source: 'fallback' };
       }
     }
+    if (typeof w.Lunar !== 'undefined' && typeof w.Lunar.fromYmd === 'function') {
+      try {
+        var m = norm.calendarType === 'lunar_leap' ? -Math.abs(norm.month) : Math.abs(norm.month);
+        var lunar = w.Lunar.fromYmd(norm.year, m, norm.day);
+        if (!lunar && norm.calendarType === 'lunar_leap') {
+          lunar = w.Lunar.fromYmd(norm.year, Math.abs(norm.month), norm.day);
+        }
+        var solar = lunar && lunar.getSolar ? lunar.getSolar() : null;
+        if (solar && typeof solar.getYear === 'function') {
+          return {
+            year: _toInt(solar.getYear(), null),
+            month: _toInt(solar.getMonth(), null),
+            day: _toInt(solar.getDay(), null),
+            source: 'fallback'
+          };
+        }
+      } catch (e) {}
+    }
     return null;
   }
 
@@ -393,6 +411,28 @@
         };
       }
     }
+    if (typeof w.Solar !== 'undefined' && typeof w.Solar.fromYmdHms === 'function') {
+      try {
+        var solar = w.Solar.fromYmdHms(
+          solarDate.getFullYear(),
+          solarDate.getMonth() + 1,
+          solarDate.getDate(),
+          solarDate.getHours(),
+          solarDate.getMinutes(),
+          solarDate.getSeconds()
+        );
+        var lunar = solar && solar.getLunar ? solar.getLunar() : null;
+        if (lunar && typeof lunar.getYear === 'function') {
+          return {
+            year: _toInt(lunar.getYear(), null),
+            month: Math.abs(_toInt(lunar.getMonth(), 0)),
+            day: _toInt(lunar.getDay(), null),
+            isLeap: _toInt(lunar.getMonth(), 0) < 0,
+            source: 'fallback'
+          };
+        }
+      } catch (e) {}
+    }
     return null;
   }
 
@@ -407,6 +447,28 @@
           source: 'fallback'
         };
       }
+    }
+    if (typeof w.Solar !== 'undefined' && typeof w.Solar.fromYmdHms === 'function') {
+      try {
+        var solar = w.Solar.fromYmdHms(
+          solarDate.getFullYear(),
+          solarDate.getMonth() + 1,
+          solarDate.getDate(),
+          solarDate.getHours(),
+          solarDate.getMinutes(),
+          solarDate.getSeconds()
+        );
+        var lunar = solar && solar.getLunar ? solar.getLunar() : null;
+        var eight = lunar && lunar.getEightChar ? lunar.getEightChar() : null;
+        if (eight) {
+          return {
+            year: typeof eight.getYear === 'function' ? eight.getYear() : null,
+            month: typeof eight.getMonth === 'function' ? eight.getMonth() : null,
+            day: typeof eight.getDay === 'function' ? eight.getDay() : null,
+            source: 'fallback'
+          };
+        }
+      } catch (e) {}
     }
     return { year: null, month: null, day: null, source: 'none' };
   }

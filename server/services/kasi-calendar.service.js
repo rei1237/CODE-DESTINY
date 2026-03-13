@@ -1,11 +1,11 @@
 const KASI_BASE_URL = String(
   process.env.KASI_API_BASE_URL ||
-  "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService",
+  "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService",
 ).replace(/\/+$/, "");
 
 const KASI_SERVICE_KEY = String(process.env.KASI_SERVICE_KEY || "").trim();
 const CACHE_TTL_MS = Math.max(30, Number(process.env.KASI_CACHE_TTL_SECONDS || 60 * 60 * 24)) * 1000;
-const FETCH_TIMEOUT_MS = Math.max(1000, Number(process.env.KASI_PROXY_TIMEOUT_MS || 8000));
+const FETCH_TIMEOUT_MS = Math.max(1000, Number(process.env.KASI_PROXY_TIMEOUT_MS || 3000));
 
 const ALLOWED_METHODS = new Set(["getLunCalInfo", "getSolCalInfo", "get24DivisionsInfo"]);
 
@@ -131,6 +131,78 @@ function normalizeRows(payload) {
   return [];
 }
 
+function decodeXmlEntities(value) {
+  return String(value || "")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+}
+
+function extractXmlTagText(xmlText, tagName) {
+  const re = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, "i");
+  const match = re.exec(String(xmlText || ""));
+  return match ? decodeXmlEntities(match[1]) : "";
+}
+
+function parseXmlItems(xmlText) {
+  const rows = [];
+  const itemRe = /<item>([\s\S]*?)<\/item>/gi;
+  let itemMatch;
+
+  while ((itemMatch = itemRe.exec(xmlText))) {
+    const block = itemMatch[1] || "";
+    const row = {};
+    const fieldRe = /<([a-zA-Z0-9_]+)>([\s\S]*?)<\/\1>/g;
+    let fieldMatch;
+
+    while ((fieldMatch = fieldRe.exec(block))) {
+      const key = fieldMatch[1];
+      const value = decodeXmlEntities(fieldMatch[2]);
+      row[key] = value;
+    }
+
+    if (Object.keys(row).length) rows.push(row);
+  }
+
+  return rows;
+}
+
+function normalizePayloadFromRaw(rawText) {
+  const text = String(rawText || "").trim();
+  if (!text) return { payload: null, parsedAs: "empty" };
+
+  try {
+    return { payload: JSON.parse(text), parsedAs: "json" };
+  } catch (_jsonErr) {
+    const resultCode = extractXmlTagText(text, "resultCode");
+    const resultMsg = extractXmlTagText(text, "resultMsg");
+    const rows = parseXmlItems(text);
+    if (resultCode || resultMsg || rows.length) {
+      return {
+        payload: {
+          response: {
+            header: {
+              resultCode: resultCode || "00",
+              resultMsg: resultMsg || "NORMAL SERVICE.",
+            },
+            body: {
+              items: {
+                item: rows,
+              },
+            },
+          },
+        },
+        parsedAs: "xml",
+      };
+    }
+  }
+
+  return { payload: null, parsedAs: "unknown" };
+}
+
 async function fetchKasi(method, params) {
   assertServiceKey();
 
@@ -158,17 +230,14 @@ async function fetchKasi(method, params) {
       });
 
       const rawText = await response.text();
-      let payload = null;
-      if (rawText) {
-        try {
-          payload = JSON.parse(rawText);
-        } catch (parseErr) {
-          const err = new Error("KASI 응답 파싱 실패(JSON 아님)");
-          err.status = 503;
-          err.detail = parseErr?.message || "JSON parse error";
-          err.remoteSnippet = rawText.slice(0, 260);
-          throw err;
-        }
+      const parsed = normalizePayloadFromRaw(rawText);
+      const payload = parsed.payload;
+      if (!payload && String(rawText || "").trim()) {
+        const err = new Error("KASI 응답 파싱 실패(JSON/XML 아님)");
+        err.status = 503;
+        err.detail = "Unsupported payload format";
+        err.remoteSnippet = String(rawText).slice(0, 260);
+        throw err;
       }
 
       if (!response.ok) {
@@ -185,6 +254,10 @@ async function fetchKasi(method, params) {
         err.remote = payload;
         err.resultCode = resultCode;
         throw err;
+      }
+
+      if (parsed.parsedAs === "xml") {
+        console.info(`[KASI] parsed XML payload method=${method}`);
       }
 
       return normalizeRows(payload);
