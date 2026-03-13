@@ -239,6 +239,14 @@ function _saveKasiLocalPatchStore(store) {
 
 var _kasiLocalPatchStore = _loadKasiLocalPatchStore();
 
+if (_upsertKasiPatchPairNoSave(
+  { year: 1997, month: 2, day: 10 },
+  { year: 1997, month: 1, day: 3, isLeap: false },
+  'kasi_seed'
+)) {
+  _saveKasiLocalPatchStore(_kasiLocalPatchStore);
+}
+
 function _getPatchedSolarToLunar(y, m, d) {
   var key = _kasiSolarKey(y, m, d);
   var row = _kasiLocalPatchStore && _kasiLocalPatchStore.solarToLunar ? _kasiLocalPatchStore.solarToLunar[key] : null;
