@@ -10,7 +10,7 @@
     "cf:auth:init": "node scripts/setup-cloudflare-auth.mjs",
     "clean:cache": "node -e \"const fs=require('fs');['.next','dist'].forEach((p)=>{try{fs.rmSync(p,{recursive:true,force:true});console.log('Removed cache:',p);}catch{}})\"",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
-    "build": "npm run clean:cache && npm run sitemap:generate && node scripts/sync-legacy-static-to-public.mjs && next build",
+    "build": "npm run clean:cache && npm run sitemap:generate && node scripts/sync-legacy-static-to-public.mjs && next build && npx @opennextjs/cloudflare build",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "build:cf": "npm run clean:cache && npm run sitemap:generate && npm run clean:cf && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs",
     "build:cf:static": "npm run build:cf",
@@ -44,7 +44,7 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.6.0",
+    "@opennextjs/cloudflare": "^1.17.1",
     "@types/node": "^20.14.8",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
