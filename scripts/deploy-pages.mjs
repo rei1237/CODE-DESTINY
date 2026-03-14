@@ -23,7 +23,7 @@ const args = [
   "--branch",
   branch,
   "--config",
-  "wrangler.pages.jsonc",
+  "wrangler.jsonc",
 ];
 
 console.log(`[deploy-pages] project=${projectName} branch=${branch}`);

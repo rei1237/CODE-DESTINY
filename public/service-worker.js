@@ -1,8 +1,8 @@
 ﻿/* Service Worker - kkul-mansaeryeok
-   Cache version: v8 (Network-First strategy)
+  Cache version: v9 (Network-First strategy)
 */
 
-const CACHE_NAME = 'kkul-mansaeryeok-v8';
+const CACHE_NAME = 'kkul-mansaeryeok-v9';
 
 const PRECACHE_URLS = [
   '/',
