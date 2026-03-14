@@ -10,19 +10,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  output: 'standalone',
+  // output: 'standalone', // Cloudflare Pages에서는 standalone output이 필요하지 않으므로 제거
   productionBrowserSourceMaps: false,
   experimental: {
+    // Cloudflare Pages 최적화: tracing root만 지정, 불필요한 exclude는 제거 가능
     outputFileTracingRoot: path.resolve(__dirname),
-    outputFileTracingExcludes: {
-      // node_modules 전체, server, scripts, docs 등 불필요한 폴더 제외
-      './node_modules/**': ['**/*'],
-      './server/**': ['**/*'],
-      './scripts/**': ['**/*'],
-      './docs/**': ['**/*'],
-      './build/**': ['**/*'],
-      './test/**': ['**/*'],
-    },
   },
 };
 
