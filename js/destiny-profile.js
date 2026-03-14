@@ -360,6 +360,7 @@
     if (type === 'sukuyo') return '✦ ' + safeName + ' · 숙요점 분석을 준비합니다';
     if (type === 'ziwei')  return '✦ ' + safeName + ' · 자미두수 명반을 여는 중입니다';
     if (type === 'astro')  return '✦ ' + safeName + ' · 점성술 코즈믹 차트를 준비합니다';
+    if (type === 'flower') return '✦ ' + safeName + ' · 운명의 꽃 탭으로 이동합니다';
     return '✦ ' + safeName + ' · 운세 분석을 시작합니다';
   }
 
@@ -705,6 +706,7 @@
         + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--ziwei"  onclick="window._dpOpenFortuneType(\'ziwei\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--astro"  onclick="window._dpOpenFortuneType(\'astro\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--flower" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌸</span><span class="dp-fsel-btn-label">운명의 꽃</span></button>'
       + '</div>'
       + '</div>';
     document.body.appendChild(ov);
@@ -742,6 +744,25 @@
         var pAstro = DPStorage.current();
         if (pAstro) _toast(_fortuneStartMessage(pAstro.name, 'astro'), 'success');
         if (typeof openAstroModal === 'function') openAstroModal();
+      } else if (type === 'flower') {
+        var pFlower = DPStorage.current();
+        if (pFlower) _toast(_fortuneStartMessage(pFlower.name, 'flower'), 'success');
+        if (typeof setDestinyFlowerSourceTab === 'function') {
+          setDestinyFlowerSourceTab('saju');
+        }
+        if (typeof openDestinyFlowerStudio === 'function') {
+          openDestinyFlowerStudio();
+        } else if (typeof openDestinyFlower === 'function') {
+          openDestinyFlower(false);
+          var flowerCard = document.querySelector('.feature-card.feature-card--destiny-flower');
+          if (flowerCard && typeof flowerCard.scrollIntoView === 'function') {
+            setTimeout(function() {
+              flowerCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+          }
+        } else {
+          _toast('⚠️ 운명의 꽃 모듈이 아직 로딩 중입니다. 잠시 후 다시 시도하세요.', 'warn');
+        }
       }
     }
 
