@@ -82,6 +82,58 @@ function _clonePlain(obj) {
   }
 }
 
+function _applyKasiSeedGuard(store) {
+  if (!store || typeof store !== 'object') return false;
+  var changed = false;
+
+  if (!store.solarToLunar || typeof store.solarToLunar !== 'object') {
+    store.solarToLunar = {};
+    changed = true;
+  }
+  if (!store.lunarToSolar || typeof store.lunarToSolar !== 'object') {
+    store.lunarToSolar = {};
+    changed = true;
+  }
+
+  var seedSolar = KASI_LOCAL_PATCH_SEED.solarToLunar || {};
+  Object.keys(seedSolar).forEach(function(key) {
+    var seed = seedSolar[key] || {};
+    var cur = store.solarToLunar[key] || {};
+    if (
+      cur.year !== seed.year ||
+      cur.month !== seed.month ||
+      cur.day !== seed.day ||
+      !!cur.isLeap !== !!seed.isLeap
+    ) {
+      store.solarToLunar[key] = _clonePlain(seed);
+      changed = true;
+    }
+  });
+
+  var seedLunar = KASI_LOCAL_PATCH_SEED.lunarToSolar || {};
+  Object.keys(seedLunar).forEach(function(key) {
+    var seed = seedLunar[key] || {};
+    var cur = store.lunarToSolar[key] || {};
+    if (
+      cur.year !== seed.year ||
+      cur.month !== seed.month ||
+      cur.day !== seed.day
+    ) {
+      store.lunarToSolar[key] = _clonePlain(seed);
+      changed = true;
+      return;
+    }
+    var seedDateStr = seed.dateStr || (String(seed.year) + '-' + _kasiPad2(seed.month) + '-' + _kasiPad2(seed.day));
+    var curDateStr = cur.dateStr || (String(cur.year) + '-' + _kasiPad2(cur.month) + '-' + _kasiPad2(cur.day));
+    if (curDateStr !== seedDateStr) {
+      store.lunarToSolar[key] = _clonePlain(seed);
+      changed = true;
+    }
+  });
+
+  return changed;
+}
+
 function _loadKasiLocalPatchStore() {
   var base = _clonePlain(KASI_LOCAL_PATCH_SEED);
   try {
@@ -89,8 +141,11 @@ function _loadKasiLocalPatchStore() {
     if (!raw) return base;
     var parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return base;
-    base.solarToLunar = Object.assign({}, base.solarToLunar || {}, parsed.solarToLunar || {});
-    base.lunarToSolar = Object.assign({}, base.lunarToSolar || {}, parsed.lunarToSolar || {});
+    base.solarToLunar = Object.assign({}, parsed.solarToLunar || {}, base.solarToLunar || {});
+    base.lunarToSolar = Object.assign({}, parsed.lunarToSolar || {}, base.lunarToSolar || {});
+    if (_applyKasiSeedGuard(base)) {
+      _saveKasiLocalPatchStore(base);
+    }
     return base;
   } catch (e) {
     return base;
@@ -163,6 +218,8 @@ function rememberKasiCalendarReference(reference) {
     dateStr: String(sy) + '-' + _kasiPad2(sm) + '-' + _kasiPad2(sd),
     source: source
   };
+
+  _applyKasiSeedGuard(_kasiLocalPatchStore);
 
   _saveKasiLocalPatchStore(_kasiLocalPatchStore);
   return true;
@@ -1341,9 +1398,30 @@ function zwDisplayPalaceName(name){
 function calcZiweiPalaces(year, month, day, hour, minute) {
   var solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
   var lunar = solar.getLunar();
-  var lmonth = Math.abs(lunar.getMonth());
-  var lday = lunar.getDay();
-  var isLeap = (typeof lunar.isLeap === 'function' ? lunar.isLeap() : (lunar.getIsLeap ? lunar.getIsLeap() : false));
+  var baseDate = new Date(year, month - 1, day, hour || 0, minute || 0, 0);
+  var kasiLunar = null;
+  try {
+    if (KasiEngine && typeof KasiEngine.solarToLunar === 'function') {
+      kasiLunar = KasiEngine.solarToLunar(baseDate);
+    }
+  } catch (_kasiLunarErr) {}
+
+  var lmonth = (kasiLunar && kasiLunar.month) ? Math.abs(Number(kasiLunar.month)) : Math.abs(lunar.getMonth());
+  var lday = (kasiLunar && kasiLunar.day) ? Number(kasiLunar.day) : lunar.getDay();
+  var isLeap = (kasiLunar && kasiLunar.isLeap != null)
+    ? !!kasiLunar.isLeap
+    : (typeof lunar.isLeap === 'function' ? lunar.isLeap() : (lunar.getIsLeap ? lunar.getIsLeap() : false));
+  var yearGan = lunar.getYearGan();
+  var yearZhi = lunar.getYearZhi();
+  try {
+    if (KasiEngine && typeof KasiEngine.getGanji === 'function') {
+      var _kasiGanji = KasiEngine.getGanji(baseDate);
+      if (_kasiGanji && _kasiGanji.secha && String(_kasiGanji.secha).length >= 2) {
+        yearGan = String(_kasiGanji.secha).charAt(0) || yearGan;
+        yearZhi = String(_kasiGanji.secha).charAt(1) || yearZhi;
+      }
+    }
+  } catch (_kasiGanjiErr) {}
   
   var h = hour;
   var hourIdx = (h === 23 || h === 0) ? 0 : Math.floor((h + 1) / 2);
@@ -1365,7 +1443,7 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   }
 
   var GAN_LIST_ZW = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
-  var yg = GAN_LIST_ZW.indexOf(lunar.getYearGan());
+  var yg = GAN_LIST_ZW.indexOf(yearGan);
   var inStart = [2, 4, 6, 8, 0][((yg % 5) + 5) % 5];
   var gongGan = {};
   for(var z=0; z<12; z++) gongGan[ZHI_LIST[z]] = GAN_LIST_ZW[(inStart + (z - 2 + 12) % 12) % 10];
@@ -1423,27 +1501,27 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   
   var yangMap = {'甲':3,'乙':4,'丙':6,'丁':7,'戊':6,'己':7,'庚':9,'辛':10,'壬':0,'癸':1};
   var tuoMap = {'甲':1,'乙':2,'丙':4,'丁':5,'戊':4,'己':5,'庚':7,'辛':8,'壬':10,'癸':11};
-  if(lunar.getYearGan() in yangMap) {
-    stars[yangMap[lunar.getYearGan()]].bad.push('경양');
-    stars[tuoMap[lunar.getYearGan()]].bad.push('타라');
+  if(yearGan in yangMap) {
+    stars[yangMap[yearGan]].bad.push('경양');
+    stars[tuoMap[yearGan]].bad.push('타라');
   }
   
   stars[(11 - hourIdx + 12) % 12].bad.push('지공');
   stars[(11 + hourIdx) % 12].bad.push('지겁');
 
   var maMap = {'申':2,'子':2,'辰':2, '亥':5,'卯':5,'未':5, '寅':8,'午':8,'戌':8, '巳':11,'酉':11,'丑':11};
-  var tianMaZhi = maMap[lunar.getYearZhi()];
+  var tianMaZhi = maMap[yearZhi];
   if (tianMaZhi !== undefined) stars[tianMaZhi].aux.push('천마');
 
   var luCunMap = {'甲':2,'乙':3,'丙':5,'丁':6,'戊':5,'己':6,'庚':8,'辛':9,'壬':11,'癸':0};
-  var luCunZhi = luCunMap[lunar.getYearGan()];
+  var luCunZhi = luCunMap[yearGan];
   if (luCunZhi !== undefined) stars[luCunZhi].aux.push('녹존');
 
   // 천괴/천월은 연간 규칙표를 따르며, 辛년은 寅(천괴)·午(천월)로 배치한다.
   var kuiMap = {'甲':1,'乙':0,'丙':11,'丁':11,'戊':1,'己':0,'庚':1,'辛':2,'壬':3,'癸':3};
   var yueMap = {'甲':7,'乙':8,'丙':9,'丁':9,'戊':7,'己':8,'庚':7,'辛':6,'壬':5,'癸':5};
-  var kuiZhi = kuiMap[lunar.getYearGan()];
-  var yueZhi = yueMap[lunar.getYearGan()];
+  var kuiZhi = kuiMap[yearGan];
+  var yueZhi = yueMap[yearGan];
   if(kuiZhi !== undefined) stars[kuiZhi].aux.push('천괴');
   if(yueZhi !== undefined) stars[yueZhi].aux.push('천월');
 
@@ -1453,7 +1531,6 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
       '巳':{h:3, l:10}, '酉':{h:3, l:10}, '丑':{h:3, l:10},
       '亥':{h:9, l:10}, '卯':{h:9, l:10}, '未':{h:9, l:10}
   };
-  var yearZhi = lunar.getYearZhi();
   if (hlStart[yearZhi]) {
       var huoZhi = (hlStart[yearZhi].h + hourIdx) % 12;
       var lingZhi = (hlStart[yearZhi].l + hourIdx) % 12;
@@ -1473,7 +1550,7 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     '壬': { '천량': '화록', '자미': '화권', '좌보': '화과', '무곡': '화기' },
     '癸': { '파군': '화록', '거문': '화권', '태음': '화과', '탐랑': '화기' }
   };
-  var curSihua = sihuaMap[lunar.getYearGan()];
+  var curSihua = sihuaMap[yearGan];
   // 화사(四化) 독립 데이터 추출 — HTML 임베드 전에 stars 원본에서 계산
   var sihuaData = {};
   if (curSihua) {
@@ -1523,7 +1600,7 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     }
   }
 
-  var isYangYear = {'甲':1,'乙':-1,'丙':1,'丁':-1,'戊':1,'己':-1,'庚':1,'辛':-1,'壬':1,'癸':-1}[lunar.getYearGan()] > 0;
+  var isYangYear = {'甲':1,'乙':-1,'丙':1,'丁':-1,'戊':1,'己':-1,'庚':1,'辛':-1,'壬':1,'癸':-1}[yearGan] > 0;
   var isMale = typeof GENDER !== 'undefined' ? (GENDER === 'M') : true;
   var direction = (isYangYear === isMale) ? 1 : -1;
   var daHan = {};
@@ -1563,7 +1640,7 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
         var strength = zwComputeStarStrength(starName, gZhi, borrowedFlag, {
           hourIndex: hourIdx,
           lunarMonth: lmonth,
-          yearGan: lunar.getYearGan(),
+          yearGan: yearGan,
           luCunZhiIdx: (luCunZhi !== undefined ? luCunZhi : -1)
         }) || '평';
         if (hasHwaGi) {
@@ -1595,7 +1672,7 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   }
 
   return {
-    lunarMonth: lmonth, lunarDay: lday, isLeap: isLeap, yearGan: lunar.getYearGan(),
+    lunarMonth: lmonth, lunarDay: lday, isLeap: isLeap, yearGan: yearGan,
     meng: ZHI_LIST[mengIdx], shen: ZHI_LIST[shenIdx],
     palaces: palaces, gongGan: gongGan,
     palacesByIndex: palacesByIndex,

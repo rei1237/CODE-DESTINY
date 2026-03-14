@@ -1,379 +1,869 @@
-﻿:root {
-  --rose-soft: #fda4af;
-  --violet-soft: #c4b5fd;
-  --sky-soft: #93c5fd;
-  --card-back-a: #f9a8d4;
-  --card-back-b: #fcd34d;
-  --card-front-a: #ffffff;
-  --card-front-b: #f8fafc;
+:root {
+  color-scheme: light;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
 body {
-  background-image:
-    radial-gradient(circle at 12% 16%, rgba(250, 204, 21, 0.2), transparent 30%),
-    radial-gradient(circle at 84% 10%, rgba(244, 114, 182, 0.25), transparent 36%),
-    radial-gradient(circle at 50% 92%, rgba(196, 181, 253, 0.28), transparent 36%);
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: Pretendard, "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-#ambientParticles {
+body {
+  background: #fffaf6;
+  color: #433b58;
+}
+
+a {
+  color: inherit;
+}
+
+.pageWrap {
+  min-height: 100dvh;
+  padding: 32px 16px 84px;
+  max-width: 1020px;
+  margin: 0 auto;
+  background:
+    radial-gradient(circle at 10% 12%, rgba(255, 193, 212, 0.42), transparent 34%),
+    radial-gradient(circle at 86% 18%, rgba(255, 225, 153, 0.35), transparent 32%),
+    radial-gradient(circle at 75% 88%, rgba(189, 224, 254, 0.28), transparent 35%),
+    linear-gradient(165deg, #fffaf6 0%, #fbf7ff 45%, #fff4ed 100%);
+  color: #433b58;
+}
+
+.heroCard {
+  position: relative;
   overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 206, 143, 0.5);
+  background:
+    radial-gradient(circle at 76% 20%, rgba(255, 236, 184, 0.66), transparent 36%),
+    linear-gradient(145deg, rgba(255, 244, 232, 0.95), rgba(245, 236, 255, 0.92));
+  box-shadow: 0 14px 42px rgba(163, 112, 255, 0.15);
+  padding: 26px 24px 24px;
 }
 
-.particle {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
-  opacity: 0;
-  filter: blur(0.4px);
-  animation: driftUp linear infinite;
-}
-
-@keyframes driftUp {
-  0% {
-    transform: translate3d(0, 50px, 0) scale(0.6);
-    opacity: 0;
-  }
-  12% {
-    opacity: 0.65;
-  }
-  100% {
-    transform: translate3d(0, -110vh, 0) scale(1.2);
-    opacity: 0;
-  }
-}
-
-.status-badge {
+.heroBadge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 999px;
+  gap: 8px;
+  background: linear-gradient(135deg, #ff7eb3, #ff758c);
+  color: #fff;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  padding: 0.25rem 0.65rem;
-  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 6px 12px;
+  margin-bottom: 12px;
+  animation: wobbleBadge 2.4s ease-in-out infinite;
 }
 
-.status-loading {
-  color: #7c3aed;
-  background: rgba(196, 181, 253, 0.24);
-  border-color: rgba(196, 181, 253, 0.5);
+.heroCard h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.8vw, 2.2rem);
+  color: #4f3f73;
 }
 
-.status-ready {
-  color: #059669;
-  background: rgba(52, 211, 153, 0.2);
-  border-color: rgba(16, 185, 129, 0.46);
+.heroCard p {
+  margin: 10px 0 0;
+  line-height: 1.74;
+  color: #5f5479;
 }
 
-.status-missing {
-  color: #b45309;
-  background: rgba(251, 191, 36, 0.2);
-  border-color: rgba(245, 158, 11, 0.46);
+.progressLine {
+  margin-top: 14px;
+  display: inline-flex;
+  border-radius: 999px;
+  background: rgba(120, 77, 182, 0.14);
+  color: #6d48a2;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
-.energy-row {
+.profilePanel {
+  margin-top: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(205, 172, 255, 0.35);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 8px 28px rgba(118, 89, 175, 0.1);
+  padding: 20px;
+}
+
+.panelHeadRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panelHeadRow h2 {
+  margin: 0;
+  color: #5c4687;
+  font-size: 1.08rem;
+}
+
+.ghostButton {
+  border: 1px solid rgba(137, 104, 186, 0.34);
+  border-radius: 10px;
+  min-height: 34px;
+  padding: 0 10px;
+  background: rgba(250, 246, 255, 0.85);
+  color: #5f4688;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profileHint {
+  margin: 12px 0 0;
+  color: #665885;
+  font-size: 0.9rem;
+}
+
+.missingProfileBox {
+  margin-top: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(237, 177, 200, 0.55);
+  background: rgba(255, 244, 247, 0.86);
+  color: #694f6d;
+  padding: 12px;
+}
+
+.missingProfileBox p {
+  margin: 0;
+  line-height: 1.68;
+}
+
+.missingActions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.missingActions a,
+.missingActions button {
+  border-radius: 10px;
+  border: 1px solid rgba(166, 133, 206, 0.36);
+  background: #fff;
+  color: #4f3e72;
+  min-height: 36px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.profileCard {
+  margin-top: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(215, 185, 255, 0.5);
+  background: linear-gradient(145deg, rgba(252, 249, 255, 0.94), rgba(255, 248, 241, 0.88));
+  padding: 14px;
+}
+
+.profileCard h3 {
+  margin: 0;
+  color: #563d80;
+  font-size: 1.02rem;
+}
+
+.profileCard p {
+  margin: 6px 0 0;
+  color: #645583;
+  font-size: 0.84rem;
+}
+
+.profileSignalRow {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.profileSignalRow span {
+  border-radius: 999px;
+  padding: 5px 10px;
+  border: 1px solid rgba(172, 142, 212, 0.36);
+  background: rgba(248, 241, 255, 0.86);
+  color: #5a3f84;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.elementBoard {
+  margin-top: 12px;
   display: grid;
-  grid-template-columns: 54px 1fr 46px;
+  gap: 8px;
+}
+
+.elementBarRow {
+  display: grid;
+  grid-template-columns: 74px 1fr auto;
   align-items: center;
   gap: 8px;
-  font-size: 0.82rem;
-  color: #475569;
+}
+
+.elementBarRow label {
+  color: #5f4f7c;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.elementBarRow b {
+  color: #69498c;
+  font-size: 0.74rem;
   font-weight: 800;
 }
 
-.energy-track {
-  position: relative;
-  height: 11px;
+.elementBarTrack {
+  height: 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(223, 204, 248, 0.48);
   overflow: hidden;
 }
 
-.energy-fill {
+.elementBarTrack span {
+  display: block;
   height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d59bff, #ffb9ca, #ffd68f);
+}
+
+.signalList {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.signalList li {
+  border-radius: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(198, 172, 236, 0.45);
+  background: rgba(250, 245, 255, 0.76);
+  color: #594878;
+  font-size: 0.8rem;
+  line-height: 1.56;
+}
+
+.primaryButton {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff8cc4, #e89cff 48%, #ffd37a);
+  color: #3f264f;
+  font-weight: 800;
+  font-size: 0.94rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(213, 116, 255, 0.24);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.08);
+}
+
+.resultsSection {
+  margin-top: 22px;
+}
+
+.resultsSection h2 {
+  margin: 0 0 12px;
+  color: #5f4688;
+  font-size: 1.04rem;
+}
+
+.resultsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.divinationCard {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 206, 143, 0.42);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 26px rgba(101, 71, 158, 0.11);
+  padding: 14px;
+  animation: fadeUp 0.55s ease both;
+}
+
+.divinationHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.divinationChip {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #6f4ea0;
+  background: rgba(220, 199, 255, 0.38);
   border-radius: 999px;
-  transition: width 0.6s ease;
+  padding: 4px 9px;
 }
 
-.energy-wood { background: linear-gradient(90deg, #4ade80, #22c55e); }
-.energy-fire { background: linear-gradient(90deg, #fb7185, #f43f5e); }
-.energy-earth { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
-.energy-metal { background: linear-gradient(90deg, #a1a1aa, #71717a); }
-.energy-water { background: linear-gradient(90deg, #38bdf8, #3b82f6); }
-
-.flower-float {
-  animation: flowerFloat 3.3s ease-in-out infinite;
+.divinationSubtitle {
+  font-size: 0.72rem;
+  color: #7b6d97;
+  font-weight: 700;
 }
 
-@keyframes flowerFloat {
+.resultMetaRow {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.elementTag {
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: rgba(242, 233, 255, 0.8);
+  border: 1px solid rgba(175, 139, 222, 0.5);
+  color: #593f82;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.scorePill {
+  font-size: 0.8rem;
+  color: #66439a;
+}
+
+.bloomFrame {
+  position: relative;
+  margin-top: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #fff6ef, #f5eeff);
+  min-height: 180px;
+  border: 1px solid rgba(234, 204, 255, 0.4);
+}
+
+.bloomImage {
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  max-height: 220px;
+  object-fit: contain;
+  display: block;
+  animation: bloomPop 0.9s cubic-bezier(0.18, 0.83, 0.34, 1) both;
+}
+
+.pollenLayer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255, 217, 122, 0.55) 0.9px, transparent 1px),
+    radial-gradient(circle, rgba(255, 169, 205, 0.5) 1px, transparent 1px);
+  background-size: 26px 26px, 33px 33px;
+  background-position: 0 0, 10px 16px;
+  opacity: 0.56;
+  animation: pollenDrift 7s linear infinite;
+}
+
+.flowerName {
+  margin: 10px 0 4px;
+  color: #5a3c83;
+  font-size: 0.96rem;
+}
+
+.flowerSummary {
+  margin: 0;
+  color: #5f4f7b;
+  line-height: 1.62;
+  font-size: 0.84rem;
+}
+
+.flowerDetails {
+  margin: 8px 0 0;
+  color: #6b5a87;
+  line-height: 1.64;
+  font-size: 0.8rem;
+}
+
+.basisLine {
+  margin: 9px 0 0;
+  font-size: 0.75rem;
+  color: #664f85;
+  line-height: 1.5;
+}
+
+.scoreBar {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(219, 204, 244, 0.52);
+  overflow: hidden;
+}
+
+.scoreBar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.tarotCanvas {
+  margin-top: 22px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 201, 142, 0.45);
+  background:
+    radial-gradient(circle at 90% 10%, rgba(255, 222, 135, 0.28), transparent 30%),
+    linear-gradient(155deg, rgba(249, 244, 255, 0.92), rgba(255, 249, 238, 0.95));
+  padding: 20px;
+  box-shadow: 0 12px 30px rgba(112, 75, 169, 0.12);
+}
+
+.tarotHeader h3 {
+  margin: 0;
+  color: #5e3f8d;
+}
+
+.tarotHeader p {
+  margin: 8px 0 0;
+  color: #645483;
+  line-height: 1.68;
+}
+
+.tarotGuide {
+  margin-top: 8px;
+  display: inline-block;
+  color: #75569c;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.tarotDeck {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tarotCard {
+  border: 0;
+  padding: 0;
+  height: 230px;
+  background: transparent;
+  cursor: pointer;
+  perspective: 1000px;
+  animation: fadeUp 0.45s ease both;
+}
+
+.tarotCard[disabled] {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.tarotCardInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 16px;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.18, 0.83, 0.34, 1);
+}
+
+.tarotCardSelected .tarotCardInner {
+  transform: rotateY(180deg);
+}
+
+.tarotCardBack,
+.tarotCardFront {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 11px;
+}
+
+.tarotCardBack {
+  border: 1px solid rgba(255, 215, 145, 0.64);
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255, 234, 179, 0.35), transparent 40%),
+    linear-gradient(160deg, #3b2d57, #1f223e);
+  color: #ffe8b3;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tarotCardFront {
+  transform: rotateY(180deg);
+  border: 1px solid rgba(240, 204, 145, 0.8);
+  background: linear-gradient(165deg, #fff5e0, #f7ecff);
+  color: #5f3f80;
+}
+
+.tarotCardArt {
+  width: 100%;
+  height: 92px;
+  border-radius: 9px;
+  object-fit: cover;
+  border: 1px solid rgba(188, 154, 235, 0.45);
+  box-shadow: 0 5px 12px rgba(92, 66, 141, 0.2);
+  margin-bottom: 7px;
+}
+
+.tarotArcana {
+  margin-bottom: 5px;
+  font-size: 0.68rem;
+  color: #7f5aa7;
+}
+
+.tarotCardFront strong {
+  font-size: 0.9rem;
+}
+
+.tarotCardFront em {
+  margin-top: 5px;
+  font-style: normal;
+  font-size: 0.74rem;
+  color: #7e5aa2;
+}
+
+.tarotCardFront small {
+  margin-top: 6px;
+  line-height: 1.42;
+  color: #6c5a84;
+  font-size: 0.7rem;
+}
+
+.tarotReveal {
+  margin-top: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #a14d79;
+  text-decoration: none;
+}
+
+.finaleSection {
+  position: relative;
+  overflow: hidden;
+  margin-top: 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 214, 150, 0.6);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 215, 132, 0.44), transparent 36%),
+    radial-gradient(circle at 80% 100%, rgba(255, 162, 201, 0.42), transparent 38%),
+    linear-gradient(160deg, rgba(255, 249, 236, 0.95), rgba(249, 240, 255, 0.95));
+  box-shadow: 0 14px 34px rgba(151, 98, 215, 0.16);
+  padding: 24px 22px;
+}
+
+.finaleGlow {
+  pointer-events: none;
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 240px;
+  background: radial-gradient(circle, rgba(255, 230, 161, 0.8), transparent 65%);
+  animation: haloBreath 3.6s ease-in-out infinite;
+}
+
+.finaleSection h2 {
+  position: relative;
+  margin: 0;
+  color: #684494;
+}
+
+.finaleSection h3 {
+  margin: 10px 0 0;
+  color: #513177;
+  font-size: clamp(1.2rem, 2.8vw, 1.6rem);
+}
+
+.aura {
+  margin: 8px 0 0;
+  color: #87663f;
+  font-weight: 700;
+}
+
+.elementVisualLine {
+  margin: 10px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: #5f4b7f;
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.elementVisualBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(200, 169, 242, 0.6);
+  background: rgba(248, 239, 255, 0.9);
+  color: #5a3f80;
+  padding: 4px 10px;
+  font-weight: 700;
+  font-size: 0.74rem;
+}
+
+.finalNarrative {
+  margin-top: 12px;
+  line-height: 1.88;
+  color: #584779;
+  font-size: 0.93rem;
+}
+
+.tagRow {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tagRow span {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 194, 132, 0.7);
+  background: rgba(255, 248, 227, 0.78);
+  color: #6a4a8f;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.finalElementRow {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.finalElementRow em {
+  border-radius: 999px;
+  padding: 4px 9px;
+  border: 1px solid rgba(192, 166, 233, 0.6);
+  background: rgba(247, 241, 255, 0.84);
+  color: #5d457f;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.longReportSection {
+  margin-top: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(195, 167, 233, 0.5);
+  background: rgba(252, 248, 255, 0.85);
+  padding: 14px;
+}
+
+.longReportHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.longReportHeader h4 {
+  margin: 0;
+  color: #5f4588;
+  font-size: 0.96rem;
+}
+
+.longReportHeader span {
+  color: #75569d;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.longReportOpening,
+.longReportClosing {
+  margin: 10px 0 0;
+  line-height: 1.76;
+  color: #5d4b78;
+  font-size: 0.84rem;
+}
+
+.longReportGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.longReportCard {
+  border-radius: 12px;
+  border: 1px solid rgba(210, 186, 242, 0.52);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+}
+
+.longReportCard h5 {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #573f7f;
+}
+
+.longReportCard p {
+  margin: 7px 0 0;
+  line-height: 1.68;
+  color: #62507f;
+  font-size: 0.78rem;
+}
+
+.finalActions {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.finalActions button {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(147, 113, 198, 0.35);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 240, 255, 0.92));
+  color: #4f3e72;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.finalActions button:hover {
+  filter: brightness(1.04);
+}
+
+@keyframes wobbleBadge {
   0%,
   100% {
-    transform: translateY(0px) rotate(0deg);
+    transform: rotate(0deg) translateY(0);
+  }
+  25% {
+    transform: rotate(-4deg) translateY(-1px);
   }
   50% {
-    transform: translateY(-12px) rotate(-2deg);
+    transform: rotate(4deg) translateY(0);
+  }
+  75% {
+    transform: rotate(-2deg) translateY(1px);
   }
 }
 
-.flower-fade-in {
-  animation: flowerIn 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both;
-}
-
-@keyframes flowerIn {
+@keyframes fadeUp {
   from {
     opacity: 0;
-    transform: scale(0.78) translateY(16px);
+    transform: translateY(16px);
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.pollen {
-  position: absolute;
-  border-radius: 9999px;
-  pointer-events: none;
-  animation: pollenFloat 1.9s ease-out forwards;
-}
-
-@keyframes pollenFloat {
-  0% {
-    transform: translate3d(0, 0, 0) scale(0.6);
-    opacity: 0.9;
-  }
-  100% {
-    transform: translate3d(var(--pollen-x, 0), var(--pollen-y, -80px), 0) scale(1.2);
-    opacity: 0;
-  }
-}
-
-#analysisLines li {
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: #334155;
-}
-
-.stagger-line {
-  opacity: 0;
-  transform: translateY(12px);
-  animation: lineUp 0.5s ease forwards;
-}
-
-@keyframes lineUp {
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.tarot-fan {
-  position: relative;
-  min-height: 230px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 0;
-}
-
-.tarot-card {
-  width: 150px;
-  height: 215px;
-  perspective: 900px;
-  cursor: pointer;
-  border: 0;
-  background: transparent;
-  transform-origin: center bottom;
-  transition: transform 0.4s ease, filter 0.3s ease;
-  margin-left: -14px;
-  margin-right: -14px;
-}
-
-.tarot-card:first-child,
-.tarot-card:last-child {
-  margin-left: -8px;
-  margin-right: -8px;
-}
-
-.tarot-card:hover {
-  transform: translateY(-6px) scale(1.03) rotate(var(--fan-rotate, 0deg));
-  filter: drop-shadow(0 10px 18px rgba(120, 83, 146, 0.25));
-}
-
-.tarot-card.disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-.tarot-card-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.tarot-card.flipped .tarot-card-inner {
-  transform: rotateY(180deg);
-}
-
-.tarot-face {
-  position: absolute;
-  inset: 0;
-  border-radius: 20px;
-  backface-visibility: hidden;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.75);
-}
-
-.tarot-back {
-  background:
-    radial-gradient(circle at 25% 18%, rgba(255, 255, 255, 0.44), transparent 34%),
-    linear-gradient(140deg, var(--card-back-a), var(--card-back-b));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.96);
-}
-
-.tarot-back::before {
-  content: "";
-  position: absolute;
-  inset: 12px;
-  border-radius: 14px;
-  border: 1px dashed rgba(255, 255, 255, 0.54);
-}
-
-.back-icon {
-  position: relative;
-  font-size: 3rem;
-  text-shadow: 0 6px 16px rgba(255, 255, 255, 0.32);
-}
-
-.back-caption {
-  position: absolute;
-  bottom: 14px;
-  width: 100%;
-  text-align: center;
-  letter-spacing: 0.18em;
-  font-size: 0.62rem;
-  font-weight: 800;
-}
-
-.tarot-front {
-  background: linear-gradient(165deg, var(--card-front-a), var(--card-front-b));
-  transform: rotateY(180deg);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #334155;
-}
-
-.front-flower {
-  font-size: 2rem;
-}
-
-.front-name {
-  margin-top: 8px;
-  font-size: 1rem;
-  font-weight: 800;
-  color: #1e293b;
-}
-
-.front-keyword {
-  margin-top: 4px;
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
-  font-weight: 800;
-  color: #fb7185;
-}
-
-.front-hint {
-  margin-top: 8px;
-  font-size: 0.75rem;
-  color: #64748b;
-}
-
-.picked-pop {
-  animation: popIn 0.45s ease both;
-}
-
-@keyframes popIn {
-  from {
+@keyframes bloomPop {
+  0% {
     opacity: 0;
-    transform: scale(0.94) translateY(10px);
+    transform: scale(0.84);
+    filter: blur(1.2px);
   }
-  to {
+  65% {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: scale(1.05);
+    filter: blur(0);
   }
-}
-
-.glow-rose {
-  background: radial-gradient(circle, rgba(244, 114, 182, 0.44), transparent 70%);
-}
-
-.glow-violet {
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.42), transparent 70%);
-}
-
-.glow-sky {
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.4), transparent 70%);
-}
-
-.glow-amber {
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.4), transparent 70%);
-}
-
-.glow-emerald {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.4), transparent 70%);
-}
-
-#flowerPigBtn {
-  animation: pigPulse 2.4s ease-in-out infinite;
-}
-
-@keyframes pigPulse {
-  0%,
   100% {
     transform: scale(1);
   }
-  50% {
-    transform: scale(1.06);
+}
+
+@keyframes pollenDrift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(14px);
   }
 }
 
-@media (max-width: 640px) {
-  .tarot-fan {
-    min-height: 205px;
+@keyframes haloBreath {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@media (max-width: 960px) {
+  .resultsGrid,
+  .longReportGrid {
+    grid-template-columns: 1fr;
   }
 
-  .tarot-card {
-    width: 120px;
-    height: 180px;
-    margin-left: -20px;
-    margin-right: -20px;
+  .tarotDeck {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .back-icon {
-    font-size: 2.4rem;
+  .finalActions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .pageWrap {
+    padding: 20px 12px 70px;
   }
 
-  .energy-row {
-    grid-template-columns: 48px 1fr 42px;
+  .heroCard,
+  .profilePanel,
+  .tarotCanvas,
+  .finaleSection {
+    border-radius: 18px;
+  }
+
+  .tarotDeck {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tarotCard {
+    height: 200px;
+  }
+
+  .elementBarRow {
+    grid-template-columns: 68px 1fr auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroBadge,
+  .bloomImage,
+  .pollenLayer,
+  .finaleGlow,
+  .divinationCard,
+  .tarotCard {
+    animation: none !important;
+    transition: none !important;
   }
 }

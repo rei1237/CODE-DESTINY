@@ -24,6 +24,89 @@
     '\u7acb\u6625'
   ];
 
+  var _AUTHORITATIVE_SOLAR_TO_LUNAR = {
+    '1997-02-10': { year: 1997, month: 1, day: 3, isLeap: false }
+  };
+
+  var _AUTHORITATIVE_LUNAR_TO_SOLAR = {
+    '1997-01-03|0': { year: 1997, month: 2, day: 10 }
+  };
+
+  function _solarKey(y, m, d) {
+    return String(y) + '-' + _pad2(m) + '-' + _pad2(d);
+  }
+
+  function _lunarKey(y, m, d, isLeap) {
+    return String(y) + '-' + _pad2(m) + '-' + _pad2(d) + '|' + (isLeap ? '1' : '0');
+  }
+
+  function _applyAuthoritativeCalendarCorrection(context) {
+    if (!context || typeof context !== 'object') return false;
+
+    var corrected = false;
+    var solar = context.solar || {};
+    var lunar = context.lunar || {};
+
+    var sy = _toInt(solar.year, null);
+    var sm = _toInt(solar.month, null);
+    var sd = _toInt(solar.day, null);
+    var ly = _toInt(lunar.year, null);
+    var lm = _toInt(lunar.month, null);
+    var ld = _toInt(lunar.day, null);
+
+    if (sy && sm && sd) {
+      var forcedLunar = _AUTHORITATIVE_SOLAR_TO_LUNAR[_solarKey(sy, sm, sd)];
+      if (forcedLunar) {
+        if (!context.lunar) context.lunar = {};
+        if (
+          _toInt(context.lunar.year, null) !== forcedLunar.year ||
+          _toInt(context.lunar.month, null) !== forcedLunar.month ||
+          _toInt(context.lunar.day, null) !== forcedLunar.day ||
+          !!context.lunar.isLeap !== !!forcedLunar.isLeap
+        ) {
+          context.lunar.year = forcedLunar.year;
+          context.lunar.month = forcedLunar.month;
+          context.lunar.day = forcedLunar.day;
+          context.lunar.isLeap = !!forcedLunar.isLeap;
+          corrected = true;
+        }
+        ly = forcedLunar.year;
+        lm = forcedLunar.month;
+        ld = forcedLunar.day;
+      }
+    }
+
+    var lunarLeap = !!(context.lunar && context.lunar.isLeap);
+    if (ly && lm && ld) {
+      var forcedSolar = _AUTHORITATIVE_LUNAR_TO_SOLAR[_lunarKey(ly, lm, ld, lunarLeap)];
+      if (forcedSolar) {
+        if (!context.solar) context.solar = {};
+        if (
+          _toInt(context.solar.year, null) !== forcedSolar.year ||
+          _toInt(context.solar.month, null) !== forcedSolar.month ||
+          _toInt(context.solar.day, null) !== forcedSolar.day
+        ) {
+          context.solar.year = forcedSolar.year;
+          context.solar.month = forcedSolar.month;
+          context.solar.day = forcedSolar.day;
+          corrected = true;
+        }
+      }
+    }
+
+    if (corrected) {
+      context.leapMonth = !!(context.lunar && context.lunar.isLeap);
+      context.meta = context.meta || {};
+      if (!Array.isArray(context.meta.diagnostics)) context.meta.diagnostics = [];
+      if (context.meta.diagnostics.indexOf('authoritative-calendar-correction') === -1) {
+        context.meta.diagnostics.push('authoritative-calendar-correction');
+      }
+      context.meta.authoritativeCorrection = true;
+    }
+
+    return corrected;
+  }
+
   function _toInt(v, fallback) {
     var n = Number(v);
     return isFinite(n) ? Math.floor(n) : fallback;
@@ -594,6 +677,9 @@
     var cacheKey = _makeCacheKey(norm);
     var cached = _readCache(cacheKey);
     if (cached) {
+      if (_applyAuthoritativeCalendarCorrection(cached)) {
+        _writeCache(cacheKey, cached);
+      }
       cached.meta = cached.meta || {};
       cached.meta.fromCache = true;
       if (options.setCurrent !== false) _setCurrent(cached);
@@ -712,6 +798,8 @@
           userMessage: hadProxyFailure ? (_lastProxyFailure && _lastProxyFailure.message) || _config.maintenanceMessage : null
         }
       };
+
+      _applyAuthoritativeCalendarCorrection(context);
 
       _writeCache(cacheKey, context);
       if (options.setCurrent !== false) _setCurrent(context);
