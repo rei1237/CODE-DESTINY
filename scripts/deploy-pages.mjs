@@ -16,12 +16,12 @@ const branch =
 
 const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
-const outputDir = resolve(process.cwd(), ".open-next", "assets");
+const outputDir = resolve(process.cwd(), "dist");
 const args = [
   "wrangler",
   "pages",
   "deploy",
-  ".open-next/assets",
+  "dist",
   "--project-name",
   projectName,
   "--branch",
@@ -45,7 +45,7 @@ function runBuildIfMissingOutput() {
     return true;
   }
 
-  console.log("[deploy-pages] .open-next/assets not found. Running `npm run build:cf`...");
+  console.log("[deploy-pages] dist not found. Running `npm run build:cf`...");
   const buildResult = spawnSync(npmCmd, ["run", "build:cf"], {
     stdio: "inherit",
     shell: false,

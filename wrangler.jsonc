@@ -1,8 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "code-destiny-web",
-  "pages_build_output_dir": ".open-next/assets",
-  "compatibility_date": "2025-01-01",
+  "main": ".open-next/worker.js",
+  "pages_build_output_dir": "./dist",
+  "assets": {
+    "directory": "./dist"
+  },
+  "compatibility_date": "2026-03-14",
   "compatibility_flags": [
     "nodejs_compat"
   ]

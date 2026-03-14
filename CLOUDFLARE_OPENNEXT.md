@@ -18,14 +18,15 @@ Use this project with OpenNext on Cloudflare Workers.
 
 ## Final File Layout
 
-- `wrangler.jsonc`: Pages-safe config (no `main`, no explicit `assets.binding`)
-- `wrangler.worker.jsonc`: Worker deploy config (used only for `wrangler deploy`)
+- `wrangler.jsonc`: unified config for Pages/Workers fallback (`main` + `assets.directory` + `pages_build_output_dir`)
+- `wrangler.worker.jsonc`: explicit Worker deploy config (used by worker-target deploy scripts)
+- `wrangler.toml`: fallback config for environments that call `wrangler deploy` without `--config`
 - `next.config.mjs`: normal Next.js config (no special ASSETS binding)
 
 ## Required Scripts
 
 - `build`: `next build`
-- `build:cf`: `cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build`
+- `build:cf`: `cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build && node scripts/prepare-cloudflare-dist.mjs`
 - `build:cf:static`: compatibility command for Cloudflare Pages Deploy command (`npm run build:cf:static`)
 - `deploy:cf:static`: `node scripts/deploy-pages.mjs` (legacy-compatible, CI-safe)
 - `deploy:cf`: `node scripts/deploy-cloudflare.mjs`
@@ -41,6 +42,8 @@ Use this project with OpenNext on Cloudflare Workers.
 
 `scripts/deploy-pages.mjs` also has the same CI-safe skip logic, so older deploy commands remain safe.
 
+`scripts/prepare-cloudflare-dist.mjs` guarantees `./dist` exists after Cloudflare build by copying from `.open-next/assets` (or `out` fallback).
+
 ## Why "wrangler deploy" Can Fail In Pages CI
 
 - `wrangler deploy` is a Worker command, not a Pages command.
@@ -55,7 +58,7 @@ Use one of these instead:
 ## Required Cloudflare Build Settings
 
 - Build command: `npm run build:cf`
-- `wrangler.jsonc` provides `pages_build_output_dir: .open-next/assets`, so Pages can publish automatically after a successful build.
+- `wrangler.jsonc` provides `pages_build_output_dir: ./dist`, so Pages can publish automatically after a successful build.
 
 If your project is still configured with a Pages Deploy command, this also works:
 
@@ -69,8 +72,10 @@ For local/manual deployment with explicit build step:
 And these files should exist:
 
 - `wrangler.jsonc` with `pages_build_output_dir`
+- `wrangler.toml` with same `dist` mapping for CLI fallback
 - `scripts/deploy-pages.mjs` for deterministic `project-name` and `branch` resolution
 - `scripts/deploy-cloudflare.mjs` for environment-aware command routing
+- `scripts/prepare-cloudflare-dist.mjs` for deterministic dist output
 
 ## Authentication Error (code 10000)
 
@@ -92,6 +97,7 @@ If logs show `Authentication error [code: 10000]` during deploy command:
 ## Notes
 
 - `open-next.config.ts` and `wrangler.jsonc` must exist in repo root to avoid interactive prompts in CI.
+- `wrangler.jsonc`/`wrangler.toml` must point assets to `./dist`.
 - `wrangler.jsonc` (Pages) must not define `assets.binding: "ASSETS"`.
 - Use `wrangler.worker.jsonc` for Worker deploy path only.
 - Commit a lock file (`package-lock.json`) to improve reproducibility and caching.
@@ -102,11 +108,12 @@ If logs show `Authentication error [code: 10000]` during deploy command:
 	- Do not use `ASSETS` binding in Pages config.
 - Compatibility flags:
 	- Keep `nodejs_compat` enabled.
-	- Keep `compatibility_date` pinned (example: `2025-01-01` or newer tested date).
+	- Keep `compatibility_date` pinned (now `2026-03-14`).
 - Commands:
 	- Build: `npm run build:cf`
 	- If Deploy command is mandatory: `npm run deploy:cf`
 	- For local full flow: `npm run deploy:cf:full`
+	- Dist sanity: `dist/index.html` must exist after build
 - Auth:
 	- If using `wrangler pages deploy`, ensure token has Pages write scope.
 	- Prefer removing unnecessary custom `CLOUDFLARE_API_TOKEN` in Pages CI.

@@ -62,11 +62,11 @@ if (deployTarget === "pages") {
   console.log("[deploy-cloudflare] Target: pages");
 
   if (isPagesCi && !forcePagesWranglerDeploy) {
-    const outputDir = resolve(process.cwd(), ".open-next", "assets");
+    const outputDir = resolve(process.cwd(), "dist");
 
     if (!runBuildIfMissingOutput(outputDir)) {
       console.error(
-        "[deploy-cloudflare] Missing .open-next/assets. Ensure build command runs `npm run build:cf` before deploy command."
+        "[deploy-cloudflare] Missing dist output. Ensure build command runs `npm run build:cf` before deploy command."
       );
       process.exit(1);
     }
