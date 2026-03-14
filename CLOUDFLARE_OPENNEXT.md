@@ -28,7 +28,23 @@ Use this project with OpenNext on Cloudflare Workers.
 - `build:cf`: `cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build`
 - `build:cf:static`: compatibility command for Cloudflare Pages Deploy command (`npm run build:cf:static`)
 - `deploy:cf:static`: `node scripts/deploy-pages.mjs` (non-shell fallback handling)
-- `deploy:cf`: `npm run build:cf && npx wrangler deploy --config wrangler.worker.jsonc`
+- `deploy:cf`: `npm run build:cf && node scripts/deploy-cloudflare.mjs`
+- `deploy:cf:pages`: force Pages deploy path
+- `deploy:cf:worker`: force Worker deploy path
+
+`scripts/deploy-cloudflare.mjs` auto-detects Cloudflare Pages CI (`CF_PAGES*`) and uses
+`wrangler pages deploy` automatically. This avoids accidental `wrangler deploy` calls on Pages.
+
+## Why "wrangler deploy" Can Fail In Pages CI
+
+- `wrangler deploy` is a Worker command, not a Pages command.
+- In Pages CI, Wrangler can enter an interactive confirmation path and fail in non-interactive mode.
+- Symptom in logs: deploy stage fails right after Wrangler writes logs, sometimes with a config snippet such as `assets.directory: "./dist"`.
+
+Use one of these instead:
+
+- Preferred: no Deploy command in Pages settings (build only).
+- If Deploy command is required: `npm run deploy:cf` (or `npm run deploy:cf:pages`).
 
 ## Required Cloudflare Build Settings
 
@@ -38,12 +54,13 @@ Use this project with OpenNext on Cloudflare Workers.
 If your project is still configured with a Pages Deploy command, this also works:
 
 - Build command: `npm run build`
-- Deploy command: `npm run build:cf:static`
+- Deploy command: `npm run deploy:cf`
 
 And these files should exist:
 
-- `wrangler.pages.jsonc` with `pages_build_output_dir`
+- `wrangler.jsonc` with `pages_build_output_dir`
 - `scripts/deploy-pages.mjs` for deterministic `project-name` and `branch` resolution
+- `scripts/deploy-cloudflare.mjs` for environment-aware command routing
 
 ## Authentication Error (code 10000)
 
@@ -74,7 +91,7 @@ If logs show `Authentication error [code: 10000]` during deploy command:
 	- Keep `compatibility_date` pinned (example: `2025-01-01` or newer tested date).
 - Commands:
 	- Build: `npm run build:cf`
-	- If Deploy command is mandatory: `npm run build:cf:static`
+	- If Deploy command is mandatory: `npm run deploy:cf`
 - Auth:
 	- If using `wrangler pages deploy`, ensure token has Pages write scope.
 	- Prefer removing unnecessary custom `CLOUDFLARE_API_TOKEN` in Pages CI.
