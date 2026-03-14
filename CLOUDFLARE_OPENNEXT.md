@@ -26,12 +26,13 @@ Use this project with OpenNext on Cloudflare Workers.
 ## Required Scripts
 
 - `build`: `next build`
-- `build:cf`: `cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build && node scripts/prepare-cloudflare-dist.mjs`
+- `clean:cf`: `node scripts/clean-cloudflare-build.mjs` (removes `.open-next`, `.next`, `dist` before Cloudflare build)
+- `build:cf`: `npm run clean:cf && cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build && node scripts/prepare-cloudflare-dist.mjs`
 - `build:cf:static`: compatibility command for Cloudflare Pages Deploy command (`npm run build:cf:static`)
-- `deploy:cf:static`: `node scripts/deploy-pages.mjs` (legacy-compatible, CI-safe)
-- `deploy:cf`: `node scripts/deploy-cloudflare.mjs`
-- `deploy:cf:full`: `npm run build:cf && node scripts/deploy-cloudflare.mjs`
-- `deploy:cf:pages`: force Pages deploy path
+- `deploy:cf:static`: `npm run build:cf && node scripts/deploy-pages.mjs`
+- `deploy:cf`: `npm run deploy:cf:pages`
+- `deploy:cf:full`: `npm run deploy:cf:pages`
+- `deploy:cf:pages`: `npm run build:cf && node scripts/deploy-pages.mjs` (always uses `wrangler pages deploy`)
 - `deploy:cf:worker`: force Worker deploy path
 
 `scripts/deploy-cloudflare.mjs` auto-detects Cloudflare Pages CI (`CF_PAGES*`).
