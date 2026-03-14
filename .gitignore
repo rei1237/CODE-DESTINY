@@ -15,6 +15,10 @@ Thumbs.db
 
 .vscode/
 
+# Cloudflare local deploy secrets
+.env.cloudflare
+.env.cloudflare.local
+
 ziwei_autotune_report.json
 ziwei_autotune_report.err.txt
 ziwei_autotune_report.utf8.json

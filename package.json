@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "cf:auth:init": "node scripts/setup-cloudflare-auth.mjs",
     "build": "node scripts/sync-legacy-static-to-public.mjs && next build",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "build:cf": "npm run clean:cf && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs",

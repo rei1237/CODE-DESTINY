@@ -19,9 +19,7 @@ const isPagesCi =
   !!process.env.CF_PAGES_PROJECT_NAME ||
   !!process.env.CLOUDFLARE_PAGES_PROJECT_NAME;
 
-const envDeployTarget = process.env.CF_DEPLOY_TARGET;
-const deployTarget =
-  forcePages ? "pages" : forceWorker ? "worker" : envDeployTarget === "worker" ? "worker" : "pages";
+const deployTarget = forceWorker ? "worker" : "pages";
 const forcePagesWranglerDeploy =
   process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "1" ||
   process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "true";
