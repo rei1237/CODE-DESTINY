@@ -23,6 +23,7 @@ const deployTarget = forcePages ? "pages" : forceWorker ? "worker" : isPagesCi ?
 const forcePagesWranglerDeploy =
   process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "1" ||
   process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "true";
+const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function run(command, commandArgs) {
   const result = spawnSync(command, commandArgs, {
@@ -38,13 +39,32 @@ function run(command, commandArgs) {
   process.exit(1);
 }
 
+function runBuildIfMissingOutput(outputDir) {
+  if (existsSync(outputDir)) {
+    return true;
+  }
+
+  console.log("[deploy-cloudflare] .open-next/assets not found. Running `npm run build:cf`...");
+  const buildResult = spawnSync(npmCmd, ["run", "build:cf"], {
+    stdio: "inherit",
+    shell: false,
+    env: process.env,
+  });
+
+  if (buildResult.status !== 0) {
+    return false;
+  }
+
+  return existsSync(outputDir);
+}
+
 if (deployTarget === "pages") {
   console.log("[deploy-cloudflare] Target: pages");
 
   if (isPagesCi && !forcePagesWranglerDeploy) {
     const outputDir = resolve(process.cwd(), ".open-next", "assets");
 
-    if (!existsSync(outputDir)) {
+    if (!runBuildIfMissingOutput(outputDir)) {
       console.error(
         "[deploy-cloudflare] Missing .open-next/assets. Ensure build command runs `npm run build:cf` before deploy command."
       );

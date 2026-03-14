@@ -27,7 +27,7 @@ Use this project with OpenNext on Cloudflare Workers.
 - `build`: `next build`
 - `build:cf`: `cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build`
 - `build:cf:static`: compatibility command for Cloudflare Pages Deploy command (`npm run build:cf:static`)
-- `deploy:cf:static`: `node scripts/deploy-pages.mjs` (non-shell fallback handling)
+- `deploy:cf:static`: `node scripts/deploy-pages.mjs` (legacy-compatible, CI-safe)
 - `deploy:cf`: `node scripts/deploy-cloudflare.mjs`
 - `deploy:cf:full`: `npm run build:cf && node scripts/deploy-cloudflare.mjs`
 - `deploy:cf:pages`: force Pages deploy path
@@ -38,6 +38,8 @@ Use this project with OpenNext on Cloudflare Workers.
 - In Cloudflare Pages CI, it skips explicit `wrangler pages deploy` and relies on
 	`pages_build_output_dir` auto-publish.
 - Outside Pages CI, it uses `wrangler pages deploy` for pages-target manual deploy.
+
+`scripts/deploy-pages.mjs` also has the same CI-safe skip logic, so older deploy commands remain safe.
 
 ## Why "wrangler deploy" Can Fail In Pages CI
 

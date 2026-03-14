@@ -1,4 +1,6 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
 const projectName =
   process.env.CF_PAGES_PROJECT_NAME ||
@@ -13,6 +15,8 @@ const branch =
   "main";
 
 const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
+const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+const outputDir = resolve(process.cwd(), ".open-next", "assets");
 const args = [
   "wrangler",
   "pages",
@@ -36,10 +40,44 @@ function runDeploy(env) {
   });
 }
 
+function runBuildIfMissingOutput() {
+  if (existsSync(outputDir)) {
+    return true;
+  }
+
+  console.log("[deploy-pages] .open-next/assets not found. Running `npm run build:cf`...");
+  const buildResult = spawnSync(npmCmd, ["run", "build:cf"], {
+    stdio: "inherit",
+    shell: false,
+    env: process.env,
+  });
+
+  if (buildResult.status !== 0) {
+    return false;
+  }
+
+  return existsSync(outputDir);
+}
+
 const isPagesCi =
   process.env.CF_PAGES === "1" ||
   process.env.CF_PAGES === "true" ||
   process.env.CLOUDFLARE_PAGES === "1";
+const forcePagesWranglerDeploy =
+  process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "1" ||
+  process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "true";
+
+if (isPagesCi && !forcePagesWranglerDeploy) {
+  if (!runBuildIfMissingOutput()) {
+    console.error("[deploy-pages] Build output missing after build:cf. Cannot continue.");
+    process.exit(1);
+  }
+
+  console.log(
+    "[deploy-pages] CF Pages CI detected. Skipping `wrangler pages deploy` and relying on pages_build_output_dir auto-publish."
+  );
+  process.exit(0);
+}
 
 let result;
 
