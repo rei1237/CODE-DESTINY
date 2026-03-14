@@ -9,7 +9,7 @@
     "dev": "next dev",
     "build": "node scripts/sync-legacy-static-to-public.mjs && next build",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
-    "build:cf": "npm run clean:cf && cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build && node scripts/prepare-cloudflare-dist.mjs",
+    "build:cf": "npm run clean:cf && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs",
     "build:cf:static": "npm run build:cf",
     "deploy:cf:static": "npm run build:cf && node scripts/deploy-pages.mjs",
     "deploy:cf": "npm run deploy:cf:pages",

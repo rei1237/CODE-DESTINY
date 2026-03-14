@@ -14,7 +14,7 @@ const branch =
   process.env.CF_PAGES_BRANCH ||
   "main";
 
-const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
+const isWindows = process.platform === "win32";
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 const outputDir = resolve(process.cwd(), "dist");
 const args = [
@@ -26,18 +26,28 @@ const args = [
   projectName,
   "--branch",
   branch,
-  "--config",
-  "wrangler.jsonc",
 ];
 
 console.log(`[deploy-pages] project=${projectName} branch=${branch}`);
 
 function runDeploy(env) {
-  return spawnSync(npxCmd, args, {
-    stdio: "inherit",
-    shell: false,
-    env,
-  });
+  const result = isWindows
+    ? spawnSync("cmd.exe", ["/d", "/s", "/c", "npx wrangler pages deploy dist --project-name \"" + projectName + "\" --branch \"" + branch + "\""], {
+        stdio: "inherit",
+        shell: false,
+        env,
+      })
+    : spawnSync("npx", args, {
+        stdio: "inherit",
+        shell: false,
+        env,
+      });
+
+  if (result.error) {
+    console.error(`[deploy-pages] Failed to start deploy command: ${result.error.message}`);
+  }
+
+  return result;
 }
 
 function runBuildIfMissingOutput() {
