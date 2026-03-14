@@ -28,12 +28,16 @@ Use this project with OpenNext on Cloudflare Workers.
 - `build:cf`: `cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build`
 - `build:cf:static`: compatibility command for Cloudflare Pages Deploy command (`npm run build:cf:static`)
 - `deploy:cf:static`: `node scripts/deploy-pages.mjs` (non-shell fallback handling)
-- `deploy:cf`: `npm run build:cf && node scripts/deploy-cloudflare.mjs`
+- `deploy:cf`: `node scripts/deploy-cloudflare.mjs`
+- `deploy:cf:full`: `npm run build:cf && node scripts/deploy-cloudflare.mjs`
 - `deploy:cf:pages`: force Pages deploy path
 - `deploy:cf:worker`: force Worker deploy path
 
-`scripts/deploy-cloudflare.mjs` auto-detects Cloudflare Pages CI (`CF_PAGES*`) and uses
-`wrangler pages deploy` automatically. This avoids accidental `wrangler deploy` calls on Pages.
+`scripts/deploy-cloudflare.mjs` auto-detects Cloudflare Pages CI (`CF_PAGES*`).
+
+- In Cloudflare Pages CI, it skips explicit `wrangler pages deploy` and relies on
+	`pages_build_output_dir` auto-publish.
+- Outside Pages CI, it uses `wrangler pages deploy` for pages-target manual deploy.
 
 ## Why "wrangler deploy" Can Fail In Pages CI
 
@@ -56,6 +60,10 @@ If your project is still configured with a Pages Deploy command, this also works
 - Build command: `npm run build`
 - Deploy command: `npm run deploy:cf`
 
+For local/manual deployment with explicit build step:
+
+- `npm run deploy:cf:full`
+
 And these files should exist:
 
 - `wrangler.jsonc` with `pages_build_output_dir`
@@ -75,6 +83,10 @@ If logs show `Authentication error [code: 10000]` during deploy command:
 - `NODE_VERSION=20`
 - `NEXT_VERSION=15.0.0`
 
+## Wrangler Version
+
+- Keep `wrangler` at `^4.73.0` or newer tested range to avoid known deploy-command edge bugs in older releases.
+
 ## Notes
 
 - `open-next.config.ts` and `wrangler.jsonc` must exist in repo root to avoid interactive prompts in CI.
@@ -92,6 +104,7 @@ If logs show `Authentication error [code: 10000]` during deploy command:
 - Commands:
 	- Build: `npm run build:cf`
 	- If Deploy command is mandatory: `npm run deploy:cf`
+	- For local full flow: `npm run deploy:cf:full`
 - Auth:
 	- If using `wrangler pages deploy`, ensure token has Pages write scope.
 	- Prefer removing unnecessary custom `CLOUDFLARE_API_TOKEN` in Pages CI.

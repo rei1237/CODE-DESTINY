@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 const args = process.argv.slice(2);
@@ -19,6 +20,9 @@ const isPagesCi =
   !!process.env.CLOUDFLARE_PAGES_PROJECT_NAME;
 
 const deployTarget = forcePages ? "pages" : forceWorker ? "worker" : isPagesCi ? "pages" : "worker";
+const forcePagesWranglerDeploy =
+  process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "1" ||
+  process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "true";
 
 function run(command, commandArgs) {
   const result = spawnSync(command, commandArgs, {
@@ -36,6 +40,23 @@ function run(command, commandArgs) {
 
 if (deployTarget === "pages") {
   console.log("[deploy-cloudflare] Target: pages");
+
+  if (isPagesCi && !forcePagesWranglerDeploy) {
+    const outputDir = resolve(process.cwd(), ".open-next", "assets");
+
+    if (!existsSync(outputDir)) {
+      console.error(
+        "[deploy-cloudflare] Missing .open-next/assets. Ensure build command runs `npm run build:cf` before deploy command."
+      );
+      process.exit(1);
+    }
+
+    console.log(
+      "[deploy-cloudflare] CF Pages CI detected. Skipping `wrangler pages deploy` and relying on pages_build_output_dir auto-publish."
+    );
+    process.exit(0);
+  }
+
   run("node", [resolve(process.cwd(), "scripts/deploy-pages.mjs")]);
 } else {
   console.log("[deploy-cloudflare] Target: worker");

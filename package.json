@@ -11,8 +11,9 @@
     "build:cf": "cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build",
     "build:cf:static": "npm run build:cf",
     "deploy:cf:static": "node scripts/deploy-pages.mjs",
-    "deploy:cf": "npm run build:cf && node scripts/deploy-cloudflare.mjs",
-    "deploy:cf:pages": "npm run build:cf && node scripts/deploy-cloudflare.mjs --pages",
+    "deploy:cf": "node scripts/deploy-cloudflare.mjs",
+    "deploy:cf:full": "npm run build:cf && node scripts/deploy-cloudflare.mjs",
+    "deploy:cf:pages": "node scripts/deploy-cloudflare.mjs --pages",
     "deploy:cf:worker": "npm run build:cf && node scripts/deploy-cloudflare.mjs --worker",
     "deploy": "npm run deploy:cf:pages",
     "start": "next start",
@@ -47,6 +48,6 @@
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.2",
-    "wrangler": "^4.55.0"
+    "wrangler": "^4.73.0"
   }
 }
