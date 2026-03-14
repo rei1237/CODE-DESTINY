@@ -122,6 +122,14 @@ function bindEventAction(root, eventName, attrName) {
 }
 
 export function bindGlobalActions(root) {
+  if (!root || typeof root.addEventListener !== 'function') return;
+  if (typeof window !== 'undefined') {
+    // Do not bind twice; a non-module fallback may already be active.
+    if (window.__codeDestinyGlobalActionsBound === 'uiBindings') return;
+    if (window.__codeDestinyGlobalActionsBound && window.__codeDestinyGlobalActionsBound !== 'uiBindings') return;
+    window.__codeDestinyGlobalActionsBound = 'uiBindings';
+  }
+
   root.addEventListener('click', (event) => {
     const target = __resolveEventElement(event);
     if (!target) return;
@@ -131,7 +139,7 @@ export function bindGlobalActions(root) {
     const action = actionEl.getAttribute('data-action');
     if (!action) return;
 
-    if (actionEl.getAttribute('data-action-self-only') === '1' && event.target !== actionEl) {
+    if (actionEl.getAttribute('data-action-self-only') === '1' && target !== actionEl) {
       return;
     }
 

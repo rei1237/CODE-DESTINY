@@ -1,0 +1,7 @@
+{
+  "status": null,
+  "signal": null,
+  "error": "Error: spawnSync npm.cmd EINVAL",
+  "stdoutLen": 0,
+  "stderrLen": 0
+}

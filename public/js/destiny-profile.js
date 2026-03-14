@@ -747,9 +747,6 @@
       } else if (type === 'flower') {
         var pFlower = DPStorage.current();
         if (pFlower) _toast(_fortuneStartMessage(pFlower.name, 'flower'), 'success');
-        if (typeof setDestinyFlowerSourceTab === 'function') {
-          setDestinyFlowerSourceTab('saju');
-        }
         if (typeof openDestinyFlowerStudio === 'function') {
           openDestinyFlowerStudio();
         } else if (typeof openDestinyFlower === 'function') {
@@ -829,9 +826,23 @@
     var sheet = document.getElementById('dpListSheet');
     if (sheet) {
       sheet.addEventListener('click', function(e) {
-        // Keep inner clicks from being interpreted as backdrop close interactions.
+        // Keep non-action clicks inside the sheet from bubbling unexpectedly.
+        var targetEl = _resolveEventElement(e.target);
+        if (targetEl && targetEl.closest('[data-action]')) return;
         e.stopPropagation();
       });
+    }
+
+    var closeBtn = document.querySelector('#dpListSheet .dp-sheet-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        dpCloseList();
+      });
+      closeBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        dpCloseList();
+      }, { passive: false });
     }
 
     var card = document.getElementById('dpMasterCard');

@@ -9,9 +9,6 @@ function showToast(msg){
   t.textContent=msg;t.classList.add('show');
   setTimeout(function(){t.classList.remove('show');},2500);
 }
-function openDestinyFlowerPage(){
-  window.location.href = '/destiny-flower';
-}
 function shareKakao(){
   var text=getShareText();
   if(navigator.share){

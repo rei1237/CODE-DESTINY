@@ -27,7 +27,7 @@ Use this project with OpenNext on Cloudflare Workers.
 
 - `build`: `next build`
 - `clean:cf`: `node scripts/clean-cloudflare-build.mjs` (removes `.open-next`, `.next`, `dist` before Cloudflare build)
-- `build:cf`: `npm run clean:cf && cross-env NEXT_VERSION=15.0.0 npx @opennextjs/cloudflare build && node scripts/prepare-cloudflare-dist.mjs`
+- `build:cf`: `npm run clean:cf && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs`
 - `build:cf:static`: compatibility command for Cloudflare Pages Deploy command (`npm run build:cf:static`)
 - `deploy:cf:static`: `npm run build:cf && node scripts/deploy-pages.mjs`
 - `deploy:cf`: `npm run deploy:cf:pages`
@@ -85,6 +85,18 @@ If logs show `Authentication error [code: 10000]` during deploy command:
 - Cause: `wrangler pages deploy` is trying to call Cloudflare API from CI with a token that lacks required Pages permissions.
 - Fix in this repo: `scripts/deploy-pages.mjs` auto-detects Cloudflare Pages CI and retries deploy without `CLOUDFLARE_API_TOKEN` first.
 - Recommendation: remove unnecessary custom API tokens from Pages build environment unless explicitly required.
+
+## Token Setup (Local Deploy)
+
+For local `npm run deploy:cf` you should use a token instead of interactive OAuth:
+
+1. Copy `.env.cloudflare.example` to `.env.cloudflare`.
+2. Set `CLOUDFLARE_API_TOKEN`.
+3. Confirm `CF_PAGES_PROJECT_NAME` is your Pages project name.
+
+`scripts/deploy-pages.mjs` loads `.env.cloudflare.local`, `.env.cloudflare`, then `.env`.
+
+If token is missing, deploy exits early with a clear error instead of opening OAuth login.
 
 ## Required Environment Variables
 

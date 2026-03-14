@@ -16,6 +16,13 @@
     }
   }
 
+  function applyFallbackBackground(img) {
+    if (!img || !img.parentElement) return;
+    var bg = (img.getAttribute('data-img-error-bg') || '').trim();
+    if (!bg) return;
+    img.parentElement.style.background = bg;
+  }
+
   function handleImageError(img) {
     if (!img || img.dataset.fallbackApplied === '1') return;
 
@@ -25,6 +32,7 @@
     img.onerror = null;
     img.classList.add('img-fallback-broken');
     img.style.objectFit = img.style.objectFit || 'cover';
+    applyFallbackBackground(img);
     img.src = TRANSPARENT_PIXEL;
   }
 

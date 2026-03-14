@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "codedestiny",
+  "name": "code-destiny-web",
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-03-14",
   "compatibility_flags": [

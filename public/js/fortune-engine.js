@@ -286,6 +286,16 @@
       document.title = pageTitle + ' | 연이의 꿀꿀 만세력';
       var metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute('content', subjectLabel + ' ' + PERIOD_KO[period] + ' 운세 무료 확인. 총운 ' + fortune.total + '점, 연애운, 재물운, 건강운, 행운 숫자 ' + fortune.luckyNum + ' 제공.');
+      var metaKeywords = document.querySelector('meta[name="keywords"]');
+      var keywordText = subjectLabel + ', ' + PERIOD_KO[period] + ' 운세, 띠별 운세, 별자리 운세, 무료 운세, Code Destiny';
+      if (metaKeywords) {
+        metaKeywords.setAttribute('content', keywordText);
+      } else {
+        metaKeywords = document.createElement('meta');
+        metaKeywords.setAttribute('name', 'keywords');
+        metaKeywords.setAttribute('content', keywordText);
+        document.head.appendChild(metaKeywords);
+      }
 
       function pct(s) { return (s / 10 * 100).toFixed(0) + '%'; }
       function stars(s) { var st = ''; for (var i=0;i<5;i++) st += s/10*5 > i ? '⭐' : '☆'; return st; }
@@ -357,13 +367,40 @@
     }
   }
 
+  function appendPolicyLinksToFooter() {
+    var footer = document.querySelector('footer');
+    if (!footer || footer.getAttribute('data-policy-links') === '1') return;
+
+    var nav = document.createElement('nav');
+    nav.setAttribute('aria-label', '정책 및 문의 링크');
+    nav.style.marginTop = '10px';
+    nav.style.display = 'flex';
+    nav.style.justifyContent = 'center';
+    nav.style.flexWrap = 'wrap';
+    nav.style.gap = '10px';
+    nav.style.fontSize = '0.8rem';
+    nav.innerHTML =
+      '<a href="/privacy-policy" style="color:inherit;text-decoration:underline;">개인정보처리방침</a>' +
+      '<span style="opacity:.6;">·</span>' +
+      '<a href="/terms-of-service" style="color:inherit;text-decoration:underline;">이용약관</a>' +
+      '<span style="opacity:.6;">·</span>' +
+      '<a href="/contact-us" style="color:inherit;text-decoration:underline;">문의하기</a>';
+
+    footer.appendChild(nav);
+    footer.setAttribute('data-policy-links', '1');
+  }
+
   /* ── 공개 API ── */
   global.FortuneEngine = {
     initFromConfig: function(cfg) {
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() { render(cfg); });
+        document.addEventListener('DOMContentLoaded', function() {
+          render(cfg);
+          appendPolicyLinksToFooter();
+        });
       } else {
         render(cfg);
+        appendPolicyLinksToFooter();
       }
     }
   };

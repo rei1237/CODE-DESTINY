@@ -8,9 +8,11 @@
   "scripts": {
     "dev": "next dev",
     "cf:auth:init": "node scripts/setup-cloudflare-auth.mjs",
-    "build": "node scripts/sync-legacy-static-to-public.mjs && next build",
+    "clean:cache": "node -e \"const fs=require('fs');['.next','dist'].forEach((p)=>{try{fs.rmSync(p,{recursive:true,force:true});console.log('Removed cache:',p);}catch{}})\"",
+    "sitemap:generate": "node scripts/generate-sitemap.mjs",
+    "build": "npm run clean:cache && npm run sitemap:generate && node scripts/sync-legacy-static-to-public.mjs && next build",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
-    "build:cf": "npm run clean:cf && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs",
+    "build:cf": "npm run clean:cache && npm run sitemap:generate && npm run clean:cf && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs",
     "build:cf:static": "npm run build:cf",
     "deploy:cf:static": "npm run build:cf && node scripts/deploy-pages.mjs",
     "deploy:cf": "npm run deploy:cf:pages",

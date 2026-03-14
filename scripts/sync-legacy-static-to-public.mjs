@@ -20,7 +20,6 @@ const staticTargets = [
   "icons",
   "styles",
   "fortune",
-  "destiny-flower",
   "fuctionassets",
   "lib",
   "sudda",
