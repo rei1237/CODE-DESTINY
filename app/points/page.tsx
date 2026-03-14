@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type AuthUser = {
   id: string;
@@ -213,7 +213,6 @@ function clearPendingOrder() {
 
 export default function PointsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const redirectHandledRef = useRef(false);
 
@@ -387,12 +386,15 @@ export default function PointsPage() {
   useEffect(() => {
     if (isBooting || !token || redirectHandledRef.current) return;
 
-    const impUid = searchParams.get("imp_uid");
+    if (typeof window === "undefined") return;
+
+    const query = new URLSearchParams(window.location.search);
+    const impUid = query.get("imp_uid");
     if (!impUid) return;
 
     redirectHandledRef.current = true;
 
-    const merchantUidFromQuery = searchParams.get("merchant_uid") || undefined;
+    const merchantUidFromQuery = query.get("merchant_uid") || undefined;
     const pending = readPendingOrder();
 
     setIsProcessing(true);
@@ -415,7 +417,7 @@ export default function PointsPage() {
       .finally(() => {
         setIsProcessing(false);
       });
-  }, [confirmPaymentWithServer, handleConfirmSuccess, isBooting, searchParams, token]);
+  }, [confirmPaymentWithServer, handleConfirmSuccess, isBooting, token]);
 
   const startPayment = async () => {
     if (!token || !authUser) {

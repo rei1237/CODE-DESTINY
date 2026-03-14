@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type LoginFormState = {
   email: string;
@@ -39,7 +39,6 @@ function sanitizeNextPath(rawNext: string | null) {
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [form, setForm] = useState<LoginFormState>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
@@ -123,7 +122,11 @@ export default function LoginPage() {
       setSuccess(payload.message || "로그인에 성공했습니다.");
       setForm(INITIAL_FORM);
 
-      const nextPath = sanitizeNextPath(searchParams.get("next"));
+      const nextValue =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("next")
+          : null;
+      const nextPath = sanitizeNextPath(nextValue);
 
       if (nextPath) {
         router.replace(nextPath);
