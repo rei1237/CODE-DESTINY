@@ -824,6 +824,32 @@ export function getJamidusuFlower(starData = {}) {
 
 export function matchJamidusuFlower(userData = {}, options = {}) {
   const profile = userData && userData.schema === 'universal-destiny-profile' ? userData : parseDestinyProfile(userData);
+
+  // --- 자미두수 명궁 주성 최신화: saju-engine에서 직접 산출 ---
+  try {
+    // saju-engine이 window.calcZiweiPalaces로 등록되어 있다고 가정
+    const birth = (profile.birth || profile.domains.birth || userData.birth || {});
+    const year = Number(birth.year), month = Number(birth.month), day = Number(birth.day), hour = Number(birth.hour), minute = Number(birth.minute);
+    if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function' && year && month && day) {
+      const zw = window.calcZiweiPalaces(year, month, day, hour, minute);
+      if (zw && zw.stars && zw.palacesByIndex) {
+        // 명궁 위치 추출
+        const mingIdx = zw.palacesByIndex.indexOf('명궁');
+        let mainStar = '', stars = [];
+        if (mingIdx >= 0 && zw.stars[mingIdx]) {
+          stars = (zw.stars[mingIdx].main || []).concat(zw.stars[mingIdx].aux || []);
+          mainStar = stars[0] || '';
+        }
+        // profile.domains.ziwei에 동기화
+        if (profile.domains && profile.domains.ziwei) {
+          profile.domains.ziwei.main_star = mainStar;
+          profile.domains.ziwei.stars = stars;
+          profile.domains.ziwei.palace = '명궁';
+        }
+      }
+    }
+  } catch (e) { /* 무시: 브라우저/SSR 환경 차이 등 */ }
+
   const ziweiData = {
     mainStar: profile.domains.ziwei.main_star,
     palace: profile.domains.ziwei.palace,
