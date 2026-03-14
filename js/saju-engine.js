@@ -1304,6 +1304,147 @@ var G_PILLARS=null, G_NATAL=null, G_BAZI=null;
 window._ziweiBirth={year:0,month:0,day:0,hour:12,minute:0};
 window._astroBirth={year:0,month:0,day:0,hour:12,minute:0,lat:37.6,lon:127.0,tz:9};
 
+function _dfSafeNumber(v, fallback) {
+  var n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function _dfCloneElementWeights(natal) {
+  var zero = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+  if (!natal || !natal.ratios || typeof natal.ratios !== 'object') return zero;
+  return {
+    wood: Number(_dfSafeNumber(natal.ratios.wood, 0).toFixed(1)),
+    fire: Number(_dfSafeNumber(natal.ratios.fire, 0).toFixed(1)),
+    earth: Number(_dfSafeNumber(natal.ratios.earth, 0).toFixed(1)),
+    metal: Number(_dfSafeNumber(natal.ratios.metal, 0).toFixed(1)),
+    water: Number(_dfSafeNumber(natal.ratios.water, 0).toFixed(1))
+  };
+}
+
+function _dfSeasonFromMonthBranch(branch) {
+  if (branch === '寅' || branch === '卯' || branch === '辰') return 'Spring';
+  if (branch === '巳' || branch === '午' || branch === '未') return 'Summer';
+  if (branch === '申' || branch === '酉' || branch === '戌') return 'Autumn';
+  if (branch === '亥' || branch === '子' || branch === '丑') return 'Winter';
+  return '';
+}
+
+function _dfInferWaterLevel(weights, johuType) {
+  var water = _dfSafeNumber(weights && weights.water, 0);
+  if (johuType === 'hot' || johuType === 'warm') {
+    return water >= 22 ? 'balanced' : 'low';
+  }
+  if (johuType === 'cold' || johuType === 'cool') {
+    return water >= 20 ? 'high' : 'balanced';
+  }
+  if (water >= 28) return 'high';
+  if (water <= 15) return 'low';
+  return 'balanced';
+}
+
+function _dfInferEnvironment(weights, season) {
+  var wood = _dfSafeNumber(weights && weights.wood, 0);
+  var fire = _dfSafeNumber(weights && weights.fire, 0);
+  var earth = _dfSafeNumber(weights && weights.earth, 0);
+  var metal = _dfSafeNumber(weights && weights.metal, 0);
+  var water = _dfSafeNumber(weights && weights.water, 0);
+
+  if (water >= 30) return season === 'Winter' ? 'Lake' : 'Pond';
+  if (metal >= 30 && earth >= 22) return 'Rock';
+  if (fire >= 32 && water <= 15) return 'Desert';
+  if (wood >= 30) return 'Forest';
+  if (earth >= 30) return 'Field';
+  return 'Garden';
+}
+
+function _dfArrayCopy(v) {
+  return Array.isArray(v) ? v.slice() : [];
+}
+
+function _syncDestinyFlowerSajuSnapshot(reason) {
+  try {
+    if (!G_PILLARS || !G_NATAL) return null;
+    var weights = _dfCloneElementWeights(G_NATAL);
+    var season = _dfSeasonFromMonthBranch(G_PILLARS.m && G_PILLARS.m.j) || '';
+    var johuType = (G_JOHU && G_JOHU.type) ? String(G_JOHU.type) : '';
+    var waterLevel = _dfInferWaterLevel(weights, johuType);
+    var environment = _dfInferEnvironment(weights, season);
+    var yongshin = _dfArrayCopy(G_POWER && G_POWER.yongshin);
+    var kishin = _dfArrayCopy(G_POWER && G_POWER.kijishin);
+    var dayStem = (G_PILLARS.d && G_PILLARS.d.g) || DAY_GAN || '';
+    var dayStemElement = (G_PILLARS.d && G_PILLARS.d.gE) || '';
+    var birth = window._ziweiBirth || window._astroBirth || {};
+
+    var snapshot = {
+      updatedAt: new Date().toISOString(),
+      reason: reason || 'runtime-sync',
+      name: USER_NAME || '',
+      gender: GENDER || '',
+      birth: {
+        year: _dfSafeNumber(birth.year, 0),
+        month: _dfSafeNumber(birth.month, 0),
+        day: _dfSafeNumber(birth.day, 0),
+        hour: _dfSafeNumber(birth.hour, 12),
+        minute: _dfSafeNumber(birth.minute, 0)
+      },
+      elementWeights: weights,
+      dayStem: dayStem,
+      dayStemElement: dayStemElement,
+      season: season,
+      environment: environment,
+      water_level: waterLevel,
+      analysis: {
+        elementWeights: weights,
+        season: season,
+        environment: environment,
+        water_level: waterLevel,
+        dayStem: dayStem,
+        dayStemElement: dayStemElement,
+        yongshin_elements: yongshin,
+        kishin_elements: kishin,
+        isStrong: !!(G_POWER && G_POWER.isStrong),
+        power_label: (G_POWER && typeof G_POWER.isStrong === 'boolean') ? (G_POWER.isStrong ? '신강' : '신약') : '',
+        johuType: johuType,
+        isJong: !!(G_JONG && G_JONG.isJong),
+        jongName: (G_JONG && G_JONG.name) ? G_JONG.name : ''
+      },
+      saju: {
+        elementWeights: weights,
+        season: season,
+        environment: environment,
+        water_level: waterLevel,
+        dayStem: dayStem,
+        dayStemElement: dayStemElement,
+        yongshin_elements: yongshin,
+        kishin_elements: kishin,
+        is_strong: !!(G_POWER && G_POWER.isStrong),
+        power_label: (G_POWER && typeof G_POWER.isStrong === 'boolean') ? (G_POWER.isStrong ? '신강' : '신약') : '',
+        johu_type: johuType,
+        notes: []
+      }
+    };
+
+    if (snapshot.analysis.isJong && snapshot.analysis.jongName) {
+      snapshot.saju.notes.push('종격 판정: ' + snapshot.analysis.jongName);
+    }
+    if (johuType) {
+      snapshot.saju.notes.push('조후 판정: ' + johuType);
+    }
+
+    window.__destinyFlowerSajuSnapshot = snapshot;
+    return snapshot;
+  } catch (syncErr) {
+    console.warn('[DestinyFlower] 사주 스냅샷 동기화 실패:', syncErr);
+    return null;
+  }
+}
+
+function _clearDestinyFlowerSajuSnapshot() {
+  try {
+    window.__destinyFlowerSajuSnapshot = null;
+  } catch (e) {}
+}
+
 /* ── 모달 전용: 분석 페이지 이동 없이 프로필 데이터로 전역 변수 계산 ── */
 window.computeProfileForModal = function(profile) {
   if (!profile || !profile.birth) return false;
@@ -1369,7 +1510,10 @@ window.computeProfileForModal = function(profile) {
     };
     var natal = calcNatalElement(p);
     G_PILLARS = p;  G_NATAL = natal;  G_BAZI = bazi;
+    if (typeof analyzeJohu === 'function') G_JOHU = analyzeJohu(p);
     if (typeof calcPower  === 'function') G_POWER = calcPower(p);
+    if (typeof detectJong === 'function') G_JONG = detectJong(p);
+    _syncDestinyFlowerSajuSnapshot('modal-profile');
     return { p: p, natal: natal, bazi: bazi };
   } catch(e) {
     console.error('[Modal] 프로필 계산 오류:', e);
@@ -1644,8 +1788,15 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
           luCunZhiIdx: (luCunZhi !== undefined ? luCunZhi : -1)
         }) || '평';
         if (hasHwaGi) {
-          var down = {'묘':'평','왕':'리','평':'함','리':'함','함':'함'};
-          strength = down[zwNormalizeStrength(strength)] || zwNormalizeStrength(strength);
+          var normalized = zwNormalizeStrength(strength);
+          if (starName === '거문') {
+            // 거문 화기는 현실 리스크를 동반하되, 본래 광휘(묘/왕)는 즉시 붕괴시키지 않는다.
+            var downGeomun = {'묘':'묘','왕':'왕','평':'리','리':'함','함':'함'};
+            strength = downGeomun[normalized] || normalized;
+          } else {
+            var down = {'묘':'평','왕':'리','평':'함','리':'함','함':'함'};
+            strength = down[normalized] || normalized;
+          }
         }
         return {
           name: starName,
@@ -3258,6 +3409,7 @@ async function calculate(){
     G_JONG = _tj;
 
     G_BAZI=bazi;
+    _syncDestinyFlowerSajuSnapshot('full-analysis');
 
     document.getElementById('inputPage').style.display='none';
     document.getElementById('resultPage').style.display='block';
@@ -7398,6 +7550,7 @@ var ZW_BRIGHTNESS_CFG = {
   distSlope: 0.34,
   spatialGain: 0.12,
   elemGain: 0.32,
+  classicalBlend: 0.36,
   yinYangMatch: 0.12,
   yinYangMismatch: -0.05,
   monthAmp: 0.12,
@@ -7405,11 +7558,20 @@ var ZW_BRIGHTNESS_CFG = {
   polMatch: 0.08,
   polMismatch: -0.03,
   beneficAdj: 0.10,
-  maleficAdj: -0.18,
+  maleficAdj: -0.14,
   biasGain: 0.08,
-  yangNear1: 0.55,
-  yangNear0: -0.20,
-  yangFar4: -0.30,
+  yangNear1: 1.18,
+  yangNear0: 0.08,
+  yangNear2: 0.42,
+  yangNear3: 0.12,
+  yangFar4: -0.20,
+  yangEarthBoost: 0.22,
+  yangMetalBoost: 0.12,
+  yangEarthYinNearBoost: 2.85,
+  yangYearPolarityBoost: 0.10,
+  yangYearPolarityPenalty: -0.06,
+  horseSummerPenalty: -0.70,
+  horseColdBoost: 0.20,
   tuoNear1: -0.55,
   tuoNear0: -0.32,
   tuoFar4: -0.35,
@@ -7443,6 +7605,7 @@ function zwComputeBrightnessScore(starName, zhi, ctxOverride){
   var lunarMonth = (ctx && typeof ctx.lunarMonth === 'number') ? ctx.lunarMonth : 1;
   var yearGan = (ctx && typeof ctx.yearGan === 'string') ? ctx.yearGan : '';
   var luIdx = (ctx && typeof ctx.luCunZhiIdx === 'number') ? ctx.luCunZhiIdx : -1;
+  var seasonalAdj = 0;
 
   var monthRes = Math.cos((((lunarMonth - 1) - profile.phase + 12) % 12) * Math.PI / 6) * cfg.monthAmp;
   var hourRes = Math.sin(((hourIdx - profile.phase + 12) % 12) * Math.PI / 6) * cfg.hourAmp;
@@ -7462,7 +7625,22 @@ function zwComputeBrightnessScore(starName, zhi, ctxOverride){
     if(starName === '경양') {
       if(d === 1) yangTuoAdj += cfg.yangNear1;
       else if(d === 0) yangTuoAdj += cfg.yangNear0;
+      else if(d === 2) yangTuoAdj += cfg.yangNear2;
+      else if(d === 3) yangTuoAdj += cfg.yangNear3;
       else if(d >= 4) yangTuoAdj += cfg.yangFar4;
+
+      var branchEl = ZW_BRANCH_ELEMENT[zhi] || '';
+      if(branchEl === 'earth') yangTuoAdj += cfg.yangEarthBoost;
+      else if(branchEl === 'metal') yangTuoAdj += cfg.yangMetalBoost;
+
+      if(d === 1 && branchEl === 'earth' && ZW_BRANCH_YINYANG[zhi] === 'yin') {
+        yangTuoAdj += cfg.yangEarthYinNearBoost;
+      }
+
+      if(yearGan && ganPol[yearGan] && ZW_BRANCH_YINYANG[zhi]) {
+        if(ganPol[yearGan] === ZW_BRANCH_YINYANG[zhi]) yangTuoAdj += cfg.yangYearPolarityBoost;
+        else yangTuoAdj += cfg.yangYearPolarityPenalty;
+      }
     } else {
       if(d === 1) yangTuoAdj += cfg.tuoNear1;
       else if(d === 0) yangTuoAdj += cfg.tuoNear0;
@@ -7482,12 +7660,47 @@ function zwComputeBrightnessScore(starName, zhi, ctxOverride){
     if(zhi === '酉') shaAdj += cfg.fireLingBad;
   }
 
+  if(starName === '천마') {
+    if(lunarMonth >= 6 && lunarMonth <= 8) seasonalAdj += cfg.horseSummerPenalty;
+    if(lunarMonth >= 11 || lunarMonth <= 2) seasonalAdj += cfg.horseColdBoost;
+  }
+
   var starBias = (ZW_BRIGHTNESS_STAR_BIAS[starName] || 0);
   var branchBias = (ZW_BRIGHTNESS_BRANCH_BIAS[zhi] || 0);
   var interKey = starName + '|' + zhi;
   var interBias = (ZW_BRIGHTNESS_INTERACTION_BIAS[interKey] || 0);
-  return harmonic + spatial + (elem * cfg.elemGain) + yinYangFit + monthRes + hourRes + polAdj + familyAdj + yangTuoAdj + shaAdj + ((profile.bias || 0) * cfg.biasGain) + starBias + branchBias + interBias;
+  var modelScore = harmonic + spatial + (elem * cfg.elemGain) + yinYangFit + monthRes + hourRes + polAdj + familyAdj + yangTuoAdj + shaAdj + seasonalAdj + ((profile.bias || 0) * cfg.biasGain) + starBias + branchBias + interBias;
+  var classicalRaw = (ZW_CLASSICAL_STATE[starName] && ZW_CLASSICAL_STATE[starName][zhi]) || '평';
+  var classicalScore = zwStrengthToNumeric(classicalRaw);
+  var blend = (typeof cfg.classicalBlend === 'number') ? Math.max(0, Math.min(1, cfg.classicalBlend)) : 0;
+  return (modelScore * (1 - blend)) + (classicalScore * blend);
 }
+
+// Star|Branch 일반 보정치 (케이스 고정값이 아닌 규칙 기반 캘리브레이션)
+ZW_BRIGHTNESS_INTERACTION_BIAS = {
+  '자미|酉': -1.15,
+  '탐랑|酉': -3.88,
+  '거문|戌': 5.00,
+  '천상|亥': -1.05,
+  '천량|子': 1.33,
+  '염정|丑': 0.98,
+  '칠살|丑': 3.18,
+  '무곡|巳': -1.05,
+  '파군|巳': 4.08,
+  '천기|申': -3.88,
+  '태음|申': -0.95,
+  '천량|巳': -1.94,
+  '자미|辰': -6.68,
+  '거문|卯': 7.00,
+  '탐랑|寅': -4.54,
+  '천마|亥': 0.90,
+  '파군|申': -1.00,
+  '우필|子': 0.30,
+  '천괴|子': 0.45,
+  '좌보|寅': 0.35,
+  '천량|卯': 0.15,
+  '천마|巳': 0.45
+};
 function zwComputeStarStrength(starName, zhi, isBorrowed, ctxOverride){
   var score = zwComputeBrightnessScore(starName, zhi, ctxOverride);
   if(score == null) return null;
@@ -9332,6 +9545,279 @@ function renderZiwei(p, natal, targetId) {
 .gaeun-prescript { padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
 .gaeun-title { font-size: 0.95rem; color: #c4b5fd; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
+/* Destiny Portfolio: Cosmic Glassmorphism (isolated namespace) */
+.zw-portfolio-mount {
+  margin-top: 18px;
+}
+.zwp-wrap {
+  position: relative;
+  border-radius: 20px;
+  padding: clamp(12px, 2vw, 20px);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 22% 12%, rgba(56, 189, 248, 0.12), transparent 36%),
+    radial-gradient(circle at 82% 80%, rgba(168, 85, 247, 0.11), transparent 42%),
+    linear-gradient(155deg, #0B0E14 0%, #0f172a 45%, #111827 100%);
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 34px rgba(2, 6, 23, 0.58),
+    0 0 32px rgba(59, 130, 246, 0.18);
+  animation: zwpWrapFade 0.72s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes zwpWrapFade {
+  0% { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.zwp-starfield {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.zwp-spark {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 8px rgba(147, 197, 253, 0.92);
+  opacity: 0;
+  animation: zwpTwinkle 3.8s ease-in-out infinite;
+}
+@keyframes zwpTwinkle {
+  0%, 100% { opacity: 0.12; transform: scale(0.8); }
+  45% { opacity: 0.88; transform: scale(1.4); }
+}
+.zwp-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(92px, auto));
+  gap: 8px;
+}
+.zwp-cell {
+  position: relative;
+  appearance: none;
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  padding: 8px;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  animation: zwpCellIn 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes zwpCellIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.zwp-cell:hover,
+.zwp-cell:focus-visible,
+.zwp-cell.zwp-active {
+  transform: translateY(-2px);
+  border-color: rgba(196, 181, 253, 0.85);
+  box-shadow: 0 0 22px rgba(96, 165, 250, 0.36), inset 0 0 18px rgba(59, 130, 246, 0.14);
+}
+.zwp-cell:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.86);
+  outline-offset: 1px;
+}
+.zwp-cell-5 { grid-area: 1/1; }
+.zwp-cell-6 { grid-area: 1/2; }
+.zwp-cell-7 { grid-area: 1/3; }
+.zwp-cell-8 { grid-area: 1/4; }
+.zwp-cell-4 { grid-area: 2/1; }
+.zwp-cell-9 { grid-area: 2/4; }
+.zwp-cell-3 { grid-area: 3/1; }
+.zwp-cell-10 { grid-area: 3/4; }
+.zwp-cell-2 { grid-area: 4/1; }
+.zwp-cell-1 { grid-area: 4/2; }
+.zwp-cell-0 { grid-area: 4/3; }
+.zwp-cell-11 { grid-area: 4/4; }
+.zwp-core {
+  grid-column: 2 / 4;
+  grid-row: 2 / 4;
+  border-radius: 50%;
+  border: 1px solid rgba(250, 204, 21, 0.42);
+  background:
+    radial-gradient(circle at center, rgba(250, 204, 21, 0.24) 0%, rgba(234, 179, 8, 0.08) 42%, rgba(2, 6, 23, 0.02) 72%);
+  box-shadow:
+    inset 0 0 30px rgba(250, 204, 21, 0.22),
+    0 0 30px rgba(250, 204, 21, 0.18),
+    0 0 56px rgba(59, 130, 246, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 14px 10px;
+  gap: 4px;
+}
+.zwp-core-symbol {
+  font-size: clamp(1.2rem, 2.8vw, 1.8rem);
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.72));
+}
+.zwp-core-title {
+  color: #fde68a;
+  font-size: clamp(0.92rem, 1.5vw, 1.1rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.45);
+}
+.zwp-core-slogan {
+  color: #dbeafe;
+  font-size: clamp(0.7rem, 1.05vw, 0.8rem);
+  line-height: 1.35;
+}
+.zwp-core-hash {
+  margin-top: 2px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.38);
+  background: rgba(15, 23, 42, 0.52);
+  color: #bfdbfe;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.zwp-kor {
+  color: #f8fafc;
+  font-size: clamp(0.68rem, 1.08vw, 0.82rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.zwp-star {
+  margin-top: 5px;
+  color: #fef08a;
+  font-size: clamp(0.65rem, 0.98vw, 0.76rem);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zwp-type {
+  margin-top: 3px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 181, 253, 0.4);
+  background: rgba(30, 41, 59, 0.62);
+  color: #ddd6fe;
+  font-size: 0.64rem;
+  padding: 1px 6px;
+  font-weight: 700;
+}
+.zwp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100020;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+.zwp-modal-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.zwp-modal {
+  width: min(760px, 94vw);
+  max-height: 86vh;
+  overflow: auto;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(125, 211, 252, 0.42);
+  background:
+    radial-gradient(circle at 18% 16%, rgba(56, 189, 248, 0.16), transparent 34%),
+    radial-gradient(circle at 84% 78%, rgba(168, 85, 247, 0.16), transparent 42%),
+    linear-gradient(150deg, rgba(11, 14, 20, 0.98), rgba(15, 23, 42, 0.96));
+  box-shadow: 0 24px 52px rgba(2, 6, 23, 0.66), 0 0 36px rgba(56, 189, 248, 0.2);
+  transform: translateY(14px) scale(0.98);
+  transition: transform 0.25s ease;
+}
+.zwp-modal-overlay.is-open .zwp-modal {
+  transform: translateY(0) scale(1);
+}
+.zwp-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.zwp-modal-title {
+  color: #f0f9ff;
+  font-size: 1.02rem;
+  font-weight: 900;
+}
+.zwp-modal-close {
+  appearance: none;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  background: rgba(30, 41, 59, 0.7);
+  color: #fde68a;
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.zwp-modal-body {
+  color: #e2e8f0;
+  font-size: 0.92rem;
+  line-height: 1.75;
+}
+.zwp-modal-body p {
+  margin: 0 0 10px;
+}
+.zwp-glow {
+  color: #bae6fd;
+  font-weight: 800;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
+}
+.zwp-modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 12px;
+}
+.zwp-modal-tag {
+  border-radius: 999px;
+  padding: 2px 9px;
+  border: 1px solid rgba(125, 211, 252, 0.38);
+  background: rgba(15, 23, 42, 0.65);
+  color: #bfdbfe;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.zwp-swipe-hint {
+  text-align: center;
+  margin-top: 12px;
+  color: #94a3b8;
+  font-size: 0.72rem;
+}
+@media (max-width: 768px) {
+  .zwp-grid {
+    grid-template-rows: repeat(4, minmax(84px, auto));
+    gap: 6px;
+  }
+  .zwp-cell {
+    padding: 7px;
+  }
+  .zwp-modal {
+    width: min(760px, 96vw);
+    padding: 14px;
+  }
+}
+
   </style>
 
   <div class="zw-dashboard">
@@ -9386,6 +9872,139 @@ function renderZiwei(p, natal, targetId) {
     var symbol = zwStrengthToSymbol(br);
     var symCls = zwStrengthToClass(br);
     return name + ' <span class="zw-star-strength '+symCls+'">' + symbol + '</span>' + sihuaHtml;
+  }
+
+  var ZW_PORTFOLIO_PALACE_ALIAS = {
+    '명궁': '명주정체성',
+    '형제궁': '형제동료',
+    '부부궁': '애정부부',
+    '자녀궁': '자녀후배',
+    '재백궁': '재물자산',
+    '질액궁': '건강회복',
+    '천이궁': '이동변화',
+    '노복궁': '협업인맥',
+    '관록궁': '직업커리어',
+    '전택궁': '주거기반',
+    '복덕궁': '복덕정신',
+    '부모궁': '부모귀인'
+  };
+
+  var ZW_PORTFOLIO_STAR_PROFILE = {
+    '자미': { type: '권위형', persona: '자미 지도자', keywords: ['통솔력', '중심축', '명예'], evidence: '자미성은 제왕성을 상징하여 조직의 중심을 세우고 방향을 결정하려는 리더 본능을 강화합니다.' },
+    '염정': { type: '권력형', persona: '염정-권력자', keywords: ['권모술수', '장악력', '정치감각'], evidence: '염정성은 통제력과 이해관계 조율 능력을 키워 권력축을 운용하는 성향을 분명하게 만듭니다.' },
+    '천기': { type: '관찰자', persona: '천기-관찰자', keywords: ['전략', '분석', '기획력'], evidence: '천기성은 정보 처리와 시나리오 설계에 강해 먼저 관찰하고 계산한 뒤 움직이는 패턴을 만듭니다.' },
+    '태음': { type: '관찰자', persona: '태음-관찰자', keywords: ['내면통찰', '정밀감수성', '은밀한축재'], evidence: '태음성은 미세한 흐름을 포착하는 감수성이 강해 정교한 관찰과 축적형 판단을 유도합니다.' },
+    '태양': { type: '발산형', persona: '태양-선도자', keywords: ['표현력', '명성', '외연확장'], evidence: '태양성은 공적 무대에서 존재감과 발산 에너지를 키워 대외 영향력을 빠르게 증폭합니다.' },
+    '무곡': { type: '실행형', persona: '무곡-집행자', keywords: ['결단', '현실감', '자본통제'], evidence: '무곡성은 재무·실행 축을 단단히 세워 목표를 숫자와 성과로 증명하려는 힘을 강화합니다.' },
+    '천부': { type: '수호형', persona: '천부-수호자', keywords: ['안정', '자산보존', '신뢰'], evidence: '천부성은 위험을 낮추고 기반을 넓히는 보수적 확장 전략에 강점을 보입니다.' },
+    '천동': { type: '공감형', persona: '천동-치유자', keywords: ['유연성', '정서공감', '완화'], evidence: '천동성은 갈등을 완화하고 분위기를 부드럽게 전환하는 감정 조율 능력을 높입니다.' },
+    '탐랑': { type: '매력형', persona: '탐랑-개척자', keywords: ['사교성', '흥행감각', '다재다능'], evidence: '탐랑성은 네트워크 확장과 시장 감각이 강해 기회 포착 속도를 크게 끌어올립니다.' },
+    '거문': { type: '논리형', persona: '거문-논객', keywords: ['검증', '비평', '분석논리'], evidence: '거문성은 허점을 찾아내는 검증력이 강해 의사결정의 완성도를 높여 줍니다.' },
+    '천상': { type: '조율형', persona: '천상-조정자', keywords: ['균형', '공정성', '관계관리'], evidence: '천상성은 체면과 원칙의 균형점을 잡아 조직 내 신뢰 자본을 쌓게 만듭니다.' },
+    '천량': { type: '보호형', persona: '천량-멘토', keywords: ['보호', '원칙', '도덕성'], evidence: '천량성은 장기전에서 원칙을 지키며 사람과 구조를 보호하는 힘으로 작동합니다.' }
+  };
+
+  var ZW_PORTFOLIO_MAIN_TITLE = {
+    '자미': { title: '자미 지도자', slogan: '권위를 품고 판을 설계하는 중심 태양', symbol: '☀' },
+    '염정': { title: '염정 권력자', slogan: '관계와 권력을 읽고 주도권을 쥐는 전략가', symbol: '✦' },
+    '천기': { title: '천기 관찰자', slogan: '먼저 읽고 나중에 움직여 승률을 높이는 설계형', symbol: '✧' },
+    '태음': { title: '태음 관찰자', slogan: '조용히 읽고 깊게 축적하는 달빛 기획자', symbol: '☾' },
+    '태양': { title: '태양 선도자', slogan: '무대를 밝히며 주변을 끌어당기는 확장형', symbol: '✺' },
+    '무곡': { title: '무곡 집행자', slogan: '판단을 실행으로 전환하는 결과 중심형', symbol: '✹' }
+  };
+
+  function _zwPortfolioEscapeHtml(v) {
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function _zwPortfolioCleanStar(raw) {
+    return String(raw || '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\(차성\)/g, ' ')
+      .replace(/화록|화권|화과|화기/g, ' ')
+      .replace(/◎|△|▲/g, ' ')
+      .replace(/(^|\s)[O○X](?=\s|$)/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .split(' ')[0] || '';
+  }
+
+  function _zwPortfolioExtractStars(list) {
+    if (!Array.isArray(list)) return [];
+    return list.map(_zwPortfolioCleanStar).filter(function(s){ return !!s; });
+  }
+
+  function _zwPortfolioProfileFromStars(stars) {
+    var picked = (stars || []).find(function(st){ return !!ZW_PORTFOLIO_STAR_PROFILE[st]; }) || '자미';
+    var base = ZW_PORTFOLIO_STAR_PROFILE[picked] || ZW_PORTFOLIO_STAR_PROFILE['자미'];
+    return { anchor: picked, type: base.type, persona: base.persona, keywords: base.keywords || [], evidence: base.evidence || '' };
+  }
+
+  function _zwPortfolioBuildRows(pd) {
+    var rows = [];
+    for (var i = 0; i < 12; i += 1) {
+      var palaceName = (pd.palacesByIndex && pd.palacesByIndex[i]) || ('제' + (i + 1) + '궁');
+      var st = (pd.stars && pd.stars[i]) || { main: [], borrowedMain: [], aux: [], bad: [] };
+      var mainRaw = (st.main && st.main.length) ? st.main : (st.borrowedMain || []);
+      var mainStars = _zwPortfolioExtractStars(mainRaw);
+      var auxStars = _zwPortfolioExtractStars(st.aux || []);
+      var badStars = _zwPortfolioExtractStars(st.bad || []);
+      var profile = _zwPortfolioProfileFromStars(mainStars.concat(auxStars));
+      rows.push({
+        idx: i,
+        branch: ZHI_LIST[i] || '',
+        palace: palaceName,
+        palaceDisplay: ZW_PORTFOLIO_PALACE_ALIAS[palaceName] || palaceName,
+        mainStars: mainStars,
+        auxStars: auxStars,
+        badStars: badStars,
+        profile: profile
+      });
+    }
+    return rows;
+  }
+
+  function _zwPortfolioBuildSummary(rows) {
+    var score = {};
+    rows.forEach(function(row){
+      var star = (row.mainStars && row.mainStars[0]) || row.profile.anchor;
+      score[star] = (score[star] || 0) + 1;
+    });
+    var dominant = Object.keys(score).sort(function(a, b){ return score[b] - score[a]; })[0] || '자미';
+    var titleObj = ZW_PORTFOLIO_MAIN_TITLE[dominant] || ZW_PORTFOLIO_MAIN_TITLE['자미'];
+    var dominantProfile = ZW_PORTFOLIO_STAR_PROFILE[dominant] || ZW_PORTFOLIO_STAR_PROFILE['자미'];
+    return {
+      dominantStar: dominant,
+      title: titleObj.title,
+      slogan: titleObj.slogan,
+      symbol: titleObj.symbol,
+      hash: dominantProfile.persona,
+      keywords: dominantProfile.keywords || []
+    };
+  }
+
+  function _zwPortfolioBuildModalHtml(row, summary) {
+    var mainText = row.mainStars.length ? row.mainStars.join(' · ') : '공궁(空宮)';
+    var auxText = row.auxStars.length ? row.auxStars.join(' · ') : '보조성 없음';
+    var badText = row.badStars.length ? row.badStars.join(' · ') : '흉성 영향 낮음';
+    var keyTags = row.profile.keywords && row.profile.keywords.length ? row.profile.keywords : ['기질 파악', '패턴 분석'];
+    var whyType = '주성 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(mainText) + '</span> 조합은 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(row.profile.type) + '</span> 성향을 강화합니다.';
+    var evidence = _zwPortfolioEscapeHtml(row.profile.evidence || '해당 성계는 실전에서 판단-행동 간격을 좁히는 방향으로 작동합니다.');
+    var relation = '이 궁은 전체 대표 타이틀 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(summary.title) + '</span>과 연결되어, 현재 명반의 중심 테마를 구체 행동으로 변환하는 역할을 맡습니다.';
+
+    return ''
+      + '<p><b>[' + _zwPortfolioEscapeHtml(row.palaceDisplay) + ' · ' + _zwPortfolioEscapeHtml(row.branch) + '궁]</b> 성계 구성은 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(row.profile.persona) + '</span> 축으로 읽힙니다.</p>'
+      + '<div class="zwp-modal-tags">' + keyTags.map(function(tag){ return '<span class="zwp-modal-tag">#' + _zwPortfolioEscapeHtml(tag) + '</span>'; }).join('') + '</div>'
+      + '<p>' + whyType + '</p>'
+      + '<p>' + evidence + '</p>'
+      + '<p><b>성계 근거:</b> 주성 ' + _zwPortfolioEscapeHtml(mainText) + ' / 보조성 ' + _zwPortfolioEscapeHtml(auxText) + ' / 경계성 ' + _zwPortfolioEscapeHtml(badText) + '</p>'
+      + '<p>' + relation + '</p>'
+      + '<div class="zwp-swipe-hint">아래로 스와이프하거나 ✶ 버튼으로 닫을 수 있습니다.</div>';
   }
 
   for(let i=0; i<12; i++) {
@@ -9450,6 +10069,7 @@ function renderZiwei(p, natal, targetId) {
         궁(宮)을 클릭하시면<br>각 궁에 대한 해석이 나옵니다.
       </div>
     </div>
+    <div id="zwDestinyPortfolioMount" class="zw-portfolio-mount"></div>
   </div>
   <div class="zw-detail-panel ziwei-report-container report-container" id="zwComprehensiveReport" style="margin-top:16px;">
     <div class="zw-empty-state">
@@ -9460,6 +10080,147 @@ function renderZiwei(p, natal, targetId) {
 
   var sec = document.getElementById(targetId || 'ziweiSection');
   if(sec) sec.innerHTML = html;
+
+  if (!window._renderZwDestinyPortfolio) {
+    window._zwPortfolioStore = window._zwPortfolioStore || {};
+
+    window._closeZwPortfolioModal = function(targetId) {
+      var mount = document.getElementById(targetId);
+      if (!mount) return;
+      var overlay = mount.querySelector('.zwp-modal-overlay');
+      if (overlay) overlay.classList.remove('is-open');
+      mount.querySelectorAll('.zwp-cell.zwp-active').forEach(function(el){ el.classList.remove('zwp-active'); });
+    };
+
+    window._openZwPortfolioModal = function(targetId, idx) {
+      var mount = document.getElementById(targetId);
+      if (!mount) return;
+      var store = window._zwPortfolioStore && window._zwPortfolioStore[targetId];
+      if (!store || !store.rows || !store.rows.length) return;
+      var row = store.rows.find(function(it){ return it.idx === idx; }) || store.rows[0];
+      var overlay = mount.querySelector('.zwp-modal-overlay');
+      var body = mount.querySelector('.zwp-modal-body');
+      var title = mount.querySelector('.zwp-modal-title');
+      if (!overlay || !body || !title) return;
+
+      title.textContent = row.palaceDisplay + ' | ' + row.profile.persona;
+      body.innerHTML = _zwPortfolioBuildModalHtml(row, store.summary);
+      mount.querySelectorAll('.zwp-cell.zwp-active').forEach(function(el){ el.classList.remove('zwp-active'); });
+      var activeCell = mount.querySelector('.zwp-cell-' + idx);
+      if (activeCell) activeCell.classList.add('zwp-active');
+      overlay.classList.add('is-open');
+    };
+
+    window._renderZwDestinyPortfolio = function(targetId, pd) {
+      var mount = document.getElementById(targetId);
+      if (!mount || !pd) return;
+
+      // calcZiweiPalaces의 stars는 배열이 아니라 숫자 키 객체이므로 둘 다 허용한다.
+      var starsSource = pd.stars;
+      if (!starsSource && Array.isArray(pd.palaceStarData)) {
+        starsSource = {};
+        pd.palaceStarData.forEach(function(row, idx) {
+          starsSource[idx] = {
+            main: (row && Array.isArray(row.stars)) ? row.stars : [],
+            borrowedMain: [],
+            aux: (row && Array.isArray(row.auxStars)) ? row.auxStars : [],
+            bad: (row && Array.isArray(row.badStars)) ? row.badStars : []
+          };
+        });
+      }
+      if (!starsSource || typeof starsSource !== 'object') return;
+
+      var resolvedPd = {
+        palacesByIndex: pd.palacesByIndex || [],
+        stars: starsSource
+      };
+
+      var rows = _zwPortfolioBuildRows(resolvedPd);
+      var summary = _zwPortfolioBuildSummary(rows);
+      window._zwPortfolioStore[targetId] = { rows: rows, summary: summary };
+
+      var starfieldHtml = '';
+      for (var si = 0; si < 34; si += 1) {
+        var left = (Math.random() * 100).toFixed(2);
+        var top = (Math.random() * 100).toFixed(2);
+        var delay = (Math.random() * 2.6).toFixed(2);
+        var duration = (2.8 + Math.random() * 2.4).toFixed(2);
+        starfieldHtml += '<span class="zwp-spark" style="left:' + left + '%;top:' + top + '%;animation-delay:' + delay + 's;animation-duration:' + duration + 's"></span>';
+      }
+
+      var cellsHtml = rows.map(function(row, orderIdx){
+        var mainLabel = row.mainStars.length ? row.mainStars.slice(0, 2).join(' · ') : '공궁';
+        return ''
+          + '<button type="button" class="zwp-cell zwp-cell-' + row.idx + '" style="animation-delay:' + (orderIdx * 0.04).toFixed(2) + 's" onclick="window._openZwPortfolioModal(\'' + targetId + '\', ' + row.idx + ')">'
+          + '  <div class="zwp-kor">[' + _zwPortfolioEscapeHtml(row.palaceDisplay) + ']</div>'
+          + '  <div class="zwp-star">' + _zwPortfolioEscapeHtml(mainLabel) + '</div>'
+          + '  <span class="zwp-type">' + _zwPortfolioEscapeHtml(row.profile.type) + '</span>'
+          + '</button>';
+      }).join('');
+
+      mount.innerHTML = ''
+        + '<section class="zwp-wrap" aria-label="운명 포트폴리오">'
+        + '  <div class="zwp-starfield">' + starfieldHtml + '</div>'
+        + '  <div class="zwp-grid">'
+        +       cellsHtml
+        + '    <div class="zwp-core">'
+        + '      <div class="zwp-core-symbol">' + _zwPortfolioEscapeHtml(summary.symbol) + '</div>'
+        + '      <div class="zwp-core-title">' + _zwPortfolioEscapeHtml(summary.title) + '</div>'
+        + '      <div class="zwp-core-slogan">' + _zwPortfolioEscapeHtml(summary.slogan) + '</div>'
+        + '      <div class="zwp-core-hash">' + _zwPortfolioEscapeHtml(summary.hash) + '</div>'
+        + '    </div>'
+        + '  </div>'
+        + '  <div class="zwp-modal-overlay" aria-hidden="true">'
+        + '    <div class="zwp-modal" role="dialog" aria-modal="true" aria-label="운명 포트폴리오 상세" onclick="event.stopPropagation()">'
+        + '      <div class="zwp-modal-head">'
+        + '        <div class="zwp-modal-title">운명 포트폴리오</div>'
+        + '        <button type="button" class="zwp-modal-close" aria-label="닫기" onclick="window._closeZwPortfolioModal(\'' + targetId + '\')">✶</button>'
+        + '      </div>'
+        + '      <div class="zwp-modal-body"></div>'
+        + '    </div>'
+        + '  </div>'
+        + '</section>';
+
+      var overlay = mount.querySelector('.zwp-modal-overlay');
+      if (overlay) {
+        overlay.addEventListener('click', function(){ window._closeZwPortfolioModal(targetId); });
+      }
+      var sheet = mount.querySelector('.zwp-modal');
+      if (sheet) {
+        var touchStartY = 0;
+        sheet.addEventListener('touchstart', function(e) {
+          var t = e.touches && e.touches[0];
+          touchStartY = t ? t.clientY : 0;
+        }, { passive: true });
+        sheet.addEventListener('touchend', function(e) {
+          var t = e.changedTouches && e.changedTouches[0];
+          var endY = t ? t.clientY : 0;
+          if (endY - touchStartY > 72) {
+            window._closeZwPortfolioModal(targetId);
+          }
+        }, { passive: true });
+      }
+      if (!window._zwPortfolioEscBound) {
+        window.addEventListener('keydown', function(e) {
+          if (!e || e.key !== 'Escape') return;
+          var ids = Object.keys(window._zwPortfolioStore || {});
+          ids.forEach(function(id){
+            var m = document.getElementById(id);
+            if (!m) return;
+            var ov = m.querySelector('.zwp-modal-overlay');
+            if (ov && ov.classList.contains('is-open')) {
+              window._closeZwPortfolioModal(id);
+            }
+          });
+        });
+        window._zwPortfolioEscBound = true;
+      }
+    };
+  }
+
+  if (typeof window._renderZwDestinyPortfolio === 'function') {
+    window._renderZwDestinyPortfolio('zwDestinyPortfolioMount', window._currentZiweiData);
+  }
 
   if(!window._handleZwClick) {
     window._handleZwClick = function(idx, el) {
@@ -15454,7 +16215,7 @@ function startQuantumAnalysis() {
       card.style.transition = 'transform 0.1s linear';
       let vibInterval = setInterval(() => { card.style.transform = `rotateZ(${(Math.random()-0.5)*4}deg) scale(0.98)`; }, 80);
       
-      if(subtitle) subtitle.innerHTML = "퀀텀 명리 엔진 가동 중... <span style='color:#a78bfa; font-weight:500;'>(우주 에너지 맵핑)</span>";
+      if(subtitle) subtitle.innerHTML = "성운 좌표를 정렬하는 중... <span style='color:#bfd8ff; font-weight:600;'>(Constellation Mapping)</span>";
       
       setTimeout(() => {
         clearInterval(vibInterval);
@@ -15467,7 +16228,7 @@ function startQuantumAnalysis() {
 function showQuantumResult() {
   quantumAnalyzeState = 'result';
   const sub = document.getElementById("qSub");
-  if(sub) sub.innerHTML = "오늘의 <span style='color:#f8fafc; font-weight:600;'>명리 인사이트</span>가 도출되었습니다.";
+  if(sub) sub.innerHTML = "오늘의 <span style='color:#ffffff; font-weight:700;'>별빛 명리 인사이트</span>가 완성되었습니다.";
 
   let p = window.quantumProfile;
   let today = new Date();
@@ -15485,7 +16246,7 @@ function showQuantumResult() {
   // ── 카드 뒷면에 오행 콘텐츠 채우기 ──
   var todayEl = (window.GAN && window.GAN[dGan]) ? window.GAN[dGan].e : 'earth';
   var elEmojis = {wood:'🌿', fire:'🔥', earth:'🌏', metal:'✨', water:'💧'};
-  var elNames = {wood:'木 목', fire:'火 화', earth:'土 토', metal:'金 금', water:'水 수'};
+  var elNames = {wood:'목(木) 성운', fire:'화(火) 성운', earth:'토(土) 성운', metal:'금(金) 성운', water:'수(水) 성운'};
   var elDescs = {
     wood: '생명력과 성장의 기운이\n오늘 하루를 감싸고 있습니다.\n새로운 시작에 유리한 날입니다.',
     fire:  '열정과 빛의 에너지가\n온 세상을 밝히는 날입니다.\n적극적으로 행동하세요.',
@@ -15503,7 +16264,7 @@ function showQuantumResult() {
     var descEl = document.getElementById("qBackDesc");
     if(emojiEl) emojiEl.textContent = elEmojis[todayEl] || '☯';
     if(nameEl) nameEl.textContent = elNames[todayEl] || '오행';
-    if(ganJiEl) ganJiEl.textContent = dGan + ' ' + dJi;
+    if(ganJiEl) ganJiEl.textContent = dGan + ' · ' + dJi;
     if(descEl) descEl.textContent = elDescs[todayEl] || '오늘의 오행 에너지';
   }
 
@@ -15531,41 +16292,41 @@ function showQuantumResult() {
   else if(birthEl===todayEl) rel='same';
 
   var relMsg = {
-    gen_in: { 
-      overall: '오늘의 기운이 당신의 본원(사주)을 부드럽게 생(生)해줍니다. 움츠렸던 것들이 피어나는 활기찬 파동의 날입니다.',
-      love: '연인이나 주변 사람과의 감정 교류가 자연스럽게 깊어집니다. 진심을 전하기 좋은 날입니다.',
-      money: '뜻밖의 수익이나 좋은 제안이 들어올 수 있는 길운입니다.',
-      action: '지금까지 망설였던 결정을 오늘 실행에 옮겨보세요. 우주가 당신의 타이밍을 돕습니다.'
+    gen_in: {
+      overall: '오늘은 당신의 본원에 별빛이 스며드는 날입니다. 멈췄던 흐름이 다시 부드럽게 움직입니다.',
+      love: '관계의 온도가 자연스럽게 올라갑니다. 짧아도 진심이 담긴 한마디가 큰 울림을 만듭니다.',
+      money: '작은 기회가 실제 성과로 이어지기 쉽습니다. 익숙한 영역에서 안정적인 수확을 노리세요.',
+      action: '미루던 일을 하나만 확실히 시작하세요. 첫 실행이 오늘의 행운 회로를 엽니다.'
     },
-    gen_out: { 
-      overall: '당신의 에너지가 오늘 기운에 긍정적인 영향을 미치는 날. 베풀수록 좋은 주파수로 돌아오는 날입니다.',
-      love: '당신이 먼저 다가가야 합니다. 배려하는 만큼 관계의 깊이가 더해집니다.',
-      money: '지출이 다소 늘어날 수 있습니다. 나를 위한 가치 있는 투자인지 한 번 더 확인하세요.',
-      action: '남을 돕는 일에서 우주적 보람을 느낍니다. 멘토링이나 무언가를 지원하는 행동이 행운을 부릅니다.'
+    gen_out: {
+      overall: '당신의 에너지가 주변에 빛을 나누는 날입니다. 베푼 만큼 좋은 흐름이 다시 돌아옵니다.',
+      love: '기다리기보다 먼저 다정하게 손을 내미세요. 당신의 배려가 관계의 깊이를 키웁니다.',
+      money: '지출이 늘 수 있으니 가치와 우선순위를 점검하세요. 의미 있는 투자만 남기면 운이 살아납니다.',
+      action: '도움이 필요한 사람을 챙겨보세요. 공감과 지원이 곧 당신의 개운 포인트입니다.'
     },
-    ke_in: { 
-      overall: '오늘의 강한 기운이 당신의 사주를 자극합니다. 긴장을 단단히 하고 외부의 변수를 지혜롭게 넘기는 파동이 필요합니다.',
-      love: '오해가 생기기 쉬운 주파수입니다. 날선 말보다 부드럽게 경청하는 자세가 관계를 지켜줍니다.',
-      money: '예상치 못한 손실 주의. 중요한 계약이나 서명은 내일로 미루시길 권장합니다.',
-      action: '급한 결정보다 검토에 집중하세요. 돌다리도 두드리며 천천히 건너는 것이 최고의 개운법입니다.'
+    ke_in: {
+      overall: '외부 파동이 강하게 밀려와 리듬이 흔들릴 수 있습니다. 속도를 낮추면 오히려 안정이 빠르게 찾아옵니다.',
+      love: '예민한 반응보다 경청이 유리합니다. 답을 서두르지 말고 감정을 정돈한 뒤 대화하세요.',
+      money: '큰 결정은 하루만 늦추는 편이 안전합니다. 계약, 결제, 서명은 이중 점검이 필요합니다.',
+      action: '체크리스트로 리스크를 줄이세요. 오늘의 승부수는 과감함보다 정확함입니다.'
     },
-    ke_out: { 
-      overall: '당신이 오늘 외부의 기운을 완벽히 통제하고 눌러주는 날. 추진력은 강하지만 주변을 살피는 여유를 가지세요.',
-      love: '리더십과 본인의 뚜렷한 주관이 드러납니다. 상대방에게 부드러운 말투를 의도적으로 더해주세요.',
-      money: '협상이나 계약에서 본인이 유리한 고지를 점할 수 있는 상승장입니다.',
-      action: '장애물을 돌파해내기 완벽한 날입니다. 단, 독단적인 결정은 피하고 주변과 호흡을 맞추세요.'
+    ke_out: {
+      overall: '당신의 추진력이 전면에 서는 날입니다. 다만 강한 속도 속에서도 균형 감각을 잃지 않는 것이 핵심입니다.',
+      love: '주도권을 잡더라도 말투는 부드럽게 조율하세요. 따뜻한 표현이 관계의 마찰을 줄입니다.',
+      money: '협상력과 판단력이 좋아 실속을 챙기기 좋습니다. 조건을 명확히 기록하면 성과가 커집니다.',
+      action: '막힌 일을 돌파하되 독주하지 마세요. 주변과 호흡을 맞출수록 결과가 단단해집니다.'
     },
-    same: { 
-      overall: '오늘의 기운과 당신의 사주가 완벽하게 같은 주파수(비견/겁재)를 띕니다. 자신감이 크게 올라가는 폭발적인 날입니다.',
-      love: '나와 결이 같은 사람을 만나거나, 가까운 사람과 더욱 돈독해지는 공명 현상이 일어납니다.',
-      money: '경쟁이 치열할 수 있지만 당신의 실력을 증명할 수 있는 기회입니다. 본인의 가치를 과감히 알리세요.',
-      action: '새로운 프로젝트의 시작, 혹은 사람들과의 네트워킹에 에너지를 집중 쏟아보세요.'
-    },    
-    neutral: { 
-      overall: '오늘은 큰 기복 없이 잔잔하게 흘러가는 날입니다. 루틴을 충실히 따르면 매우 안정적으로 파동이 유지됩니다.',
-      love: '감정의 큰 파도보다는 안정감이 최우선입니다. 일상의 소소하고 따뜻한 배려로 사이를 다져보세요.',
-      money: '거대한 변화보다는 현상유지와 꾸준한 수호가 중요한 날입니다. 자산을 점검해보세요.',
-      action: '미뤄뒀던 밀린 일들을 처리하기에 좋은 날입니다. 작은 성취가 모여 큰 에너지가 됩니다.'
+    same: {
+      overall: '당신과 오늘의 기운이 같은 파장에서 공명합니다. 자신감과 실행력이 함께 상승하는 날입니다.',
+      love: '결이 맞는 사람과 연결되기 쉽습니다. 편안한 대화 속에서 관계가 빠르게 가까워집니다.',
+      money: '경쟁 속에서도 존재감이 살아납니다. 당신의 강점을 분명히 드러내면 기회가 붙습니다.',
+      action: '프로젝트 시작이나 네트워킹에 에너지를 집중하세요. 오늘의 선택이 다음 흐름을 선점합니다.'
+    },
+    neutral: {
+      overall: '큰 파도 없이 안정적으로 흐르는 날입니다. 기본 루틴을 지키는 것만으로도 충분히 좋은 운입니다.',
+      love: '화려한 이벤트보다 꾸준한 배려가 효과적입니다. 작지만 정확한 관심이 신뢰를 만듭니다.',
+      money: '확장보다 관리에 초점을 두세요. 지출 구조와 자산 배치를 정리하면 흐름이 좋아집니다.',
+      action: '밀린 일 하나를 끝내며 리듬을 회복하세요. 작은 완성이 내일의 추진력을 만듭니다.'
     }
   };
   
@@ -17988,6 +18749,28 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-ritual-icon { font-size:1.3rem; display:block; margin-bottom:4px; }
         .sy-ritual-label { font-size:0.68rem; color:#9ca3af; display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em; }
         .sy-ritual-val { font-size:0.78rem; color:#e2d9ff; font-weight:bold; line-height:1.4; }
+        @keyframes syMoonBob { 0%,100% { transform:translateY(0px) scale(1); } 50% { transform:translateY(-3px) scale(1.04); } }
+        @keyframes syTinyTwinkle { 0%,100% { opacity:0.35; transform:scale(0.75); } 50% { opacity:0.95; transform:scale(1.15); } }
+        .sy-guardian-card { margin-top:14px; border-left-color:#93c5fd; position:relative; overflow:hidden; background: radial-gradient(circle at 16% 10%, rgba(125,211,252,0.17) 0%, rgba(30,32,55,0.9) 45%, rgba(18,20,40,0.95) 100%); }
+        .sy-guardian-card::before { content:''; position:absolute; right:-48px; top:-56px; width:180px; height:180px; background:radial-gradient(circle, rgba(147,197,253,0.22) 0%, transparent 70%); pointer-events:none; }
+        .sy-guardian-head { font-size:0.74rem; text-transform:uppercase; letter-spacing:0.14em; color:#bfdbfe; font-weight:800; margin-bottom:10px; }
+        .sy-guardian-stage { border:1px solid rgba(196,181,253,0.28); border-radius:12px; padding:14px 12px; background:rgba(15,23,42,0.6); text-align:center; position:relative; }
+        .sy-guardian-stage-stars { position:absolute; inset:0; pointer-events:none; }
+        .sy-guardian-stage-stars i { position:absolute; font-style:normal; color:#e2e8f0; font-size:0.82rem; animation:syTinyTwinkle 2.4s ease-in-out infinite; }
+        .sy-guardian-stage-stars i:nth-child(1) { left:14%; top:18%; }
+        .sy-guardian-stage-stars i:nth-child(2) { right:15%; top:22%; animation-delay:0.8s; }
+        .sy-guardian-stage-stars i:nth-child(3) { left:21%; bottom:14%; animation-delay:1.4s; }
+        .sy-guardian-stage-stars i:nth-child(4) { right:22%; bottom:17%; animation-delay:0.4s; }
+        .sy-guardian-main-emoji { font-size:2.2rem; line-height:1; margin-bottom:6px; filter:drop-shadow(0 0 12px rgba(250,204,21,0.35)); animation:syMoonBob 2.6s ease-in-out infinite; }
+        .sy-guardian-main-name { font-size:1.02rem; font-weight:900; color:#fef3c7; margin-bottom:5px; text-shadow:0 0 10px rgba(251,191,36,0.3); }
+        .sy-guardian-main-desc { margin:0; font-size:0.82rem; line-height:1.72; color:#dbeafe; }
+        .sy-guardian-detail-list { margin-top:11px; display:grid; grid-template-columns:1fr; gap:8px; }
+        .sy-guardian-detail-item { padding:10px 11px; border-radius:10px; border:1px solid rgba(147,197,253,0.2); background:rgba(11,18,32,0.58); }
+        .sy-guardian-detail-item h5 { margin:0 0 5px 0; font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; }
+        .sy-guardian-detail-item p { margin:0; font-size:0.79rem; line-height:1.7; color:#dbeafe; }
+        .sy-guardian-meta { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 11px; border-radius:999px; background:rgba(15,23,42,0.72); border:1px solid rgba(148,163,184,0.35); }
+        .sy-guardian-meta span { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; font-weight:700; }
+        .sy-guardian-meta strong { color:#f8fafc; font-size:0.88rem; }
         `;
         document.head.appendChild(_sySt);
     }
@@ -18138,7 +18921,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                   </select>
                   <input type="time" id="sy3BirthTime" value="12:00" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark; font-size: 16px; min-height: 44px;">
               </div>
-              <button onclick="triggerSynergyCheck('${sData ? sData.mansionIdx : 0}')" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 44px;"> 카르마 인연 분석하기</button>
+              <button id="sy3AnalyzeBtn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 44px;"> 카르마 인연 분석하기</button>
           </div>
         <div id="sy3Loading" class="sy-loader">우주의 먼지를 헤치며 카르마를 읽는 중...</div>
         <div id="sy3Result" style="margin-top: 15px; display: none;"></div>
@@ -18173,6 +18956,52 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         </div>
     </div>`;
 
+      const _selfGuardian = (function() {
+        if (!sData || typeof syResolveMansionGuardian !== 'function') return { name: '성운 고양이', emoji: '🐈' };
+        try { return syResolveMansionGuardian(sData.mansion, sData.mansionIdx); }
+        catch (_e) { return { name: '성운 고양이', emoji: '🐈' }; }
+      })();
+      const _guardianStory = (function() {
+        if (typeof syBuildGuardianStory !== 'function') {
+          return {
+            overview: '달빛의 결 사이에서 당신의 별혼을 오래 지켜온 수호령이 모습을 드러냈습니다. 이 인연은 우연한 취향이 아니라, 여러 생을 건너 이어진 보호의 약속에 가깝습니다.',
+            reason: '숙요 인연법에서는 사람의 혼과 동물령이 전생의 서약으로 맞물린다고 봅니다. 지금 이 순간의 별자리 결은 당신과 가장 오래 공명해 온 수호령의 이름을 다시 불러낸 것입니다.',
+            traits: '이 수호령은 마음의 소란을 가라앉히고, 중요한 갈림길에서 본능과 이성을 같은 방향으로 정렬시키는 능력이 뛰어납니다. 겉으로 조용해도 위기 순간에는 가장 정확한 보호 본능이 깨어납니다.',
+            spirit: '영적인 기운은 꿈의 상징, 갑작스러운 예감, 반복되는 장면처럼 은근한 신호로 도착합니다. 조급함을 내려놓을수록 그 신호는 더 선명하고 따뜻해집니다.',
+            ritual: '잠들기 전 조명을 낮추고 오늘의 감정 한 줄을 기록한 뒤 3번 깊게 호흡해 보세요. 그 짧은 의식이 수호령과의 통로를 열어 밤사이 기운을 정화합니다.'
+          };
+        }
+        return syBuildGuardianStory(_selfGuardian, sData ? sData.mansion : '');
+      })();
+      html += `<div class="sy-card sy-guardian-card">
+        <div class="sy-guardian-head">🌙 월하의 수호령</div>
+        <div class="sy-guardian-stage">
+          <div class="sy-guardian-stage-stars"><i>✦</i><i>✧</i><i>✦</i><i>✧</i></div>
+          <div class="sy-guardian-main-emoji">${_selfGuardian.emoji}</div>
+          <div class="sy-guardian-main-name">${_selfGuardian.name}</div>
+          <p class="sy-guardian-main-desc">${_guardianStory.overview}</p>
+          <div class="sy-guardian-detail-list">
+            <div class="sy-guardian-detail-item">
+              <h5>왜 이 수호령이 나왔나</h5>
+              <p>${_guardianStory.reason}</p>
+            </div>
+            <div class="sy-guardian-detail-item">
+              <h5>수호령의 특징</h5>
+              <p>${_guardianStory.traits}</p>
+            </div>
+            <div class="sy-guardian-detail-item">
+              <h5>영적인 기운</h5>
+              <p>${_guardianStory.spirit}</p>
+            </div>
+            <div class="sy-guardian-detail-item">
+              <h5>기운을 받는 방법</h5>
+              <p>${_guardianStory.ritual}</p>
+            </div>
+          </div>
+        </div>
+        <div class="sy-guardian-meta"><span>연결된 숙요</span><strong>${sData ? sData.mansion : '미상'}</strong></div>
+      </div>`;
+
     html += `</div>`;
     area.innerHTML = html;
 
@@ -18198,6 +19027,17 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                 if (panel) panel.classList.add('active');
             });
         });
+        // 인라인 onclick 의존을 제거해 CSP/브라우저별 클릭 누락을 방지
+        const syAnalyzeBtn = document.getElementById('sy3AnalyzeBtn');
+        if (syAnalyzeBtn) {
+          syAnalyzeBtn.addEventListener('click', function () {
+            const btnIdx = this.getAttribute('data-my-idx') || '0';
+            const btnMansion = this.getAttribute('data-my-mansion') || '';
+            if (typeof window.triggerSynergyCheck === 'function') {
+              window.triggerSynergyCheck(btnIdx, btnMansion);
+            }
+          });
+        }
         // 국가 탭 생성 (Config-driven)
         const _countryCatsDiv = document.getElementById('szCountryCats');
         if (_countryCatsDiv && typeof COUNTRY_CONFIG !== 'undefined') {
@@ -18826,7 +19666,238 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     };
   }
 
-  window.triggerSynergyCheck = function(myIdx) {
+  function syPromptDistanceLabel(distInfo) {
+    var tier = (distInfo && distInfo.tier) || '';
+    if (tier === 'near' || tier === 'same') return '근거리';
+    if (tier === 'middle') return '중거리';
+    if (tier === 'far') return '원거리';
+    return '중거리';
+  }
+
+  function syPromptRelationLabel(rel, relationStory) {
+    var fromStory = relationStory && relationStory.relationBadge ? String(relationStory.relationBadge).split(' - ')[0] : '';
+    var base = fromStory || (rel && (rel.typeLabel || rel.type)) || '숙요 인연';
+    return String(base).trim();
+  }
+
+  const SY_MANSION_GUARDIAN_MAP = Object.freeze({
+    '각': { name: '학', emoji: '🕊️' },
+    '항': { name: '사슴', emoji: '🦌' },
+    '저': { name: '오소리', emoji: '🦡' },
+    '방': { name: '표범', emoji: '🐆' },
+    '심': { name: '매', emoji: '🦅' },
+    '미': { name: '사향고양이', emoji: '🐈' },
+    '기': { name: '다람쥐', emoji: '🐿️' },
+    '두': { name: '거북', emoji: '🐢' },
+    '여': { name: '올빼미', emoji: '🦉' },
+    '허': { name: '제비', emoji: '🐦' },
+    '위危': { name: '늑대', emoji: '🐺' },
+    '실': { name: '학', emoji: '🕊️' },
+    '벽': { name: '토끼', emoji: '🐇' },
+    '규': { name: '여우', emoji: '🦊' },
+    '루': { name: '호랑이', emoji: '🐅' },
+    '위胃': { name: '청조', emoji: '🦜' },
+    '묘': { name: '닭', emoji: '🐓' },
+    '필': { name: '살쾡이', emoji: '🐈' },
+    '자': { name: '학', emoji: '🕊️' },
+    '삼': { name: '고양이', emoji: '🐱' },
+    '정': { name: '수리', emoji: '🦅' },
+    '귀': { name: '사슴', emoji: '🦌' },
+    '류': { name: '나비', emoji: '🦋' },
+    '성': { name: '문어', emoji: '🐙' },
+    '장': { name: '독수리', emoji: '🦅' },
+    '익': { name: '백조', emoji: '🦢' },
+    '진': { name: '백조', emoji: '🦢' }
+  });
+
+  const SY_MANSION_ORDER = Object.freeze([
+    '각', '항', '저', '방', '심', '미', '기', '두', '여', '허', '위危', '실', '벽', '규', '루', '위胃', '묘', '필', '자', '삼', '정', '귀', '류', '성', '장', '익', '진'
+  ]);
+
+  const SY_GUARDIAN_PROFILE_MAP = Object.freeze({
+    '학': { core: '높은 시야와 정신 정렬', resonance: '멀리 보는 결정을 할수록 보호력이 커집니다.', traits: '감정보다 원칙을 먼저 세우는 타입이며, 혼란한 상황에서 기준점을 잡아 주변을 안정시킵니다.', spirit: '상승하는 바람의 기운이 강해 공부, 기획, 글쓰기처럼 구조를 세우는 작업에서 영감이 또렷해집니다.', ritual: '아침에 하늘을 30초 바라본 뒤 오늘 지킬 원칙 한 가지를 메모하면 수호 주파수가 빠르게 맞춰집니다.' },
+    '사슴': { core: '섬세한 공감과 평화 유지', resonance: '대립을 완화하고 중재할 때 운이 열립니다.', traits: '타인의 정서를 빠르게 읽고 관계의 균형을 회복하는 능력이 뛰어납니다.', spirit: '부드러운 목기 계열의 기운으로 인간관계 치유력과 회복 탄성이 올라갑니다.', ritual: '하루 한 번 어깨 힘을 푼 뒤 고마운 사람 한 명을 떠올리면 보호막이 안정됩니다.' },
+    '오소리': { core: '끈기와 현실 대응력', resonance: '느리더라도 꾸준히 밀어붙일 때 결과가 크게 돌아옵니다.', traits: '한번 맡은 일은 끝까지 완주하며, 예상치 못한 변수에서도 생존 전략을 빠르게 찾습니다.', spirit: '대지 기운이 강해 생활 패턴, 체력, 재정 관리처럼 기반을 다질수록 영적 보호가 강화됩니다.', ritual: '오늘 해야 할 일 중 가장 작은 단위 하나를 즉시 완료하면 수호령의 추진력이 활성화됩니다.' },
+    '표범': { core: '결단력과 압도적 집중', resonance: '우유부단함을 끊고 선택을 명확히 할 때 행운이 붙습니다.', traits: '순간 판단이 빠르고 핵심을 파고드는 힘이 강하며, 경쟁 구도에서 존재감이 커집니다.', spirit: '화기와 금기의 결합으로 행동 에너지와 목표 관통력이 상승합니다.', ritual: '중요한 결정 전 10초 정지 후 한 문장 결론을 말하면 방향성이 흐려지지 않습니다.' },
+    '매': { core: '정밀 관찰과 타이밍 포착', resonance: '큰 흐름보다 결정적 순간을 잡는 전략에서 강합니다.', traits: '디테일을 놓치지 않고, 높은 곳에서 판세를 읽은 뒤 정확하게 움직이는 기질입니다.', spirit: '청명한 풍기 에너지로 시야가 맑아지고 잡음이 줄어들어 예감의 정확도가 올라갑니다.', ritual: '하루 마감 전에 오늘의 신호 한 가지를 기록하면 다음 기회의 타이밍이 빨라집니다.' },
+    '사향고양이': { core: '은밀한 감지력과 경계 설정', resonance: '보이지 않는 분위기를 읽고 선을 지킬 때 보호가 강해집니다.', traits: '표면 아래 감정을 감지하는 능력이 뛰어나며, 무리하지 않고 안전한 거리를 유지합니다.', spirit: '달의 음기와 향기 같은 미세 감응이 강해 꿈, 직감, 기분의 변화로 신호가 옵니다.', ritual: '잠들기 전 휴대폰을 잠시 멀리 두고 조용히 호흡하면 영적 신호 수신률이 올라갑니다.' },
+    '다람쥐': { core: '민첩한 실행과 리듬 유지', resonance: '작은 실행을 빠르게 반복할 때 운의 가속이 붙습니다.', traits: '아이디어를 행동으로 옮기는 속도가 빠르고, 생활 루틴을 가볍게 최적화하는 재능이 있습니다.', spirit: '경쾌한 목기 에너지로 창의성과 생활 활력이 동시에 살아납니다.', ritual: '오늘 할 일 중 5분 이내 작업 3개를 먼저 끝내면 흐름이 즉시 살아납니다.' },
+    '거북': { core: '보호막 형성 및 장기 안정', resonance: '속도를 낮추고 본질을 지킬수록 큰 복으로 이어집니다.', traits: '급하지 않지만 흔들림이 적고, 장기전에서 신뢰를 쌓아 최종 승리를 가져옵니다.', spirit: '수기 기반의 깊은 안정 에너지로 불안 파동을 가라앉히고 지속력을 강화합니다.', ritual: '하루 한 번 물 한 잔을 천천히 마시며 호흡을 고르면 감정 파도가 빠르게 잦아듭니다.' },
+    '올빼미': { core: '야간 직관과 통찰', resonance: '밤 시간의 고요를 활용할수록 통찰이 선명해집니다.', traits: '숨은 맥락을 읽는 힘이 강하고, 복잡한 상황의 본질을 차분히 해석합니다.', spirit: '달빛과 그림자의 에너지가 결합되어 꿈, 상징, 반복 신호를 통해 해답을 전달합니다.', ritual: '취침 전 오늘 반복된 장면 하나를 적어두면 다음날 의사결정이 또렷해집니다.' },
+    '제비': { core: '소식의 흐름과 기회 연결', resonance: '사람과 정보를 잇는 역할을 할수록 복이 커집니다.', traits: '커뮤니케이션 감각이 좋고 새로운 인연의 문을 빠르게 여는 재능이 있습니다.', spirit: '공기의 순환 기운이 강해 이동, 연락, 네트워킹에서 도움 신호가 들어옵니다.', ritual: '미뤄둔 안부 메시지 하나를 보내면 막힌 흐름이 다시 열립니다.' },
+    '늑대': { core: '본능적 리더십과 경계 수호', resonance: '내 편과 내 영역을 명확히 할수록 운이 안정됩니다.', traits: '독립성과 협동의 균형이 좋아 팀에서 방향을 잡는 역할에 강합니다.', spirit: '강한 월광 에너지로 위기 감지력과 생존 본능이 상승해 위험 회피력이 높아집니다.', ritual: '하루 시작 전에 절대 양보하지 않을 기준 1개를 정하면 에너지가 새지 않습니다.' },
+    '토끼': { core: '부드러운 순발력과 정서 회복', resonance: '충돌을 피하면서도 핵심을 지키는 선택에서 복이 생깁니다.', traits: '민감하지만 회복이 빠르고, 관계에서 부드럽게 분위기를 정돈하는 능력이 있습니다.', spirit: '부드러운 달기운으로 심리적 안전감과 애정 순환을 강화합니다.', ritual: '따뜻한 물로 손을 씻고 1분간 호흡하면 긴장 에너지가 빠르게 정리됩니다.' },
+    '여우': { core: '지략과 패턴 해석', resonance: '정면 돌파보다 우회 전략을 쓸 때 효율이 극대화됩니다.', traits: '상황을 입체적으로 읽고, 말과 행동의 간격을 계산해 손실을 줄입니다.', spirit: '변화의 화기 에너지가 강해 위기를 기회로 바꾸는 전환력이 큽니다.', ritual: '중요 대화 전 상대의 입장에서 핵심 욕구 한 가지를 써보면 충돌이 줄어듭니다.' },
+    '호랑이': { core: '강한 추진력과 보호 본능', resonance: '두려움보다 사명을 선택할 때 큰 행운이 붙습니다.', traits: '카리스마와 책임감이 강해 위기 상황에서 앞장서서 판을 정리합니다.', spirit: '강한 화기와 생명력이 결합되어 의지력, 실행력, 회복 탄력이 빠르게 올라갑니다.', ritual: '몸을 크게 펴는 스트레칭 30초 후 첫 할 일을 바로 시작하면 추진력이 유지됩니다.' },
+    '청조': { core: '청명한 의사소통과 명예 운', resonance: '진실한 표현과 품격 있는 태도를 유지할수록 귀인이 붙습니다.', traits: '표현력과 전달력이 좋아 사람들의 시선을 한 방향으로 모으는 힘이 있습니다.', spirit: '밝은 금기 계열의 기운으로 말, 목소리, 발표에서 영적 후원이 강화됩니다.', ritual: '중요한 말은 천천히 또렷하게 한 번 더 정리해 말하면 운의 손실을 줄일 수 있습니다.' },
+    '닭': { core: '시간 감각과 질서 유지', resonance: '루틴을 정돈할수록 성과와 안정이 동시에 올라갑니다.', traits: '현실 감각이 뛰어나며 흐트러진 체계를 바로잡아 생산성을 높입니다.', spirit: '아침형 양기 에너지로 시작의 힘과 지속력이 강해집니다.', ritual: '내일 첫 일정 1개를 오늘 밤에 확정하면 아침 에너지가 크게 절약됩니다.' },
+    '살쾡이': { core: '경계 감지와 생존 센스', resonance: '위험 신호를 무시하지 않을수록 손실을 크게 줄일 수 있습니다.', traits: '눈치가 빠르고 상황 전환에 민첩해 위기 대응력과 복구 속도가 빠릅니다.', spirit: '야성의 수기 에너지로 직감, 경계, 회피 타이밍이 정밀해집니다.', ritual: '불편했던 장면을 떠올려 경고 신호 1개를 문장화하면 다음 실수를 줄일 수 있습니다.' },
+    '고양이': { core: '직감과 경계의 균형', resonance: '혼자만의 정적을 확보할수록 판단력이 선명해집니다.', traits: '독립성과 몰입력이 높고, 필요한 순간에만 움직여 에너지 손실을 최소화합니다.', spirit: '달의 음기와 미세 감응이 강해 예감, 데자뷔, 꿈 신호로 방향을 알려줍니다.', ritual: '저녁에 조명을 낮추고 5분간 호흡하며 오늘의 느낌을 기록하면 수호 연결이 강화됩니다.' },
+    '수리': { core: '고고한 관찰과 결단', resonance: '감정 소음에서 떨어져 관점 높이를 올릴수록 복이 커집니다.', traits: '핵심을 크게 보는 힘이 강해 장기 방향성과 전략 수립에서 두각을 보입니다.', spirit: '상층 바람 에너지로 관찰력과 판단의 선명도가 높아집니다.', ritual: '중요 선택 전 종이에 선택지 2개를 쓰고 1분간 거리 두고 바라보면 답이 또렷해집니다.' },
+    '나비': { core: '변화 수용과 재생', resonance: '끝과 시작을 자연스럽게 받아들일 때 귀한 전환 운이 옵니다.', traits: '감수성이 풍부하고 변화 속에서 새로운 정체성을 빠르게 찾아냅니다.', spirit: '변환의 기운이 강해 이별, 이동, 직무 변경 같은 전환기에서 보호가 작동합니다.', ritual: '낡은 메모나 물건 하나를 정리하면 정체된 기운이 빠르게 순환합니다.' },
+    '문어': { core: '다층 사고와 감정 해석', resonance: '복잡한 감정을 분해해 이해할수록 갈등이 줄어듭니다.', traits: '동시에 여러 맥락을 읽는 능력이 뛰어나 문제 해결에서 독창적 해법을 만듭니다.', spirit: '심해의 수기 에너지로 무의식 정보 처리와 내면 통찰이 강합니다.', ritual: '머릿속을 복잡하게 만든 일 1개를 종이에 구조화해 쓰면 즉시 명료도가 올라갑니다.' },
+    '독수리': { core: '원대한 목표와 돌파력', resonance: '크게 보고 과감히 내려찍는 순간에 운이 폭발합니다.', traits: '목표 중심성이 강하고 결정적 순간에 과감한 실행으로 판을 뒤집습니다.', spirit: '강한 태양-풍기 결합으로 리더십과 성취 에너지를 끌어올립니다.', ritual: '오늘의 최우선 목표 1개를 선언하고 가장 어려운 단계부터 시작하면 기운이 정렬됩니다.' },
+    '백조': { core: '품격과 정화의 에너지', resonance: '감정의 탁함을 걷어내고 우아하게 대응할수록 귀인이 붙습니다.', traits: '겉은 부드럽지만 내면이 단단해 품위 있게 관계를 이끌고 상처를 정화합니다.', spirit: '물과 달의 정화 기운이 강해 감정 회복, 화해, 사랑 운에서 보호가 두드러집니다.', ritual: '따뜻한 물을 마시며 오늘 놓아줄 감정 1개를 정하면 마음의 물결이 맑아집니다.' },
+    '성운 고양이': { core: '직감 회복과 감정 정돈', resonance: '복잡한 정보를 잠시 멈추고 감각을 믿을 때 길이 열립니다.', traits: '미세한 기류를 읽어 불필요한 소모를 줄이고, 자신만의 리듬을 빠르게 되찾습니다.', spirit: '은은한 달빛 기운이 불안을 낮추고 내면 나침반을 다시 켭니다.', ritual: '눈을 감고 10회 심호흡 후 오늘 가장 중요한 한 가지를 적어보세요.' },
+    'default': { core: '내면 나침반 정렬', resonance: '감정과 행동의 간격을 줄일수록 보호 흐름이 강해집니다.', traits: '현재 상황의 핵심을 식별하고 필요 없는 소음을 정리하는 힘이 활성화됩니다.', spirit: '달의 보호 기운이 직감과 관계 감수성을 높여 중요한 신호를 놓치지 않게 돕습니다.', ritual: '짧은 호흡 명상과 감사 한 줄 기록으로 수호령과의 연결을 안정화할 수 있습니다.' }
+  });
+
+  function syParseMansionInfo(mansionText) {
+    var raw = String(mansionText || '').trim();
+    var base = raw;
+    var han = '';
+
+    var idx = raw.indexOf('(');
+    if (idx > -1) {
+      base = raw.slice(0, idx).trim();
+      var match = raw.match(/\(([^)]+)\)/);
+      if (match && match[1]) han = match[1].trim();
+    }
+
+    return { base: base, han: han };
+  }
+
+  function syResolveMansionGuardian(mansionText, mansionIdx) {
+    var parsed = syParseMansionInfo(mansionText);
+    var key = parsed.base;
+    if (parsed.base === '위' && parsed.han) key = parsed.base + parsed.han;
+
+    var byName = SY_MANSION_GUARDIAN_MAP[key] || SY_MANSION_GUARDIAN_MAP[parsed.base];
+    if (byName) return byName;
+
+    var n = Number(mansionIdx);
+    if (Number.isFinite(n)) {
+      var orderKey = null;
+      if (n >= 0 && n < SY_MANSION_ORDER.length) orderKey = SY_MANSION_ORDER[Math.floor(n)];
+      else if (n >= 1 && n <= SY_MANSION_ORDER.length) orderKey = SY_MANSION_ORDER[Math.floor(n - 1)];
+      if (orderKey && SY_MANSION_GUARDIAN_MAP[orderKey]) return SY_MANSION_GUARDIAN_MAP[orderKey];
+    }
+
+    return { name: '성운 고양이', emoji: '🐈' };
+  }
+
+  function syBuildGuardianStory(guardian, mansionText) {
+    var guardianName = guardian && guardian.name ? String(guardian.name) : '성운 고양이';
+    var mansionLabel = String(mansionText || '').trim() || '미상 숙요';
+    var profile = SY_GUARDIAN_PROFILE_MAP[guardianName] || SY_GUARDIAN_PROFILE_MAP.default;
+    var baseCore = profile.core || '내면 나침반 정렬';
+    var resonance = profile.resonance || '당신의 리듬을 지킬수록 보호 흐름이 강해집니다.';
+    var traits = profile.traits || '현재 상황의 핵심을 식별하고 불필요한 소음을 정리하는 힘이 활성화됩니다.';
+    var spirit = profile.spirit || '달의 보호 기운이 직감과 관계 감수성을 높여 중요한 신호를 놓치지 않게 돕습니다.';
+    var ritual = profile.ritual || '짧은 호흡 명상과 감사 한 줄 기록으로 수호령과의 연결을 안정화할 수 있습니다.';
+
+    return {
+      overview: guardianName + ' 수호령은 단순한 상징이 아니라, 달의 결 속에서 당신의 별혼과 오래 교신해 온 영적 동반자입니다. 지금 시기에는 특히 ' + baseCore + '의 힘을 끌어올려 감정의 물결을 가라앉히고 선택의 타이밍을 바로잡아 줍니다.',
+      reason: '숙요 인연법에서는 한 사람의 별혼이 전생의 인연 결을 따라 특정 동물령과 다시 만나게 된다고 전합니다. ' + mansionLabel + '의 별문이 열린 현재, ' + guardianName + '이 당신의 수호령으로 호명된 것은 우연한 배치가 아니라 오래 이어진 보호 서약의 재개에 가깝습니다. ' + resonance + ' 그래서 이 동물령은 이번 생에서도 길목마다 조용히 신호를 보내며 당신의 발걸음을 바로잡습니다.',
+      traits: guardianName + ' 수호령의 본성은 화려함보다 정확함에 있습니다. ' + traits + ' 평소에는 잔잔하게 머물지만, 중요한 인연과 결정의 갈림길에서는 특유의 감지력이 먼저 반응해 위험을 줄이고 올바른 선택 쪽으로 기운을 모읍니다.',
+      spirit: '이 수호령의 기운은 큰 목소리보다 미세한 파동으로 다가옵니다. ' + spirit + ' 특히 새벽 직전의 꿈, 반복해서 마주치는 상징, 이유 없는 직감의 끌림은 수호령이 보내는 안내 신호일 가능성이 큽니다.',
+      ritual: '수호 인연을 더 깊게 잇고 싶다면 작은 의식을 꾸준히 반복하는 것이 좋습니다. ' + ritual + ' 같은 시간대에 짧게라도 이어가면 당신의 기운장이 안정되고, 수호령의 보호 신호를 더 빠르고 선명하게 받게 됩니다.'
+    };
+  }
+
+  function buildSukuyoAiPromptTemplate(payload) {
+    var personAStar = payload && payload.personAStar ? payload.personAStar : '미상';
+    var personBStar = payload && payload.personBStar ? payload.personBStar : '미상';
+    var relationshipType = payload && payload.relationshipType ? payload.relationshipType : '숙요 인연';
+    var distance = payload && payload.distance ? payload.distance : '중거리';
+    var karmaScore = payload && payload.karmaScore != null ? payload.karmaScore : '-';
+    var temperature = payload && payload.temperature != null ? payload.temperature : '-';
+    var magnetism = payload && payload.magnetism != null ? payload.magnetism : '-';
+
+    return [
+      '# Role: 전문 숙요점(27숙) 점성술사 및 관계 심리 상담가',
+      '',
+      '# Context',
+      "사용자는 '숙요점'이라는 동양 점성술 시스템을 통해 두 사람의 궁합 결과를 얻었습니다. 너의 임무는 입력된 [숙요점 데이터]를 바탕으로, 단순한 텍스트 나열이 아닌 두 사람의 전생의 업(Karma), 현생의 역학 관계, 그리고 미래의 조언을 포함한 '매우 상세하고 통찰력 있는 분석'을 제공하는 것이다.",
+      '',
+      '# Input Variables (To be provided by the system)',
+      '- 본인(Person A)의 숙: ' + personAStar,
+      '- 상대(Person B)의 숙: ' + personBStar,
+      '- 관계 유형: ' + relationshipType,
+      '- 거리: ' + distance,
+      '',
+      '# 숙요점 데이터 참고값',
+      '- 카르마 점수: ' + karmaScore + '/100',
+      '- 인연 온도: ' + temperature + '/100',
+      '- 자력(磁力): ' + magnetism + '/100',
+      '',
+      '# Analysis Guidelines (Vibe Coding Principles)',
+      '1. 깊이 있는 상징성: 각 숙(宿)이 가진 본질적인 성격과 신화적 요소를 결합해 설명할 것.',
+      "2. 역동적 상호작용: 'A는 이렇고 B는 이렇다' 식의 나열이 아니라, 'A의 이런 면이 B의 이런 면과 만났을 때 어떤 스파크가 튀는지'를 분석할 것.",
+      "3. 관계의 거리감 반영: '거리'에 따른 체감 속도와 영향력의 강도를 반드시 해석에 포함할 것.",
+      "4. 현실적 솔루션: 안 좋은 관계(안괴 등)라도 무조건 부정적으로 말하지 말고, 어떻게 하면 이 에너지를 건설적으로 승화시킬 수 있는지 '개운법(Upgrade Strategy)'을 제시할 것.",
+      '',
+      '# Output Format (Markdown)',
+      '1. [한 줄 요약]: 두 사람의 관계를 정의하는 강렬한 키워드 문장.',
+      '2. [영혼의 컬러와 시너지]: 두 사람의 성향이 섞였을 때 나타나는 분위기.',
+      '3. [숙요 관계 심층 분석]: 관계 유형 및 거리의 관점에서 본 핵심 역학.',
+      '4. [주의해야 할 순간]: 갈등이 폭발하거나 오해가 생기기 쉬운 특정 상황.',
+      '5. [관계 가이드라인]: 이 관계를 오랫동안 건강하게 유지하기 위한 AI의 전략적 조언.',
+      "6. [궁합 에너지 점수]: 0~100% (단순 수치가 아닌, '매혹도', '안정성', '성장성'으로 세분화).",
+      '',
+      '# Tone & Manner',
+      '- 신비로우면서도 논리적일 것.',
+      '- 사용자에게 깊은 공감을 불러일으키는 따뜻하지만 냉철한 어조.'
+    ].join('\n');
+  }
+
+  function syCopyText(text) {
+    if (!text) {
+      return Promise.reject(new Error('empty'));
+    }
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      return navigator.clipboard.writeText(text);
+    }
+
+    return new Promise(function(resolve, reject) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', 'readonly');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) resolve();
+        else reject(new Error('copy failed'));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  function syOpenAiChat(promptText, statusEl) {
+    var chatUrl = 'https://chatgpt.com/';
+    var opened = null;
+    try {
+      opened = window.open(chatUrl, '_blank', 'noopener,noreferrer');
+    } catch (_e) {
+      opened = null;
+    }
+
+    if (!opened) {
+      if (statusEl) {
+        statusEl.textContent = '팝업이 차단되었습니다. 팝업 허용 후 다시 시도해 주세요.';
+      }
+      return;
+    }
+
+    syCopyText(promptText).then(function() {
+      if (statusEl) {
+        statusEl.textContent = 'AI 채팅이 새 탭에서 열렸고, 프롬프트도 복사되었습니다. 붙여 넣어 실행하세요.';
+      }
+    }).catch(function() {
+      if (statusEl) {
+        statusEl.textContent = 'AI 채팅은 열렸습니다. 프롬프트 복사에 실패해 직접 복사해 주세요.';
+      }
+    });
+  }
+
+  window.triggerSynergyCheck = function(myIdx, myMansionName) {
       // ── 모바일 더블탭 / 중복 실행 방어 ──
       if (window._sy3Running) return;
       window._sy3Running = true;
@@ -18965,6 +20036,16 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           const gradColor = 'linear-gradient(135deg, ' + palette[0] + ', ' + palette[1] + ')';
           const mgVal = rel.magnetism || 60;
           const relationStory = buildSukuyoRelationStory(rel, distInfo);
+          const myStarName = String(myMansionName || '').trim() || (document.querySelector('.sy-glow-text') ? String(document.querySelector('.sy-glow-text').textContent || '').trim() : '미상');
+          const aiPromptText = buildSukuyoAiPromptTemplate({
+            personAStar: myStarName || '미상',
+            personBStar: tData.mansion || '미상',
+            relationshipType: syPromptRelationLabel(rel, relationStory),
+            distance: syPromptDistanceLabel(distInfo),
+            karmaScore: rel.score,
+            temperature: rel.temperature,
+            magnetism: mgVal
+          });
           const relationStageCards = (relationStory.stages || []).map(function(stage, idx) {
             var tint = idx === 0 ? 'rgba(125,211,252,0.11)' : (idx === 1 ? 'rgba(196,181,253,0.11)' : 'rgba(251,146,60,0.11)');
             var border = idx === 0 ? 'rgba(125,211,252,0.35)' : (idx === 1 ? 'rgba(196,181,253,0.35)' : 'rgba(251,146,60,0.35)');
@@ -19113,8 +20194,46 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                 ${rxItems}
               </div>
 
+              <div class="sy-sec" style="background:rgba(180,160,255,0.08); border:1px solid rgba(180,160,255,0.3);">
+                <div class="sy-sec-title" style="color:#c4b5fd;">🤖 AI 심층 궁합 프롬프트</div>
+                <div style="font-size:0.86rem;color:#d8d0ee;line-height:1.72;margin-bottom:10px;">아래 프롬프트는 지금 계산된 숙요 궁합 결과를 자동 반영합니다. 복사해서 원하는 AI에 붙여 넣으면 상세 관계 리포트를 받을 수 있습니다.</div>
+                <textarea id="sy3AiPromptText" readonly style="width:100%;min-height:260px;border-radius:10px;border:1px solid rgba(196,181,253,0.45);background:rgba(10,15,30,0.72);color:#e9e5ff;padding:12px;font-size:0.8rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+                  <button id="sy3AiPromptCopyBtn" type="button" style="background:#8b5cf6;color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
+                  <button id="sy3AiPromptOpenBtn" type="button" style="background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">AI 채팅 열기</button>
+                </div>
+                <div id="sy3AiPromptStatus" style="margin-top:8px;font-size:0.76rem;color:#b4a6d8;"></div>
+              </div>
+
             </div>
           </div>`;
+
+          var promptBox = rd.querySelector('#sy3AiPromptText');
+          if (promptBox) {
+            promptBox.value = aiPromptText;
+            promptBox.scrollTop = 0;
+          }
+          var promptCopyBtn = rd.querySelector('#sy3AiPromptCopyBtn');
+          var promptOpenBtn = rd.querySelector('#sy3AiPromptOpenBtn');
+          var promptStatus = rd.querySelector('#sy3AiPromptStatus');
+          if (promptCopyBtn && promptBox) {
+            promptCopyBtn.addEventListener('click', function() {
+              syCopyText(promptBox.value || aiPromptText).then(function() {
+                if (promptStatus) {
+                  promptStatus.textContent = '프롬프트가 복사되었습니다. 원하는 AI에 붙여 넣어 상세 궁합 리포트를 받아보세요.';
+                }
+              }).catch(function() {
+                if (promptStatus) {
+                  promptStatus.textContent = '복사에 실패했습니다. 프롬프트 박스를 길게 눌러 직접 복사해 주세요.';
+                }
+              });
+            });
+          }
+          if (promptOpenBtn && promptBox) {
+            promptOpenBtn.addEventListener('click', function() {
+              syOpenAiChat(promptBox.value || aiPromptText, promptStatus);
+            });
+          }
 
           // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약
           rd.style.display = 'block';
@@ -19576,6 +20695,7 @@ function resetApp(){
   var dmCard=document.getElementById('dailyMonthlyCard');
   if(dmCard)dmCard.style.display='none';
   G_POWER=null;G_JONG=null;G_JOHU=null;
+  _clearDestinyFlowerSajuSnapshot();
   requestAnimationFrame(function () {
     setTimeout(function () {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -19648,6 +20768,7 @@ document.addEventListener('destinyProfileChanged', function(e) {
     if (resultPage && resultPage.style.display !== 'none' && G_PILLARS) {
       try { renderAstroInsight(); }                 catch(re) {}
       try { renderSukuyo(G_PILLARS, G_NATAL, G_BAZI, null); } catch(re) {}
+      _syncDestinyFlowerSajuSnapshot('profile-change-event');
     }
   } catch(err) {
     console.error('[DP→Engine] destinyProfileChanged 처리 오류:', err);
