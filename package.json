@@ -7,9 +7,10 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build && npx @opennextjs/cloudflare build",
+    "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "cf-deploy": "next build && npx @opennextjs/cloudflare build"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
