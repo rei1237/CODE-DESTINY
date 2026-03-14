@@ -5,33 +5,12 @@
   "engines": {
     "node": ">=20"
   },
-  // [빌드 스크립트 안내]
-  // 일반 빌드는 "build": "next build"로 사용하세요.
-  // 클라우드플레어 Pages 배포 시에는 "cf-build" 명령어를 사용하거나,
-  // Cloudflare Pages 설정에서 빌드 명령어를 "npm run cf-build"로 지정하세요.
-  // (루프 방지: build 명령어는 CF_PAGES 환경변수가 없을 때만 동작하도록 하거나, Cloudflare에서 명령어를 꼭 변경하세요)
   "scripts": {
     "dev": "next dev",
-    "cf:auth:init": "node scripts/setup-cloudflare-auth.mjs",
-    "clean:cache": "node -e \"const fs=require('fs');['.next','dist'].forEach((p)=>{try{fs.rmSync(p,{recursive:true,force:true});console.log('Removed cache:',p);}catch{}})\"",
-    "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "build": "next build",
-    "cf-build": "next build && npx @opennextjs/cloudflare build",
-    "clean:cf": "node scripts/clean-cloudflare-build.mjs",
-    "build:cf": "npm run clean:cache && npm run sitemap:generate && npm run clean:cf && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs",
-    "build:cf:static": "npm run build:cf",
-    "deploy:cf:static": "npm run build:cf && node scripts/deploy-pages.mjs",
-    "deploy:cf": "npm run deploy:cf:pages",
-    "deploy:cf:full": "npm run deploy:cf:pages",
-    "deploy:cf:pages": "npm run build:cf && node scripts/deploy-pages.mjs",
-    "deploy:cf:worker": "node -e \"console.error('This project is Pages-only. Use npm run deploy:cf:pages'); process.exit(1)\"",
-    "deploy": "npm run deploy:cf:pages",
     "start": "next start",
     "lint": "next lint",
-    "verify:ziwei": "node scripts/verify-ziwei-brightness-constraints.cjs",
-    "verify:ziwei:public": "node scripts/verify-ziwei-brightness-constraints.cjs --engine public/js/saju-engine.js",
-    "api:start": "node server/server.js",
-    "api:dev": "node server/server.js"
+    "cf-build": "next build && npx @opennextjs/cloudflare build"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
