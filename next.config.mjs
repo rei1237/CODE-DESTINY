@@ -8,8 +8,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  productionBrowserSourceMaps: false,
-  outputFileTracingRoot: path.resolve(process.cwd()),
+  productionBrowserSourceMaps: false
 };
 
 export default nextConfig;
