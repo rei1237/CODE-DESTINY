@@ -11,6 +11,12 @@ if (forcePages && forceWorker) {
   process.exit(1);
 }
 
+if (forceWorker) {
+  console.error("[deploy-cloudflare] This repository is configured as Cloudflare Pages-only.");
+  console.error("[deploy-cloudflare] Use `npm run deploy:cf:pages` instead of worker deploy.");
+  process.exit(1);
+}
+
 const isPagesCi =
   process.env.CF_PAGES === "1" ||
   process.env.CF_PAGES === "true" ||
@@ -19,7 +25,7 @@ const isPagesCi =
   !!process.env.CF_PAGES_PROJECT_NAME ||
   !!process.env.CLOUDFLARE_PAGES_PROJECT_NAME;
 
-const deployTarget = forceWorker ? "worker" : "pages";
+const deployTarget = "pages";
 const forcePagesWranglerDeploy =
   process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "1" ||
   process.env.CF_PAGES_FORCE_WRANGLER_DEPLOY === "true";
@@ -78,8 +84,4 @@ if (deployTarget === "pages") {
   }
 
   run("node", [resolve(process.cwd(), "scripts/deploy-pages.mjs")]);
-} else {
-  console.log("[deploy-cloudflare] Target: worker");
-  const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
-  run(npxCmd, ["wrangler", "deploy", "--config", "wrangler.worker.jsonc"]);
 }

@@ -16,7 +16,7 @@
     "deploy:cf": "npm run deploy:cf:pages",
     "deploy:cf:full": "npm run deploy:cf:pages",
     "deploy:cf:pages": "npm run build:cf && node scripts/deploy-pages.mjs",
-    "deploy:cf:worker": "npm run build:cf && node scripts/deploy-cloudflare.mjs --worker",
+    "deploy:cf:worker": "node -e \"console.error('This project is Pages-only. Use npm run deploy:cf:pages'); process.exit(1)\"",
     "deploy": "npm run deploy:cf:pages",
     "start": "next start",
     "lint": "next lint",
