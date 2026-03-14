@@ -9,9 +9,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   productionBrowserSourceMaps: false,
-  experimental: {
-    outputFileTracingRoot: path.resolve(process.cwd()),
-  },
+  outputFileTracingRoot: path.resolve(process.cwd()),
 };
 
 export default nextConfig;
