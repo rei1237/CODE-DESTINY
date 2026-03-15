@@ -319,7 +319,8 @@
 .tarot-self-esteem-face-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: rgba(15, 23, 42, 0.6);
   border-radius: 8px;
   flex: 1;
   min-height: 0;
@@ -500,4 +501,54 @@
 .tarot-self-esteem-result-actions .tarot-self-esteem-btn--subtle {
   background: rgba(251, 191, 36, 0.2);
   color: #fbbf24;
+}
+
+@media (max-width: 768px) {
+  .tarot-self-esteem-shell {
+    margin: 14px auto;
+    padding: 10px 10px 22px;
+  }
+  .tarot-self-esteem-panel {
+    padding: 18px 12px;
+    border-radius: 16px;
+  }
+  .tarot-self-esteem-hero {
+    padding: 16px 8px 20px;
+  }
+  .tarot-self-esteem-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin-bottom: 18px;
+  }
+  .tarot-self-esteem-draw-header {
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .tarot-self-esteem-card-grid {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .tarot-self-esteem-card {
+    width: 100px;
+    height: 150px;
+  }
+  .tarot-self-esteem-slot-label {
+    color: #cbd5e1;
+    font-size: 0.7rem;
+    max-width: 118px;
+  }
+  .tarot-self-esteem-btn--invoke,
+  .tarot-self-esteem-final-btn,
+  .tarot-self-esteem-btn {
+    width: 100%;
+  }
+  .tarot-self-esteem-reading-content {
+    max-height: 58dvh;
+    padding-right: 2px;
+  }
+  .tarot-self-esteem-result-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }

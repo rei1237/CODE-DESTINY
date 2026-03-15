@@ -1,4 +1,9 @@
-import path from 'path';
+const configuredApiTarget =
+  process.env.CODE_DESTINY_API_URL ||
+  process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL ||
+  '';
+
+const apiTarget = (configuredApiTarget || 'http://localhost:4000').replace(/\/+$/, '');
 
 const nextConfig = {
   reactStrictMode: true,
@@ -8,7 +13,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  productionBrowserSourceMaps: false
+  productionBrowserSourceMaps: false,
+  async rewrites() {
+    return [{ source: '/api/:path*', destination: apiTarget + '/api/:path*' }];
+  },
 };
 
 export default nextConfig;

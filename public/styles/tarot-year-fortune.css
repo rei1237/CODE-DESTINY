@@ -810,6 +810,15 @@
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
+
+/* Keep tarot cards fully visible without cropping */
+.ty-draw-card-img,
+.ty-result-card-front img,
+.ty-month-oracle-card img,
+.ty-month-spread-img {
+  object-fit: contain;
+  background: linear-gradient(180deg, rgba(26, 8, 8, 0.8), rgba(13, 4, 4, 0.85));
+}
 .ty-month-detail-item {
   margin: 0;
   font-size: 0.95rem;
@@ -1014,4 +1023,197 @@
   .ty-month-detail-panel { padding: 18px 16px; border-radius: 18px; }
   .ty-month-category-text { line-height: 1.8; }
   .tarot-year-panel { padding: 32px 20px 40px; }
+}
+
+@media (max-width: 768px) {
+  .ty-zodiac-silhouettes,
+  .ty-bg-glow,
+  .ty-particles {
+    display: none;
+  }
+  .tarot-year-shell {
+    margin: 14px auto;
+    padding: 10px 10px 26px;
+  }
+  .tarot-year-panel {
+    border-width: 2px;
+    border-radius: 18px;
+    padding: 20px 12px 22px;
+  }
+  .tarot-year-close {
+    width: 42px;
+    height: 42px;
+    top: 10px;
+    right: 10px;
+    font-size: 22px;
+  }
+  .ty-hero {
+    padding: 14px 0 20px;
+  }
+  .ty-hero-title {
+    font-size: 1.5rem;
+    line-height: 1.3;
+    margin-bottom: 10px;
+  }
+  .ty-hero-subtitle {
+    font-size: 0.92rem;
+    line-height: 1.65;
+    margin-bottom: 18px;
+  }
+  .ty-cta-btn {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-width: 2px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+  }
+  .ty-draw-grid--twelve {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .ty-draw-slot--month {
+    padding: 8px 4px;
+    border-width: 1px;
+    border-radius: 12px;
+  }
+  .ty-draw-slot--month .ty-draw-slot-label {
+    font-size: 1rem;
+  }
+  .ty-draw-card--month {
+    width: 100%;
+    max-width: 84px;
+    height: 124px;
+  }
+  .ty-draw-card--month .ty-draw-card-img {
+    height: 86px;
+  }
+  .ty-result-cards--twelve {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .ty-result-card-wrap--month {
+    width: 100%;
+    min-height: 106px;
+    padding: 8px 6px;
+    border-radius: 12px;
+  }
+  .ty-result-card-wrap--month .ty-result-card-front {
+    min-height: 86px;
+    border-radius: 9px;
+  }
+  .ty-result-card-month {
+    font-size: 1rem;
+  }
+  .ty-result-card-zodiac {
+    font-size: 1.05rem;
+  }
+  .ty-result-card-guide {
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+  }
+  .ty-month-detail-panel {
+    margin-bottom: 16px;
+    padding: 12px;
+    border-width: 2px;
+    border-radius: 14px;
+  }
+  .ty-month-detail-title {
+    font-size: 0.96rem;
+    margin-bottom: 10px;
+  }
+  .ty-month-oracle-hero {
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+  }
+  .ty-month-oracle-card {
+    width: 82px;
+    height: 134px;
+    border-width: 2px;
+    border-radius: 10px;
+  }
+  .ty-month-oracle-name {
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+  .ty-month-oracle-consult {
+    font-size: 0.68rem;
+  }
+  .ty-month-spread-wrap {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+  .ty-month-spread-title {
+    font-size: 0.8rem;
+  }
+  .ty-month-spread-cards {
+    gap: 6px;
+  }
+  .ty-month-spread-card {
+    padding: 6px;
+    border-radius: 10px;
+  }
+  .ty-month-spread-name {
+    font-size: 0.62rem;
+  }
+  .ty-month-category-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ty-month-cat-btn {
+    flex: 0 0 auto;
+    min-width: 82px;
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 0.72rem;
+  }
+  .ty-month-category-panel {
+    padding: 10px;
+    border-radius: 10px;
+  }
+  .ty-month-category-title {
+    font-size: 0.8rem;
+  }
+  .ty-month-category-text {
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+  .ty-advice-section {
+    padding: 14px;
+    border-width: 2px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  .ty-advice-title {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
+  .ty-advice-text {
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+  .ty-result-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .ty-result-btn {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-width: 2px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+  }
 }

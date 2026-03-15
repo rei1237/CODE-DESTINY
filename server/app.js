@@ -7,6 +7,7 @@ const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const fortuneRoutes = require("./routes/fortune.routes");
+const tarotRoutes = require("./routes/tarot.routes");
 
 const app = express();
 
@@ -24,12 +25,47 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-const corsOrigin = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(",").map((v) => v.trim())
-  : true;
+const defaultAllowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:4000",
+  "https://code-destiny.com",
+  "https://www.code-destiny.com",
+];
+
+const configuredOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((v) => v.trim()).filter(Boolean)
+  : [];
+
+const allowedOrigins = new Set([...defaultAllowedOrigins, ...configuredOrigins]);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+
+  try {
+    const { hostname, protocol } = new URL(origin);
+    const isHttp = protocol === "http:" || protocol === "https:";
+    if (!isHttp) return false;
+    // Allow subdomains like api.code-destiny.com or preview domains under code-destiny.com.
+    return hostname === "code-destiny.com" || hostname.endsWith(".code-destiny.com");
+  } catch (_) {
+    return false;
+  }
+}
 
 app.use(helmet());
-app.use(cors({ origin: corsOrigin, credentials: true }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json({ limit: "1mb" }));
 app.use("/api", globalLimiter);
 app.use("/api/auth", authLimiter);
@@ -42,6 +78,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/fortune", fortuneRoutes);
+app.use("/api/tarot", tarotRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "요청한 API 경로를 찾을 수 없습니다." });

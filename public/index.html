@@ -375,12 +375,23 @@
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/animations.css">
   <link rel="stylesheet" href="styles/fortune-ui.css">
-  <link rel="stylesheet" href="styles/animal-totem-mystic.css">
-  <link rel="stylesheet" href="styles/tarot-love-mystic.css?v=20260315-tarot-flip-persist2">
-  <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260315-tarot-image-fix5">
-  <link rel="stylesheet" href="styles/tarot-reunion-lighthouse.css?v=20260315-tarot-image-fix1">
-  <link rel="stylesheet" href="styles/tarot-year-fortune.css?v=20260315-tarot-image-fix1">
-  <link rel="stylesheet" href="styles/tarot-self-esteem-quest.css?v=20260315-tarot-image-fix1">
+  <script>
+    (function () {
+      try {
+        if (window.CODE_DESTINY_API_BASE_URL) return;
+        var host = String(location.hostname || "").toLowerCase();
+        if (host === "code-destiny.com" || host === "www.code-destiny.com") {
+          window.CODE_DESTINY_API_BASE_URL = "https://api.code-destiny.com";
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="styles/tarot-love-mystic.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="styles/tarot-reunion-lighthouse.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="css/entertain-system.css">
 </head>
 <body>
