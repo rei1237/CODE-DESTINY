@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 
-const { getEngineMeta } = require("../../../../server/services/tarot-engine.service");
+import sampleData from "../../../../server/data/tarot-cards.sample.json";
+import dbData from "../../../../server/data/tarot-cards.db.json";
+
+const { getEngineMeta, initFromPreloadedData } = require("../../../../server/services/tarot-engine.service");
 
 export async function GET() {
   try {
+    initFromPreloadedData(dbData, sampleData);
     const engine = getEngineMeta();
     return NextResponse.json({ ok: true, engine });
   } catch (error) {

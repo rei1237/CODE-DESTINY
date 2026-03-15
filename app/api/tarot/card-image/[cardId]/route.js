@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 
-const { getCardImageSourcesById } = require("../../../../../server/services/tarot-engine.service");
+import sampleData from "../../../../../server/data/tarot-cards.sample.json";
+import dbData from "../../../../../server/data/tarot-cards.db.json";
+
+const { getCardImageSourcesById, initFromPreloadedData } = require("../../../../../server/services/tarot-engine.service");
 
 export async function GET(request, context) {
   try {
+    initFromPreloadedData(dbData, sampleData);
     const params = await (context?.params || Promise.resolve({}));
     const cardId = String(params?.cardId || "").trim();
     if (!cardId) {

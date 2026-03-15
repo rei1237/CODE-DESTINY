@@ -160,6 +160,29 @@ function readJson(filePath) {
   return JSON.parse(raw);
 }
 
+function initFromPreloadedData(db, sample) {
+  if (!db && !sample) return;
+  const sampleMap = sample && Array.isArray(sample.cards) ? new Map(sample.cards.map((c) => [c.id, c])) : new Map();
+  if (db && Array.isArray(db.cards) && db.cards.length >= 78) {
+    const hasNoisyContent = db.cards[0]?.interpretations?.upright?.general?.includes("메이저 아르카나");
+    if (hasNoisyContent && sampleMap.size > 0) {
+      cachedCards = db.cards.map((c) => {
+        const fromSample = sampleMap.get(c.id);
+        if (fromSample?.interpretations) return { ...c, interpretations: fromSample.interpretations, keywords: fromSample.keywords || c.keywords };
+        return c;
+      });
+    } else {
+      cachedCards = db.cards;
+    }
+    return;
+  }
+  if (sample && Array.isArray(sample.cards) && sample.cards.length >= 78) {
+    cachedCards = sample.cards;
+    return;
+  }
+  cachedCards = buildFallbackDeck78();
+}
+
 function loadCardDb() {
   if (cachedCards) return cachedCards;
 
@@ -1453,4 +1476,5 @@ module.exports = {
   getEngineMeta,
   normalizeCategory,
   normalizeSpreadType,
+  initFromPreloadedData,
 };

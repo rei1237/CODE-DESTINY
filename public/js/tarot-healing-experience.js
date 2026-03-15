@@ -59,9 +59,9 @@
 
     if (typeof window !== "undefined") {
       var host = String(location.hostname || "").toLowerCase();
-      if (host === "code-destiny.com" || host === "www.code-destiny.com") {
+      if (host === "code-destiny.com" || host === "www.code-destiny.com" || host.endsWith(".pages.dev")) {
         add("");
-        add(location.origin || "https://code-destiny.com");
+        add(location.origin || "");
       }
     }
     add(getTarotApiBase());
