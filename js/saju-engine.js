@@ -2995,8 +2995,10 @@ function getFortuneApiBaseUrl(){
     if (window.CODE_DESTINY_API_BASE_URL) return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
     var custom = localStorage.getItem('fortune_api_base_url');
     if (custom) return String(custom).replace(/\/+$/, '');
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return 'http://localhost:4000';
-    return location.origin;
+    var host = String(location.hostname || '').toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:4000';
+    if (host === 'api.code-destiny.com') return location.origin;
+    return 'https://api.code-destiny.com';
   }
   return 'http://localhost:4000';
 }
@@ -9575,6 +9577,21 @@ function renderZiwei(p, natal, targetId) {
   grid-template-rows: repeat(4, minmax(92px, auto));
   gap: 8px;
 }
+.zwp-cta {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(125, 211, 252, 0.34);
+  background: linear-gradient(120deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.58));
+  color: #dbeafe;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.zwp-cta b {
+  color: #fef08a;
+}
 .zwp-cell {
   position: relative;
   appearance: none;
@@ -9590,6 +9607,18 @@ function renderZiwei(p, natal, targetId) {
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   animation: zwpCellIn 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+.zwp-cell::after {
+  content: 'Tap';
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  font-size: 0.54rem;
+  letter-spacing: 0.08em;
+  color: rgba(191, 219, 254, 0.75);
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
 @keyframes zwpCellIn {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
@@ -9604,6 +9633,12 @@ function renderZiwei(p, natal, targetId) {
 .zwp-cell:focus-visible {
   outline: 2px solid rgba(125, 211, 252, 0.86);
   outline-offset: 1px;
+}
+.zwp-cell:hover::after,
+.zwp-cell:focus-visible::after,
+.zwp-cell.zwp-active::after {
+  opacity: 1;
+  transform: translateY(0);
 }
 .zwp-cell-5 { grid-area: 1/1; }
 .zwp-cell-6 { grid-area: 1/2; }
@@ -9757,6 +9792,16 @@ function renderZiwei(p, natal, targetId) {
 .zwp-modal-body p {
   margin: 0 0 10px;
 }
+.zwp-modal-list {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.zwp-modal-list li {
+  margin-bottom: 4px;
+}
 .zwp-glow {
   color: #bae6fd;
   font-weight: 800;
@@ -9784,16 +9829,44 @@ function renderZiwei(p, natal, targetId) {
   font-size: 0.72rem;
 }
 @media (max-width: 768px) {
+  .zwp-wrap {
+    border-radius: 16px;
+    padding: 10px;
+  }
+  .zwp-cta {
+    margin-bottom: 8px;
+    font-size: 0.74rem;
+    padding: 9px 10px;
+  }
   .zwp-grid {
-    grid-template-rows: repeat(4, minmax(84px, auto));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
     gap: 6px;
+  }
+  .zwp-cell,
+  .zwp-core {
+    grid-area: auto !important;
   }
   .zwp-cell {
     padding: 7px;
+    min-height: 78px;
+  }
+  .zwp-core {
+    order: -1;
+    border-radius: 16px;
+    padding: 12px 10px;
+    gap: 3px;
   }
   .zwp-modal {
-    width: min(760px, 96vw);
-    padding: 14px;
+    width: min(760px, calc(100vw - 12px));
+    max-height: calc(100dvh - 18px);
+    padding: 13px;
+    margin-top: max(env(safe-area-inset-top), 6px);
+  }
+  .zwp-modal-overlay {
+    align-items: flex-start;
+    justify-content: center;
+    padding: 8px 6px 10px;
   }
 }
 
@@ -9975,6 +10048,21 @@ function renderZiwei(p, natal, targetId) {
     var whyType = '주성 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(mainText) + '</span> 조합은 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(row.profile.type) + '</span> 성향을 강화합니다.';
     var evidence = _zwPortfolioEscapeHtml(row.profile.evidence || '해당 성계는 실전에서 판단-행동 간격을 좁히는 방향으로 작동합니다.');
     var relation = '이 궁은 전체 대표 타이틀 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(summary.title) + '</span>과 연결되어, 현재 명반의 중심 테마를 구체 행동으로 변환하는 역할을 맡습니다.';
+    var growthAction = {
+      '권위형': ['중요 의사결정의 기준 3가지를 문장화하세요.', '팀 내 역할과 책임의 경계를 먼저 정의하세요.'],
+      '권력형': ['협업 상대의 이해관계를 표로 정리해 충돌을 줄이세요.', '핵심 제안은 수치 근거 1개를 붙여 전달하세요.'],
+      '관찰자': ['결정 전 24시간 관찰 규칙으로 성급한 판단을 줄이세요.', '핵심 가설을 1문장으로 축약해 실행팀과 공유하세요.'],
+      '발산형': ['발표/브랜딩 채널을 1개 고정해 영향력을 축적하세요.', '주 1회 공개 기록으로 신뢰 자산을 쌓으세요.'],
+      '실행형': ['우선순위 3개만 남기고 나머지는 보류 처리하세요.', '성과 지표를 주간 단위로 체크해 재투입 여부를 결정하세요.'],
+      '수호형': ['리스크 목록과 대응 플랜을 미리 준비해 변동성을 낮추세요.', '핵심 자산은 보수적 분산으로 안정성을 확보하세요.'],
+      '공감형': ['갈등 상황에서 사실/감정/요청을 분리해 대화하세요.', '에너지 소진을 막는 회복 루틴을 일정에 고정하세요.'],
+      '매력형': ['네트워크 확장은 분기별 핵심 그룹 중심으로 진행하세요.', '유입된 기회는 수익성/지속성 기준으로 선별하세요.'],
+      '논리형': ['반대 가설을 먼저 검증해 의사결정 오류를 줄이세요.', '핵심 문서는 체크리스트 기반으로 표준화하세요.'],
+      '조율형': ['관계의 우선순위를 명확히 해 에너지 분산을 줄이세요.', '중재 시 양측의 공통 목표를 먼저 합의하세요.'],
+      '보호형': ['장기 과제는 월 단위 리밸런싱으로 유지하세요.', '멘토링/후배 육성에 시간을 배정해 영향력을 확장하세요.']
+    };
+    var actions = growthAction[row.profile.type] || ['오늘 실행할 작은 행동 1개를 정하고 기록하세요.', '일주일 뒤 결과를 점검해 다음 행동으로 연결하세요.'];
+    var actionHtml = '<ul class="zwp-modal-list"><li>' + _zwPortfolioEscapeHtml(actions[0]) + '</li><li>' + _zwPortfolioEscapeHtml(actions[1]) + '</li></ul>';
 
     return ''
       + '<p><b>[' + _zwPortfolioEscapeHtml(row.palaceDisplay) + ' · ' + _zwPortfolioEscapeHtml(row.branch) + '궁]</b> 성계 구성은 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(row.profile.persona) + '</span> 축으로 읽힙니다.</p>'
@@ -9983,6 +10071,8 @@ function renderZiwei(p, natal, targetId) {
       + '<p>' + evidence + '</p>'
       + '<p><b>성계 근거:</b> 주성 ' + _zwPortfolioEscapeHtml(mainText) + ' / 보조성 ' + _zwPortfolioEscapeHtml(auxText) + ' / 경계성 ' + _zwPortfolioEscapeHtml(badText) + '</p>'
       + '<p>' + relation + '</p>'
+      + '<p><b>실전 실행 가이드</b></p>'
+      + actionHtml
       + '<div class="zwp-swipe-hint">아래로 스와이프하거나 ✶ 버튼으로 닫을 수 있습니다.</div>';
   }
 
@@ -10084,10 +10174,13 @@ function renderZiwei(p, natal, targetId) {
 
       title.textContent = row.palaceDisplay + ' | ' + row.profile.persona;
       body.innerHTML = _zwPortfolioBuildModalHtml(row, store.summary);
+      body.scrollTop = 0;
       mount.querySelectorAll('.zwp-cell.zwp-active').forEach(function(el){ el.classList.remove('zwp-active'); });
       var activeCell = mount.querySelector('.zwp-cell-' + idx);
       if (activeCell) activeCell.classList.add('zwp-active');
       overlay.classList.add('is-open');
+      var sheet = mount.querySelector('.zwp-modal');
+      if (sheet) sheet.scrollTop = 0;
     };
 
     window._renderZwDestinyPortfolio = function(targetId, pd) {
@@ -10140,6 +10233,7 @@ function renderZiwei(p, natal, targetId) {
       mount.innerHTML = ''
         + '<section class="zwp-wrap" aria-label="운명 포트폴리오">'
         + '  <div class="zwp-starfield">' + starfieldHtml + '</div>'
+        + '  <div class="zwp-cta"><b>클릭 가이드</b> · 각 카드를 눌러 궁별 성향, 근거, 실행 전략을 확인하세요. 모바일에서는 상단 시트로 바로 열립니다.</div>'
         + '  <div class="zwp-grid">'
         +       cellsHtml
         + '    <div class="zwp-core">'
@@ -10147,6 +10241,7 @@ function renderZiwei(p, natal, targetId) {
         + '      <div class="zwp-core-title">' + _zwPortfolioEscapeHtml(summary.title) + '</div>'
         + '      <div class="zwp-core-slogan">' + _zwPortfolioEscapeHtml(summary.slogan) + '</div>'
         + '      <div class="zwp-core-hash">' + _zwPortfolioEscapeHtml(summary.hash) + '</div>'
+        + '      <div class="zwp-core-slogan">핵심 키워드 · ' + _zwPortfolioEscapeHtml((summary.keywords || []).slice(0, 3).join(' · ') || '균형 · 실행 · 확장') + '</div>'
         + '    </div>'
         + '  </div>'
         + '  <div class="zwp-modal-overlay" aria-hidden="true">'
@@ -10229,7 +10324,14 @@ function renderZiwei(p, natal, targetId) {
       if (dp) {
         requestAnimationFrame(function() {
           setTimeout(function() {
-            dp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+            if (isMobile) {
+              var rect = dp.getBoundingClientRect();
+              var top = window.pageYOffset + rect.top - 10;
+              window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+            } else {
+              dp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
           }, 80);
         });
       }
@@ -16661,6 +16763,26 @@ var isReading = false;
 var autoStartTimer = null;
 var tarotSpreadMode = 'one'; // 'one' | 'three'
 var tarotThreeCardState = { cards: [], revealedIndex: -1 };
+var tarotReadingTimer = null;
+var tarotLifecycleToken = 0;
+
+function invalidateTarotFlow() {
+  tarotLifecycleToken += 1;
+  if (autoStartTimer) {
+    clearTimeout(autoStartTimer);
+    autoStartTimer = null;
+  }
+  if (tarotReadingTimer) {
+    clearTimeout(tarotReadingTimer);
+    tarotReadingTimer = null;
+  }
+}
+window.invalidateTarotFlow = invalidateTarotFlow;
+
+function isTarotModalActive() {
+  var overlay = document.getElementById('tarotModalOverlay');
+  return !!overlay && overlay.style.display !== 'none';
+}
 
 // 스프레드 모드별 라벨 (카테고리별 커스텀 가능)
 var TAROT_SPREAD_LABELS = {
@@ -16675,6 +16797,7 @@ function getTarotSpreadLabels(cat) {
 }
 
 function setTarotMode(mode) {
+  invalidateTarotFlow();
   if (isReading) return;
   tarotSpreadMode = mode;
   var sceneOne = document.getElementById('tarotSceneOne');
@@ -16696,34 +16819,48 @@ function setTarotMode(mode) {
   }
   // 리셋 쓰리카드 상태
   tarotThreeCardState = { cards: [], revealedIndex: -1 };
-  document.getElementById('tarotResultContainer').style.display = 'none';
+  var resultEl = document.getElementById('tarotResultContainer');
+  if (resultEl) resultEl.style.display = 'none';
   // 모드 전환 시 이미 카테고리가 선택되어 있으면 즉시 덱 준비
-  if (mode === 'three' && curTarotCat) {
+  if (mode === 'three' && curTarotCat && isTarotModalActive()) {
     startThreeCardFlow();
   }
 }
 
 function selectTarotCategory(cat, btn) {
   if(isReading) return;
+  invalidateTarotFlow();
   curTarotCat = cat;
   
   // UI 업데이트
-  var siblings = btn.parentElement.children;
-  for(var i=0; i<siblings.length; i++) {
-    siblings[i].classList.remove('active');
+  if (btn && btn.parentElement) {
+    var siblings = btn.parentElement.children;
+    for(var i=0; i<siblings.length; i++) {
+      siblings[i].classList.remove('active');
+    }
+    btn.classList.add('active');
   }
-  btn.classList.add('active');
   
   // 리추얼 메시지 초기화
   var msgEl = document.getElementById('tarotRitualMsg');
-  msgEl.innerHTML = `🌿 <b>${TAROT_CONTEXT[cat].label}</b>에 관한 카드를 펼칩니다. 잠시 호흡을 가다듬어 보세요.`;
-  msgEl.style.opacity = 0.6;
+  var catCtx = TAROT_CONTEXT[cat];
+  if (msgEl) {
+    msgEl.innerHTML = catCtx
+      ? `🌿 <b>${catCtx.label}</b>에 관한 카드를 펼칩니다. 잠시 호흡을 가다듬어 보세요.`
+      : '🌿 카드를 펼칠 준비를 하고 있습니다. 잠시만 기다려주세요.';
+    msgEl.style.opacity = 0.6;
+  }
   
   // 결과창 초기화
-  document.getElementById('tarotResultContainer').style.display='none';
-  document.getElementById('tarotOracleText').classList.remove('show');
-  document.getElementById('tarotOracleText').innerHTML='';
-  document.getElementById('tarotCardName').innerHTML='';
+  var resultEl = document.getElementById('tarotResultContainer');
+  if (resultEl) resultEl.style.display='none';
+  var oracleEl = document.getElementById('tarotOracleText');
+  if (oracleEl) {
+    oracleEl.classList.remove('show');
+    oracleEl.innerHTML='';
+  }
+  var cardNameEl = document.getElementById('tarotCardName');
+  if (cardNameEl) cardNameEl.innerHTML='';
   
   var card = document.getElementById('tarotCardEl');
   if (card) {
@@ -16733,7 +16870,8 @@ function selectTarotCategory(cat, btn) {
     card.classList.remove('divine-focus');
     card.classList.add('tarot-card-container'); 
   }
-  document.getElementById('tarotFocusOverlay').classList.remove('active');
+  var focusOverlay = document.getElementById('tarotFocusOverlay');
+  if (focusOverlay) focusOverlay.classList.remove('active');
 
   if (tarotSpreadMode === 'three') {
     startThreeCardFlow();
@@ -16741,15 +16879,17 @@ function selectTarotCategory(cat, btn) {
   }
 
   // [수정: 클릭 없이 자동 진행] — 원카드 모드
-  if (autoStartTimer) clearTimeout(autoStartTimer);
+  var token = tarotLifecycleToken;
   autoStartTimer = setTimeout(function() {
+    if (token !== tarotLifecycleToken) return;
+    if (!isTarotModalActive()) return;
     startTarotReading();
   }, 1200); 
 }
 
-// 78장 덱에서 중복 없이 3장 추출
+// 78장 덱에서 중복 없이 3장 추출 (명리 타로 로컬용)
 function pickThreeUniqueCards() {
-  var deck = TAROT_DATA.slice();
+  var deck = Array.isArray(TAROT_DATA) ? TAROT_DATA.slice() : [];
   var result = [];
   for (var i = 0; i < 3 && deck.length > 0; i++) {
     var idx = Math.floor(Math.random() * deck.length);
@@ -16758,9 +16898,139 @@ function pickThreeUniqueCards() {
   return result;
 }
 
+// 명리 타로 전용: 로컬 TAROT_DATA에서 3장 뽑기 (역방향 포함)
+function pickThreeUniqueCardsForMingri(labels) {
+  var raw = pickThreeUniqueCards();
+  var positions = ((labels[0] || '') === '상황' && (labels[1] || '') === '조언' && (labels[2] || '') === '결과')
+    ? ['cause', 'process', 'outcome']
+    : ['past', 'present', 'future'];
+  return raw.map(function(card, i) {
+    return {
+      card: card,
+      isReversed: Math.random() < 0.5,
+      imgUrl: '',
+      position: positions[i] || ''
+    };
+  });
+}
+
+// 명리 타로 전용: 로컬 TAROT_DATA에서 1장 뽑기
+function pickOneCardForMingri() {
+  var deck = Array.isArray(TAROT_DATA) ? TAROT_DATA.slice() : [];
+  if (deck.length === 0) return null;
+  var idx = Math.floor(Math.random() * deck.length);
+  var card = deck.splice(idx, 1)[0];
+  return {
+    card: card,
+    isReversed: Math.random() < 0.5,
+    imgUrl: '',
+    position: 'today'
+  };
+}
+
+function mapTarotCategoryToEngine(cat) {
+  var map = {
+    love: 'love',
+    reunion: 'love',
+    friendship: 'love',
+    wealth: 'money',
+    loss: 'money',
+    contract: 'career',
+    travel: 'career',
+    creative: 'career',
+    health: 'general'
+  };
+  return map[cat] || 'general';
+}
+
+function getEngineSpreadType(mode, labels) {
+  if (mode === 'three') {
+    var l = labels || [];
+    if ((l[0] || '') === '상황' && (l[1] || '') === '조언' && (l[2] || '') === '결과') {
+      return 'three_card_cause_process_outcome';
+    }
+    return 'three_card_past_present_future';
+  }
+  return 'one_card';
+}
+
+function normalizeEngineCard(card) {
+  var name = card && card.name ? String(card.name) : '';
+  var legacyShort = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return {
+    id: card && card.cardId ? card.cardId : '',
+    name: name,
+    name_kr: card && card.nameKr ? card.nameKr : name,
+    short: legacyShort,
+    type: card && card.type ? String(card.type).toLowerCase() : '',
+    suit: card && card.suit ? card.suit : null,
+    rank: card && card.rank ? String(card.rank) : '',
+    keywords: card && Array.isArray(card.keywords) ? card.keywords : [],
+    imageKey: card && card.imageKey ? card.imageKey : legacyShort
+  };
+}
+
+function callTarotEngine(endpoint, payload) {
+  var base = typeof getFortuneApiBaseUrl === 'function' ? getFortuneApiBaseUrl() : (location.origin || '');
+  var url = (base ? base.replace(/\/+$/, '') : '') + '/api/tarot/' + endpoint;
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload || {})
+  }).then(function(res) {
+    if (!res.ok) {
+      throw new Error('Tarot API error: ' + res.status);
+    }
+    return res.json();
+  }).then(function(data) {
+    if (!data || data.ok === false) {
+      throw new Error('Tarot API returned invalid payload');
+    }
+    return data;
+  });
+}
+
+var TAROT_LOCAL_BASE = '/tarot-cards/';
+var TAROT_SHORT_TO_FILENAME = {
+  thefool: 'thefool.jpeg', themagician: 'themagician.jpeg', thehighpriestess: 'thehighpriestess.jpeg',
+  theempress: 'theempress.jpeg', theemperor: 'theemperor.jpeg', thehierophant: 'thehierophant.jpeg',
+  thelovers: 'TheLovers.jpg', thechariot: 'thechariot.jpeg', strength: 'thestrength.jpeg', thestrength: 'thestrength.jpeg',
+  thehermit: 'thehermit.jpeg', wheeloffortune: 'wheeloffortune.jpeg', justice: 'justice.jpeg',
+  thehangedman: 'thehangedman.jpeg', death: 'death.jpeg', temperance: 'temperance.jpeg',
+  thedevil: 'thedevil.jpeg', thetower: 'thetower.jpeg', thestar: 'thestar.jpeg',
+  themoon: 'themoon.jpeg', thesun: 'thesun.jpeg', judgement: 'judgement.jpeg', theworld: 'theworld.jpeg',
+  aceofwands: 'aceofwands.jpeg', twoofwands: 'twoofwands.jpeg', threeofwands: 'threeofwands.jpeg',
+  fourofwands: 'fourofwands.jpeg', fiveofwands: 'fiveofwands.jpeg', sixofwands: 'sixofwands.jpeg',
+  sevenofwands: 'sevenofwands.jpeg', eightofwands: 'eightofwands.jpeg', nineofwands: 'nineofwands.jpeg',
+  tenofwands: 'tenofwands.jpeg', pageofwands: 'pageofwands.jpeg', knightofwands: 'knightofwands.jpeg',
+  queenofwands: 'queenofwands.jpeg', kingofwands: 'kingofwands.jpeg',
+  aceofcups: 'aceofcups.jpeg', twoofcups: 'twoofcups.jpeg', threeofcups: 'threeofcups.jpeg',
+  fourofcups: 'fourofcups.jpeg', fiveofcups: 'fiveofcups.jpeg', sixofcups: 'sixofcups.jpeg',
+  sevenofcups: 'sevenofcups.jpeg', eightofcups: 'eightofcups.jpeg', nineofcups: 'nineofcups.jpeg',
+  tenofcups: 'tenofcups.jpeg', pageofcups: 'pageofcups.jpeg', knightofcups: 'knightofcups.jpeg',
+  queenofcups: 'queenofcups.jpeg', kingofcups: 'kingofcups.jpeg',
+  aceofswords: 'aceofswords.jpeg', twoofswords: 'twoofswords.jpeg', threeofswords: 'threeofswords.jpeg',
+  fourofswords: 'fourofswords.jpeg', fiveofswords: 'fiveofswords.jpeg', sixofswords: 'sixofswords.jpeg',
+  sevenofswords: 'sevenofswords.jpeg', eightofswords: 'eightofswords.jpeg', nineofswords: 'nineofswords.jpeg',
+  tenofswords: 'tenofswords.jpeg', pageofswords: 'pageofswords.jpeg', knightofswords: 'knightofswords.jpeg',
+  queenofswords: 'queenofswords.jpeg', kingofswords: 'kingofswords.jpeg',
+  aceofpentacles: 'aceofpentacles.jpeg', twoofpentacles: 'twoofpentacles.jpeg', threeofpentacles: 'threeofpentacles.jpeg',
+  fourofpentacles: 'fourofpentacles.jpeg', fiveofpentacles: 'fiveofpentacles.jpeg', sixofpentacles: 'sixofpentacles.jpeg',
+  sevenofpentacles: 'sevenofpentacles.jpeg', eightofpentacles: 'eightofpentacles.jpeg', nineofpentacles: 'nineofpentacles.jpeg',
+  tenofpentacles: 'tenofpentacles.jpeg', pageofpentacles: 'pageofpentacles.jpeg', knightofpentacles: 'knightofpentacles.jpeg',
+  queenofpentacles: 'queenofpentacles.jpeg', kingofpentacles: 'kingofpentacles.jpeg',
+};
+
 function getTarotImageCandidates(shortName) {
   var rawName = String(shortName || '').trim();
   if (!rawName) return [];
+
+  var out = [];
+  var key = rawName.toLowerCase().replace(/\s+/g, '');
+  var localFn = TAROT_SHORT_TO_FILENAME[key] || TAROT_SHORT_TO_FILENAME[rawName];
+  if (localFn) {
+    out.push(TAROT_LOCAL_BASE + localFn);
+  }
 
   var rawBase = 'https://raw.githubusercontent.com/krates98/tarotcardapi/main/images/';
   var cdnBase = 'https://cdn.jsdelivr.net/gh/krates98/tarotcardapi@main/images/';
@@ -16781,8 +17051,8 @@ function getTarotImageCandidates(shortName) {
     ? ['.jpg', '.jpeg', '.png', '.webp']
     : ['.jpeg', '.jpg', '.png', '.webp'];
 
-  var out = [];
   var seen = Object.create(null);
+  out.forEach(function(u) { seen[u] = true; });
   // CDN 우선: raw.githubusercontent 응답 지연 시 공백 카드가 길어지는 현상 방지
   [cdnBase, rawBase].forEach(function(base) {
     variants.forEach(function(name) {
@@ -17032,7 +17302,7 @@ function buildTarotRealityPlan(cardsData, category, labels) {
 }
 
 function startThreeCardFlow() {
-  if (!curTarotCat) return;
+  if (!curTarotCat || !isTarotModalActive()) return;
   isReading = true;
   tarotThreeCardState = { cards: [], revealedIndex: -1 };
   
@@ -17043,25 +17313,18 @@ function startThreeCardFlow() {
   }
   
   var msgEl = document.getElementById('tarotRitualMsg');
-  msgEl.innerHTML = '🌀 세 장의 카드가 당신을 향해 흘러오고 있습니다...';
-  msgEl.style.opacity = 1;
-
-  var picked = pickThreeUniqueCards();
-  var cardsData = picked.map(function(c) {
-    var isReversed = Math.random() < 0.3;
-    return { card: c, isReversed: isReversed, imgUrl: '' };
-  });
-  
+  if (msgEl) {
+    msgEl.innerHTML = '🌀 세 장의 카드가 당신을 향해 흘러오고 있습니다...';
+    msgEl.style.opacity = 1;
+  }
+  // 명리 타로: 로컬 TAROT_DATA 사용 (타로 엔진 API 호출 없음)
+  var cardsData = pickThreeUniqueCardsForMingri(labels);
   tarotThreeCardState.cards = cardsData;
-  
-  // 모든 카드 flipped 먼저 제거한 뒤 인라인 style 초기화
   document.querySelectorAll('.tarot-spread-card').forEach(function(el) {
     el.classList.remove('flipped');
     el.classList.remove('is-revealing');
     syncTarotSpreadCardFace(el);
   });
-
-  // 카드 앞면 이미지 설정 및 프리로드
   var slots = document.querySelectorAll('#tarotSpreadCards .tarot-slot');
   cardsData.forEach(function(data, idx) {
     var slot = slots[idx];
@@ -17073,12 +17336,11 @@ function startThreeCardFlow() {
       applyTarotImageToFace(front, frontImg, data.card.short, data.card.name_kr + ' (' + data.card.name + ')');
     }
   });
-  document.getElementById('tarotFinalBtn').disabled = true;
-  
+  var finalBtn = document.getElementById('tarotFinalBtn');
+  if (finalBtn) finalBtn.disabled = true;
   var guideEl = document.getElementById('tarotSpreadGuide');
   if (guideEl) guideEl.textContent = (labels[0] || '과거') + ' 자리의 카드를 먼저 열어보세요';
-
-  msgEl.innerHTML = '🌙 마음을 고요히 하고, 끌리는 카드를 순서대로 열어보세요.';
+  if (msgEl) msgEl.innerHTML = '🌙 마음을 고요히 하고, 끌리는 카드를 순서대로 열어보세요.';
   isReading = false;
 }
 
@@ -17090,6 +17352,7 @@ function flipTarotSpreadCard(index) {
   }
   if (isReading) return;
   var idx = parseInt(index, 10);
+  if (isNaN(idx)) return;
   if (tarotThreeCardState.revealedIndex + 1 !== idx) return;
   
   var cardEl = document.querySelector('.tarot-spread-card[data-action-args="' + idx + '"]');
@@ -17108,7 +17371,7 @@ function flipTarotSpreadCard(index) {
   var msgEl = document.getElementById('tarotRitualMsg');
   var data = tarotThreeCardState.cards[idx];
   
-  if (data) {
+  if (data && msgEl) {
     msgEl.innerHTML = '✨ ' + data.card.name_kr + ' — ' + (data.isReversed ? '역행의 에너지가 흐릅니다.' : '순행의 에너지가 흐릅니다.');
   }
   
@@ -17116,7 +17379,8 @@ function flipTarotSpreadCard(index) {
     guideEl.textContent = (labels[idx + 1] || '') + ' 자리의 카드를 열어보세요';
   } else if (idx === 2) {
     if (guideEl) guideEl.textContent = '세 장의 카드가 모두 드러났습니다. 통합 리딩을 시작합니다.';
-    document.getElementById('tarotFinalBtn').disabled = false;
+    var finalBtn = document.getElementById('tarotFinalBtn');
+    if (finalBtn) finalBtn.disabled = false;
     setTimeout(showTarotFinalInterpretation, 900);
   }
 }
@@ -17146,48 +17410,54 @@ function showTarotFinalInterpretation() {
     return;
   }
   if (tarotThreeCardState.revealedIndex !== 2) return;
-  var context = TAROT_CONTEXT[curTarotCat];
   var cardsData = tarotThreeCardState.cards;
   var labels = getTarotSpreadLabels(curTarotCat);
-  
-  var parts = [];
-  cardsData.forEach(function(data, i) {
-    parts.push(buildTarotCardCounselHtml(data.card, data.isReversed, curTarotCat, labels[i] || TAROT_SPREAD_LABELS.default[i]));
-  });
+  var msgEl = document.getElementById('tarotRitualMsg');
+  if (msgEl) msgEl.innerHTML = '🔮 세 장의 맥락을 연결해 명리 리딩을 생성하는 중...';
 
-  var interpretation = '<span style="opacity:0.75;font-style:italic;font-size:0.92em">✦ ' + escapeTarotHtml(context.vibe) + '</span><br><br>' +
-    '<b style="color:#c4b5fd;font-size:1.02em">🔮 3카드 심층 상담 리딩</b><br>' +
-    '<span style="opacity:0.88;font-style:italic;color:#ddd6fe">각 카드는 심리의 결, 명리의 축, 그리고 현실 행동의 방향을 동시에 보여줍니다. 아래 해석은 길흉 판정이 아니라 삶을 조율하는 상담 가이드입니다.</span><br><br>' +
-    parts.join('') +
-    buildTarotRealityPlan(cardsData, curTarotCat, labels) +
+  var cardNameEl = document.getElementById('tarotCardName');
+  if (cardNameEl) {
+    cardNameEl.innerHTML =
+      escapeTarotHtml(labels[0]) + ' · ' + escapeTarotHtml(labels[1]) + ' · ' + escapeTarotHtml(labels[2]);
+  }
+  // 명리 타로: 로컬 TAROT_CONTEXT 해석 사용 (타로 엔진 API 호출 없음)
+  var parts = cardsData.map(function(data, idx) {
+    var label = labels[idx] || TAROT_SPREAD_LABELS.default[idx] || ('카드 ' + (idx + 1));
+    return buildTarotCardCounselHtml(data.card, data.isReversed, curTarotCat, label);
+  }).join('');
+  var realityPlan = buildTarotRealityPlan(cardsData, curTarotCat, labels);
+  var advice = '질문 카테고리(' + (TAROT_CONTEXT[curTarotCat] ? TAROT_CONTEXT[curTarotCat].label : curTarotCat) + ') 기준으로 보면, 지금은 ' +
+    cardsData.map(function(d) { return d.card.name_kr; }).join(' -> ') +
+    '의 흐름을 순서대로 받아들이는 것이 핵심입니다.';
+  var interpretation = '' +
+    '<b style="color:#c4b5fd;font-size:1.02em">🔮 명리학 타로 3카드 리딩</b><br>' +
+    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">카드 간 맥락을 연결한 명리-타로 통합 상담입니다.</span><br><br>' +
+    parts +
+    realityPlan +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(167,243,208,0.35);border-radius:12px;background:rgba(5,150,105,0.10);">' +
-      '<b style="color:#6ee7b7;font-size:1em">🪷 상담사의 마무리</b><br><br>' +
-      '<span style="line-height:1.88;font-style:italic;color:#d1fae5">문제를 없애는 것보다 중요한 것은 나를 다루는 힘을 회복하는 일입니다. 카드가 제시한 신호를 오늘의 행동으로 바꾸면, 이미 운의 방향은 달라지기 시작합니다.</span>' +
-    '</div>' +
-    '<br><span style="opacity:0.65;font-size:0.85em;font-style:italic">✦ ' + escapeTarotHtml(context.label) + ' — 카드별 의미, 심리 상담, 명리학적 축을 통합한 확장 리딩.</span>';
-  
-  document.getElementById('tarotCardName').innerHTML =
-    escapeTarotHtml(labels[0]) + ' · ' + escapeTarotHtml(labels[1]) + ' · ' + escapeTarotHtml(labels[2]);
-
-  var masterLine = context.oracle ? context.oracle(cardsData[1].card, cardsData[1].isReversed) : '';
-  var oracleHtml = masterLine
-    ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 현재 카드의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(masterLine) + '"</span>'
-    : '';
-  document.getElementById('tarotOracleText').innerHTML = oracleHtml;
-  if (oracleHtml) document.getElementById('tarotOracleText').classList.add('show');
-
+      '<b style="color:#6ee7b7;font-size:1em">🪷 상담 조언</b><br><br>' +
+      '<span style="line-height:1.88;color:#d1fae5;">' + escapeTarotHtml(advice) + '</span>' +
+    '</div>';
+  var oracleEl = document.getElementById('tarotOracleText');
+  if (oracleEl) {
+    oracleEl.innerHTML = advice
+      ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 현재 카드의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(advice) + '"</span>'
+      : '';
+    if (advice) oracleEl.classList.add('show');
+  }
   var resultEl = document.getElementById('tarotResultContainer');
-  document.getElementById('destinyFortune').innerHTML = '';
-  resultEl.style.display = 'block';
-
-  // 컨테이너가 먼저 렌더링된 뒤 스크롤, 이후 타이핑 시작 (즉시 대량 삽입으로 인한 화면 튕김 방지)
+  var fortuneEl = document.getElementById('destinyFortune');
+  if (fortuneEl) fortuneEl.innerHTML = '';
+  if (resultEl) resultEl.style.display = 'block';
   setTimeout(function() {
     if (resultEl && typeof resultEl.scrollIntoView === 'function') {
       resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     setTimeout(function() {
       streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
-        document.getElementById('tarotSpreadGuide').textContent = '✨ 세 장의 카드가 당신에게 전할 말을 모두 건넸습니다.';
+        var guide = document.getElementById('tarotSpreadGuide');
+        if (guide) guide.textContent = '✨ 명리 리딩이 완료되었습니다.';
+        if (msgEl) msgEl.innerHTML = '🌟 카드의 흐름을 행동으로 바꿔보세요.';
       });
     }, 350);
   }, 80);
@@ -17199,11 +17469,17 @@ function startTarotReading() {
     return;
   }
   if(isReading) return;
+  if (!isTarotModalActive()) return;
+  invalidateTarotFlow();
   isReading = true;
   
-  var context = TAROT_CONTEXT[curTarotCat];
   var msgEl = document.getElementById('tarotRitualMsg');
   var card = document.getElementById('tarotCardEl');
+  if (!msgEl || !card) {
+    isReading = false;
+    return;
+  }
+  var token = tarotLifecycleToken;
   
   // 1. 셔플 단계
   msgEl.innerHTML = `🌀 무의식이 카드를 고르고 있습니다...`;
@@ -17213,105 +17489,88 @@ function startTarotReading() {
   card.style.animation = 'cardShake 0.5s ease-in-out infinite';
   
   // 2초 후 뽑기
-  setTimeout(() => {
+  tarotReadingTimer = setTimeout(function() {
+    tarotReadingTimer = null;
+    if (token !== tarotLifecycleToken || !isTarotModalActive()) {
+      isReading = false;
+      return;
+    }
     card.style.animation = ''; // 흔들림 멈춤
     
-    // 랜덤 카드 선택
-    var picked = TAROT_DATA[Math.floor(Math.random() * TAROT_DATA.length)];
-    var isReversed = Math.random() < 0.3; // 30% 역방향(기신)
-    
+    // 명리 타로: 로컬 TAROT_DATA 사용 (타로 엔진 API 호출 없음)
+    var drawn = pickOneCardForMingri();
+    if (!drawn) {
+      msgEl.innerHTML = '⚠️ 카드를 뽑을 수 없습니다. 잠시 후 다시 시도해주세요.';
+      isReading = false;
+      return;
+    }
+    var picked = drawn.card;
+    var isReversed = drawn.isReversed;
     var frontEl = document.getElementById('tarotCardFront');
     var frontImgEl = document.getElementById('tarotCardFrontImg');
+    if (!frontEl) {
+      isReading = false;
+      return;
+    }
     frontEl.style.backgroundColor = '#1a1530';
     frontEl.style.backgroundImage = '';
     applyTarotImageToFace(frontEl, frontImgEl, picked.short, picked.name_kr + ' (' + picked.name + ')');
-    // SEO & Accessibility
     frontEl.setAttribute('role', 'img');
-    frontEl.setAttribute('aria-label', `${picked.name_kr} (${picked.name})`);
-    
-    // Rotate if reversed (Keep rotateY(180deg) for the flip logic)
-    frontEl.style.transform = `rotateY(180deg) ${isReversed ? 'rotate(180deg)' : ''}`;
-    
-    // 카드 뒤집기
+    frontEl.setAttribute('aria-label', picked.name_kr + ' (' + picked.name + ')');
+    frontEl.style.transform = 'rotateY(180deg)' + (isReversed ? ' rotate(180deg)' : '');
     card.classList.add('flipped');
     playTarotFlipSound();
-    
-    // [EFFECT:GOLD_DUST]
     createGoldDust(card);
-    
-    // 메시지 출력
-    msgEl.innerHTML = `✦ ${picked.name_kr}(${picked.name}) — 무의식이 선택했습니다.`;
-    
-    var godType = isReversed ? '기신(忌神) · 흉(凶)' : '희신(喜神) · 길(吉)';
+    msgEl.innerHTML = '✦ ' + picked.name_kr + '(' + picked.name + ') — 명리 타로가 선택했습니다.';
     var direction = isReversed ? '역행(逆行)' : '순행(順行)';
-    
-    document.getElementById('tarotCardName').innerHTML = `
-        ${picked.name_kr}
-        <span style="font-size:0.7rem;opacity:0.7">(${picked.name})</span>
-        <div style="font-size:0.8rem;margin-top:4px;color:${isReversed?'#ff6b6b':'#4ecdc4'};font-weight:700;">
-           ${direction} · ${godType}
-        </div>
-    `;
-    
-    document.getElementById('tarotResultContainer').style.display = 'block';
-    
-    // 3. 해석 스트리밍 시작 — 퀀텀 명리-타로 통합 출력
-    var oneCardCounsel = buildTarotCardCounselHtml(picked, isReversed, curTarotCat, '핵심 카드');
-    var profile = getTarotDeepProfile(picked);
-    var realityPlan = `
-      <div style="margin-top:8px;padding:14px 16px;border:1px solid rgba(253,230,138,0.35);border-radius:12px;background:rgba(120,53,15,0.14);">
-        <b style="color:#fde68a;font-size:1em">🛠 원카드 현실 상담 플랜</b><br><br>
-        <span style="line-height:1.85;"><b>오늘:</b> 지금 반복되는 감정 반응 1개를 적고, 그 촉발 상황을 구체적으로 기록하세요.</span><br>
-        <span style="line-height:1.85;"><b>이번 주:</b> <b>${picked.name_kr}</b>의 코칭 문장인 "${profile.heal}"를 하루 10분 실천하세요.</span><br>
-        <span style="line-height:1.85;"><b>이번 달:</b> 감정 안정·관계·일/돈 중 1개 영역에서 숫자로 측정 가능한 목표를 정해 흐름을 확인하세요.</span>
-      </div>
-    `;
-
-    var interpretation = `
-      <span style="opacity:0.72;font-style:italic;font-size:0.92em">✦ ${context.vibe}</span><br><br>
-      <b style="color:#ddd6fe;font-size:1.02em">🌙 원카드 심층 상담 리딩</b><br>
-      <span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">한 장의 카드에도 심리 패턴, 명리학적 십성 축, 현실 선택의 힌트가 함께 담겨 있습니다. 아래 해석은 오늘의 행동을 돕는 실전 상담 가이드입니다.</span><br><br>
-      ${oneCardCounsel}
-      ${realityPlan}
-      <div style="margin-top:10px;padding:12px 14px;border:1px solid rgba(110,231,183,0.25);border-radius:10px;background:rgba(5,150,105,0.09);">
-        <span style="color:#6ee7b7;font-style:italic;line-height:1.85;font-size:0.95em">치유는 거창한 결심보다 작은 반복에서 시작됩니다. 오늘 카드의 메시지를 삶의 리듬으로 바꾸는 순간, 이미 당신의 운은 새로운 곡선으로 이동합니다.</span>
-      </div>
-    `.trim();
-    
-    streamRitualHtmlTyped(interpretation, 'destinyFortune', () => {
-       // 마무리 오라클 (카드 하단 강조 문구)
-       var masterLine = context.oracle ? context.oracle(picked, isReversed) : '';
-       var oracleHtml = masterLine
-         ? `<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 오늘의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"${masterLine}"</span>`
-         : '';
-       var oracleEl = document.getElementById('tarotOracleText');
-       oracleEl.innerHTML = oracleHtml;
-       if(oracleHtml) oracleEl.classList.add('show');
-       isReading = false;
-       
-       // DIVINE FOCUS INTERACTION ENABLE
-       card.onclick = function(e) { 
-            e.stopPropagation();
-            enterDivineFocus(this); 
-       };
-       card.style.cursor = 'zoom-in';
-       // Tip msg
-       msgEl.innerHTML = `🌟 카드를 탭하면 더 깊은 에너지를 느낄 수 있습니다.`;
+    var cardNameEl = document.getElementById('tarotCardName');
+    if (cardNameEl) {
+      cardNameEl.innerHTML =
+        picked.name_kr +
+        '<span style="font-size:0.7rem;opacity:0.7">(' + picked.name + ')</span>' +
+        '<div style="font-size:0.8rem;margin-top:4px;color:' + (isReversed ? '#ff6b6b' : '#4ecdc4') + ';font-weight:700;">' +
+        direction +
+        '</div>';
+    }
+    var resultEl = document.getElementById('tarotResultContainer');
+    if (resultEl) resultEl.style.display = 'block';
+    var interpretation = '<b style="color:#ddd6fe;font-size:1.02em">🌙 명리학 타로 원카드 리딩</b><br>' +
+      '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">카드 의미와 질문 카테고리를 결합한 맞춤 상담입니다.</span><br><br>' +
+      buildTarotCardCounselHtml(picked, isReversed, curTarotCat, '오늘');
+    streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
+      if (token !== tarotLifecycleToken) return;
+      var ctx = TAROT_CONTEXT[curTarotCat];
+      var advice = ctx && ctx.oracle ? ctx.oracle(picked, isReversed) : '';
+      var oracleEl = document.getElementById('tarotOracleText');
+      if (oracleEl) {
+        oracleEl.innerHTML = advice
+          ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 오늘의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(advice) + '"</span>'
+          : '';
+        if (advice) oracleEl.classList.add('show');
+      }
+      isReading = false;
+      card.onclick = function(e) {
+        e.stopPropagation();
+        enterDivineFocus(this);
+      };
+      card.style.cursor = 'zoom-in';
+      msgEl.innerHTML = '🌟 카드를 탭하면 더 깊은 에너지를 느낄 수 있습니다.';
     });
-    
   }, 2000);
 }
 
 function enterDivineFocus(cardEl) {
     if(!cardEl.classList.contains('flipped')) return;
     cardEl.classList.add('divine-focus');
-    document.getElementById('tarotFocusOverlay').classList.add('active');
+    var overlay = document.getElementById('tarotFocusOverlay');
+    if (overlay) overlay.classList.add('active');
 }
 
 function exitDivineFocus() {
     var card = document.getElementById('tarotCardEl');
     if(card) card.classList.remove('divine-focus');
-    document.getElementById('tarotFocusOverlay').classList.remove('active');
+    var overlay = document.getElementById('tarotFocusOverlay');
+    if (overlay) overlay.classList.remove('active');
 }
 
 function streamRitualText(text, targetId, callback) {
@@ -19261,11 +19520,11 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         var _sySt = document.createElement('style');
         _sySt.id = 'sy-main-style';
         _sySt.textContent = `
-        .sy-container { background: linear-gradient(160deg, rgba(10,12,25,0.98) 0%, rgba(20,22,45,0.98) 100%); border: 1px solid rgba(180,160,255,0.25); border-radius: 18px; padding: 28px 22px; color: #ede8d0; font-family: 'Noto Serif KR', serif; box-shadow: 0 15px 50px rgba(0,0,0,0.7), 0 0 80px rgba(120,80,220,0.07); position: relative; touch-action: pan-y; overflow-x: hidden; }
+        .sy-container { background: linear-gradient(160deg, rgba(10,12,25,0.98) 0%, rgba(20,22,45,0.98) 100%); border: 1px solid rgba(180,160,255,0.25); border-radius: 18px; padding: 30px 24px; color: #ede8d0; font-family: 'Noto Sans KR','Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif; box-shadow: 0 15px 50px rgba(0,0,0,0.7), 0 0 80px rgba(120,80,220,0.07); position: relative; touch-action: pan-y; overflow-x: hidden; }
         .sy-container::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; background:radial-gradient(circle, rgba(120,80,220,0.12) 0%, transparent 70%); pointer-events:none; }
         .sy-header { text-align: center; border-bottom: 1px solid rgba(180,160,255,0.2); padding-bottom: 16px; margin-bottom: 22px; }
         .sy-header h3 { margin: 0; background: linear-gradient(135deg, #e2c9ff, #ffd700, #e2c9ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size: 1.6rem; text-shadow: none; }
-        .sy-card { background: rgba(30,32,55,0.85); border-radius: 12px; padding: 18px; margin-bottom: 16px; border-left: 3px solid #a78bfa; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .sy-card { background: rgba(30,32,55,0.85); border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 3px solid #a78bfa; transition: transform 0.3s ease, box-shadow 0.3s ease; }
         @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(120,80,220,0.15); } }
         .sy-gauge-bg { background: rgba(255,255,255,0.08); height: 9px; border-radius: 5px; margin-top: 6px; overflow: hidden; }
         .sy-gauge-fill { height: 100%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 5px; }
@@ -19280,29 +19539,29 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
         @media(min-width: 600px) { .sy-grid { grid-template-columns: 1fr 1fr; } }
         .sy-natal-tab-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-        .sy-ntab { padding:5px 12px; border-radius:20px; font-size:0.78rem; border:1px solid rgba(167,139,250,0.35); background:rgba(167,139,250,0.08); color:#b8a0f0; cursor:pointer; transition:all 0.2s; white-space:nowrap; touch-action:manipulation; -webkit-tap-highlight-color:transparent; min-height:44px; display:inline-flex; align-items:center; }
+        .sy-ntab { padding:6px 13px; border-radius:20px; font-size:0.84rem; border:1px solid rgba(167,139,250,0.35); background:rgba(167,139,250,0.08); color:#b8a0f0; cursor:pointer; transition:all 0.2s; white-space:nowrap; touch-action:manipulation; -webkit-tap-highlight-color:transparent; min-height:44px; display:inline-flex; align-items:center; }
         .sy-ntab.active { background:rgba(167,139,250,0.25); border-color:rgba(167,139,250,0.7); color:#e2d9ff; font-weight:bold; }
         .sy-natal-panel { display:none; animation: syFadeIn 0.4s ease; }
         .sy-natal-panel.active { display:block; }
         @keyframes syFadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .sy-natal-text { font-size:0.9rem; line-height:1.85; color:#d8d0ee; padding:12px 14px; background:rgba(0,0,0,0.2); border-radius:8px; border-left:3px solid rgba(167,139,250,0.4); margin-bottom:0; }
-        .sy-mantra { font-size:0.88rem; font-style:italic; color:#ffd700; text-align:center; padding:12px; border:1px dashed rgba(255,215,0,0.3); border-radius:8px; background:rgba(255,215,0,0.04); line-height:1.6; }
+        .sy-natal-text { font-size:0.97rem; line-height:1.9; color:#d8d0ee; padding:14px 15px; background:rgba(0,0,0,0.2); border-radius:8px; border-left:3px solid rgba(167,139,250,0.4); margin-bottom:0; }
+        .sy-mantra { font-size:0.95rem; font-style:italic; color:#ffd700; text-align:center; padding:13px; border:1px dashed rgba(255,215,0,0.3); border-radius:8px; background:rgba(255,215,0,0.04); line-height:1.78; }
         .sy-talent-bar { display:flex; align-items:center; gap:10px; margin-top:10px; }
         .sy-talent-track { flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; }
         .sy-talent-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#a78bfa,#ffd700); transition:width 1.5s cubic-bezier(0.4,0,0.2,1); }
-        .daily-flow-row { display: flex; align-items: center; margin-bottom: 10px; font-size:0.88rem; }
-        .daily-flow-label { width: 72px; font-weight: bold; color: #9ca3af; font-size:0.82rem; }
+        .daily-flow-row { display: flex; align-items: center; margin-bottom: 10px; font-size:0.95rem; }
+        .daily-flow-label { width: 88px; font-weight: bold; color: #9ca3af; font-size:0.9rem; }
         .daily-flow-gauge { flex: 1; margin: 0 10px; }
-        .daily-flow-val { width: 38px; text-align: right; color:#fbbf24; font-weight: bold; font-size:0.9rem;}
+        .daily-flow-val { width: 42px; text-align: right; color:#fbbf24; font-weight: bold; font-size:0.95rem;}
         .sy-moon-display { text-align:center; padding:10px 0 14px; }
         .sy-moon-emoji { font-size:2.8rem; filter:drop-shadow(0 0 12px rgba(200,180,255,0.6)); display:block; margin-bottom:4px; }
         .sy-moon-label { font-size:0.8rem; color:#b8a0f0; letter-spacing:0.05em; }
-        .sy-insight { font-size:0.88rem; line-height:1.8; color:#d1c4e9; padding:12px 14px; background:rgba(100,70,180,0.12); border-radius:8px; border-left:3px solid rgba(167,139,250,0.5); margin:14px 0; }
+        .sy-insight { font-size:0.95rem; line-height:1.88; color:#d1c4e9; padding:14px 15px; background:rgba(100,70,180,0.12); border-radius:8px; border-left:3px solid rgba(167,139,250,0.5); margin:14px 0; }
         .sy-ritual-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:14px; }
         .sy-ritual-box { padding:10px 8px; border-radius:9px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.08); text-align:center; }
         .sy-ritual-icon { font-size:1.3rem; display:block; margin-bottom:4px; }
-        .sy-ritual-label { font-size:0.68rem; color:#9ca3af; display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em; }
-        .sy-ritual-val { font-size:0.78rem; color:#e2d9ff; font-weight:bold; line-height:1.4; }
+        .sy-ritual-label { font-size:0.74rem; color:#9ca3af; display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em; }
+        .sy-ritual-val { font-size:0.86rem; color:#e2d9ff; font-weight:bold; line-height:1.5; }
         @keyframes syMoonBob { 0%,100% { transform:translateY(0px) scale(1); } 50% { transform:translateY(-3px) scale(1.04); } }
         @keyframes syTinyTwinkle { 0%,100% { opacity:0.35; transform:scale(0.75); } 50% { opacity:0.95; transform:scale(1.15); } }
         .sy-guardian-card { margin-top:14px; border-left-color:#93c5fd; position:relative; overflow:hidden; background: radial-gradient(circle at 16% 10%, rgba(125,211,252,0.17) 0%, rgba(30,32,55,0.9) 45%, rgba(18,20,40,0.95) 100%); }
@@ -19317,14 +19576,20 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-guardian-stage-stars i:nth-child(4) { right:22%; bottom:17%; animation-delay:0.4s; }
         .sy-guardian-main-emoji { font-size:2.2rem; line-height:1; margin-bottom:6px; filter:drop-shadow(0 0 12px rgba(250,204,21,0.35)); animation:syMoonBob 2.6s ease-in-out infinite; }
         .sy-guardian-main-name { font-size:1.02rem; font-weight:900; color:#fef3c7; margin-bottom:5px; text-shadow:0 0 10px rgba(251,191,36,0.3); }
-        .sy-guardian-main-desc { margin:0; font-size:0.82rem; line-height:1.72; color:#dbeafe; }
+        .sy-guardian-main-desc { margin:0; font-size:0.9rem; line-height:1.82; color:#dbeafe; }
         .sy-guardian-detail-list { margin-top:11px; display:grid; grid-template-columns:1fr; gap:8px; }
         .sy-guardian-detail-item { padding:10px 11px; border-radius:10px; border:1px solid rgba(147,197,253,0.2); background:rgba(11,18,32,0.58); }
-        .sy-guardian-detail-item h5 { margin:0 0 5px 0; font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; }
-        .sy-guardian-detail-item p { margin:0; font-size:0.79rem; line-height:1.7; color:#dbeafe; }
+        .sy-guardian-detail-item h5 { margin:0 0 5px 0; font-size:0.74rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; }
+        .sy-guardian-detail-item p { margin:0; font-size:0.88rem; line-height:1.8; color:#dbeafe; }
         .sy-guardian-meta { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 11px; border-radius:999px; background:rgba(15,23,42,0.72); border:1px solid rgba(148,163,184,0.35); }
         .sy-guardian-meta span { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; font-weight:700; }
-        .sy-guardian-meta strong { color:#f8fafc; font-size:0.88rem; }
+        .sy-guardian-meta strong { color:#f8fafc; font-size:0.9rem; }
+        @media (max-width: 768px) {
+          .sy-container { padding:22px 16px; }
+          .sy-header h3 { font-size:1.35rem; }
+          .sy-natal-text,.sy-mantra,.sy-insight,.sy-guardian-main-desc,.sy-guardian-detail-item p { font-size:0.92rem; line-height:1.82; }
+          .sy-ritual-grid { grid-template-columns:1fr; }
+        }
         `;
         document.head.appendChild(_sySt);
     }
@@ -21347,6 +21612,19 @@ var REPORT_CARDS = [
 
 function handleReportThumbError(imgEl) {
   if (!imgEl) return;
+  if (imgEl.dataset && imgEl.dataset.assetFallbackTried !== '1') {
+    var src = imgEl.getAttribute('src') || '';
+    if (src.indexOf('/fuctionassets/') === 0) {
+      imgEl.dataset.assetFallbackTried = '1';
+      imgEl.src = src.replace('/fuctionassets/', 'fuctionassets/');
+      return;
+    }
+    if (src.indexOf('fuctionassets/') === 0) {
+      imgEl.dataset.assetFallbackTried = '1';
+      imgEl.src = '/' + src;
+      return;
+    }
+  }
   var wrap = imgEl.closest ? imgEl.closest('.rpt-v2-img-wrap') : imgEl.parentNode;
   if (wrap) wrap.style.display = 'none';
 
@@ -21398,8 +21676,9 @@ function renderReportDashboard() {
     /* 이미지 영역 — 이미지 짤림 없이 전체 표시 */
     gridHtml += '<div class="rpt-v2-img-row">';
     b.images.forEach(function(img) {
+      var thumbSrc = '/fuctionassets/' + img.id + '.webp';
       gridHtml += '<div class="rpt-v2-img-wrap">';
-      gridHtml += '<img class="rpt-v2-img" src="fuctionassets/' + img.id + '.webp" alt="' + img.label + '" loading="lazy" '
+      gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" '
         + 'decoding="async" onerror="handleReportThumbError(this)">';
       gridHtml += '</div>';
     });

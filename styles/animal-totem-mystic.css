@@ -1,9 +1,14 @@
 .animal-totem-overlay {
   position: fixed;
   inset: 0;
+  height: 100dvh;
+  max-height: 100dvh;
   z-index: 99999;
   display: none;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
   background:
     radial-gradient(ellipse 120% 80% at 15% 20%, rgba(88, 28, 135, 0.45), transparent 50%),
     radial-gradient(ellipse 100% 70% at 85% 75%, rgba(30, 58, 138, 0.38), transparent 48%),
@@ -12,6 +17,12 @@
   backdrop-filter: blur(12px);
 }
 .animal-totem-overlay.is-open { display: block; }
+.animal-totem-overlay .totem-btn,
+.animal-totem-overlay .totem-mode-btn,
+.animal-totem-overlay .totem-draw-card,
+.animal-totem-overlay .animal-totem-close {
+  touch-action: pan-y;
+}
 .animal-totem-overlay::before {
   content: "";
   position: fixed;
@@ -37,7 +48,8 @@
   position: relative;
   max-width: 980px;
   margin: 40px auto;
-  padding: 0 16px 24px;
+  min-height: 100%;
+  padding: 0 16px max(24px, env(safe-area-inset-bottom, 0px));
 }
 .animal-totem-panel {
   position: relative;

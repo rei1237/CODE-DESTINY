@@ -948,6 +948,8 @@
     $('dreamFinalSpell').textContent = '';
     var goldenAdviceText = $('dreamGoldenAdvice');
     if (goldenAdviceText) goldenAdviceText.textContent = '';
+    var finalConsultText = $('dreamFinalConsult');
+    if (finalConsultText) finalConsultText.textContent = '';
 
     var cardName4 = $('dreamCardName4');
     if (cardName4) cardName4.textContent = '[' + (reading.goldenCardName || '황금 카드') + ']';
@@ -958,6 +960,8 @@
     if (spellWrap) spellWrap.style.display = 'none';
     var goldenWrap = $('dreamGoldenAdviceWrap');
     if (goldenWrap) goldenWrap.style.display = 'none';
+    var finalConsultWrap = $('dreamFinalConsultWrap');
+    if (finalConsultWrap) finalConsultWrap.style.display = 'none';
     setGoldenTabVisible(false);
     var nextBtn = $('dreamNextStageBtn');
     if (nextBtn) nextBtn.style.display = 'none';
@@ -1030,6 +1034,28 @@
     return text;
   }
 
+  function buildFinalConsulting(reading) {
+    if (!reading) return '';
+    var title = String(reading.title || '오늘의 꿈');
+    var summary = String(reading.summary || '').trim();
+    var finalSpell = normalizedFinalSpell(reading);
+    var keywords = Array.isArray(reading.keywords)
+      ? reading.keywords.slice(0, 3).filter(Boolean)
+      : [];
+    var keyLine = keywords.length ? '핵심 키워드: ' + keywords.join(' · ') + '.' : '핵심 키워드: 지금의 감정, 관계, 선택의 방향.';
+
+    return [
+      '최종 컨설팅 리포트 — ' + title,
+      '',
+      summary || '지금의 꿈은 불안을 다독이며 방향을 정리하라는 신호입니다.',
+      keyLine,
+      '실행 1) 오늘 안에 가장 걸리는 감정 한 가지를 문장으로 명확히 적고, 그 감정을 줄일 행동 1개를 바로 실행하세요.',
+      '실행 2) 72시간 안에 관계/일/건강 중 가장 중요한 축 하나를 골라 15분 루틴을 고정해 흐름을 안정화하세요.',
+      '실행 3) 이번 주에는 완벽한 정답보다, 반복 가능한 작은 승리를 최소 3회 만들며 자신감을 회복하세요.',
+      '마무리 주문: ' + finalSpell
+    ].join('\n');
+  }
+
   function revealGoldenStage() {
     if (!state.reading) {
       setInteractionLocked(false);
@@ -1055,6 +1081,7 @@
       card.classList.add('is-open');
       card.classList.remove('is-revealing');
       card.classList.remove('is-impact');
+      card.classList.add('is-crowning');
       window.requestAnimationFrame(function () {
         card.classList.add('is-revealing');
         card.classList.add('is-impact');
@@ -1063,6 +1090,9 @@
         card.classList.remove('is-revealing');
         card.classList.remove('is-impact');
       }, 900);
+      setTimeout(function () {
+        card.classList.remove('is-crowning');
+      }, 2600);
     }
 
     if (goldenWrap) goldenWrap.style.display = 'block';
@@ -1076,12 +1106,29 @@
     }
     state.typingStage = 4;
     typeText(goldenText, normalizedGoldenAdvice(state.reading), 13, function () {
-      state.typingStage = 0;
-      state.stageDone[4] = true;
-      state.nextStage = 5;
-      sendAutoTuneSignal('completed_golden', 0.95, state.reading, { oncePerReading: true });
-      setInteractionLocked(false);
-      setWizardLine('황금 카드가 전한 조언까지 완성되었습니다. 오늘의 리듬을 다정하게 지켜주세요.');
+      var finalConsultWrap = $('dreamFinalConsultWrap');
+      var finalConsultText = $('dreamFinalConsult');
+      if (finalConsultWrap) finalConsultWrap.style.display = 'block';
+
+      if (!finalConsultWrap || !finalConsultText) {
+        state.typingStage = 0;
+        state.stageDone[4] = true;
+        state.nextStage = 5;
+        sendAutoTuneSignal('completed_golden', 0.95, state.reading, { oncePerReading: true });
+        setInteractionLocked(false);
+        setWizardLine('황금 카드가 전한 조언까지 완성되었습니다. 오늘의 리듬을 다정하게 지켜주세요.');
+        return;
+      }
+
+      state.typingStage = 5;
+      typeText(finalConsultText, buildFinalConsulting(state.reading), 12, function () {
+        state.typingStage = 0;
+        state.stageDone[4] = true;
+        state.nextStage = 5;
+        sendAutoTuneSignal('completed_golden', 0.95, state.reading, { oncePerReading: true });
+        setInteractionLocked(false);
+        setWizardLine('황금 카드 조언과 최종 컨설팅이 모두 완성되었습니다. 지금 바로 실행할 한 가지를 정해보세요.');
+      });
     });
   }
 
@@ -1170,6 +1217,10 @@
     if (goldenWrap) goldenWrap.style.display = 'none';
     var goldenText = $('dreamGoldenAdvice');
     if (goldenText) goldenText.textContent = '';
+    var finalConsultWrap = $('dreamFinalConsultWrap');
+    if (finalConsultWrap) finalConsultWrap.style.display = 'none';
+    var finalConsultText = $('dreamFinalConsult');
+    if (finalConsultText) finalConsultText.textContent = '';
     setWizardLine('누가(무엇이) 어떤 행동을 했고, 당신의 감정이 어떻게 흔들렸는지 적어주세요.');
     updateStoryModeLabel();
     renderToneButtons();
@@ -1271,6 +1322,7 @@
     }
 
     state.typingStage = s;
+    scrollStoryToLatest(true);
     typeText(target, payload.text, 17, function () {
       state.stageDone[s] = true;
       state.nextStage += 1;
@@ -1280,6 +1332,22 @@
 
       if (s < 3) {
         setInteractionLocked(false);
+        var next = s + 1;
+        window.setTimeout(function () {
+          if (!state.reading || state.typingStage || !state.stageDone[s]) return;
+          if (state.visibleStage !== s) return;
+          updateVisibleStage(next);
+          if (nextBtn) nextBtn.style.display = 'none';
+          if (next === 2) {
+            $('dreamStageTitle').textContent = '2단계 카드가 준비되었습니다. 카드를 열면 전언이 바로 이어집니다.';
+            $('dreamStageText').textContent = '';
+            setWizardLine('2단계 카드로 자연스럽게 이어집니다. 카드를 눌러 전언을 받아보세요.');
+          } else if (next === 3) {
+            $('dreamStageTitle').textContent = '3단계 카드가 준비되었습니다. 마지막 지침을 열어보세요.';
+            $('dreamStageText').textContent = '';
+            setWizardLine('3단계 카드가 이어집니다. 마지막 지침을 열면 황금 카드로 연결됩니다.');
+          }
+        }, 420);
       }
 
       if (s === 3) {

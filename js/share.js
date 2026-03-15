@@ -142,6 +142,36 @@ function shareZiweiKakao() {
 var _pwaPrompt = null;
 var _pwaInstalled = false;
 var FAVORITE_MODE_KEY = 'fortuneFavoriteModeStateV1';
+var THEME_MODE_KEY = 'fortuneThemeModeStateV1';
+
+function readThemeModeState() {
+  try {
+    return localStorage.getItem(THEME_MODE_KEY) === 'neo';
+  } catch (_) {
+    return false;
+  }
+}
+
+function writeThemeModeState(isNeo) {
+  try {
+    localStorage.setItem(THEME_MODE_KEY, isNeo ? 'neo' : 'pig');
+  } catch (_) {}
+}
+
+function applyPwaThemeAssets(isNeo) {
+  var manifestLink = document.querySelector('link[rel="manifest"]');
+  if (manifestLink) manifestLink.setAttribute('href', isNeo ? '/manifest-samba.json' : '/manifest.json');
+
+  var faviconLink = document.getElementById('pwa-favicon');
+  var appleIconLink = document.getElementById('pwa-apple-icon');
+  if (isNeo) {
+    if (faviconLink) { faviconLink.setAttribute('href', '/icons/samba.svg'); faviconLink.setAttribute('type', 'image/svg+xml'); }
+    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.svg');
+  } else {
+    if (faviconLink) { faviconLink.setAttribute('href', '/icons/honeypig-192.png'); faviconLink.setAttribute('type', 'image/png'); }
+    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/honeypig-180.png');
+  }
+}
 
 function getFavoriteModeLabels() {
   return {
@@ -318,7 +348,7 @@ function closeIosModal() {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/service-worker.js?v=9')
+    navigator.serviceWorker.register('/service-worker.js?v=11')
       .then(function(reg) {  })
       .catch(function(err) {  });
   });
@@ -553,6 +583,7 @@ function toggleNeoMode(){
   }, 460);
 
   NEO_MODE=!NEO_MODE;
+  writeThemeModeState(NEO_MODE);
   var body=document.body;
   runThemeTransitionFx();
 
@@ -579,12 +610,7 @@ function toggleNeoMode(){
       tLabel.style.color = '#FFD700';
     }
     /* 사자모드 manifest + 아이콘 교체 */
-    var manifestLink = document.querySelector('link[rel="manifest"]');
-    if(manifestLink) manifestLink.setAttribute('href', 'manifest-samba.json');
-    var faviconLink = document.getElementById('pwa-favicon');
-    var appleIconLink = document.getElementById('pwa-apple-icon');
-    if(faviconLink){ faviconLink.setAttribute('href','icons/samba.svg'); faviconLink.setAttribute('type','image/svg+xml'); }
-    if(appleIconLink) appleIconLink.setAttribute('href','icons/samba.svg');
+    applyPwaThemeAssets(true);
     /* PWA 설치 텍스트 변경 */
     var pwaLabel = document.getElementById('pwaInstallLabel');
     var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
@@ -603,12 +629,7 @@ function toggleNeoMode(){
       tLabel.style.color = '#FF8BA7';
     }
     /* 연이모드 manifest + 아이콘 복원 */
-    var manifestLink = document.querySelector('link[rel="manifest"]');
-    if(manifestLink) manifestLink.setAttribute('href', 'manifest.json');
-    var faviconLink = document.getElementById('pwa-favicon');
-    var appleIconLink = document.getElementById('pwa-apple-icon');
-    if(faviconLink){ faviconLink.setAttribute('href','icons/honeypig-192.png'); faviconLink.setAttribute('type','image/png'); }
-    if(appleIconLink) appleIconLink.setAttribute('href','icons/honeypig-180.png');
+    applyPwaThemeAssets(false);
     /* PWA 설치 텍스트 복원 */
     var pwaLabel = document.getElementById('pwaInstallLabel');
     var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
@@ -708,6 +729,11 @@ function enforceThemeToggleSticky() {
 }
 
 window.addEventListener('load',function(){
+  var bootThemeNeo = (typeof window.__INITIAL_THEME_NEO__ === 'boolean')
+    ? window.__INITIAL_THEME_NEO__
+    : readThemeModeState();
+  NEO_MODE = !!bootThemeNeo;
+
   if(typeof window.calculate==='function'){
     var _orig=window.calculate;
     window.calculate=function(){
@@ -728,6 +754,19 @@ window.addEventListener('load',function(){
     });
     document.body.classList.add(NEO_MODE ? 'theme-neo' : 'theme-pig');
     if(NEO_MODE) document.body.classList.add('neo-mode');
+    themeCb.checked = NEO_MODE;
+  }
+  applyPwaThemeAssets(NEO_MODE);
+  var pwaLabel = document.getElementById('pwaInstallLabel');
+  var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
+  var tLabel = document.getElementById('themeToggleLabel');
+  if(NEO_MODE){
+    if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '팩폭 사자 운세 서비스 앱 설치하기';
+    if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '팩폭 사자 운세 서비스 앱 설치하기';
+    if(tLabel) {
+      tLabel.innerText = '🦁 팩폭 사자 쌈바 모드';
+      tLabel.style.color = '#FFD700';
+    }
   }
   updateFavoriteButtonThemeText(NEO_MODE);
 

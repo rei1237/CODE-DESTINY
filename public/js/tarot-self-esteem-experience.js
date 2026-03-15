@@ -67,27 +67,76 @@
         var custom = localStorage.getItem("fortune_api_base_url");
         if (custom) return String(custom).replace(/\/+$/, "");
       } catch (e) {}
-      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return "http://localhost:4000";
+      var host = String(location.hostname || "").toLowerCase();
+      if (host === "localhost" || host === "127.0.0.1") return "http://localhost:4000";
+      if (host === "api.code-destiny.com") return location.origin || "";
     }
-    return location.origin || "";
+    return "https://api.code-destiny.com";
+  }
+
+  function buildTarotApiBaseCandidates() {
+    var out = [];
+    var seen = Object.create(null);
+    function add(raw) {
+      var normalized = String(raw || "").trim();
+      if (!normalized) normalized = "";
+      else normalized = normalized.replace(/\/+$/, "");
+      if (seen[normalized]) return;
+      seen[normalized] = true;
+      out.push(normalized);
+    }
+
+    add(getTarotApiBase());
+    add("");
+
+    if (typeof window !== "undefined") {
+      var origin = String(location.origin || "").replace(/\/+$/, "");
+      if (origin) add(origin);
+      var host = String(location.hostname || "").toLowerCase();
+      if (host === "localhost" || host === "127.0.0.1") add("http://localhost:4000");
+      if (host !== "api.code-destiny.com") add("https://api.code-destiny.com");
+    } else {
+      add("http://localhost:4000");
+    }
+
+    return out;
   }
 
   function callTarotApi(endpoint, payload) {
-    var base = getTarotApiBase();
-    var url = (base ? base + "/api/tarot/" : "/api/tarot/") + endpoint;
-    return fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload || {}),
-    })
-      .then(function (res) {
-        if (!res.ok) throw new Error("Tarot API error: " + res.status);
-        return res.json();
+    var bases = buildTarotApiBaseCandidates();
+    var body = JSON.stringify(payload || {});
+    var index = 0;
+    var lastError = null;
+
+    function requestWithBase(base) {
+      var url = (base ? base + "/api/tarot/" : "/api/tarot/") + endpoint;
+      return fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body,
       })
-      .then(function (data) {
-        if (!data || data.ok === false) throw new Error("Invalid API response");
-        return data;
+        .then(function (res) {
+          if (!res.ok) throw new Error("Tarot API error: " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data || data.ok === false) throw new Error("Invalid API response");
+          return data;
+        });
+    }
+
+    function tryNext() {
+      if (index >= bases.length) {
+        throw lastError || new Error("Tarot API request failed");
+      }
+      var base = bases[index++];
+      return requestWithBase(base).catch(function (error) {
+        lastError = error;
+        return tryNext();
       });
+    }
+
+    return tryNext();
   }
 
   function normalizeTarotShortName(cardName) {
@@ -132,7 +181,8 @@
     return out;
   }
 
-  var TAROT_LOCAL_BASE = "/tarot-cards/";
+  var TAROT_LOCAL_BASES = ["/tarot-cards/", "/public/tarot-cards/", "tarot-cards/", "public/tarot-cards/"];
+  var TAROT_LOCAL_BASE = TAROT_LOCAL_BASES[0];
   var TAROT_DEFAULT_FALLBACK_IMAGE = TAROT_LOCAL_BASE + "thefool.jpeg";
   function getLocalTarotImageUrl(card) {
     if (!card) return "";
@@ -167,6 +217,16 @@
     return fn ? TAROT_LOCAL_BASE + fn : "";
   }
 
+  function getLocalTarotImageCandidates(card) {
+    var localUrl = getLocalTarotImageUrl(card);
+    if (!localUrl) return [];
+    var fileName = String(localUrl).split("/").pop();
+    if (!fileName) return [localUrl];
+    return TAROT_LOCAL_BASES.map(function (base) {
+      return String(base || "") + fileName;
+    });
+  }
+
   function applyTarotImageWithFallback(imgEl, frontEl, card) {
     if (!imgEl) return;
     var candidates = [];
@@ -186,8 +246,7 @@
       if (!base) return raw;
       return String(base).replace(/\/+$/, "") + (raw.charAt(0) === "/" ? raw : ("/" + raw));
     }
-    var localUrl = getLocalTarotImageUrl(card);
-    if (localUrl) pushCandidateVariants(candidates, localUrl);
+    getLocalTarotImageCandidates(card).forEach(function (u) { pushCandidateVariants(candidates, u); });
     if (card && card.proxyImageUrl) {
       pushCandidateVariants(candidates, absolutizeUrl(card.proxyImageUrl));
       pushCandidateVariants(candidates, card.proxyImageUrl);
@@ -240,8 +299,7 @@
     if (!Array.isArray(cards)) return;
     cards.forEach(function (card) {
       var list = [];
-      var local = getLocalTarotImageUrl(card);
-      if (local) list.push(local);
+      getLocalTarotImageCandidates(card).forEach(function (u) { list.push(u); });
       if (card && card.proxyImageUrl) {
         var base = getTarotApiBase();
         if (base) list.push(String(base).replace(/\/+$/, "") + card.proxyImageUrl);

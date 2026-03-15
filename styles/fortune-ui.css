@@ -1103,6 +1103,15 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .year-top{display:flex;justify-content:space-between;align-items:center}
 .year-title{font-weight:700;color:var(--pink);font-size:.92rem}
 .year-sub{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(0.4,0,0.2,1)}
+.year-list, #yearList {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+#yearList .year-row,
+#yearList .year-top {
+  touch-action: pan-y;
+}
 .yr-section{margin-top:10px;padding-top:10px;border-top:1px dashed #FFE0D6}
 .yr-label{font-weight:700;color:var(--pink);font-size:.82rem;margin-bottom:5px}
 .yr-content{font-size:.8rem;color:#666;line-height:1.68}
@@ -5335,9 +5344,9 @@ body.neo-mode .monthly-label { color: #64748b; }
 .feature-card-grid {
   display: flex;
   flex-direction: column;
-  gap: 150px;
-  margin-top: 120px;
-  margin-bottom: 120px;
+  gap: 32px;
+  margin-top: 24px;
+  margin-bottom: 48px;
   position: relative;
 }
 .feature-card-grid::before {
@@ -5555,7 +5564,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
 .post-saju-services-intro {
   margin-top: 20px;
-  margin-bottom: 120px;
+  margin-bottom: 16px;
   padding: 16px 18px;
   border-radius: 14px;
   border: 1px solid rgba(255,183,178,.35);
@@ -8485,7 +8494,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-master-card--active::after {
         content: '';
-        position: absolute; inset: -2px; border-radius: 22px;
+        position: absolute; inset: 0; border-radius: 20px;
         border: 1px solid rgba(255,215,0,0.62);
         opacity: 0.38;
         animation: dpAuraPulse 3s ease-in-out infinite;
@@ -8648,57 +8657,114 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
 
       /* ══════════════════════════════════════════
-         저장 버튼 — Cosmic Blossom Bloom
+         저장 버튼 — Starlight Cosmos ✦
       ══════════════════════════════════════════ */
       .dp-save-btn {
         display: block; width: 100%;
         padding: 15px 16px;
-        background: linear-gradient(135deg, #0A081C 0%, #12103A 50%, #0A081C 100%);
-        border: 1px solid rgba(255,215,0,0.42);
+        background: linear-gradient(
+          135deg,
+          #020010 0%, #08042A 22%, #100835 45%, #08042A 68%, #020010 100%
+        );
+        border: 1px solid rgba(255,215,0,0.72);
         border-radius: 14px;
-        color: #FFE566;
+        color: #FFF6B0;
         font-family: 'Gowun Dodum', serif;
         font-size: 0.96rem; font-weight: 700; letter-spacing: 1.8px;
         cursor: pointer; margin-top: 14px;
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
         transition: box-shadow 0.3s, border-color 0.3s, transform 0.15s;
         position: relative; overflow: hidden;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,215,0,0.14);
-        text-shadow: 0 0 18px rgba(255,215,0,0.5);
+        box-shadow:
+          0 0 18px rgba(255,215,0,0.42),
+          0 0 38px rgba(180,100,255,0.22),
+          0 0 70px rgba(255,215,0,0.1),
+          inset 0 1px 0 rgba(255,255,255,0.18),
+          inset 0 -1px 0 rgba(255,215,0,0.1),
+          0 4px 28px rgba(0,0,0,0.7);
+        text-shadow: 0 0 8px rgba(255,220,0,1), 0 0 22px rgba(255,215,0,0.75), 0 0 48px rgba(255,200,0,0.38);
+        animation: dpSaveStarPulse 2.2s ease-in-out infinite;
+      }
+      .dp-save-btn:hover {
+        transform: translateY(-2px) scale(1.012);
+        box-shadow:
+          0 0 28px rgba(255,215,0,0.72),
+          0 0 55px rgba(180,100,255,0.4),
+          0 0 90px rgba(255,215,0,0.25),
+          inset 0 1px 0 rgba(255,255,255,0.22),
+          0 6px 32px rgba(0,0,0,0.72);
+        border-color: rgba(255,215,0,0.95);
+        color: #FFFAC0;
       }
       .dp-save-btn:active {
         transform: scale(0.985);
-        box-shadow: 0 0 35px rgba(255,215,0,0.38), inset 0 0 20px rgba(255,215,0,0.08);
+        box-shadow:
+          0 0 40px rgba(255,215,0,0.55),
+          inset 0 0 22px rgba(255,215,0,0.1),
+          0 2px 12px rgba(0,0,0,0.6);
         border-color: rgba(255,215,0,0.8);
       }
-      /* 광택 효과 */
+      @keyframes dpSaveStarPulse {
+        0%, 100% {
+          box-shadow:
+            0 0 18px rgba(255,215,0,0.42),
+            0 0 38px rgba(180,100,255,0.22),
+            0 0 70px rgba(255,215,0,0.1),
+            inset 0 1px 0 rgba(255,255,255,0.18),
+            0 4px 28px rgba(0,0,0,0.7);
+          border-color: rgba(255,215,0,0.72);
+        }
+        50% {
+          box-shadow:
+            0 0 30px rgba(255,215,0,0.72),
+            0 0 60px rgba(180,100,255,0.42),
+            0 0 100px rgba(255,215,0,0.22),
+            inset 0 1px 0 rgba(255,255,255,0.22),
+            0 4px 28px rgba(0,0,0,0.7);
+          border-color: rgba(255,215,0,0.95);
+        }
+      }
+      /* 별빛 광택 스위프 효과 */
       .dp-save-btn::before {
         content: '';
-        position: absolute; top: -50%; left: -60%;
-        width: 22%; height: 200%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+        position: absolute; top: -50%; left: -70%;
+        width: 35%; height: 200%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255,255,255,0.06),
+          rgba(255,245,180,0.22),
+          rgba(255,255,255,0.06),
+          transparent
+        );
         transform: skewX(-20deg);
-        animation: dpShimmer 3.5s infinite;
+        animation: dpShimmer 2.8s ease-in-out infinite;
+        pointer-events: none;
       }
-      /* 중심 오라 (꽃잎 맥동) */
+      /* 별빛 코어 오라 */
       .dp-save-btn::after {
         content: '';
         position: absolute; top: 50%; left: 50%;
-        width: 120%; height: 320%;
-        background: radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.08) 0%, transparent 65%);
+        width: 130%; height: 340%;
+        background: radial-gradient(
+          ellipse at 50% 50%,
+          rgba(255,220,0,0.18) 0%,
+          rgba(200,130,255,0.1) 35%,
+          transparent 65%
+        );
         transform: translate(-50%, -50%);
         pointer-events: none;
-        animation: dpSavePulse 3s ease-in-out infinite;
+        animation: dpSavePulse 2.5s ease-in-out infinite;
       }
       @keyframes dpSavePulse {
-        0%,100% { opacity: 0.5; transform: translate(-50%,-50%) scale(0.88); }
-        50%     { opacity: 1;   transform: translate(-50%,-50%) scale(1.12); }
+        0%,100% { opacity: 0.55; transform: translate(-50%,-50%) scale(0.85); }
+        50%     { opacity: 1;    transform: translate(-50%,-50%) scale(1.15); }
       }
       @keyframes dpShimmer {
-        0%   { left: -60%; opacity: 0; }
-        30%  { opacity: 1; }
-        70%  { left: 130%; opacity: 1; }
-        100% { left: 130%; opacity: 0; }
+        0%   { left: -70%; opacity: 0; }
+        15%  { opacity: 0.8; }
+        65%  { left: 135%; opacity: 0.8; }
+        100% { left: 135%; opacity: 0; }
       }
 
       /* ── Bottom Sheet — Profile Constellation List ── */
@@ -11754,23 +11820,23 @@ select.inp { min-height: 48px; cursor: pointer; }
     font-size: 0.74rem;
   }
 
-  .feature-card-grid { gap: 150px; }
+  .feature-card-grid { gap: 24px; }
   .feature-card__title { font-size: 0.9rem; }
   .feature-card__desc { font-size: 0.75rem; }
 }
 
 @media (max-width: 768px) {
   .feature-card-grid {
-    gap: 150px;
-    margin-top: 120px;
-    margin-bottom: 120px;
+    gap: 24px;
+    margin-top: 16px;
+    margin-bottom: 36px;
   }
   .feature-card {
     margin-bottom: 0;
   }
   .post-saju-services-intro {
-    margin-top: 20px;
-    margin-bottom: 120px;
+    margin-top: 16px;
+    margin-bottom: 16px;
     padding: 16px;
   }
 }
@@ -12096,9 +12162,9 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 
 @media (max-width: 768px) {
   .feature-card-grid {
-    gap: 34px;
-    margin-top: 54px;
-    margin-bottom: 72px;
+    gap: 24px;
+    margin-top: 16px;
+    margin-bottom: 36px;
   }
   .feature-card {
     border-radius: 16px;

@@ -28,16 +28,37 @@ export default function ContactUsPage() {
     <main style={{ maxWidth: "920px", margin: "0 auto", padding: "28px 16px 42px", color: "#e2e8f0" }}>
       <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>문의하기 (Contact Us)</h1>
       <p style={{ opacity: 0.86, lineHeight: 1.7, marginBottom: "20px" }}>
-        서비스 제휴, 오류 신고, 개인정보 및 약관 관련 문의를 아래 채널로 보내주세요.
+        Code Destiny 서비스 관련 일반 문의, 오류 신고, 개인정보 권리행사 요청, 제휴 문의를 아래 채널로 접수할 수 있습니다.
       </p>
 
       <section style={{ ...cardStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>이메일 문의 / Email Contact</h2>
         <p style={{ lineHeight: 1.75, marginBottom: "8px" }}>
-          운영 이메일: <a href="mailto:seongbae555@gmail.com" style={{ color: "#93c5fd", textDecoration: "underline" }}>seongbae555@gmail.com</a>
+          서비스명: Code Destiny
+          <br />
+          운영 이메일:{" "}
+          <a href="mailto:seongbae555@gmail.com" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+            seongbae555@gmail.com
+          </a>
         </p>
         <p style={{ lineHeight: 1.75 }}>
           평균 회신 시간: 영업일 기준 1~3일 / Typical response time: 1-3 business days.
+        </p>
+      </section>
+
+      <section style={{ ...cardStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>문의 유형 / Inquiry Categories</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          일반 문의(서비스 이용/오류), 개인정보 요청(열람/정정/삭제/처리정지/동의철회), 권리침해 신고, 제휴 및 비즈니스 문의를 접수합니다.
+          Please include your request type in the subject line for faster handling.
+        </p>
+      </section>
+
+      <section style={{ ...cardStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>개인정보 요청 안내 / Privacy Request Guide</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          개인정보 관련 요청 시 본인 확인을 위해 최소한의 추가 정보를 요청할 수 있습니다. 법령상 보존 의무가 있는 데이터는 즉시 삭제가
+          제한될 수 있으며, 처리 결과를 회신 메일로 안내합니다. We will process valid requests as promptly as reasonably possible.
         </p>
       </section>
 
@@ -77,6 +98,10 @@ export default function ContactUsPage() {
             메일 앱으로 보내기 / Send via Email App
           </button>
         </form>
+        <p style={{ lineHeight: 1.7, marginTop: "12px", opacity: 0.86 }}>
+          본 폼으로 제출된 내용은 문의 처리 목적 범위에서만 사용됩니다. 민감정보, 비밀번호, 결제정보 등 불필요한 개인정보는 입력하지 마세요.
+          Please avoid sharing unnecessary sensitive data.
+        </p>
       </section>
     </main>
   );

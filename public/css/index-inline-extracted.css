@@ -1,4 +1,4 @@
-﻿/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
+/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
 
 /* --- block 1 --- */
 /* ─── 전역 버튼 터치 반응성 ─── */
@@ -3407,7 +3407,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-master-card--active::after {
         content: '';
-        position: absolute; inset: -2px; border-radius: 22px;
+        position: absolute; inset: 0; border-radius: 20px;
         border: 1px solid rgba(255,215,0,0.62);
         opacity: 0.38;
         animation: dpAuraPulse 3s ease-in-out infinite;

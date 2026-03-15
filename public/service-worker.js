@@ -1,8 +1,8 @@
 /* Service Worker - kkul-mansaeryeok
-  Cache version: v10 (Network-First strategy)
+  Cache version: v12 (Network-First strategy)
 */
 
-const CACHE_NAME = 'kkul-mansaeryeok-v10';
+const CACHE_NAME = 'kkul-mansaeryeok-v12';
 
 const PRECACHE_URLS = [
   '/',
@@ -50,6 +50,17 @@ self.addEventListener('fetch', event => {
   if (event.request.url.includes('/ads.txt') || event.request.url.includes('/robots.txt') || event.request.url.includes('/sitemap.xml')) return;
   if (event.request.url.includes('pagead') || event.request.url.includes('google-analytics')) return;
   if (event.request.url.includes('emailjs') || event.request.url.includes('api.')) return;
+  // Tarot interactions must never display stale JS/CSS.
+  if (
+    requestUrl.origin === self.location.origin &&
+    (
+      requestUrl.pathname.includes('/js/tarot-') ||
+      requestUrl.pathname.includes('/styles/tarot-')
+    )
+  ) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+    return;
+  }
 
   event.respondWith(
     fetch(event.request).then(response => {

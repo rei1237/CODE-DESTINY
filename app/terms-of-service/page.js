@@ -20,7 +20,7 @@ export default function TermsOfServicePage() {
     <main style={{ maxWidth: "920px", margin: "0 auto", padding: "28px 16px 42px", color: "#e2e8f0" }}>
       <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>이용약관 (Terms of Service)</h1>
       <p style={{ opacity: 0.86, lineHeight: 1.7, marginBottom: "20px" }}>
-        시행일: 2026-03-14 / Effective Date: 2026-03-14
+        시행일: 2026-03-16 / Effective Date: 2026-03-16
       </p>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
@@ -32,40 +32,90 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>2. 이용자 의무 / User Obligations</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>2. 적용 대상 및 동의 / Scope and Acceptance</h2>
         <p style={{ lineHeight: 1.75 }}>
-          이용자는 관계 법령 및 본 약관을 준수해야 하며, 서비스 운영을 방해하거나 타인의 권리를 침해하는 행위를 해서는 안 됩니다.
-          Users must comply with applicable laws and shall not interfere with operations or infringe rights of others.
+          이용자가 서비스에 접속하거나 이용을 계속하는 경우 본 약관 및 관련 정책(개인정보처리방침 포함)에 동의한 것으로 봅니다.
+          By accessing or using the service, you agree to these Terms and related policies.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>3. 서비스 성격 및 한계 / Nature of Service</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>3. 서비스 내용 / Service Description</h2>
         <p style={{ lineHeight: 1.75 }}>
-          본 서비스의 운세/해석 정보는 참고용 콘텐츠이며 법률, 의료, 투자 등 전문 자문을 대체하지 않습니다.
-          Fortune content is provided for informational and entertainment purposes only and does not replace professional advice.
+          Code Destiny는 사주/타로/운세 기반의 해석 콘텐츠를 제공하며, 서비스 품질 향상을 위해 기능이 추가/변경/중단될 수 있습니다.
+          We may update features, modify content, or suspend parts of the service without prior notice when reasonably required.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>4. 면책 조항 / Disclaimer</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>4. 이용자 자격 및 책임 / Eligibility and User Responsibility</h2>
         <p style={{ lineHeight: 1.75 }}>
-          회사는 천재지변, 네트워크 장애, 제3자 서비스 중단 등 불가항력 사유로 인한 서비스 중단에 대해 책임을 지지 않습니다.
-          We are not liable for interruptions caused by force majeure events, network failures, or third-party service disruptions.
+          이용자는 정확한 정보 입력 및 계정/기기 보안 관리 책임을 부담하며, 법령 위반, 권리 침해, 자동화된 비정상 접근, 서비스 방해
+          행위를 해서는 안 됩니다. Users are responsible for lawful and fair use of the service.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>5. 책임의 제한 / Limitation of Liability</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>5. 금지행위 / Prohibited Conduct</h2>
         <p style={{ lineHeight: 1.75 }}>
-          회사의 손해배상 책임은 관련 법령이 허용하는 범위 내에서 제한되며, 이용자의 귀책사유로 발생한 손해에 대해서는 책임을 지지 않습니다.
-          Liability is limited to the extent permitted by law, and we are not responsible for damages caused by user fault.
+          (1) 서비스 역설계, 크롤링, 무단 자동화 접근 (2) 악성코드 유포 및 보안 취약점 악용 (3) 타인의 개인정보 무단 수집/도용
+          (4) 불법 콘텐츠 게시 (5) 운영을 방해하는 일체의 행위는 금지됩니다. We may block or suspend access for violations.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>6. 지식재산권 / Intellectual Property</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          서비스와 관련된 텍스트, 디자인, 코드, 데이터 구성요소 등 일체의 권리는 Code Destiny 또는 정당한 권리자에게 귀속됩니다.
+          You may not reproduce, distribute, or commercially exploit content without permission unless allowed by law.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>7. 서비스 성격 및 한계 / Nature and Limitations</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          운세/타로 결과는 오락 및 참고 목적의 정보이며, 법률/의료/투자/세무 등 전문 자문을 대체하지 않습니다.
+          Fortune interpretations are informational entertainment content and do not guarantee outcomes.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>8. 면책 / Disclaimer</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          회사는 천재지변, 통신장애, 플랫폼/브라우저 문제, 제3자 서비스 중단 등 불가항력 사유로 인한 손해에 대해 책임을 지지 않습니다.
+          We do not warrant uninterrupted, error-free service at all times.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>9. 책임 제한 / Limitation of Liability</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          관련 법령이 허용하는 최대 범위 내에서 회사의 책임은 제한되며, 간접손해/특별손해/결과적 손해에 대한 책임은 배제될 수 있습니다.
+          Nothing in these Terms excludes liability that cannot be excluded under applicable law.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>10. 약관 변경 / Changes to Terms</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          약관이 변경될 경우 시행일과 주요 변경사항을 서비스 내 공지합니다. 변경 후 서비스를 계속 이용하면 개정 약관에 동의한 것으로 간주됩니다.
+          Material changes will be announced with a reasonable prior notice period when required.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 준거법 및 관할 / Governing Law and Jurisdiction</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          본 약관은 대한민국 법령을 준거법으로 하며, 관련 분쟁은 관련 법령에 따른 관할 법원에 제기합니다.
+          These Terms are governed by the laws of the Republic of Korea.
         </p>
       </section>
 
       <section style={sectionStyle}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>6. 문의 / Contact</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 문의 / Contact</h2>
         <p style={{ lineHeight: 1.75 }}>
+          서비스명: Code Destiny
+          <br />
           약관 문의: seongbae555@gmail.com
           <br />
           Terms inquiries: seongbae555@gmail.com

@@ -7,6 +7,7 @@ const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const fortuneRoutes = require("./routes/fortune.routes");
+const kasiRoutes = require("./routes/kasi.routes");
 const tarotRoutes = require("./routes/tarot.routes");
 
 const app = express();
@@ -78,6 +79,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/fortune", fortuneRoutes);
+app.use("/api/kasi", kasiRoutes);
 app.use("/api/tarot", tarotRoutes);
 
 app.use((req, res) => {

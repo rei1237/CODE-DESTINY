@@ -11,7 +11,11 @@ async function startServer() {
     await connectDB();
 
     app.listen(port, () => {
-      console.log(`[API] listening on http://localhost:${port}`);
+      const url = `http://localhost:${port}`;
+      console.log("");
+      console.log("  \u279C  API 서버 주소: " + url);
+      console.log("  \u279C  헬스체크: " + url + "/api/health");
+      console.log("");
     });
   } catch (error) {
     console.error("[API] failed to start:", error.message);

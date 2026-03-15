@@ -133,6 +133,19 @@
     return null;
   }
 
+  function _resolveApiEndpoint() {
+    var configured = String(_config.apiEndpoint || '/api/kasi/calendar');
+    if (/^https?:\/\//i.test(configured)) return configured;
+    try {
+      if (typeof w !== 'undefined' && w.CODE_DESTINY_API_BASE_URL) {
+        var base = String(w.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
+        var path = configured.charAt(0) === '/' ? configured : ('/' + configured);
+        return base + path;
+      }
+    } catch (e) {}
+    return configured;
+  }
+
   function _normCalendarType(v) {
     var s = String(v || '').trim().toLowerCase();
     if (s === 'lunar' || s === '음력') return 'lunar';
@@ -307,7 +320,7 @@
   }
 
   async function _fetchKasi(method, params) {
-    var url = String(_config.apiEndpoint || '/api/kasi/calendar');
+    var url = _resolveApiEndpoint();
     var controller = new AbortController();
     var timeoutId = setTimeout(function () {
       controller.abort();

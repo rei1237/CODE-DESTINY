@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>
+    (function redirectToCanonicalMain() {
+      var target = "/public/index.html";
+      try {
+        var loc = window.location;
+        if (!loc) return;
+        if (loc.pathname === target) return;
+        var nextUrl = target + (loc.search || "") + (loc.hash || "");
+        window.location.replace(nextUrl);
+      } catch (e) {}
+    })();
+  </script>
   <script src="js/kill-switch.js"></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
@@ -387,9 +399,9 @@
     })();
   </script>
   <link rel="stylesheet" href="styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="styles/tarot-love-mystic.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="styles/tarot-reunion-lighthouse.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
+  <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260316-mobile-opt2">
+  <link rel="stylesheet" href="styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="css/entertain-system.css">
 </head>
 <body>
@@ -647,13 +659,15 @@
         </div>
         <a href="/points" class="fortune-point-charge">포인트 충전</a>
       </div>
-      <div class="post-saju-services-intro" role="note" aria-live="polite">
-        <strong>✨ 사주 팔자 이외의 신비한 운세 서비스</strong>
-        <span>아래에는 AI 동물 관상, MBTI 동물 궁합, 타로, 화투점 등 다양한 운세 콘텐츠가 준비되어 있어요. 스크롤하며 원하는 서비스로 편하게 이어서 즐겨보세요.</span>
-      </div>
-      
-      <!-- ═══ 부가 기능 카드 그리드 ═══ -->
-      <div class="feature-card-grid">
+    </section><!-- /section.card.input-section -->
+
+    <div class="post-saju-services-intro" role="note" aria-live="polite">
+      <strong>✨ 사주 팔자 이외의 신비한 운세 서비스</strong>
+      <span>아래에는 AI 동물 관상, MBTI 동물 궁합, 타로, 화투점 등 다양한 운세 콘텐츠가 준비되어 있어요. 스크롤하며 원하는 서비스로 편하게 이어서 즐겨보세요.</span>
+    </div>
+
+    <!-- ═══ 부가 기능 카드 그리드 ═══ -->
+    <div class="feature-card-grid">
 
         <!-- 1. AI 동물 관상 -->
         <div class="feature-card feature-card--face">
@@ -711,7 +725,7 @@
         <!-- 2.5 타로로 보는 우리 사이 (우선 노출) -->
         <div class="feature-card feature-card--tarot-love">
           <div class="feature-card__img-wrap">
-            <img src="fuctionassets/tarolove.webp"
+            <img src="/fuctionassets/tarolove.webp"
                  alt="타로로 보는 우리 사이 — 6장 스프레드로 관계의 진심을 읽다 (Tarot Love Reading, タロット恋愛占い)"
                  class="feature-card__img" loading="lazy" width="400" height="300">
             <span class="feature-card__badge">NEW</span>
@@ -738,7 +752,7 @@
         <!-- 2.6 긍정 에너지 회복 타로 -->
         <div class="feature-card feature-card--tarot-healing">
           <div class="feature-card__img-wrap">
-            <img src="fuctionassets/healing.webp"
+            <img src="/fuctionassets/healing.webp"
                  alt="긍정 에너지 회복하기 — 힐링 4카드 타로 (Healing & Rising Tarot)"
                  class="feature-card__img" loading="lazy" width="400" height="300">
             <span class="feature-card__badge">HEALING</span>
@@ -765,7 +779,7 @@
         <!-- 2.7 별 헤는 밤바다 재회운 타로 -->
         <div class="feature-card feature-card--tarot-reunion">
           <div class="feature-card__img-wrap">
-            <img src="fuctionassets/reunion.webp"
+            <img src="/fuctionassets/reunion.webp"
                  alt="별 헤는 밤바다의 재회운 타로 — 5카드 스프레드"
                  class="feature-card__img" loading="lazy" width="400" height="300">
             <span class="feature-card__badge">REUNION</span>
@@ -1203,10 +1217,10 @@
           </div>
         </div>
 
-      </div>
-      <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
+    </div>
+    <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
 
-      <!-- 운명의 꽃 아틀리에 모달 -->
+    <!-- 운명의 꽃 아틀리에 모달 -->
       <div id="destinyFlowerStudioOverlay" class="df-studio-overlay" style="display:none;" data-action="closeDestinyFlowerStudio" data-action-self-only="1">
         <section id="destinyFlowerStudioSheet" class="df-studio-sheet" role="dialog" aria-modal="true" aria-labelledby="dfStudioTitle">
           <button class="df-studio-close" type="button" data-action="closeDestinyFlowerStudio" aria-label="운명의 꽃 아틀리에 닫기">✕</button>
@@ -2045,8 +2059,6 @@
         </div>
       </div>
 
-    </div>
-
 
 
     <!-- ═══ 이집트 신탁 운세 (The Oracle of Kemet) ═══ -->
@@ -2691,13 +2703,13 @@
 
 <script src="js/destiny-profile.js" defer></script>
 <script type="module" src="js/swisseph-loader.js"></script>
-<script src="js/saju-engine.js?v=20260315-onecard-typing" defer></script>
-<script defer src="js/core/index-inline-runtime.js"></script>
+<script src="js/saju-engine.js?v=20260315-image-link-fix2" defer></script>
+<script defer src="js/core/index-inline-runtime.js?v=20260315-image-link-fix2"></script>
 <script src="js/services/animal-totem-content-engine.js" defer></script>
 <script src="js/animal-totem-experience.js" defer></script>
-<script src="js/tarot-love-experience.js?v=20260315-love-imgfix3" defer></script>
-<script src="js/tarot-healing-experience.js?v=20260315-tarot-image-fix5" defer></script>
-<script src="js/tarot-reunion-experience.js?v=20260315-tarot-image-fix1" defer></script>
+<script src="js/tarot-love-experience.js?v=20260316-love-apifix3" defer></script>
+<script src="js/tarot-healing-experience.js?v=20260316-healing-apifix3" defer></script>
+<script src="js/tarot-reunion-experience.js?v=20260316-reunion-apifix3" defer></script>
 <div class="share-toast" id="shareToast"></div>
 
 <script src="js/share.js" defer></script>

@@ -20,57 +20,110 @@ export default function PrivacyPolicyPage() {
     <main style={{ maxWidth: "920px", margin: "0 auto", padding: "28px 16px 42px", color: "#e2e8f0" }}>
       <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>개인정보처리방침 (Privacy Policy)</h1>
       <p style={{ opacity: 0.86, lineHeight: 1.7, marginBottom: "20px" }}>
-        시행일: 2026-03-14 / Effective Date: 2026-03-14
+        시행일: 2026-03-16 / Effective Date: 2026-03-16
       </p>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>1. 개인정보 처리 목적 / Purpose of Processing</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>1. 총칙 / General Notice</h2>
         <p style={{ lineHeight: 1.75 }}>
-          Code Destiny는 사주/운세 결과 제공, 서비스 품질 향상, 부정 이용 방지, 고객 문의 대응을 위하여 최소한의 개인정보를 처리합니다.
-          We process limited personal information to provide fortune analysis, improve service quality, prevent abuse, and respond to support requests.
+          Code Destiny(이하 "서비스")는 이용자의 개인정보를 중요하게 생각하며 관련 법령(예: 대한민국 개인정보 보호법, 정보통신망법 등)을
+          준수하기 위해 노력합니다. This Privacy Policy explains what data we process, why we process it, how long we keep it,
+          and how you can exercise your rights.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>2. 수집 항목 / Data Categories</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>2. 처리 목적 및 법적 근거 / Purpose and Legal Basis</h2>
         <p style={{ lineHeight: 1.75 }}>
-          입력 정보(예: 생년월일, 출생시간, 성별), 접속 로그, 기기/브라우저 정보, 쿠키 식별자 등을 처리할 수 있습니다.
-          We may process input data (birth date/time, gender), access logs, device/browser metadata, and cookie identifiers.
+          서비스는 운세/타로 결과 제공, 개인화된 화면 제공, 서비스 개선, 보안 및 부정 이용 방지, 고객 문의 대응, 법적 의무 이행 목적에서
+          개인정보를 처리합니다. We process personal data based on your consent, contract-like necessity for service delivery,
+          legitimate interests (security/analytics), and legal obligations where applicable.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>3. 쿠키 및 광고 고지 / Cookies and Advertising</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>3. 수집하는 정보 항목 / Categories of Data We Process</h2>
         <p style={{ lineHeight: 1.75 }}>
-          본 서비스는 쿠키를 사용하여 사용자 환경을 개선하고, Google AdSense를 포함한 제3자 광고 파트너가 쿠키를 통해 맞춤형 또는
-          비맞춤형 광고를 제공할 수 있습니다. 사용자는 브라우저 설정을 통해 쿠키 저장을 거부하거나 삭제할 수 있습니다.
-          This service uses cookies, and third-party vendors including Google may serve personalized or non-personalized ads using cookies.
-          You may disable or delete cookies in your browser settings.
+          입력 정보(예: 생년월일, 출생시간, 성별), 접속기기 정보(IP, 브라우저/OS, 언어, 접속시간), 로그 정보, 쿠키/로컬스토리지 식별자,
+          문의 시 제공되는 이메일 및 메시지 내용이 포함될 수 있습니다. We do not intentionally collect sensitive personal data beyond
+          what is required for the fortune analysis experience.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>4. 보유 및 파기 / Retention and Deletion</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>4. 쿠키, 분석 및 광고 / Cookies, Analytics and Ads</h2>
         <p style={{ lineHeight: 1.75 }}>
-          개인정보는 수집 목적 달성 시 또는 관련 법령에서 정한 기간이 경과하면 지체 없이 파기합니다.
-          Personal data is deleted without undue delay when processing purposes are fulfilled or statutory retention periods expire.
+          서비스는 원활한 기능 제공과 이용 패턴 분석을 위해 쿠키 및 유사 기술을 사용할 수 있습니다. Google AdSense 등 제3자 파트너가
+          광고 제공 목적으로 쿠키를 사용할 수 있으며, 이용자는 브라우저 설정 및 Google 광고 설정 페이지를 통해 맞춤 광고를 관리할 수 있습니다.
+          You can disable cookies in your browser, but parts of the service may not function properly.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>5. 이용자 권리 / Data Subject Rights</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>5. 개인정보의 제3자 제공 및 처리위탁 / Third-Party Sharing and Processors</h2>
         <p style={{ lineHeight: 1.75 }}>
-          이용자는 본인 정보에 대한 열람, 정정, 삭제, 처리정지 요청권을 가질 수 있으며 관련 요청은 아래 문의처로 접수할 수 있습니다.
-          You may request access, correction, deletion, or restriction of your data through the contact channel below.
+          원칙적으로 이용자 동의 없이 개인정보를 제3자에게 판매하지 않습니다. 다만 광고, 호스팅, 분석, 이메일 처리 등 서비스 운영을 위해
+          신뢰 가능한 수탁사(클라우드/분석/메일/광고 네트워크)에 처리 위탁이 이루어질 수 있습니다. In such cases, we require contractual
+          safeguards and limit processing to the minimum necessary scope.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>6. 국외 이전 가능성 / International Data Transfers</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          클라우드 인프라 또는 분석/광고 도구의 특성상 데이터가 해외 서버에서 처리될 수 있습니다. We take reasonable measures to protect
+          transferred data through standard contractual and technical safeguards where available.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>7. 보유기간 및 파기 / Retention and Deletion</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          개인정보는 수집 목적 달성 시 지체 없이 삭제하며, 관련 법령이 보관을 요구하는 경우 해당 기간 동안 안전하게 보관 후 파기합니다.
+          예시: 소비자 불만/분쟁 처리 기록(최대 3년), 접속 로그(최대 3개월) 등. Retention periods may vary by legal requirements.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>8. 이용자 권리와 행사 방법 / Your Rights</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          이용자는 개인정보 열람, 정정, 삭제, 처리정지, 동의 철회를 요청할 수 있습니다. Requests are handled without undue delay after
+          reasonable identity verification and within the scope permitted by law.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>9. 아동의 개인정보 / Children's Privacy</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          서비스는 원칙적으로 만 14세 미만 아동을 대상으로 하지 않으며, 관련 정보가 수집된 사실을 인지한 경우 지체 없이 삭제 조치합니다.
+          If you believe a child has provided personal data, please contact us immediately.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>10. 안전성 확보 조치 / Security Measures</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          접근권한 최소화, 접근통제, 로그 모니터링, 전송 구간 보호 등 합리적인 기술적/관리적 보호조치를 운영합니다. No method of
+          transmission or storage is 100% secure, but we continuously improve safeguards.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 정책 변경 / Changes to this Policy</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          본 방침은 법령 또는 서비스 변경에 따라 개정될 수 있으며, 중요한 변경 사항은 서비스 내 공지 또는 링크된 페이지를 통해 안내합니다.
+          Continued use of the service after updates means you acknowledge the revised policy.
         </p>
       </section>
 
       <section style={sectionStyle}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>6. 문의처 / Contact</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 개인정보 문의처 / Privacy Contact</h2>
         <p style={{ lineHeight: 1.75 }}>
-          이메일: seongbae555@gmail.com
+          서비스명: Code Destiny
           <br />
-          For privacy inquiries: seongbae555@gmail.com
+          개인정보 보호 문의 이메일: seongbae555@gmail.com
+          <br />
+          Contact Email: seongbae555@gmail.com
         </p>
       </section>
     </main>
