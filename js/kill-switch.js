@@ -115,7 +115,13 @@
     checking = true;
     return fetchAliveSignal()
       .catch(function () {
-        activateKillSwitch();
+        /* Only kill when server explicitly returns alive:false; ignore network errors */
+        return fetch(withTimestamp(STATUS_URL), { method: "GET", cache: "no-store" })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            if (data && data.alive === false) activateKillSwitch();
+          })
+          .catch(function () {});
       })
       .finally(function () {
         checking = false;
@@ -142,20 +148,30 @@
     window.addEventListener("hashchange", verifyAlive, true);
   }
 
-  function blockingBootCheck() {
-    var xhr = new XMLHttpRequest();
-    try {
-      xhr.open("GET", withTimestamp(STATUS_URL), false);
-      xhr.setRequestHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-      xhr.setRequestHeader("Pragma", "no-cache");
-      xhr.setRequestHeader("Expires", "0");
-      xhr.send(null);
-      if (xhr.status < 200 || xhr.status >= 300) return false;
-      var payload = JSON.parse(xhr.responseText || "{}");
-      return !(payload && payload.alive === false);
-    } catch (e) {
-      return false;
-    }
+  /* Async boot check: fail-open. Sync XHR is deprecated/blocked in Chrome main thread.
+   * Only activate kill when server explicitly returns alive:false.
+   * On network error/timeout, assume alive (show content) for better UX. */
+  function asyncBootCheck() {
+    fetchAliveSignal()
+      .then(function () {
+        window.__APP_ALIVE__ = true;
+        installRouteHooks();
+        setInterval(verifyAlive, HEARTBEAT_INTERVAL_MS);
+      })
+      .catch(function () {
+        /* Explicit alive:false from server -> activate kill */
+        fetch(withTimestamp(STATUS_URL), { method: "GET", cache: "no-store" })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            if (data && data.alive === false) activateKillSwitch();
+            else { window.__APP_ALIVE__ = true; installRouteHooks(); setInterval(verifyAlive, HEARTBEAT_INTERVAL_MS); }
+          })
+          .catch(function () {
+            window.__APP_ALIVE__ = true;
+            installRouteHooks();
+            setInterval(verifyAlive, HEARTBEAT_INTERVAL_MS);
+          });
+      });
   }
 
   var qs = "";
@@ -173,15 +189,7 @@
     return;
   }
 
-  var bootAlive = blockingBootCheck();
-  window.__APP_ALIVE__ = bootAlive;
+  window.__APP_ALIVE__ = true;
   window.__verifyServiceAlive = verifyAlive;
-
-  if (!bootAlive) {
-    activateKillSwitch();
-    return;
-  }
-
-  installRouteHooks();
-  setInterval(verifyAlive, HEARTBEAT_INTERVAL_MS);
+  asyncBootCheck();
 })();
