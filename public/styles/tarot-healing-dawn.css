@@ -1,0 +1,513 @@
+/* Dawn of Healing — 긍정 에너지 회복 타로 */
+
+.feature-card--tarot-healing { border-bottom: 3px solid #ffaf9b; }
+.feature-card--tarot-healing .feature-card__cta,
+.feature-card--tarot-healing .feature-card__launch {
+  background: linear-gradient(135deg, #ff9db6, #ffb87d);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(255, 171, 123, 0.35);
+}
+
+.tarot-healing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(185, 164, 255, 0.35), transparent 42%),
+    radial-gradient(circle at 80% 25%, rgba(255, 176, 158, 0.32), transparent 45%),
+    radial-gradient(circle at 60% 80%, rgba(255, 216, 145, 0.2), transparent 45%),
+    linear-gradient(145deg, #2a1b44 0%, #5c3d72 35%, #d98383 68%, #ffd08f 100%);
+  backdrop-filter: blur(8px);
+  isolation: isolate;
+}
+.tarot-healing-overlay.is-open { display: block; animation: healingOverlayIn 0.5s ease; }
+@keyframes healingOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.tarot-healing-overlay::before,
+.tarot-healing-overlay::after {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 99998;
+}
+.tarot-healing-overlay::before {
+  background: radial-gradient(circle at 50% 45%, rgba(255, 236, 173, 0.22), transparent 52%);
+  filter: blur(20px);
+  animation: dawnPulse 6s ease-in-out infinite;
+}
+.tarot-healing-overlay::after {
+  background: linear-gradient(115deg, transparent 25%, rgba(255, 255, 255, 0.16) 50%, transparent 75%);
+  transform: translateX(-65%) rotate(-4deg);
+  opacity: 0.45;
+  animation: dawnSweep 9s linear infinite;
+}
+@keyframes dawnPulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.04); }
+}
+@keyframes dawnSweep {
+  0% { transform: translateX(-70%) rotate(-4deg); }
+  100% { transform: translateX(70%) rotate(-4deg); }
+}
+
+.tarot-healing-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 100000;
+}
+.tarot-healing-particles .particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 246, 214, 0.9);
+  box-shadow: 0 0 14px rgba(255, 234, 171, 0.8);
+  animation: healingFloat 4.5s ease-in-out infinite;
+}
+.tarot-healing-particles .p1 { left: 10%; top: 16%; animation-delay: 0s; }
+.tarot-healing-particles .p2 { left: 22%; top: 8%; animation-delay: 0.7s; }
+.tarot-healing-particles .p3 { left: 37%; top: 20%; animation-delay: 1.4s; }
+.tarot-healing-particles .p4 { left: 52%; top: 12%; animation-delay: 2.1s; }
+.tarot-healing-particles .p5 { left: 66%; top: 22%; animation-delay: 0.5s; }
+.tarot-healing-particles .p6 { left: 82%; top: 10%; animation-delay: 1.8s; }
+.tarot-healing-particles .p7 { left: 14%; top: 72%; animation-delay: 2.6s; }
+.tarot-healing-particles .p8 { left: 36%; top: 82%; animation-delay: 1.1s; }
+.tarot-healing-particles .p9 { left: 58%; top: 78%; animation-delay: 0.3s; }
+.tarot-healing-particles .p10 { left: 84%; top: 70%; animation-delay: 2.3s; }
+@keyframes healingFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.55; }
+  50% { transform: translateY(-11px) scale(1.25); opacity: 1; }
+}
+
+.tarot-healing-shell {
+  position: relative;
+  max-width: 940px;
+  margin: 38px auto;
+  padding: 24px 16px 42px;
+  z-index: 100001;
+}
+.tarot-healing-panel {
+  position: relative;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 248, 235, 0.35);
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow:
+    0 0 45px rgba(255, 182, 121, 0.23),
+    0 22px 70px rgba(38, 24, 56, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.13);
+  padding: 34px;
+  overflow: hidden;
+}
+.tarot-healing-panel::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 245, 226, 0.42);
+  box-shadow: inset 0 0 36px rgba(255, 236, 183, 0.28);
+  pointer-events: none;
+}
+.tarot-healing-panel.ritual-burst { animation: healingBurst 0.9s ease; }
+@keyframes healingBurst {
+  0% { box-shadow: 0 0 45px rgba(255, 182, 121, 0.23), 0 22px 70px rgba(38, 24, 56, 0.45); }
+  40% { box-shadow: 0 0 78px rgba(255, 214, 152, 0.7), 0 22px 70px rgba(38, 24, 56, 0.45); }
+  100% { box-shadow: 0 0 45px rgba(255, 182, 121, 0.23), 0 22px 70px rgba(38, 24, 56, 0.45); }
+}
+
+.tarot-healing-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(94, 64, 122, 0.55);
+  color: #fff9ef;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tarot-healing-stage { display: none; }
+.tarot-healing-stage.is-active { display: block; animation: healingFadeUp 0.45s ease; }
+@keyframes healingFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tarot-healing-hero {
+  border-radius: 18px;
+  padding: 30px 26px 34px;
+  background:
+    radial-gradient(circle at 75% 28%, rgba(255, 214, 158, 0.36), transparent 48%),
+    linear-gradient(155deg, rgba(251, 235, 255, 0.27), rgba(255, 255, 255, 0.08));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+.tarot-healing-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.24), transparent 45%);
+  pointer-events: none;
+  animation: heroGlow 5.5s ease-in-out infinite;
+}
+@keyframes heroGlow {
+  0%, 100% { opacity: 0.38; }
+  50% { opacity: 0.72; }
+}
+
+.tarot-healing-title {
+  margin: 0;
+  font-family: "Noto Serif KR", "Georgia", serif;
+  font-size: 34px;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: #fff8ec;
+  text-shadow: 0 3px 18px rgba(93, 56, 128, 0.35);
+  animation: titleBreathe 5s ease-in-out infinite;
+}
+@keyframes titleBreathe {
+  0%, 100% { text-shadow: 0 3px 18px rgba(93, 56, 128, 0.35); }
+  50% { text-shadow: 0 0 28px rgba(255, 241, 187, 0.55), 0 3px 18px rgba(93, 56, 128, 0.35); }
+}
+.tarot-healing-subtitle {
+  margin-top: 14px;
+  font-family: "Noto Serif KR", "Georgia", serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255, 249, 238, 0.92);
+}
+
+.tarot-healing-invoke-wrap { margin-top: 24px; text-align: center; }
+.tarot-healing-btn {
+  display: inline-block;
+  border-radius: 14px;
+  padding: 14px 26px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: linear-gradient(135deg, #ffb39d, #ffcb87);
+  color: #5a3456;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(102, 66, 128, 0.24);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+}
+.tarot-healing-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(255, 236, 173, 0.6), 0 10px 24px rgba(102, 66, 128, 0.24);
+  filter: saturate(1.06);
+}
+.tarot-healing-btn--invoke {
+  font-size: 16px;
+  padding: 16px 34px;
+  animation: healingBtnPulse 2.8s ease-in-out infinite;
+}
+@keyframes healingBtnPulse {
+  0%, 100% { box-shadow: 0 10px 24px rgba(102, 66, 128, 0.24); }
+  50% { box-shadow: 0 0 24px rgba(255, 239, 173, 0.75), 0 10px 24px rgba(102, 66, 128, 0.24); }
+}
+.tarot-healing-btn--subtle {
+  background: rgba(255, 255, 255, 0.25);
+  color: #5a3456;
+}
+
+.tarot-healing-draw-header {
+  font-family: "Noto Serif KR", "Georgia", serif;
+  font-size: 1.16rem;
+  color: #fffaf0;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.tarot-healing-spread-guide {
+  text-align: center;
+  color: rgba(255, 248, 236, 0.95);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin-bottom: 20px;
+  animation: guideBreath 3.8s ease-in-out infinite;
+}
+@keyframes guideBreath {
+  0%, 100% { opacity: 0.78; }
+  50% { opacity: 1; }
+}
+
+.tarot-healing-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+@media (max-width: 760px) {
+  .tarot-healing-card-grid {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 16px;
+  }
+}
+
+.tarot-healing-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  perspective: 900px;
+  transition: transform 0.35s ease;
+}
+.tarot-healing-slot:hover { transform: translateY(-2px); }
+.tarot-healing-slot-label {
+  text-align: center;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: rgba(255, 250, 238, 0.96);
+  font-family: "Noto Serif KR", "Georgia", serif;
+  text-shadow: 0 1px 8px rgba(255, 230, 166, 0.25);
+}
+.tarot-healing-slot.guide-next::before {
+  content: "✧";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 243, 182, 0.95);
+  text-shadow: 0 0 12px rgba(255, 232, 158, 0.9);
+  animation: nextGlow 1.7s ease-in-out infinite;
+}
+@keyframes nextGlow {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) translateY(0); }
+  50% { opacity: 1; transform: translateX(-50%) translateY(-3px); }
+}
+
+.tarot-healing-card {
+  width: 100%;
+  max-width: 136px;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 1.05s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.45s ease;
+  background: rgba(255, 255, 255, 0.08);
+}
+.tarot-healing-card::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  background: radial-gradient(circle, rgba(255, 236, 177, 0.45), transparent 60%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.tarot-healing-card:hover::before,
+.tarot-healing-slot.guide-next .tarot-healing-card::before,
+.tarot-healing-card.flipped::before {
+  opacity: 0.85;
+}
+.tarot-healing-card.flipped {
+  transform: rotateY(180deg);
+  box-shadow: 0 0 28px rgba(255, 234, 166, 0.8), 0 10px 24px rgba(106, 70, 128, 0.25);
+}
+
+.tarot-healing-card-back,
+.tarot-healing-card-front {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 252, 239, 0.5);
+}
+.tarot-healing-card-back {
+  background: linear-gradient(150deg, rgba(92, 70, 132, 0.95), rgba(222, 138, 136, 0.92));
+  overflow: hidden;
+}
+.tarot-healing-card-back::before {
+  content: "☼";
+  font-size: 1.9rem;
+  color: rgba(255, 238, 186, 0.9);
+  text-shadow: 0 0 18px rgba(255, 220, 120, 0.7);
+}
+.tarot-healing-card-back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 25%, rgba(255,255,255,0.22) 50%, transparent 75%);
+  transform: translateX(-120%);
+  animation: backShine 3.2s ease-in-out infinite;
+}
+@keyframes backShine {
+  0% { transform: translateX(-120%); opacity: 0.25; }
+  50% { transform: translateX(120%); opacity: 0.55; }
+  100% { transform: translateX(120%); opacity: 0.2; }
+}
+.tarot-healing-card-front {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  background: linear-gradient(160deg, rgba(255, 251, 243, 0.95), rgba(255, 235, 212, 0.96));
+  padding: 8px;
+}
+.tarot-healing-card-front .tarot-face-img {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(61, 37, 77, 0.2);
+  background: rgba(255, 255, 255, 0.38);
+  position: static;
+  inset: auto;
+  display: block;
+  z-index: 1;
+}
+.tarot-healing-card-front.tarot-healing-image-fallback .tarot-face-img { opacity: 0.88; }
+.tarot-healing-card-name {
+  margin-top: 6px;
+  font-size: 0.74rem;
+  color: #6f4969;
+  font-weight: 600;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255, 248, 236, 0.76);
+}
+
+.tarot-healing-card--forced-face {
+  transform: none !important;
+  overflow: hidden;
+}
+
+.tarot-healing-forced-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 8px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 12px;
+}
+
+.tarot-healing-forced-name {
+  display: inline-block;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #4f2f56;
+  text-align: center;
+  background: rgba(255, 246, 230, 0.86);
+  box-shadow: 0 4px 12px rgba(54, 30, 63, 0.22);
+}
+
+.ripple-wave {
+  position: absolute;
+  inset: 35% 35%;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 240, 181, 0.95);
+  box-shadow: 0 0 20px rgba(255, 226, 139, 0.8);
+  pointer-events: none;
+  animation: healingRipple 0.9s ease-out forwards;
+}
+@keyframes healingRipple {
+  from { transform: scale(0.15); opacity: 1; }
+  to { transform: scale(3.3); opacity: 0; }
+}
+
+.tarot-healing-final-wrap { text-align: center; margin-top: 10px; }
+.tarot-healing-final-btn {
+  border-radius: 14px;
+  padding: 14px 32px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: linear-gradient(135deg, #ffb39d, #ffd796);
+  color: #5a3456;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tarot-healing-final-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tarot-healing-reading-title {
+  font-family: "Noto Serif KR", "Georgia", serif;
+  font-size: 1.3rem;
+  text-align: center;
+  color: #fff8ef;
+}
+.tarot-healing-reading-content {
+  max-height: 56vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.tarot-healing-section {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22), 0 8px 18px rgba(69, 40, 82, 0.13);
+}
+.tarot-healing-section-title {
+  margin: 0 0 8px;
+  color: #5e3865;
+  font-weight: 700;
+  font-family: "Noto Serif KR", "Georgia", serif;
+}
+.tarot-healing-section-text {
+  margin: 0;
+  color: #4f3559;
+  line-height: 1.7;
+}
+.tarot-healing-advice-list {
+  margin: 0;
+  padding-left: 20px;
+  color: #4f3559;
+  line-height: 1.7;
+}
+.tarot-healing-result-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+@media (max-width: 560px) {
+  .tarot-healing-panel { padding: 24px 18px; }
+  .tarot-healing-title { font-size: 27px; }
+  .tarot-healing-card { max-width: 128px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarot-healing-overlay::before,
+  .tarot-healing-overlay::after,
+  .tarot-healing-title,
+  .tarot-healing-spread-guide,
+  .tarot-healing-btn--invoke,
+  .tarot-healing-card-back::after {
+    animation: none !important;
+  }
+}

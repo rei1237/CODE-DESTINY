@@ -1,0 +1,354 @@
+(function(global) {
+  "use strict";
+
+  var state = {
+    mode: "three",
+    spread: null,
+    consultation: null,
+    revealedOrder: [],
+    canvasLoop: null,
+    canvasStars: []
+  };
+
+  var refs = {};
+
+  function byId(id) { return document.getElementById(id); }
+  function lockBody() { if (global._perf && global._perf.lockBody) global._perf.lockBody(); else document.body.style.overflow = "hidden"; }
+  function unlockBody() { if (global._perf && global._perf.unlockBody) global._perf.unlockBody(); else document.body.style.overflow = ""; }
+
+  function ensureRefs() {
+    refs.overlay = byId("animalTotemOverlay");
+    refs.introStage = byId("animalTotemIntroStage");
+    refs.modeStage = byId("animalTotemModeStage");
+    refs.drawStage = byId("animalTotemDrawStage");
+    refs.resultStage = byId("animalTotemResultStage");
+    refs.cardRail = byId("animalTotemCardRail");
+    refs.readingPanels = byId("animalTotemReadingPanels");
+    refs.openingText = byId("animalTotemOpeningText");
+    refs.closingText = byId("animalTotemClosingText");
+    refs.flowStrip = byId("animalTotemFlowStrip");
+    refs.modeButtons = document.querySelectorAll(".totem-mode-btn");
+    refs.canvas = byId("animalTotemStarCanvas");
+    refs.runeField = byId("animalTotemRuneField");
+  }
+
+  function takeSentences(text, maxSentences) {
+    if (!text) return "";
+    var cleaned = String(text).replace(/\s+/g, " ").trim();
+    var parts = cleaned.split(/(?<=[.!?।])\s+/);
+    if (parts.length <= maxSentences) return cleaned;
+    return parts.slice(0, maxSentences).join(" ");
+  }
+
+  function shortenAdvice(list) {
+    if (!Array.isArray(list)) return [];
+    return list.slice(0, 3).map(function(v) { return takeSentences(v, 1); });
+  }
+
+  function activateStage(stageEl) {
+    [refs.introStage, refs.modeStage, refs.drawStage, refs.resultStage].forEach(function(el) {
+      if (!el) return;
+      el.classList.remove("is-active");
+    });
+    if (stageEl) stageEl.classList.add("is-active");
+  }
+
+  function buildRuneField() {
+    if (!refs.runeField || refs.runeField.dataset.ready === "1") return;
+    refs.runeField.dataset.ready = "1";
+    var runes = ["ᚠ", "ᚨ", "ᚱ", "ᛟ", "ᛞ", "ᚲ", "✶", "✧", "☾"];
+    for (var i = 0; i < 26; i += 1) {
+      var el = document.createElement("span");
+      el.className = "totem-rune";
+      el.textContent = runes[i % runes.length];
+      el.style.left = Math.floor(Math.random() * 96) + "%";
+      el.style.animationDuration = (8 + Math.random() * 10).toFixed(2) + "s";
+      el.style.animationDelay = (Math.random() * 6).toFixed(2) + "s";
+      refs.runeField.appendChild(el);
+    }
+  }
+
+  function startCanvas() {
+    if (!refs.canvas) return;
+    var c = refs.canvas;
+    var rect = c.getBoundingClientRect();
+    c.width = Math.max(240, Math.floor(rect.width));
+    c.height = Math.max(120, Math.floor(rect.height));
+    var ctx = c.getContext("2d");
+    state.canvasStars = Array.from({ length: 48 }, function() {
+      return {
+        x: Math.random() * c.width,
+        y: Math.random() * c.height,
+        r: 0.6 + Math.random() * 1.7,
+        speed: 0.12 + Math.random() * 0.44,
+        alpha: 0.15 + Math.random() * 0.75
+      };
+    });
+    function tick() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      for (var i = 0; i < state.canvasStars.length; i += 1) {
+        var s = state.canvasStars[i];
+        s.y -= s.speed;
+        if (s.y < -4) {
+          s.y = c.height + 3;
+          s.x = Math.random() * c.width;
+        }
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(255,236,168," + s.alpha.toFixed(2) + ")";
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      state.canvasLoop = global.requestAnimationFrame(tick);
+    }
+    stopCanvas();
+    tick();
+  }
+
+  function stopCanvas() {
+    if (state.canvasLoop) {
+      global.cancelAnimationFrame(state.canvasLoop);
+      state.canvasLoop = null;
+    }
+  }
+
+  function setMode(mode) {
+    state.mode = mode === "five" ? "five" : "three";
+    refs.modeButtons.forEach(function(btn) {
+      btn.classList.toggle("is-active", btn.getAttribute("data-mode") === state.mode);
+    });
+  }
+
+  function slotLabel(slot) {
+    var map = {
+      past_wound: "과거 상처",
+      present_energy: "현재 에너지",
+      integration_path: "통합 방향",
+      mind: "이성/사고",
+      heart: "감정/욕구",
+      shadow: "그림자",
+      gift: "잠재 선물",
+      next_action: "다음 행동"
+    };
+    return map[slot] || slot;
+  }
+
+  function renderDeck() {
+    if (!refs.cardRail || !state.spread) return;
+    refs.cardRail.innerHTML = "";
+    state.revealedOrder = [];
+    state.spread.cards.forEach(function(entry, idx) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "totem-draw-card totem-parallax-zone";
+      btn.setAttribute("data-action", "revealAnimalTotemCard");
+      btn.setAttribute("data-action-pass-self", "1");
+      btn.setAttribute("data-action-args", String(idx));
+      btn.setAttribute("aria-label", slotLabel(entry.slot) + " 카드 뒤집기");
+      btn.innerHTML =
+        '<span class="totem-draw-card-inner">' +
+        '<span class="totem-card-face totem-card-face--back"><span class="totem-card-emoji">🐾</span><small class="totem-card-slot">' + slotLabel(entry.slot) + '</small><small class="totem-card-mark">TOTEM CARD</small></span>' +
+        '<span class="totem-card-face totem-card-face--front">' +
+        '<b class="totem-card-emoji">' + entry.card.emoji + "</b>" +
+        '<span class="totem-card-name">' + entry.card.name_ko + "</span>" +
+        '<small>' + entry.card.category + "</small>" +
+        "</span></span>";
+      refs.cardRail.appendChild(btn);
+    });
+  }
+
+  function parallaxCard(btn, active) {
+    if (!btn) return;
+    if (!active) {
+      btn.style.transform = "translate3d(0,0,0)";
+      return;
+    }
+    var r = btn.getBoundingClientRect();
+    var cx = r.left + r.width / 2;
+    var cy = r.top + r.height / 2;
+    btn.onmousemove = function(ev) {
+      var dx = ((ev.clientX - cx) / r.width) * 14;
+      var dy = ((ev.clientY - cy) / r.height) * 14;
+      btn.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px,0)";
+    };
+    btn.onmouseleave = function() { btn.style.transform = "translate3d(0,0,0)"; };
+  }
+
+  function burstAt(btn, color) {
+    if (!btn) return;
+    for (var i = 0; i < 14; i += 1) {
+      var d = document.createElement("i");
+      d.className = "totem-burst";
+      d.style.background = color;
+      d.style.left = "50%";
+      d.style.top = "50%";
+      var angle = (Math.PI * 2 * i) / 14;
+      d.style.setProperty("--tx", Math.cos(angle) * (24 + Math.random() * 22) + "px");
+      d.style.setProperty("--ty", Math.sin(angle) * (24 + Math.random() * 22) + "px");
+      btn.appendChild(d);
+      setTimeout((function(node) { return function() { if (node && node.parentNode) node.parentNode.removeChild(node); }; })(d), 700);
+    }
+  }
+
+  function applyAmbientClass() {
+    if (!refs.overlay || !state.spread) return;
+    refs.overlay.classList.remove("env-ground", "env-air", "env-water");
+    var score = { "지상": 0, "공중": 0, "물/기타": 0, "기본": 0 };
+    state.spread.cards.forEach(function(it) {
+      var cat = it.card.category || "기본";
+      score[cat] = (score[cat] || 0) + 1;
+    });
+    var maxCat = "기본";
+    Object.keys(score).forEach(function(k) { if (score[k] > score[maxCat]) maxCat = k; });
+    if (maxCat === "지상") refs.overlay.classList.add("env-ground");
+    else if (maxCat === "공중") refs.overlay.classList.add("env-air");
+    else refs.overlay.classList.add("env-water");
+  }
+
+  function renderConsultation() {
+    if (!refs.readingPanels || !state.consultation) return;
+    refs.readingPanels.innerHTML = "";
+    if (refs.openingText) refs.openingText.textContent = takeSentences(state.consultation.opening_message || "", 2);
+    if (refs.closingText) refs.closingText.textContent = takeSentences(state.consultation.closing_guidance || "", 2);
+    if (refs.flowStrip) {
+      refs.flowStrip.innerHTML = state.consultation.cards.map(function(entry, idx) {
+        var arrow = idx < state.consultation.cards.length - 1 ? '<span class="totem-flow-arrow">→</span>' : "";
+        return '<div class="totem-flow-node">' +
+          '<span class="totem-flow-icon">' + entry.animal.emoji + '</span>' +
+          '<span class="totem-flow-label">' + slotLabel(entry.slot) + "</span>" +
+          '<span class="totem-flow-name">' + entry.animal.name_ko + "</span>" +
+          "</div>" + arrow;
+      }).join("");
+    }
+
+    state.consultation.cards.forEach(function(entry, idx) {
+      var p = document.createElement("article");
+      p.className = "totem-guidance-card";
+      p.style.animationDelay = (idx * 0.12).toFixed(2) + "s";
+      var essence = takeSentences(entry.layered_reading.essence, 2);
+      var message = takeSentences(entry.layered_reading.direct_message, 2);
+      var advices = shortenAdvice(entry.layered_reading.daily_actions);
+      p.innerHTML =
+        '<div class="totem-guidance-aura" style="--aura-color:' + (entry.animal.color_theme.glow || "#facc15") + ';"></div>' +
+        '<div class="totem-guidance-head">' +
+          '<div class="totem-guidance-animal">' + entry.animal.emoji + "</div>" +
+          '<div><p class="totem-guidance-slot">' + slotLabel(entry.slot) + '</p><h3 class="totem-guidance-name">' + entry.animal.name_ko + "</h3></div>" +
+        "</div>" +
+        '<section class="totem-guidance-section"><h4>Essence</h4><p>' + essence + "</p></section>" +
+        '<section class="totem-guidance-section"><h4>Oracle Message</h4><p>' + message + "</p></section>" +
+        '<section class="totem-guidance-section"><h4>Today\'s Guidance</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
+        '<details class="totem-ritual-toggle"><summary>Reveal Ritual</summary><p>' + takeSentences(entry.layered_reading.ritual, 2) + "</p></details>";
+      refs.readingPanels.appendChild(p);
+    });
+  }
+
+  function openAnimalTotemModal() {
+    ensureRefs();
+    if (!refs.overlay) return;
+    refs.overlay.classList.remove("env-ground", "env-air", "env-water");
+    refs.overlay.classList.add("is-open");
+    lockBody();
+    resetAnimalTotemFlow();
+    buildRuneField();
+    startCanvas();
+  }
+
+  function closeAnimalTotemModal() {
+    ensureRefs();
+    if (!refs.overlay) return;
+    refs.overlay.classList.remove("is-open");
+    unlockBody();
+    stopCanvas();
+  }
+
+  function resetAnimalTotemFlow() {
+    ensureRefs();
+    state.spread = null;
+    state.consultation = null;
+    state.revealedOrder = [];
+    activateStage(refs.introStage);
+    if (refs.cardRail) refs.cardRail.innerHTML = "";
+    if (refs.readingPanels) refs.readingPanels.innerHTML = "";
+    if (refs.openingText) refs.openingText.textContent = "";
+    if (refs.closingText) refs.closingText.textContent = "";
+    setMode("three");
+  }
+
+  function startAnimalTotemRitual() {
+    ensureRefs();
+    activateStage(refs.modeStage);
+  }
+
+  function setAnimalTotemSpreadMode(mode) {
+    ensureRefs();
+    setMode(mode);
+  }
+
+  function drawAnimalTotemSpread() {
+    ensureRefs();
+    if (!global.AnimalTotemContentEngine) {
+      alert("애니멀 토템 엔진을 불러오지 못했습니다. 페이지를 새로고침해 주세요.");
+      return;
+    }
+    state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
+    state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, {});
+    renderDeck();
+    applyAmbientClass();
+    activateStage(refs.drawStage);
+  }
+
+  function revealAnimalTotemCard(btn, idxRaw) {
+    ensureRefs();
+    if (!state.spread || !state.consultation) return;
+    var idx = parseInt(idxRaw, 10);
+    if (Number.isNaN(idx)) return;
+    if (state.revealedOrder.indexOf(idx) >= 0) return;
+    if (idx !== state.revealedOrder.length) return;
+    if (navigator.vibrate) navigator.vibrate(12);
+    var card = refs.cardRail ? refs.cardRail.children[idx] : null;
+    if (!card) return;
+    card.classList.add("is-revealed");
+    card.classList.remove("is-disabled");
+    parallaxCard(card, true);
+    var clr = state.spread.cards[idx].card.color_theme.glow || "#facc15";
+    burstAt(card, clr);
+    state.revealedOrder.push(idx);
+    for (var i = 0; i < refs.cardRail.children.length; i += 1) {
+      if (i > state.revealedOrder.length) refs.cardRail.children[i].classList.add("is-disabled");
+      else refs.cardRail.children[i].classList.remove("is-disabled");
+    }
+    if (state.revealedOrder.length === state.spread.cards.length) {
+      renderConsultation();
+      setTimeout(function() { activateStage(refs.resultStage); }, 250);
+    }
+  }
+
+  function shareAnimalTotemResult() {
+    if (!state.consultation) return;
+    var titles = state.consultation.cards.map(function(c) { return c.animal.emoji + " " + c.animal.name_ko; }).join(" · ");
+    var text = "🧸 애니멀 토템 심층 리딩\n" + titles + "\n\n" + (state.consultation.opening_message || "") + "\n\n👉 무료 리딩 보러가기: https://code-destiny.com";
+    var encoded = encodeURIComponent(text);
+    var a = document.createElement("a");
+    a.href = "kakaotalk://send?text=" + encoded;
+    a.click();
+    setTimeout(function() {
+      if (typeof copyToClipboard === "function") {
+        copyToClipboard(text, "카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬");
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() { alert("카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬"); }).catch(function() { alert(text); });
+      } else {
+        alert(text);
+      }
+    }, 800);
+  }
+
+  global.openAnimalTotemModal = openAnimalTotemModal;
+  global.closeAnimalTotemModal = closeAnimalTotemModal;
+  global.startAnimalTotemRitual = startAnimalTotemRitual;
+  global.setAnimalTotemSpreadMode = setAnimalTotemSpreadMode;
+  global.drawAnimalTotemSpread = drawAnimalTotemSpread;
+  global.revealAnimalTotemCard = revealAnimalTotemCard;
+  global.resetAnimalTotemFlow = resetAnimalTotemFlow;
+  global.shareAnimalTotemResult = shareAnimalTotemResult;
+  global.startAnimalTotemMeditation = startAnimalTotemRitual;
+  global.drawAnimalTotemCard = revealAnimalTotemCard;
+})(window);
