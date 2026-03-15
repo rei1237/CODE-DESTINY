@@ -16921,6 +16921,118 @@ function escapeTarotHtml(v) {
     .replace(/'/g, '&#39;');
 }
 
+var TAROT_CARD_DEEP_PROFILE = {
+  '바보': { core: '새로운 시작과 자유', psych: '두려움보다 호기심이 앞설 때 삶이 확장됩니다.', shadow: '충동과 회피가 책임을 밀어낼 수 있습니다.', heal: '작게 시작해도 꾸준히 실행하면 운이 실립니다.' },
+  '마법사': { core: '의지와 실행력의 결합', psych: '자기효능감이 높아질수록 현실 통제감이 회복됩니다.', shadow: '말만 많고 행동이 비면 신뢰가 약해집니다.', heal: '하루 1개의 구체 행동으로 의지를 현실로 고정하세요.' },
+  '여사제': { core: '직관과 내면의 지혜', psych: '겉보다 속마음을 읽는 능력이 필요한 시기입니다.', shadow: '과도한 해석과 침묵이 기회를 늦출 수 있습니다.', heal: '반응 전에 10초 멈춤으로 감정의 노이즈를 줄이세요.' },
+  '여황제': { core: '풍요와 돌봄의 창조성', psych: '정서적 안정이 성과와 관계를 함께 키웁니다.', shadow: '과보호와 과소비가 경계를 흐릴 수 있습니다.', heal: '내가 키울 것과 줄일 것을 분리해 관리하세요.' },
+  '황제': { core: '질서, 구조, 책임', psych: '규칙과 루틴이 불안을 낮추고 에너지를 아껴줍니다.', shadow: '통제욕이 관계의 온도를 떨어뜨릴 수 있습니다.', heal: '원칙은 지키되 사람에게는 유연함을 남기세요.' },
+  '교황': { core: '전통, 배움, 제도적 지혜', psych: '검증된 프레임이 혼란을 줄여줍니다.', shadow: '관성적 사고가 새 해법을 막을 수 있습니다.', heal: '신뢰할 스승/전문가 1인의 피드백을 활용하세요.' },
+  '연인': { core: '가치 일치와 선택', psych: '관계의 핵심은 감정이 아니라 선택의 일관성입니다.', shadow: '우유부단함이 연결을 소모시킬 수 있습니다.', heal: '지금 지키고 싶은 가치 3가지를 먼저 선언하세요.' },
+  '전차': { core: '집중된 추진력', psych: '내적 갈등을 통합하면 속도가 붙습니다.', shadow: '속도 집착이 중요한 신호를 놓치게 합니다.', heal: '목표는 1개로 좁히고 방해 요소를 비우세요.' },
+  '힘': { core: '부드러운 자기통제', psych: '감정 조절은 억압이 아니라 조율입니다.', shadow: '참기만 하면 번아웃이 늦게 폭발합니다.', heal: '강함의 기준을 성과가 아닌 회복력으로 바꾸세요.' },
+  '은둔자': { core: '성찰과 내적 정렬', psych: '혼자 있는 시간이 판단 정확도를 높입니다.', shadow: '고립이 길어지면 현실 감각이 약해질 수 있습니다.', heal: '성찰 후 반드시 1개의 외부 행동으로 연결하세요.' },
+  '운명의 수레바퀴': { core: '사이클 변화와 전환점', psych: '통제 불가 요인을 받아들일수록 유연해집니다.', shadow: '외부 변수 탓만 하면 성장 주도권을 잃습니다.', heal: '상승기엔 확장, 하강기엔 방어라는 리듬을 지키세요.' },
+  '정의': { core: '균형, 책임, 인과', psych: '사실 기반 판단이 감정 소모를 줄입니다.', shadow: '과잉 비판이 자신과 타인을 경직시킬 수 있습니다.', heal: '증거-해석-행동을 분리해 의사결정하세요.' },
+  '매달린 사람': { core: '멈춤과 관점 전환', psych: '지연은 실패가 아니라 재해석의 시간일 수 있습니다.', shadow: '희생자 정체성이 행동을 묶을 수 있습니다.', heal: '지금 포기할 1가지를 정해 에너지를 회수하세요.' },
+  '죽음': { core: '종결 후 재탄생', psych: '상실을 통과해야 새로운 자아가 자리 잡습니다.', shadow: '미련이 과거를 반복하게 만듭니다.', heal: '끝낼 것 1개를 명확히 종료 선언하세요.' },
+  '절제': { core: '통합과 리듬 회복', psych: '극단을 줄이면 정서 안정과 성과가 함께 옵니다.', shadow: '완벽한 균형 강박이 실행을 늦출 수 있습니다.', heal: '수면·식사·일정의 최소 균형부터 복구하세요.' },
+  '악마': { core: '집착, 중독, 속박 인식', psych: '불안을 달래는 습관이 장기적으로 자유를 빼앗을 수 있습니다.', shadow: '관계/돈/쾌락의 의존 루프가 강화됩니다.', heal: '유혹 트리거를 끊는 환경 설계를 먼저 하세요.' },
+  '탑': { core: '붕괴를 통한 진실 노출', psych: '충격은 왜곡된 구조를 교정하는 계기입니다.', shadow: '공포로 회피하면 손실이 커집니다.', heal: '현실 점검표를 만들고 즉시 방어 행동을 시작하세요.' },
+  '별': { core: '회복, 희망, 재정렬', psych: '상처 이후의 회복 탄성이 작동합니다.', shadow: '희망만 있고 계획이 없으면 공상으로 남습니다.', heal: '작고 반복 가능한 루틴으로 신뢰를 다시 쌓으세요.' },
+  '달': { core: '불확실성과 무의식', psych: '불안은 정보 부족 신호일 때가 많습니다.', shadow: '해석 과잉과 의심이 관계를 흔듭니다.', heal: '확인 가능한 사실을 모아 안개를 걷어내세요.' },
+  '태양': { core: '명료함, 활력, 성취', psych: '자기 확신이 회복되면 실행력이 급상승합니다.', shadow: '자신감 과잉이 타인 감정을 놓칠 수 있습니다.', heal: '성과를 나누고 감사하면 운의 지속성이 커집니다.' },
+  '심판': { core: '각성과 재평가', psych: '오래 미룬 결정을 마주할 준비가 끝났습니다.', shadow: '자기비난이 행동 재개를 막을 수 있습니다.', heal: '과거를 처벌하지 말고 교훈으로 전환하세요.' },
+  '세계': { core: '완성과 통합', psych: '한 사이클을 제대로 마무리해야 다음 단계가 열립니다.', shadow: '완료 직전 해이함이 결실을 지연시킬 수 있습니다.', heal: '성취를 정리하고 다음 목표를 가볍게 설계하세요.' }
+};
+
+function getTarotDeepProfile(card) {
+  var base = TAROT_CARD_DEEP_PROFILE[card && card.name_kr];
+  if (base) return base;
+  return {
+    core: '현재 삶의 핵심 과제를 비추는 카드',
+    psych: '지금 감정과 생각의 패턴을 점검해야 합니다.',
+    shadow: '극단적 해석이나 성급함은 손실을 부를 수 있습니다.',
+    heal: '작은 행동을 반복해 안정적으로 흐름을 복구하십시오.'
+  };
+}
+
+function getTarotMingriLens(card, isReversed, category) {
+  var ctx = TAROT_CONTEXT[category] || {};
+  var sipsin = (card && card.sipsinTag) || '미정';
+  var meta = SIPSIN_CARD_META[sipsin] || { pos: '', neg: '' };
+  var flow = isReversed ? '역행' : '순행';
+  var stance = isReversed ? meta.neg : meta.pos;
+  return {
+    axis: (ctx.sipsin || '십성 균형') + ' 관점에서 ' + sipsin + '이(가) ' + flow + '합니다.',
+    stance: stance
+  };
+}
+
+function buildTarotCardCounselHtml(card, isReversed, category, slotLabel) {
+  var profile = getTarotDeepProfile(card);
+  var lens = getTarotMingriLens(card, isReversed, category);
+  var line = (TAROT_CONTEXT[category] && TAROT_CONTEXT[category].oracleLine)
+    ? TAROT_CONTEXT[category].oracleLine(card, isReversed)
+    : '';
+  var reveal = (TAROT_CONTEXT[category] && TAROT_CONTEXT[category].revelation)
+    ? TAROT_CONTEXT[category].revelation(card, isReversed)
+    : '';
+  var dir = isReversed ? '역행' : '순행';
+
+  return '' +
+    '<div style="margin-bottom:18px;padding:14px;border:1px solid rgba(255,255,255,0.14);border-radius:12px;background:rgba(17,24,39,0.34);">' +
+      '<b style="color:#ffd700;font-size:1.02rem">' + escapeTarotHtml(slotLabel || '핵심') + ' — ' + escapeTarotHtml(card.name_kr) + ' (' + dir + ')</b><br>' +
+      '<span style="display:block;margin-top:8px;color:#fde68a;line-height:1.8;font-style:italic">"' + escapeTarotHtml(line) + '"</span>' +
+      '<span style="display:block;margin-top:8px;line-height:1.85;"><b style="color:#c4b5fd;">카드의 핵심 의미:</b> ' + escapeTarotHtml(profile.core) + '</span>' +
+      '<span style="display:block;margin-top:6px;line-height:1.85;"><b style="color:#93c5fd;">심리 해석:</b> ' + escapeTarotHtml(profile.psych) + '</span>' +
+      '<span style="display:block;margin-top:6px;line-height:1.85;"><b style="color:#fca5a5;">그림자 경고:</b> ' + escapeTarotHtml(profile.shadow) + '</span>' +
+      '<span style="display:block;margin-top:6px;line-height:1.85;"><b style="color:#86efac;">명리 접목:</b> ' + escapeTarotHtml(lens.axis + ' ' + lens.stance) + '</span>' +
+      '<span style="display:block;margin-top:6px;line-height:1.85;color:#e2e8f0;">' + escapeTarotHtml(reveal) + '</span>' +
+      '<span style="display:block;margin-top:8px;line-height:1.82;color:#d1fae5;"><b>힐링 코칭:</b> ' + escapeTarotHtml(profile.heal) + '</span>' +
+    '</div>';
+}
+
+function summarizeDominantSipsin(cardsData) {
+  var count = {};
+  (cardsData || []).forEach(function(data) {
+    var tag = data && data.card ? data.card.sipsinTag : '';
+    if (!tag) return;
+    count[tag] = (count[tag] || 0) + 1;
+  });
+  var best = null;
+  Object.keys(count).forEach(function(k) {
+    if (!best || count[k] > count[best]) best = k;
+  });
+  return best || '균형';
+}
+
+function buildTarotRealityPlan(cardsData, category, labels) {
+  var now = cardsData[1] || cardsData[0];
+  var fut = cardsData[2] || cardsData[cardsData.length - 1];
+  var dom = summarizeDominantSipsin(cardsData);
+  var nowProfile = getTarotDeepProfile(now.card);
+  var futProfile = getTarotDeepProfile(fut.card);
+  var ctx = TAROT_CONTEXT[category] || {};
+  var l1 = labels[0] || '과거';
+  var l2 = labels[1] || '현재';
+  var l3 = labels[2] || '미래';
+  var axisText = (ctx.sipsin || '현재 주제') + ' 축에서 해석하면, ' + l2 + ' 자리의 ' + now.card.name_kr + '가 지금의 핵심 과제를 직접 가리킵니다.';
+
+  return '' +
+    '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(196,181,253,0.4);border-radius:12px;background:rgba(76,29,149,0.16);">' +
+      '<b style="color:#c4b5fd;font-size:1em">🧭 통합 심리-명리 진단</b><br><br>' +
+      '<span style="line-height:1.85;">주도 십성은 <b>' + escapeTarotHtml(dom) + '</b>입니다. ' + escapeTarotHtml(axisText) + '</span><br><br>' +
+      '<span style="line-height:1.85;">' + l1 + '의 흔적은 현재 반응을 만들고, ' + l3 + '는 고정된 운명이 아니라 선택의 방향을 보여줍니다. 그래서 지금 필요한 것은 감정의 해석보다 행동의 정렬입니다.</span>' +
+    '</div>' +
+    '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(253,230,138,0.35);border-radius:12px;background:rgba(120,53,15,0.14);">' +
+      '<b style="color:#fde68a;font-size:1em">🛠 현실 실행 플랜 (24시간·7일·30일)</b><br><br>' +
+      '<span style="line-height:1.85;"><b>1) 24시간:</b> 지금 가장 무거운 감정 1가지를 적고, 그 감정 아래 숨은 욕구를 한 줄로 정리하세요.</span><br>' +
+      '<span style="line-height:1.85;"><b>2) 7일:</b> 현재 카드 <b>' + escapeTarotHtml(now.card.name_kr) + '</b>의 과제인 "' + escapeTarotHtml(nowProfile.heal) + '"를 매일 10분 실천하세요.</span><br>' +
+      '<span style="line-height:1.85;"><b>3) 30일:</b> 미래 카드 <b>' + escapeTarotHtml(fut.card.name_kr) + '</b>의 방향성( ' + escapeTarotHtml(futProfile.core) + ' )에 맞춰 하나의 장기 선택을 확정하세요.</span>' +
+    '</div>';
+}
+
 function startThreeCardFlow() {
   if (!curTarotCat) return;
   isReading = true;
@@ -17043,50 +17155,19 @@ function showTarotFinalInterpretation() {
   
   var parts = [];
   cardsData.forEach(function(data, i) {
-    var c = data.card;
-    var r = data.isReversed;
-    var oracleLine = context.oracleLine ? context.oracleLine(c, r) : '';
-    var revelationText = context.revelation ? context.revelation(c, r) : '';
-    var dir = r ? '역행' : '순행';
-    parts.push('<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.1);">' +
-      '<b style="color:#ffd700;font-size:1rem">' + escapeTarotHtml(labels[i] || '') + ' — ' + escapeTarotHtml(c.name_kr) + ' (' + dir + ')</b><br>' +
-      '<span style="font-style:italic;color:#fde68a;font-size:0.95em;line-height:1.7">"' + escapeTarotHtml(oracleLine) + '"</span><br>' +
-      '<span style="line-height:1.8;font-size:0.95rem">' + escapeTarotHtml(revelationText) + '</span></div>');
+    parts.push(buildTarotCardCounselHtml(data.card, data.isReversed, curTarotCat, labels[i] || TAROT_SPREAD_LABELS.default[i]));
   });
-  
-  var pCard = cardsData[0].card;
-  var nCard = cardsData[1].card;
-  var fCard = cardsData[2].card;
-  var counselingBridge = [
-    '현재 카드 <b>' + escapeTarotHtml(nCard.name_kr) + '</b>가 당신 앞에 놓였습니다. 이 카드는 지금 당신의 내면이 가장 강하게 반응하고 있는 에너지를 거울처럼 비춥니다. 길흉을 판정하는 것이 아니라, "지금 이 순간 당신이 무엇을 간절히 원하고 있으며, 무엇을 가장 두려워하는지"를 보여주는 심층의 신호입니다.',
-    '과거의 자리에 선 <b>' + escapeTarotHtml(pCard.name_kr) + '</b>는 오늘의 감정이 어디서 비롯됐는지를 말해줍니다. 같은 상황에서 늘 같은 감정이 올라온다면, 그것은 의지의 문제가 아닙니다. 오래전부터 당신 안에 새겨진 반응의 패턴이 자동으로 작동하는 것입니다. 이 패턴을 인식하는 것만으로도 치유는 이미 시작됩니다.',
-    '미래의 자리에 선 <b>' + escapeTarotHtml(fCard.name_kr) + '</b>는 결정된 운명이 아니라, 지금 이 순간의 선택이 만들어갈 가능성의 방향을 가리킵니다. 카드는 당신에게 이렇게 속삭입니다. 지금 작은 선택 하나를 달리하면, 그 결과의 곡선은 생각보다 훨씬 크게 달라질 수 있다고.'
-  ].join('<br><br>');
-
-  var practicalPlan = [
-    '<b>① 감정을 글로 만나기 (5분):</b> 지금 가슴속에 가장 무겁게 자리한 감정 하나를 종이에 적어보세요. 그 감정 밑에 숨어 있는 진짜 욕구가 무엇인지도 함께 적어봅니다.',
-    '<b>② 나에게 편지 쓰기 (3분):</b> "나는 ___을 원한다"라는 문장 하나를 완성해보세요. 상대나 상황을 바꾸는 것이 아닌, 내가 원하는 것을 나 스스로에게 선언하는 행위입니다.',
-    '<b>③ 오늘의 작은 행동 (지금 바로):</b> 24시간 안에 할 수 있는 행동 하나를 구체적인 시간과 함께 정해보세요. 메시지 한 통, 산책 10분, 오래 미뤄온 결정 하나도 충분합니다.',
-    '<b>④ 내일 아침 체크인:</b> 잠들기 전과 아침에 일어났을 때 마음의 무게가 얼마나 달라졌는지, 숫자로 기록해두세요 (0이 가장 가볍고, 10이 가장 무거운 상태). 변화를 느끼는 것 자체가 치유입니다.'
-  ].join('<br>');
 
   var interpretation = '<span style="opacity:0.75;font-style:italic;font-size:0.92em">✦ ' + escapeTarotHtml(context.vibe) + '</span><br><br>' +
-    '<b style="color:#c4b5fd;font-size:1.02em">🔮 카드의 목소리</b><br>' +
-    '<span style="opacity:0.88;font-style:italic;color:#ddd6fe">무의식은 언제나 당신보다 먼저 알고 있습니다. 세 장의 카드가 과거·현재·미래를 연결하며 지금 당신에게 필요한 이야기를 건넵니다.</span><br><br>' +
+    '<b style="color:#c4b5fd;font-size:1.02em">🔮 3카드 심층 상담 리딩</b><br>' +
+    '<span style="opacity:0.88;font-style:italic;color:#ddd6fe">각 카드는 심리의 결, 명리의 축, 그리고 현실 행동의 방향을 동시에 보여줍니다. 아래 해석은 길흉 판정이 아니라 삶을 조율하는 상담 가이드입니다.</span><br><br>' +
     parts.join('') +
-    '<div style="margin-top:8px;padding:14px 16px;border:1px solid rgba(196,181,253,0.4);border-radius:12px;background:rgba(76,29,149,0.18);">' +
-      '<b style="color:#c4b5fd;font-size:1em">🌸 심리 통합 읽기</b><br><br>' +
-      '<span style="line-height:1.9;">' + counselingBridge + '</span>' +
-    '</div>' +
-    '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(253,230,138,0.35);border-radius:12px;background:rgba(120,53,15,0.14);">' +
-      '<b style="color:#fde68a;font-size:1em">🌿 치유를 위한 오늘의 실천</b><br><br>' +
-      '<span style="line-height:1.85;">' + practicalPlan + '</span>' +
-    '</div>' +
+    buildTarotRealityPlan(cardsData, curTarotCat, labels) +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(167,243,208,0.35);border-radius:12px;background:rgba(5,150,105,0.10);">' +
-      '<b style="color:#6ee7b7;font-size:1em">🪷 오라클의 말</b><br><br>' +
-      '<span style="line-height:1.88;font-style:italic;color:#d1fae5">당신이 찾는 것은 정답이 아니라 평안입니다. 카드는 방향을 가리킬 뿐, 그 길을 걷는 것은 오롯이 당신입니다. 오늘 이 리딩을 통해 스스로를 조금 더 깊이 이해했다면, 그것만으로도 충분한 치유가 시작된 것입니다.</span>' +
+      '<b style="color:#6ee7b7;font-size:1em">🪷 상담사의 마무리</b><br><br>' +
+      '<span style="line-height:1.88;font-style:italic;color:#d1fae5">문제를 없애는 것보다 중요한 것은 나를 다루는 힘을 회복하는 일입니다. 카드가 제시한 신호를 오늘의 행동으로 바꾸면, 이미 운의 방향은 달라지기 시작합니다.</span>' +
     '</div>' +
-    '<br><span style="opacity:0.65;font-size:0.85em;font-style:italic">✦ ' + escapeTarotHtml(context.label) + ' — 타로와 심리학이 만나는 통합 리딩. 세 장의 카드가 당신의 현재를 비추고, 내일을 열어줍니다.</span>';
+    '<br><span style="opacity:0.65;font-size:0.85em;font-style:italic">✦ ' + escapeTarotHtml(context.label) + ' — 카드별 의미, 심리 상담, 명리학적 축을 통합한 확장 리딩.</span>';
   
   document.getElementById('tarotCardName').innerHTML =
     escapeTarotHtml(labels[0]) + ' · ' + escapeTarotHtml(labels[1]) + ' · ' + escapeTarotHtml(labels[2]);
@@ -17178,25 +17259,26 @@ function startTarotReading() {
     document.getElementById('tarotResultContainer').style.display = 'block';
     
     // 3. 해석 스트리밍 시작 — 퀀텀 명리-타로 통합 출력
-    var oracleLine = context.oracleLine ? context.oracleLine(picked, isReversed) : '';
-    var revelationText = context.revelation ? context.revelation(picked, isReversed) : '';
-    var sipsinMeta = SIPSIN_CARD_META[picked.sipsinTag] || {pos:'', neg:''};
-    var sipsinMsg = isReversed ? sipsinMeta.neg : sipsinMeta.pos;
+    var oneCardCounsel = buildTarotCardCounselHtml(picked, isReversed, curTarotCat, '핵심 카드');
+    var profile = getTarotDeepProfile(picked);
+    var realityPlan = `
+      <div style="margin-top:8px;padding:14px 16px;border:1px solid rgba(253,230,138,0.35);border-radius:12px;background:rgba(120,53,15,0.14);">
+        <b style="color:#fde68a;font-size:1em">🛠 원카드 현실 상담 플랜</b><br><br>
+        <span style="line-height:1.85;"><b>오늘:</b> 지금 반복되는 감정 반응 1개를 적고, 그 촉발 상황을 구체적으로 기록하세요.</span><br>
+        <span style="line-height:1.85;"><b>이번 주:</b> <b>${picked.name_kr}</b>의 코칭 문장인 "${profile.heal}"를 하루 10분 실천하세요.</span><br>
+        <span style="line-height:1.85;"><b>이번 달:</b> 감정 안정·관계·일/돈 중 1개 영역에서 숫자로 측정 가능한 목표를 정해 흐름을 확인하세요.</span>
+      </div>
+    `;
 
     var interpretation = `
       <span style="opacity:0.72;font-style:italic;font-size:0.92em">✦ ${context.vibe}</span><br><br>
-
-      <b style="color:#ddd6fe;font-size:1.02em">🌙 카드가 건네는 말</b><br>
-      <span style="font-style:italic;color:#fde68a;font-size:1.05em;line-height:1.85">"${oracleLine}"</span><br><br>
-
-      <b style="color:#c4b5fd;font-size:1.02em">🔮 ${picked.name_kr}의 계시</b><br>
-      <span style="line-height:1.9;color:#e2e8f0">${revelationText}</span><br><br>
-
-      <div style="padding:12px 14px;border:1px solid rgba(110,231,183,0.25);border-radius:10px;background:rgba(5,150,105,0.09);">
-        <span style="color:#6ee7b7;font-style:italic;line-height:1.85;font-size:0.95em">이 카드가 오늘 당신에게 찾아온 것은 우연이 아닙니다. 무의식은 언제나 가장 필요한 메시지를 정확한 순간에 보냅니다. 이 계시를 가슴에 담아두고, 오늘 하루를 걸어보세요.</span>
-      </div><br>
-
-      <span style="opacity:0.5;font-size:0.85em;font-style:italic">✦ 십성 에너지 · <b>${picked.sipsinTag}</b> — ${sipsinMsg}</span>
+      <b style="color:#ddd6fe;font-size:1.02em">🌙 원카드 심층 상담 리딩</b><br>
+      <span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">한 장의 카드에도 심리 패턴, 명리학적 십성 축, 현실 선택의 힌트가 함께 담겨 있습니다. 아래 해석은 오늘의 행동을 돕는 실전 상담 가이드입니다.</span><br><br>
+      ${oneCardCounsel}
+      ${realityPlan}
+      <div style="margin-top:10px;padding:12px 14px;border:1px solid rgba(110,231,183,0.25);border-radius:10px;background:rgba(5,150,105,0.09);">
+        <span style="color:#6ee7b7;font-style:italic;line-height:1.85;font-size:0.95em">치유는 거창한 결심보다 작은 반복에서 시작됩니다. 오늘 카드의 메시지를 삶의 리듬으로 바꾸는 순간, 이미 당신의 운은 새로운 곡선으로 이동합니다.</span>
+      </div>
     `.trim();
     
     streamRitualHtmlTyped(interpretation, 'destinyFortune', () => {
