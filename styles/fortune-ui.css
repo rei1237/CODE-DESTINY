@@ -1,4 +1,4 @@
-﻿/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
+/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
 
 /* --- block 1 --- */
 /* ─── 전역 버튼 터치 반응성 ─── */
@@ -9285,6 +9285,56 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 /* --- block 8 --- */
         #tarotModalOverlay:-webkit-full-screen #tarotInnerContainer { max-width: 640px !important; }
         #tarotModalOverlay:fullscreen #tarotInnerContainer { max-width: 640px !important; }
+
+/* 타로 모달 스크롤·가독성 개선 */
+#tarotModalOverlay {
+          height: 100vh;
+          height: 100dvh;
+          max-height: 100vh;
+          max-height: 100dvh;
+          overflow-y: auto !important;
+          overflow-x: hidden;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior-y: contain;
+          touch-action: pan-y;
+        }
+#tarotInnerContainer {
+          padding-bottom: max(80px, env(safe-area-inset-bottom, 40px));
+        }
+#tarotModalOverlay #tarotCardName,
+        #tarotModalOverlay .tarot-card-name {
+          font-family: 'Cinzel', 'Georgia', serif;
+          font-size: 1.35rem;
+          letter-spacing: 0.04em;
+          line-height: 1.4;
+          -webkit-font-smoothing: antialiased;
+          text-rendering: optimizeLegibility;
+        }
+#tarotModalOverlay .oracle-text-m {
+          font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size: 1.05rem;
+          line-height: 1.8;
+          letter-spacing: 0.02em;
+          color: #e2e8f0;
+          text-align: justify;
+          word-break: keep-all;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+          -webkit-font-smoothing: antialiased;
+        }
+#tarotModalOverlay #tarotResultContainer .oracle-text-m { margin-bottom: 0; }
+#tarotModalOverlay .ritual-text-m {
+          font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+          font-size: 0.95rem;
+          letter-spacing: 0.02em;
+          -webkit-font-smoothing: antialiased;
+        }
+#tarotModalOverlay #tarotOracleText {
+          font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+          font-size: 0.92rem;
+          line-height: 1.65;
+          letter-spacing: 0.02em;
+          -webkit-font-smoothing: antialiased;
+        }
 
 /* --- block 9 --- */
       .kemet-oracle-container {

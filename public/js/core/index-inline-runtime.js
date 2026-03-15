@@ -173,6 +173,11 @@ function __cdBindGlobalActionsFallback() {
     var action = actionEl.getAttribute('data-action');
     if (!action) return;
 
+    if (action === 'closeDestinyFlowerStudio') {
+      var sheet = document.getElementById('destinyFlowerStudioSheet');
+      if (sheet && target && sheet.contains(target)) return;
+    }
+
     if (actionEl.getAttribute('data-action-self-only') === '1' && target !== actionEl) {
       return;
     }
@@ -526,23 +531,22 @@ function _dfExtractAstroLiveData(birthCtx) {
 }
 
 function _dfExtractZiweiLiveRaw(birthCtx) {
-  var cached = (window._currentZiweiData && typeof window._currentZiweiData === 'object')
-    ? window._currentZiweiData
-    : null;
-  if (_dfHasBirthCore(birthCtx) && typeof window.calcZiweiPalaces === 'function') {
-    try {
-      return window.calcZiweiPalaces(
-        Number(birthCtx.year),
-        Number(birthCtx.month),
-        Number(birthCtx.day),
-        Number(birthCtx.hour),
-        Number(birthCtx.minute)
-      );
-    } catch (e) {
-      console.warn('[DestinyFlower] 자미두수 브리지 계산 실패:', e);
-    }
+  if (window._currentZiweiData && typeof window._currentZiweiData === 'object') {
+    return window._currentZiweiData;
   }
-  return cached;
+  if (!_dfHasBirthCore(birthCtx) || typeof window.calcZiweiPalaces !== 'function') return null;
+  try {
+    return window.calcZiweiPalaces(
+      Number(birthCtx.year),
+      Number(birthCtx.month),
+      Number(birthCtx.day),
+      Number(birthCtx.hour),
+      Number(birthCtx.minute)
+    );
+  } catch (e) {
+    console.warn('[DestinyFlower] 자미두수 브리지 계산 실패:', e);
+  }
+  return null;
 }
 
 function _dfDeriveZiweiDomain(ziweiRaw) {
@@ -1345,43 +1349,38 @@ function _dfApplyCardVisual(card, selection) {
   var particles = card.querySelector('.destiny-flower-particles');
   var image = card.querySelector('.destiny-flower-stage__image');
   var heroImage = card.querySelector('.destiny-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
   _dfSyncSourceTabs(source);
   _dfSyncSourceStickers(source);
-
   card.style.setProperty('--df-primary', selection.primary);
   card.style.setProperty('--df-secondary', selection.secondary);
-  stage.setAttribute('data-source', source);
   if (selection.theme && selection.theme.background && selection.theme.background.gradient) {
     card.style.setProperty('--df-env-gradient', selection.theme.background.gradient);
   }
   if (selection.theme && selection.theme.background && selection.theme.background.season_tint) {
     card.style.setProperty('--df-season-tint', selection.theme.background.season_tint);
   }
-
+  if (descEl) descEl.textContent = sourceMeta.description;
+  if (glow) {
+    glow.style.background = 'radial-gradient(circle, ' + _dfHexToRgba(selection.secondary, 0.62) + ', rgba(255,255,255,0))';
+  }
+  _dfApplyGeneratedFlowerImage(heroImage, selection, source);
+  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
+  stage.setAttribute('data-source', source);
   nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
   symbolismEl.textContent = stageContent.symbolism || sajuVerdict;
   keywordsEl.textContent = sourceMeta.labelKo + ' 키워드 · ' + (_dfToArray(selection.keywords).join(' • ') || sourceMeta.fallbackKeyword);
-  if (descEl) descEl.textContent = sourceMeta.description;
   if (dayMasterBadgeEl) dayMasterBadgeEl.textContent = stageContent.badge1;
   if (seasonBadgeEl) seasonBadgeEl.textContent = stageContent.badge2;
   if (environmentBadgeEl) environmentBadgeEl.textContent = stageContent.badge3;
   if (scenarioTitleEl) scenarioTitleEl.textContent = stageContent.scenarioTitle;
   if (dataLineEl) dataLineEl.textContent = stageContent.dataLine;
-
   if (backdrop) {
     backdrop.style.background =
       'radial-gradient(circle at 22% 50%, ' + _dfHexToRgba(selection.primary, 0.46) + ', transparent 56%),'
       + 'radial-gradient(circle at 72% 34%, ' + _dfHexToRgba(selection.secondary, 0.40) + ', transparent 60%)';
   }
-  if (glow) {
-    glow.style.background = 'radial-gradient(circle, ' + _dfHexToRgba(selection.secondary, 0.62) + ', rgba(255,255,255,0))';
-  }
-
   _dfRenderPetals(particles, selection.primary, selection.secondary);
   _dfApplyGeneratedFlowerImage(image, selection, source);
-  _dfApplyGeneratedFlowerImage(heroImage, selection, source);
   stage.classList.remove('is-motion-wood', 'is-motion-water', 'is-motion-fire');
   if (source === 'astrology' || source === 'sukuyo') {
     stage.classList.add('is-motion-water');
@@ -1521,8 +1520,8 @@ function _dfSyncSourceStickers(source) {
   var meta = _DF_SOURCE_META[normalized] || _DF_SOURCE_META.saju;
   var heroSticker = document.getElementById('dfHeroSourceSticker');
   var stageSticker = document.getElementById('dfStageSourceSticker');
-  _dfApplySourceBadgeStyles(heroSticker, 'hero', normalized, meta.stickerMain, meta.stickerSub);
-  _dfApplySourceBadgeStyles(stageSticker, 'stage', normalized, meta.stickerMain, meta.stickerSub);
+  if (heroSticker) _dfApplySourceBadgeStyles(heroSticker, 'hero', normalized, meta.stickerMain, meta.stickerSub);
+  if (stageSticker) _dfApplySourceBadgeStyles(stageSticker, 'stage', normalized, meta.stickerMain, meta.stickerSub);
 }
 
 function _dfSetActiveSource(source) {
@@ -2584,41 +2583,43 @@ function openDestinyFlower(forceRefreshData) {
   return selection;
 }
 
-function _dfBindStudioCloseHandlers(overlay) {
-  if (!overlay || overlay.__dfCloseControlsBound) return;
-  overlay.__dfCloseControlsBound = '1';
-
-  var controls = overlay.querySelectorAll('[data-action="closeDestinyFlowerStudio"], .df-studio-close, .df-studio-btn--secondary');
-  if (!controls || !controls.length) return;
-
-  controls.forEach(function(control) {
-    control.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      closeDestinyFlowerStudio();
-    });
-  });
-}
-
 function openDestinyFlowerStudio() {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   var sheet = document.getElementById('destinyFlowerStudioSheet');
   if (!overlay) return;
-
-  _dfBindStudioCloseHandlers(overlay);
 
   if (!overlay.__dfCloseBridgeBound) {
     overlay.__dfCloseBridgeBound = '1';
     overlay.addEventListener('click', function(e) {
       var clickTarget = __cdResolveEventElement(e);
       if (!clickTarget) return;
-
+      var closeTrigger = clickTarget.closest('[data-action="closeDestinyFlowerStudio"], .df-studio-close, .df-studio-btn--secondary');
+      if (closeTrigger) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeDestinyFlowerStudio();
+        return;
+      }
+      if (sheet && sheet.contains(clickTarget)) return;
       if (clickTarget === overlay) {
         e.preventDefault();
         e.stopPropagation();
         closeDestinyFlowerStudio();
       }
     });
+  }
+
+  if (sheet && !sheet.__dfTabBound) {
+    sheet.__dfTabBound = true;
+    sheet.addEventListener('click', function(e) {
+      var tab = e.target && e.target.closest ? e.target.closest('.df-source-tab[data-df-source-tab]') : null;
+      if (!tab) return;
+      var source = tab.getAttribute('data-df-source-tab');
+      if (!source) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setDestinyFlowerSourceTab(source);
+    }, true);
   }
 
   var selection = openDestinyFlower(true) || _dfGetUnifiedSelection(_dfStudioState.activeSource || 'saju', true);
@@ -2639,26 +2640,27 @@ function openDestinyFlowerStudio() {
 
 function setDestinyFlowerSourceTab(source) {
   var normalized = _dfSetActiveSource(source);
-  var card = document.querySelector('.feature-card.feature-card--destiny-flower');
+  var overlay = document.getElementById('destinyFlowerStudioOverlay');
+  var isStudioOpen = overlay && overlay.style.display !== 'none';
   var selection = _dfGetUnifiedSelection(normalized, false);
   if (!selection) selection = _dfGetUnifiedSelection(normalized, true);
   _dfStudioState.selection = selection;
 
-  if (card) {
-    _dfEnsureCardOpen(card);
-    _dfAnimateUnifiedCardSwitch(card, selection);
-    if (typeof syncFeatureCardHeight === 'function') {
-      syncFeatureCardHeight(card);
-      requestAnimationFrame(function() {
-        syncFeatureCardHeight(card);
-      });
-    }
-  }
-
-  var overlay = document.getElementById('destinyFlowerStudioOverlay');
-  if (overlay && overlay.style.display !== 'none') {
+  if (isStudioOpen) {
     _dfApplyStudioSelection(selection);
     _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
+  } else {
+    var card = document.querySelector('.feature-card.feature-card--destiny-flower');
+    if (card) {
+      _dfEnsureCardOpen(card);
+      _dfAnimateUnifiedCardSwitch(card, selection);
+      if (typeof syncFeatureCardHeight === 'function') {
+        syncFeatureCardHeight(card);
+        requestAnimationFrame(function() {
+          syncFeatureCardHeight(card);
+        });
+      }
+    }
   }
 
   return selection;
@@ -3197,8 +3199,9 @@ function openTarotModal() {
   overlay.style.display = 'block';
   if (window._perf && window._perf.lockBody) window._perf.lockBody();
   else document.body.style.overflow = 'hidden';
+  var w = window.innerWidth || document.documentElement.clientWidth;
   var req = overlay.requestFullscreen || overlay.webkitRequestFullscreen || overlay.mozRequestFullScreen || overlay.msRequestFullscreen;
-  if (req) {
+  if (req && w > 768) {
     req.call(overlay).catch(function() {});
   }
 }
