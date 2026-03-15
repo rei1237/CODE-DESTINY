@@ -7336,27 +7336,6 @@ function renderAstroInsight() {
         }, 50);
     };
 
-    /* ── Falling Stars CSS + 별 요소 주입 (딥 스페이스 테마) ── */
-    if(!document.getElementById('falling-stars-style')){
-        var styleEl = document.createElement('style');
-        styleEl.id = 'falling-stars-style';
-        styleEl.textContent = '.star-container{position:relative;overflow:hidden}'
-            +'.astro-star{position:absolute;background:#fff;border-radius:50%;opacity:0;pointer-events:none;z-index:0;animation:astroFall linear infinite}'
-            +'@keyframes astroFall{0%{transform:translateY(-10vh) translateX(0px);opacity:0}10%{opacity:0.6}90%{opacity:0.3}100%{transform:translateY(110vh) translateX(20px);opacity:0}}'
-            +'.astro-body.cosmic-theme{background:radial-gradient(ellipse at bottom,#1b2735 0%,#090a0f 100%)}'
-            +'#astroBodyWrap>.astro-section,#astroBodyWrap>.astro-expert,#astroBodyWrap>.astro-subhead,#astroBodyWrap>div[style]{position:relative;z-index:1}';
-        document.head.appendChild(styleEl);
-    }
-    var wrap = document.getElementById('astroBodyWrap');
-    if(wrap && !wrap.querySelector('.astro-star')){
-        for(var si=0; si<28; si++){
-            var star = document.createElement('div');
-            star.className = 'astro-star';
-            var sz = (Math.random()*2+1).toFixed(1);
-            star.style.cssText = 'width:'+sz+'px;height:'+sz+'px;left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*-20).toFixed(1)+'%;animation-duration:'+(Math.random()*8+6).toFixed(1)+'s;animation-delay:'+(Math.random()*10).toFixed(1)+'s';
-            wrap.appendChild(star);
-        }
-    }
 }
 
 /* ─────── 자미두수 12궁 심층 분석 요약 ─────── */
@@ -17220,7 +17199,7 @@ function startTarotReading() {
       <span style="opacity:0.5;font-size:0.85em;font-style:italic">✦ 십성 에너지 · <b>${picked.sipsinTag}</b> — ${sipsinMsg}</span>
     `.trim();
     
-    streamRitualText(interpretation, 'destinyFortune', () => {
+    streamRitualHtmlTyped(interpretation, 'destinyFortune', () => {
        // 마무리 오라클 (카드 하단 강조 문구)
        var masterLine = context.oracle ? context.oracle(picked, isReversed) : '';
        var oracleHtml = masterLine

@@ -4,9 +4,37 @@
   <script>
     (function () {
       var host = typeof window !== "undefined" && window.location && window.location.hostname;
-      var isLocal = host === "localhost" || host === "127.0.0.1" || host === "";
+      function isPrivateIPv4Hostname(h) {
+        if (!h) return false;
+        if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(h)) return false;
+        var p = h.split(".").map(function (n) { return parseInt(n, 10); });
+        if (p.some(function (n) { return Number.isNaN(n) || n < 0 || n > 255; })) return false;
+        if (p[0] === 10) return true;
+        if (p[0] === 192 && p[1] === 168) return true;
+        if (p[0] === 172 && p[1] >= 16 && p[1] <= 31) return true;
+        if (p[0] === 169 && p[1] === 254) return true;
+        return false;
+      }
 
-      if (isLocal) {
+      var isLocal =
+        host === "" ||
+        host === "localhost" ||
+        host === "127.0.0.1" ||
+        host === "0.0.0.0" ||
+        host === "[::1]" ||
+        /\.local$/i.test(host || "") ||
+        isPrivateIPv4Hostname(host);
+      var devBypass = false;
+      try {
+        var qs = (window.location && window.location.search) || "";
+        devBypass =
+          qs.indexOf("devNoKill=1") !== -1 ||
+          (window.localStorage && localStorage.getItem("__DEV_DISABLE_KILL_SWITCH__") === "1");
+      } catch (e) {}
+
+      var hideKillNotice = isLocal;
+
+      if (devBypass) {
         window.__APP_ALIVE__ = true;
         window.__verifyServiceAlive = function () { return Promise.resolve(); };
         return;
@@ -24,6 +52,14 @@
 
       function killMarkup(reasonText) {
         var safeReason = reasonText ? String(reasonText) : "unknown";
+        var killContent = hideKillNotice
+          ? "<div class='kill' aria-hidden='true'></div>"
+          : (
+              "<div class='kill'><h1>서비스가 종료되었습니다</h1>" +
+              "<p>보안 정책에 의해 앱 실행이 중지되었습니다.</p>" +
+              "<p>잠시 후 다시 시도하거나 관리자에게 문의해 주세요.</p>" +
+              "<small>reason: " + safeReason + "</small></div>"
+            );
         return (
           "<!doctype html><html lang='ko'><head><meta charset='UTF-8'>" +
           "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
@@ -33,10 +69,7 @@
           ".kill h1{font-size:1.75rem;margin:0 0 12px}" +
           ".kill p{margin:4px 0;color:#c9c9c9;line-height:1.5}" +
           ".kill small{margin-top:12px;color:#7c7c7c}</style></head><body>" +
-          "<div class='kill'><h1>서비스가 종료되었습니다</h1>" +
-          "<p>보안 정책에 의해 앱 실행이 중지되었습니다.</p>" +
-          "<p>잠시 후 다시 시도하거나 관리자에게 문의해 주세요.</p>" +
-          "<small>reason: " + safeReason + "</small></div>" +
+          killContent +
           "<script>(function(){try{if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(regs){return Promise.all(regs.map(function(r){return r.unregister();}));}).catch(function(){});}if('caches' in window){caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}).catch(function(){});}try{localStorage.clear();sessionStorage.clear();}catch(e){}}catch(e){}})();<\/script>" +
           "</body></html>"
         );
@@ -55,11 +88,13 @@
         document.head.appendChild(style);
         var overlay = document.createElement("div");
         overlay.id = id;
-        overlay.innerHTML =
-          "<h1>서비스가 종료되었습니다</h1>" +
-          "<p>보안 정책에 의해 앱 실행이 중지되었습니다.</p>" +
-          "<p>잠시 후 다시 시도하거나 관리자에게 문의해 주세요.</p>" +
-          "<small>reason: " + (reasonText || "unknown") + "</small>";
+        if (!hideKillNotice) {
+          overlay.innerHTML =
+            "<h1>서비스가 종료되었습니다</h1>" +
+            "<p>보안 정책에 의해 앱 실행이 중지되었습니다.</p>" +
+            "<p>잠시 후 다시 시도하거나 관리자에게 문의해 주세요.</p>" +
+            "<small>reason: " + (reasonText || "unknown") + "</small>";
+        }
         document.documentElement.appendChild(overlay);
       }
 
@@ -2534,7 +2569,7 @@
 
 <script src="js/destiny-profile.js" defer></script>
 <script type="module" src="js/swisseph-loader.js"></script>
-<script src="js/saju-engine.js?v=20260315-threecard-typing" defer></script>
+<script src="js/saju-engine.js?v=20260315-onecard-typing" defer></script>
 <script defer src="js/core/index-inline-runtime.js"></script>
 <div class="share-toast" id="shareToast"></div>
 
