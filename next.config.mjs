@@ -15,7 +15,14 @@ const nextConfig = {
   },
   productionBrowserSourceMaps: false,
   async rewrites() {
-    return [{ source: '/api/:path*', destination: apiTarget + '/api/:path*' }];
+    return [
+      { source: '/api/auth/:path*', destination: apiTarget + '/api/auth/:path*' },
+      { source: '/api/admin/:path*', destination: apiTarget + '/api/admin/:path*' },
+      { source: '/api/payments/:path*', destination: apiTarget + '/api/payments/:path*' },
+      { source: '/api/fortune/:path*', destination: apiTarget + '/api/fortune/:path*' },
+      { source: '/api/kasi/:path*', destination: apiTarget + '/api/kasi/:path*' },
+      { source: '/api/health', destination: apiTarget + '/api/health' },
+    ];
   },
 };
 

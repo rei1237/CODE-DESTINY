@@ -55,6 +55,13 @@
       out.push(normalized);
     }
 
+    if (typeof window !== "undefined") {
+      var host = String(location.hostname || "").toLowerCase();
+      if (host === "code-destiny.com" || host === "www.code-destiny.com") {
+        add("");
+        add(location.origin || "https://code-destiny.com");
+      }
+    }
     add(getTarotApiBase());
     add("");
 
