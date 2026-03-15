@@ -14,6 +14,8 @@
   z-index: 99999;
   display: none;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   background:
     radial-gradient(circle at 15% 22%, rgba(153, 215, 255, 0.22), transparent 45%),
     radial-gradient(circle at 72% 16%, rgba(255, 227, 151, 0.12), transparent 40%),
@@ -819,5 +821,42 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .tarot-reunion-shell {
+    padding: 10px 8px 18px;
+  }
+  .tarot-reunion-panel {
+    padding: 16px 12px;
+  }
+  .tarot-reunion-card-grid {
+    gap: 10px;
+  }
+  .tarot-reunion-card {
+    max-width: 128px;
+  }
+  .tarot-reunion-slot-label {
+    font-size: 0.74rem;
+    min-height: 2.2em;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .tarot-reunion-sound-btn:hover,
+  .tarot-reunion-btn:hover,
+  .tarot-reunion-card:hover:not(.flipped),
+  .tarot-reunion-result-card:hover {
+    transform: none;
+    box-shadow: inherit;
+    filter: none;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .tarot-reunion-stars,
+  .tarot-reunion-result-stars {
+    display: none;
   }
 }

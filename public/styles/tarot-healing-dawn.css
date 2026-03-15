@@ -14,6 +14,8 @@
   z-index: 99999;
   display: none;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   background:
     radial-gradient(circle at 15% 20%, rgba(185, 164, 255, 0.35), transparent 42%),
     radial-gradient(circle at 80% 25%, rgba(255, 176, 158, 0.32), transparent 45%),
@@ -554,5 +556,41 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .tarot-healing-shell {
+    padding: 10px 8px 18px;
+  }
+  .tarot-healing-panel {
+    padding: 16px 12px;
+  }
+  .tarot-healing-card-grid {
+    gap: 10px;
+  }
+  .tarot-healing-card {
+    max-width: 128px;
+  }
+  .tarot-healing-slot-label {
+    font-size: 0.74rem;
+    min-height: 2.2em;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .tarot-healing-slot:hover,
+  .tarot-healing-btn:hover {
+    transform: none;
+    box-shadow: inherit;
+    filter: none;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .tarot-healing-overlay::before,
+  .tarot-healing-overlay::after,
+  .tarot-healing-particles {
+    display: none;
   }
 }
