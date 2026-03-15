@@ -472,9 +472,9 @@ function buildAstroNarrative(chart, flower, sunElement, risingElement, moonEleme
   const risingMood = ASTRO_RISING_MOODS[risingElement] || ASTRO_RISING_MOODS.Air;
 
   return [
-    '당신의 태양은 ' + sunKo + '에 머물며, ' + flower.name + '처럼 ' + sunElementKo + ' 원소의 생명력을 선명하게 드러냅니다.',
-    '상승궁 ' + risingKo + '은 꽃의 외형을 ' + risingMood + '으로 만들고,',
-    '달궁 ' + moonKo + '은 내면 글로우를 조율해 감정 표현의 결을 완성합니다.'
+    '당신의 태양궁은 ' + sunKo + '이고, ' + flower.name + '처럼 ' + sunElementKo + ' 기운이 또렷한 타입이에요.',
+    '상승궁 ' + risingKo + '은 겉으로 보이는 분위기를 ' + risingMood + ' 느낌으로 만들어주고,',
+    '달궁 ' + moonKo + '은 속마음의 온도를 조절해 감정 표현을 부드럽게 완성해줍니다.'
   ].join(' ');
 }
 
@@ -489,7 +489,7 @@ export function getAstrologyFlower(chartData = {}) {
   const moonGlow = ASTRO_MOON_GLOW[moonElement] || ASTRO_MOON_GLOW.Air;
 
   const astroVerdict =
-    '점성술로 볼 때 당신의 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ') 입니다.';
+    '점성술 기준으로 지금 당신과 가장 잘 맞는 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ') 입니다.';
   const narrative = buildAstroNarrative(chart, primaryFlower, sunElement, risingElement, moonElement);
 
   return {
@@ -824,6 +824,32 @@ export function getJamidusuFlower(starData = {}) {
 
 export function matchJamidusuFlower(userData = {}, options = {}) {
   const profile = userData && userData.schema === 'universal-destiny-profile' ? userData : parseDestinyProfile(userData);
+
+  // --- 자미두수 명궁 주성 최신화: saju-engine에서 직접 산출 ---
+  try {
+    // saju-engine이 window.calcZiweiPalaces로 등록되어 있다고 가정
+    const birth = (profile.birth || profile.domains.birth || userData.birth || {});
+    const year = Number(birth.year), month = Number(birth.month), day = Number(birth.day), hour = Number(birth.hour), minute = Number(birth.minute);
+    if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function' && year && month && day) {
+      const zw = window.calcZiweiPalaces(year, month, day, hour, minute);
+      if (zw && zw.stars && zw.palacesByIndex) {
+        // 명궁 위치 추출
+        const mingIdx = zw.palacesByIndex.indexOf('명궁');
+        let mainStar = '', stars = [];
+        if (mingIdx >= 0 && zw.stars[mingIdx]) {
+          stars = (zw.stars[mingIdx].main || []).concat(zw.stars[mingIdx].aux || []);
+          mainStar = stars[0] || '';
+        }
+        // profile.domains.ziwei에 동기화
+        if (profile.domains && profile.domains.ziwei) {
+          profile.domains.ziwei.main_star = mainStar;
+          profile.domains.ziwei.stars = stars;
+          profile.domains.ziwei.palace = '명궁';
+        }
+      }
+    }
+  } catch (e) { /* 무시: 브라우저/SSR 환경 차이 등 */ }
+
   const ziweiData = {
     mainStar: profile.domains.ziwei.main_star,
     palace: profile.domains.ziwei.palace,
@@ -1130,6 +1156,14 @@ function parseSukuyoMansionIndex(value, birth = {}) {
   return resolveSukuyoMansionIndex(value, birth);
 }
 
+function formatSukuyoGroupLabel(groupLike) {
+  const raw = String(groupLike || '').trim();
+  if (!raw) return '그룹 미확인';
+  if (raw.endsWith('그룹')) return raw;
+  const base = raw.replace(/숙$/, '').trim();
+  return base ? (base + ' 그룹') : raw;
+}
+
 export function calculateSukyoFlower(mansionIndex, moonPhase) {
   const idx = clampSukuyoMansionIndex(mansionIndex);
   const mansion = SUKUYO_MANSION_TABLE[idx - 1] || SUKUYO_MANSION_TABLE[0];
@@ -1182,7 +1216,7 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
     },
     flower_data: {
       sticker_label: '숙요점으로 보는 꽃',
-      day_master_badge: mansion.name + ' · ' + mansion.group,
+      day_master_badge: mansion.name + ' · ' + formatSukuyoGroupLabel(mansion.group),
       season_label: '달 위상 ' + moonStyle.label,
       environment_label: '수호동물 ' + mansion.guardian,
       scenario_title: '27숙-달 위상 통합 개화 시나리오',

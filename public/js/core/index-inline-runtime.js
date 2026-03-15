@@ -1275,7 +1275,11 @@ function _sfApplyCardVisual(card, selection) {
   nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
   symbolismEl.textContent = matched.sukuyo_verdict || matched.narrative || '숙요 27숙 기반 운명꽃을 판독 중입니다.';
   keywordsEl.textContent = 'sukuyo flower keywords · ' + selection.keywords.join(' • ');
-  if (mansionBadgeEl) mansionBadgeEl.textContent = (sukuyo.mansion_name || '숙 미확인') + ' · ' + (sukuyo.group || '그룹 미확인');
+  if (mansionBadgeEl) {
+    var mansionLabel = _dfNormalizeSukuyoMansionLabel(sukuyo.mansion_name);
+    var groupLabel = _dfNormalizeSukuyoGroupLabel(sukuyo.group);
+    mansionBadgeEl.textContent = (mansionLabel || '숙 미확인') + (groupLabel ? (' · ' + groupLabel) : '');
+  }
   if (phaseBadgeEl) phaseBadgeEl.textContent = '달 위상 ' + (sukuyo.moon_phase || intensity.moon_label || '판정 대기');
   if (guardianBadgeEl) guardianBadgeEl.textContent = '수호동물 ' + (sukuyo.guardian_animal || '미확인');
   if (dataLineEl) {
@@ -1441,7 +1445,7 @@ var _DF_SOURCE_META = {
     labelKo: '점성술',
     stickerMain: 'Zodiac',
     stickerSub: 'Star',
-    description: '태양궁·상승궁·달궁의 각도와 하우스 흐름을 읽어, 별자리 에너지를 꽃의 형태와 광채로 변환합니다.',
+    description: '태양궁·상승궁·달궁을 바탕으로 내 분위기와 성향을 쉽고 재미있게 읽어, 어울리는 운명꽃으로 보여줍니다.',
     fallbackKeyword: 'zodiac • nebula • stardust'
   },
   jamidusu: {
@@ -1634,12 +1638,31 @@ function _dfJoinElementLabels(list) {
   return arr.length ? arr.join(' · ') : '판정 대기';
 }
 
+function _dfNormalizeSukuyoMansionLabel(raw) {
+  var text = String(raw || '').trim();
+  if (!text) return '';
+  text = text.replace(/^숙\s+/, '').trim();
+  if (text.indexOf('·') >= 0) text = text.split('·')[0].trim();
+  if (text.indexOf('|') >= 0) text = text.split('|')[0].trim();
+  return text;
+}
+
+function _dfNormalizeSukuyoGroupLabel(raw) {
+  var text = String(raw || '').trim();
+  if (!text) return '';
+  text = text.replace(/^그룹\s+/, '').trim();
+  if (/그룹$/.test(text)) return text;
+  text = text.replace(/숙$/, '').trim();
+  return text ? (text + ' 그룹') : '';
+}
+
 function _dfGetSajuBadges(selection) {
   var saved = selection && selection.saju_badges;
   if (saved && typeof saved === 'object' && saved.mode === 'sukuyo') {
     return {
       mode: 'sukuyo',
-      mansion: saved.mansion || '미확인',
+      mansion: _dfNormalizeSukuyoMansionLabel(saved.mansion) || '미확인',
+      group: _dfNormalizeSukuyoGroupLabel(saved.group || ''),
       phase: saved.phase || '미확인',
       guardian: saved.guardian || '미확인'
     };
@@ -1674,7 +1697,8 @@ function _dfGetSajuBadges(selection) {
     var sy = matched.sukuyo || {};
     return {
       mode: 'sukuyo',
-      mansion: [sy.mansion_name, sy.group].filter(Boolean).join(' · ') || '미확인',
+      mansion: _dfNormalizeSukuyoMansionLabel(sy.mansion_name) || '미확인',
+      group: _dfNormalizeSukuyoGroupLabel(sy.group || ''),
       phase: sy.moon_phase || (matched.visual_intensity && matched.visual_intensity.moon_label) || '미확인',
       guardian: sy.guardian_animal || '미확인'
     };
@@ -1751,7 +1775,7 @@ function _dfGetUnifiedStageContent(selection) {
 
   if (source === 'sukuyo') {
     return {
-      badge1: '숙 ' + (badges.mansion || '미확인'),
+      badge1: badges.mansion || '미확인',
       badge2: '달 위상 ' + (badges.phase || '미확인'),
       badge3: '수호동물 ' + (badges.guardian || '미확인'),
       scenarioTitle: matched.sukuyo_verdict || matched.narrative || '숙요 달빛 개화 시나리오를 계산 중입니다.',
@@ -3188,15 +3212,28 @@ window.closeCurrentPage = closeCurrentPage;
 
 function _resetTarotUI() {
   document.getElementById('tarotResultContainer').style.display = 'none';
-  document.getElementById('tarotCardEl').classList.remove('flipped');
+  var cardEl = document.getElementById('tarotCardEl');
+  if (cardEl) cardEl.classList.remove('flipped');
   document.getElementById('tarotRitualMsg').innerText = '"당신의 간절한 고민을 선택해주세요..."';
   document.querySelectorAll('.oracle-cat-btn-m').forEach(function(btn) { btn.classList.remove('active'); });
+  document.querySelectorAll('.tarot-spread-card').forEach(function(el) { el.classList.remove('flipped'); });
+  var finalBtn = document.getElementById('tarotFinalBtn');
+  if (finalBtn) finalBtn.disabled = true;
   window.curTarotCat = null;
   window.isReading = false;
+  if (window.tarotThreeCardState) window.tarotThreeCardState = { cards: [], revealedIndex: -1 };
 }
+function resetTarotForCategorySelection() {
+  var overlay = document.getElementById('tarotModalOverlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  _resetTarotUI();
+  if (typeof window.setTarotMode === 'function') window.setTarotMode(window.tarotSpreadMode || 'one');
+}
+window.resetTarotForCategorySelection = resetTarotForCategorySelection;
 function openTarotModal() {
   var overlay = document.getElementById('tarotModalOverlay');
   overlay.style.display = 'block';
+  if (typeof window.setTarotMode === 'function') window.setTarotMode(window.tarotSpreadMode || 'one');
   if (window._perf && window._perf.lockBody) window._perf.lockBody();
   else document.body.style.overflow = 'hidden';
   var w = window.innerWidth || document.documentElement.clientWidth;

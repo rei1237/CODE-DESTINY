@@ -6018,14 +6018,14 @@ function renderAstroInsight() {
       +'<div class="astro-subhead" style="color:#D4AF37;">✨ 내 별자리 3줄 핵심 요약</div>'
       +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
       +'<p><b class="precision-headline">🌞 나는 어떤 사람인가?</b><br>'
-      +'태양 <b>'+sunSign+'</b>은 내가 살아가며 빛나는 방식, 달 <b>'+moonSign+'</b>은 혼자 있을 때 가장 편안한 모습, 상승궁 <b>'+ascSign+'</b>은 처음 만난 사람에게 풍기는 첫인상입니다. '
-      +'이 세 가지가 합쳐져 "이 사람 왠지 좋아"를 만들어냅니다.</p>'
+      +'태양 <b>'+sunSign+'</b>은 "내 기본 성격", 달 <b>'+moonSign+'</b>은 "감정 버튼", 상승궁 <b>'+ascSign+'</b>은 "첫인상 캐릭터"입니다. '
+      +'이 세 가지가 합쳐져 당신만의 분위기를 만듭니다.</p>'
       +'<p><b class="precision-headline">💕 사랑할 때는?</b><br>'
       +'금성 <b>'+venusSign+'</b>('+venusHousePair+')은 좋아하는 사람에게 보이는 매력 포인트, 화성 <b>'+marsSign+'</b>('+marsHousePair+')은 끌림이 생겼을 때 행동하는 방식입니다. '
       +(vmAspect || vmCalcFallback)+'</p>'
       +'<p><b class="precision-headline">🏆 커리어와 돈은?</b><br>'
-      +'천정(MC) <b>'+mcSign+'</b>이 사회적으로 빛나는 방향, 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')은 꾸준히 갈고닦아야 할 진짜 실력 구간입니다. '
-      +'행운 포인트(포르투나) <b>'+fortunaSign+'</b>('+fortunaHousePair+')에서 진짜 결실이, 소명(스피릿) <b>'+spiritSign+'</b>('+spiritHousePair+')에서 깊은 기쁨이 생겨납니다.</p>'
+      +'천정(MC) <b>'+mcSign+'</b>은 "어떤 이미지로 인정받는지", 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')은 "시간 들여 레벨업할 구간"입니다. '
+      +'행운 포인트(포르투나) <b>'+fortunaSign+'</b>('+fortunaHousePair+')은 성과가 붙는 자리, 소명(스피릿) <b>'+spiritSign+'</b>('+spiritHousePair+')은 오래 해도 지치지 않는 자리예요.</p>'
       +'</div></div>';
 
     var tightAspectText = majorAspectRows.length ? majorAspectRows[0].text : '타이트 주요각 없음';
@@ -6049,7 +6049,7 @@ function renderAstroInsight() {
       .sort(function(a,b){ return b.count - a.count; });
     var topFocusHouse = sortedHouseFocus.length ? sortedHouseFocus[0].house : null;
     var topFocusCount = sortedHouseFocus.length ? sortedHouseFocus[0].count : 0;
-    var focusHouseText = topFocusHouse ? (topFocusHouse+'하우스에 행성 '+topFocusCount+'개 집중') : '특정 하우스 집중도는 분산형';
+    var focusHouseText = topFocusHouse ? (topFocusHouse+'하우스에 행성 '+topFocusCount+'개 집중') : '에너지가 여러 영역에 고르게 퍼진 타입';
     var axisGap = (sunIndex - moonIndex + 12) % 12;
     var axisGapDesc = (axisGap === 0) ? '의식-정서 일치형' : (axisGap === 6 ? '의식-정서 대칭형(긴장/보완)' : '의식-정서 혼합형');
     var relationAxisText = '지금 관계 키워드는 "내 기준 지키기"와 "상대 속도 맞추기"의 균형이에요. 둘 중 하나만 밀면 쉽게 지칩니다.';
@@ -6085,7 +6085,7 @@ function renderAstroInsight() {
     var firdariaMainTopic = firdariaMainHouse ? (houseTopicMap[firdariaMainHouse] || '복합 주제') : topHouseTopic;
     var firdariaDynamic = {
       theme: firdariaMain.kr+' 메인 타임로드는 '+firdariaMainPair+' 축에서 작동하며, 현재 핵심 의제는 '+firdariaMainTopic+'입니다.',
-      detail: '타임로드 행성의 하우스 축('+firdariaMainPair+')과 차트 집중축('+focusHouseText+')이 겹칠수록 체감 이벤트의 밀도가 올라갑니다. '+precisionComment,
+      detail: '지금 메인 운행 행성의 무대('+firdariaMainPair+')와 내 집중 무대('+focusHouseText+')가 겹치면, 체감되는 일이 더 또렷하게 들어옵니다. '+precisionComment,
       career: '커리어는 '+firdariaMainTopic+'과 MC '+mcSign+'를 연결해 실행하는 방식이 유리합니다. 90일 단위로 목표를 쪼개고 '+modalityAdvice[modalityDominant],
       love: '관계는 달 '+moonHousePair+' 안정축과 금성/화성 '+venusHousePair+' · '+marsHousePair+' 조율이 핵심입니다. '+(vmAspect || vmCalcFallback),
       caution: retroFocusText+' 특히 '+firdariaMain.kr+' 타임로드 기간에는 '+firdariaMainTopic+' 영역에서 과속 결정을 피하는 것이 안전합니다.',
@@ -6129,15 +6129,15 @@ function renderAstroInsight() {
       + masterInsight
       +'<div class="astro-subhead">🗺 0. 내 탄생 별자리 지도</div>'
         +'<div class="astro-desc">'
-      +'<p>태어난 순간, 하늘에서 각 행성이 어느 별자리에 있었는지를 보여주는 나만의 우주 지도입니다. 하우스(1H~12H) 번호는 그 행성 에너지가 인생 어느 영역에서 터지는지를 알려줍니다.</p>'
+      +'<p>이 표는 "태어난 순간 하늘 사진"이라고 생각하면 쉽습니다. 하우스(1H~12H)는 그 에너지가 삶의 어떤 분야(일, 사랑, 돈, 관계 등)에서 강하게 쓰이는지 보여줘요.</p>'
         +'<div class="table-wrapper" style="border:1px solid rgba(148,163,184,0.2);border-radius:10px;margin:10px 0;">'
         +'<table class="astro-table" style="font-size:0.83rem;">'
         +'<colgroup><col><col><col><col></colgroup>'
         +'<thead><tr style="background:rgba(30,41,59,0.6);">'
         +'<th style="text-align:left;color:#94a3b8;">행성</th>'
         +'<th style="text-align:left;color:#94a3b8;">행성 위치(황도)</th>'
-        +'<th style="text-align:left;color:#94a3b8;">Placidus</th>'
-        +'<th style="text-align:left;color:#94a3b8;">Whole Sign</th>'
+        +'<th style="text-align:left;color:#94a3b8;">Placidus(세부)</th>'
+        +'<th style="text-align:left;color:#94a3b8;">Whole Sign(큰 흐름)</th>'
         +'</tr></thead>'
         +'<tbody>'+placementRows.join('')+'</tbody>'
         +'</table>'
@@ -6160,7 +6160,7 @@ function renderAstroInsight() {
         +'<div class="astro-desc">'
         +'<p><b>☀️ 태양 — 나의 진짜 빛</b><br>'+sunCoreInterpretation+'</p>'
         +'<p><b>🌙 달 — 아무도 모르는 진짜 나</b><br>'+moonSign+' 달은 피곤하거나 외로울 때 자연스럽게 드러나는 본모습입니다. '+moonHousePair+' 영역에서 감정이 충전되고, 반대로 상처도 여기서 깊게 남습니다. 연인이 이 에너지를 이해해주면 "드디어 나를 알아주는 사람을 만났다"는 느낌이 옵니다.</p>'
-        +'<p><b>⬆ 상승궁(Asc) — 첫인상과 겉모습</b><br>상승궁 <b>'+ascSign+'</b>은 처음 만나는 사람이 느끼는 당신의 분위기입니다. 실제 내면(태양)과 살짝 다를 수 있어서, 가까워질수록 "생각보다 다른 사람이네"라는 반응이 나오기도 합니다.</p>'
+        +'<p><b>⬆ 상승궁 — 첫인상 캐릭터</b><br>상승궁 <b>'+ascSign+'</b>은 처음 만났을 때 보이는 "겉 캐릭터"입니다. 속마음(태양)과 조금 다를 수 있어서, 친해질수록 의외의 매력이 더 잘 보일 수 있어요.</p>'
         +'<p style="margin-top:8px;color:#cbd5e1;">'+imbalanceText+' '+precisionComment+'</p>'
         +'</div>'
         +'<div class="astro-core">"당신의 인생 테마를 이끄는 행성: <strong>'+chartRuler+'</strong> — 이 행성이 잘 돌아갈 때 모든 것이 잘 풀립니다."</div>'
@@ -6176,7 +6176,7 @@ function renderAstroInsight() {
         +'<div class="astro-desc">'
         +'<p><b>💬 수성 — 나의 말버릇과 생각 방식</b><br>수성이 <b>'+mercurySign+'</b>('+mercuryHousePair+')에 있어요. 당신이 말하고 배우고 생각하는 스타일이 이 별자리 색깔로 나옵니다. 이 방식을 의식적으로 쓸 때 소통이 훨씬 편해집니다.</p>'
         +'<p><b>🍀 목성 — 행운이 들어오는 문</b><br>목성이 <b>'+jupiterSign+'</b>('+jupiterHousePair+')에 있습니다. 이 방향으로 시도할 때 "왠지 잘 풀린다"는 감각이 따라옵니다. 억지로 노력하지 않아도 흐름이 붙는 구간입니다.</p>'
-        +'<p><b>🌀 외행성 3총사 — 인생 대변혁 포인트</b><br>천왕성('+uranusSign+', '+uranusHousePair+')은 예고 없는 대반전, 해왕성('+neptuneSign+', '+neptuneHousePair+')은 꿈·영감·경계의 해체, 명왕성('+plutoSign+', '+plutoHousePair+')은 낡은 틀의 완전한 교체를 담당합니다. 이게 터질 때 굉장히 힘들지만, 지나고 나면 완전히 다른 사람이 됩니다.</p>'
+        +'<p><b>🌀 외행성 3총사 — 인생 리셋 버튼</b><br>천왕성('+uranusSign+', '+uranusHousePair+')은 "갑자기 방향 전환", 해왕성('+neptuneSign+', '+neptuneHousePair+')은 "감수성/상상력 업", 명왕성('+plutoSign+', '+plutoHousePair+')은 "완전한 체질 개선"을 담당합니다. 흔들릴 때는 힘들지만, 지나고 나면 확실히 더 강해져요.</p>'
         +'</div>'
         +'</div>'
 
@@ -6190,9 +6190,9 @@ function renderAstroInsight() {
         +'</div>'
         +'<div class="astro-desc">'
         +'<p><b>🎯 MC(<b>'+mcSign+'</b>) — 세상이 나를 어떻게 기억하길 바라는가</b><br>MC는 공적인 자리에서 빛나는 색깔입니다. 이 별자리 에너지로 커리어를 포지셔닝하면 "저 사람, 딱 그 분야 같아"라는 인상을 줍니다.</p>'
-        +'<p><b>🔨 6하우스(<b>'+h6Sign+'</b>) — 나의 일하는 스타일</b><br>어떻게 일하는지를 봅니다. 더불어 체력과 건강 관리 방식도 여기서 읽힙니다. 이 별자리의 리듬으로 루틴을 설계하면 번아웃이 줄어듭니다.</p>'
+        +'<p><b>🔨 6하우스(<b>'+h6Sign+'</b>) — 내 일상 운영법</b><br>이 구간은 "일하는 습관 + 체력 관리법"을 보여줍니다. 여기에 맞춰 루틴을 짜면 효율은 올라가고 번아웃은 줄어듭니다.</p>'
         +'<p><b>🏗️ 토성(<b>'+saturnSign+'</b>, '+saturnHousePair+') — 단단해지는 구간</b><br>토성이 있는 곳은 처음엔 느리고 막히는 느낌이 들지만, 버티면 결국 가장 견고한 성과가 쌓이는 자리입니다. 여기서 기초를 쌓으면 나중에 무너지지 않습니다.</p>'
-        +'<p style="margin-top:8px;color:#cbd5e1;">팁: MC 방향으로 이름을 알리고 → 6하우스 스타일로 매일을 채우고 → 토성 방향에서 장기전을 버텨보세요.</p>'
+        +'<p style="margin-top:8px;color:#cbd5e1;">팁: MC 방향으로 "브랜딩"하고 → 6하우스 방식으로 "매일 실행"하고 → 토성 구간에서 "꾸준함"으로 승부해보세요.</p>'
         +'</div>'
         +'</div>'
 
@@ -6242,9 +6242,9 @@ function renderAstroInsight() {
         +'<p style="color:#cbd5e1;">핵심 포인트: 감정 안정은 달('+moonHousePair+'), 끌림과 표현은 금성('+venusHousePair+')·화성('+marsHousePair+'), 가장 강하게 작동하는 각도는 '+tightAspectText+'입니다.</p>'
         +'<div class="astro-core" style="font-size:0.95rem;line-height:1.6;font-weight:normal">'
         +'<ul style="padding-left:20px;margin-bottom:0;">'
-        +'<li style="margin-bottom:10px;"><b>💕 연애 궁합 (정서적 지지와 안식처)</b><br>당신의 정서 안정축은 <b>'+moonSign+'</b>('+moonHousePair+')입니다. 관계 초반에는 달 하우스 주제에 맞는 정서적 안전을 먼저 확보하고, 약한 원소인 <b>'+elemShortNames[elemWeakest]+'</b> 기운을 보완해주는 상대를 만날수록 관계의 지속성이 높아집니다.</li>'
-        +'<li style="margin-bottom:10px;"><b>✨ 속 궁합 (본능과 영혼의 교감)</b><br><b>'+venusSign+'</b> 금성('+venusHousePair+')은 애정 표현의 결을, <b>'+marsSign+'</b> 화성('+marsHousePair+')은 욕망의 발화 지점을 규정합니다. 따라서 친밀감은 "감정 언어(금성) 합의 → 행동 리듬(화성) 조율" 순서로 맞출 때 가장 안정적으로 깊어집니다.</li>'
-        +'<li><b>🤝 일 궁합 (상호 보완적인 조력자)</b><br>업무 축은 MC <b>'+mcSign+'</b>와 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')입니다. 따라서 단기 감정 공감보다 일정·품질·재현성을 함께 수호해줄 파트너가 궁합상 유리합니다. 역할 분담을 하우스 주제 기준으로 나누면 협업 마찰이 크게 줄어듭니다.</li>'
+        +'<li style="margin-bottom:10px;"><b>💕 연애 궁합 (마음이 편한 관계)</b><br>당신의 감정 안정 포인트는 <b>'+moonSign+'</b>('+moonHousePair+')입니다. 초반에는 이 주제에서 "안심"을 먼저 만들어야 오래 갑니다. 내게 약한 원소인 <b>'+elemShortNames[elemWeakest]+'</b> 기운을 채워주는 사람이 특히 잘 맞아요.</li>'
+        +'<li style="margin-bottom:10px;"><b>✨ 속 궁합 (끌림과 템포)</b><br><b>'+venusSign+'</b> 금성('+venusHousePair+')은 "사랑 표현법", <b>'+marsSign+'</b> 화성('+marsHousePair+')은 "행동 타이밍"을 말해줍니다. 그래서 친밀감은 "표현 방식 맞추기 → 리듬 맞추기" 순서로 가면 훨씬 자연스럽게 깊어집니다.</li>'
+        +'<li><b>🤝 일 궁합 (함께 잘 일하는 조합)</b><br>업무 축은 MC <b>'+mcSign+'</b>와 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')입니다. 감정 공감도 중요하지만, 일정·품질·약속을 같이 지켜주는 파트너가 더 잘 맞습니다. 역할을 하우스 주제별로 나누면 충돌이 확 줄어들어요.</li>'
         +'</ul>'
         +'</div>'
         +'</div>'
@@ -6252,11 +6252,11 @@ function renderAstroInsight() {
 
         /* ── 통합 인연 리포트 (Synastry & Bond) ── */
         +'<div class="astro-section" style="border-left:4px solid #f472b6; background:linear-gradient(to right, rgba(244,114,182,0.06), transparent);">'
-        +'<div class="astro-subhead" style="color:#f472b6;">💞 통합 인연 리포트 (Synastry &amp; Bond)</div>'
+        +'<div class="astro-subhead" style="color:#f472b6;">💞 궁합 한눈에 리포트</div>'
         +'<div class="astro-desc">'
-        +'<p><b>[하강궁 — 끌림의 코드]</b> 당신의 하강궁(7H)이 <b>'+descSign+'</b>에 걸려있습니다. 무의식이 억눌러 온 그림자 자아의 에너지가 이 별자리를 가진 타인에게 폭발적으로 투사되며, 인생을 통틀어 이 파동을 지닌 인연에게 가장 강렬히 매혹됩니다.</p>'
-        +'<p><b>[Venus ♀ × Mars ♂ — 끌림의 화학반응]</b> 금성(<b>'+venusSign+'</b>)과 화성(<b>'+marsSign+'</b>)의 교차 — '+(vmAspect||vmCalcFallback)+'</p>'
-        +'<p><b>[축과 각도의 궁합 판단]</b> 인연의 강도는 1-7축(자아-타자) 공명과 금성/화성/달의 실제 각(오브)에서 결정됩니다. 단순 별자리 일치보다 각도 정밀도가 훨씬 중요합니다.</p>'
+        +'<p><b>[하강궁 — 자꾸 끌리는 타입]</b> 당신의 하강궁(7H)은 <b>'+descSign+'</b>입니다. 그래서 이 성향을 가진 사람에게 "이유 없이 끌리는 느낌"이 자주 생길 수 있어요.</p>'
+        +'<p><b>[Venus ♀ × Mars ♂ — 설렘 스위치]</b> 금성(<b>'+venusSign+'</b>)과 화성(<b>'+marsSign+'</b>)의 조합은 이렇게 읽혀요: '+(vmAspect||vmCalcFallback)+'</p>'
+        +'<p><b>[궁합 체크 포인트]</b> 단순히 별자리만 같다고 잘 맞는 건 아닙니다. 태양·달·금성·화성의 실제 각도가 잘 맞을수록 관계가 더 안정적으로 굴러갑니다.</p>'
         +'<div style="background:rgba(244,114,182,0.08); border-radius:10px; padding:14px; margin-top:12px;">'
         +'<div style="color:#f9a8d4; font-weight:700; margin-bottom:8px; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">✦ Bond Compatibility Map</div>'
         +'<ul style="padding-left:18px; margin:0; color:#e2e8f0; line-height:1.85; font-size:0.9rem;">'
@@ -6273,7 +6273,7 @@ function renderAstroInsight() {
         +'<div class="astro-subhead" style="color:#f59e0b;">💫 나의 시나스트리: 상대방 직접 입력</div>'
         +'<div class="astro-desc">'
         +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
-        +'상대방의 생년월일과 태어난 시간을 입력하면 두 사람의 나탈 차트를 비교하여 연애·비즈니스·영적 궁합을 분석합니다. 생시를 모를 경우 12:00(정오)를 입력하세요.'
+        +'상대의 생년월일/시간을 넣으면 두 사람의 별자리 지도를 비교해 연애·일·성향 궁합을 보여줍니다. 태어난 시간을 모르면 12:00(정오)로 입력하면 됩니다.'
         +'</p>'
         /* 입력 폼 */
         +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'
@@ -6867,11 +6867,11 @@ function renderAstroInsight() {
     function _syBuildNarrative(meta){
       var score = meta.score || 50;
       var rel;
-      if(score >= 85) rel = '고정밀 공명형 인연 - 정서/가치/행동 축이 동시에 맞물립니다.';
-      else if(score >= 70) rel = '상호성장형 인연 - 조화각이 우세하고 갈등 수호가 가능한 구조입니다.';
-      else if(score >= 55) rel = '혼합형 인연 - 끌림과 긴장이 공존하며 운행 방식이 성패를 가릅니다.';
-      else if(score >= 40) rel = '학습형 인연 - 강한 긴장각이 반복되어 의식적 조율이 필요합니다.';
-      else rel = '카르마 훈련형 인연 - 패턴 충돌이 크며 경계와 규칙 설정이 필수입니다.';
+      if(score >= 85) rel = '찰떡 합 인연 - 마음, 가치관, 행동 템포가 고르게 잘 맞아요.';
+      else if(score >= 70) rel = '함께 성장하는 인연 - 기본 궁합이 좋고, 갈등도 잘 풀 수 있는 조합입니다.';
+      else if(score >= 55) rel = '밀당형 인연 - 끌림도 크고 부딪힘도 있어, 운영 방식이 중요해요.';
+      else if(score >= 40) rel = '연습이 필요한 인연 - 서로 맞추는 대화와 규칙이 꼭 필요합니다.';
+      else rel = '숙제 많은 인연 - 경계 설정과 합의가 없으면 쉽게 지칠 수 있어요.';
 
       var supportTxt = meta.support ? (meta.support.pair + ' ' + meta.support.asp.name) : '뚜렷한 조화각 없음';
       var challengeTxt = meta.challenge ? (meta.challenge.pair + ' ' + meta.challenge.asp.name) : '뚜렷한 긴장각 없음';
@@ -6884,12 +6884,12 @@ function renderAstroInsight() {
           ? '12H/6H 압력이 커서 관계 피로 수호가 핵심 과제입니다.'
           : '7H/8H와 일상 하우스가 균형적이라 운행 역량이 성패를 가릅니다.';
 
-      var love = '애정선은 '+supportTxt+'이 끌림을 키우고, '+challengeTxt+'이 갈등 트리거를 만듭니다. '
-        +'내 금성 '+venusStage+'과 달 '+moonStage+' 투사 하우스를 먼저 맞추면 체감 만족도가 올라갑니다.';
-      var busi = '협업선은 내 태양 투사 하우스 '+sunStage+'가 핵심 무대입니다. '
-        +'역할/책임을 하우스 주제에 맞춰 배치하면 성과가 안정되고 소모가 줄어듭니다.';
-      var spirit = '영적 과제는 '+meta.myElem+'-'+meta.theirElem+' 원소 결에서 드러납니다. '+h78Boost+' '
-        +'점수 '+score+'/100 구간에서는 감정 조율 루틴과 갈등 복기 규칙을 함께 운행할수록 관계 성장이 빠릅니다.';
+      var love = '연애에서는 '+supportTxt+'이 설렘을 키우고, '+challengeTxt+'이 다툼 포인트가 되기 쉬워요. '
+        +'내 금성 '+venusStage+'과 달 '+moonStage+'의 감정 포인트를 먼저 맞추면 만족도가 확 올라갑니다.';
+      var busi = '협업에서는 내 태양 투사 하우스 '+sunStage+'가 메인 무대입니다. '
+        +'역할과 책임을 하우스 주제에 맞춰 나누면 성과는 안정되고 에너지 소모는 줄어듭니다.';
+      var spirit = '관계의 성장 포인트는 '+meta.myElem+'-'+meta.theirElem+' 조합에서 드러납니다. '+h78Boost+' '
+        +'점수 '+score+'/100 구간에서는 "감정 정리 루틴 + 갈등 복기 규칙"을 같이 만들수록 관계가 빨리 좋아집니다.';
 
       return { relType: rel, loveDesc: love, busDesc: busi, spiritDesc: spirit };
     }
@@ -7005,7 +7005,7 @@ function renderAstroInsight() {
                     +'<div style="background:rgba(129,140,248,0.15);border:1px solid rgba(129,140,248,0.4);padding:2px 10px;border-radius:20px;font-size:0.72rem;color:#a5b4fc;">'
                     + celebSunSign + ' ☀</div>'
                   +'<div style="font-size:0.65rem;color:#94a3b8;border:1px solid rgba(148,163,184,0.3);padding:2px 8px;border-radius:10px;">'+geoMetaText+'</div>'
-                    + (isUnknownTime ? '<div style="font-size:0.65rem;color:#64748b;border:1px dashed #334155;padding:2px 8px;border-radius:10px;">⚠ 생시 미확정(12:00 가정) — 달/Asc/하우스 오차 가능</div>' : '')
+                    + (isUnknownTime ? '<div style="font-size:0.65rem;color:#64748b;border:1px dashed #334155;padding:2px 8px;border-radius:10px;">⚠ 태어난 시간이 정확하지 않아 달/상승궁/하우스는 오차가 있을 수 있어요</div>' : '')
                     +'</div>';
 
                 /* 스코어 + 상대 나탈 */
@@ -7040,11 +7040,11 @@ function renderAstroInsight() {
                     +'</div>';
 
                 html2 += '<div style="background:rgba(99,102,241,0.08);border:1px solid rgba(129,140,248,0.25);border-radius:10px;padding:10px;margin-bottom:12px;">'
-                  +'<div style="font-size:0.72rem;color:#a5b4fc;font-weight:700;margin-bottom:6px;">📊 오브 가중치 점수 근거</div>'
+                  +'<div style="font-size:0.72rem;color:#a5b4fc;font-weight:700;margin-bottom:6px;">📊 점수는 이렇게 계산돼요</div>'
                   +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.65;">'
                   +'정규화 점수: <b>'+synScore+'</b>/100 · 가중 합산: <b>'+synRaw.toFixed(2)+'</b> / 최대 '+synMax.toFixed(2)+'<br>'
                   +'하우스 오버레이 보정(7H/8H 포함): <b>'+overlayScore.toFixed(2)+'</b> · 영향도 '+(overlayNorm*100).toFixed(1)+'% ('+overlayMode+')<br>'
-                  +'해석 신뢰도(각도 기반): <b>'+synConfidence+'%</b><br>'
+                  +'해석 신뢰도(각도 데이터 기준): <b>'+synConfidence+'%</b><br>'
                   +'가장 강한 조화: '+bestSupport+'<br>'
                   +'가장 강한 긴장: '+bestChallenge
                   +'</div>'
@@ -7066,7 +7066,7 @@ function renderAstroInsight() {
                 }
 
                 html2 += '<div style="background:rgba(20,25,35,0.6);border:1px solid rgba(129,140,248,0.2);border-radius:10px;padding:10px;margin-bottom:12px;">'
-                  +'<div style="font-size:0.72rem;color:#818cf8;font-weight:700;margin-bottom:6px;">🏠 하우스 오버레이 (Whole Sign 기준)</div>'
+                  +'<div style="font-size:0.72rem;color:#818cf8;font-weight:700;margin-bottom:6px;">🏠 하우스 겹침 보기 (별자리 기준)</div>'
                   +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.6;">'
                   +'내 태양(☀)이 상대 차트의 <b>'+(overlayMySunToTheir ? overlayMySunToTheir + 'H' : '-')+'</b>에 투사<br>'
                   +'상대 태양(☀)이 내 차트의 <b>'+(overlayTheirSunToMy ? overlayTheirSunToMy + 'H' : '-')+'</b>에 투사<br>'
@@ -16680,6 +16680,49 @@ var TAROT_CONTEXT = {
 var curTarotCat = null;
 var isReading = false;
 var autoStartTimer = null;
+var tarotSpreadMode = 'one'; // 'one' | 'three'
+var tarotThreeCardState = { cards: [], revealedIndex: -1 };
+
+// 스프레드 모드별 라벨 (카테고리별 커스텀 가능)
+var TAROT_SPREAD_LABELS = {
+  default: ['과거', '현재', '미래'],
+  situationAdviceOutcome: ['상황', '조언', '결과']
+};
+
+function getTarotSpreadLabels(cat) {
+  var ctx = TAROT_CONTEXT[cat];
+  if (ctx && ctx.spreadLabels) return ctx.spreadLabels;
+  return TAROT_SPREAD_LABELS.default;
+}
+
+function setTarotMode(mode) {
+  if (isReading) return;
+  tarotSpreadMode = mode;
+  var sceneOne = document.getElementById('tarotSceneOne');
+  var sceneThree = document.getElementById('tarotSceneThree');
+  var btns = document.querySelectorAll('.tarot-mode-btn');
+  if (!sceneOne || !sceneThree) return;
+  if (mode === 'three') {
+    sceneOne.style.display = 'none';
+    sceneThree.style.display = 'flex';
+    btns.forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('data-action-args') === 'three');
+    });
+  } else {
+    sceneOne.style.display = 'flex';
+    sceneThree.style.display = 'none';
+    btns.forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('data-action-args') === 'one');
+    });
+  }
+  // 리셋 쓰리카드 상태
+  tarotThreeCardState = { cards: [], revealedIndex: -1 };
+  document.getElementById('tarotResultContainer').style.display = 'none';
+  // 모드 전환 시 이미 카테고리가 선택되어 있으면 즉시 덱 준비
+  if (mode === 'three' && curTarotCat) {
+    startThreeCardFlow();
+  }
+}
 
 function selectTarotCategory(cat, btn) {
   if(isReading) return;
@@ -16694,7 +16737,7 @@ function selectTarotCategory(cat, btn) {
   
   // 리추얼 메시지 초기화
   var msgEl = document.getElementById('tarotRitualMsg');
-  msgEl.innerHTML = `... [STAGE:ATMOSPHERE] 숨을 고르라. <b>${TAROT_CONTEXT[cat].label}</b>의 공기가 흐른다.`;
+  msgEl.innerHTML = `🌿 <b>${TAROT_CONTEXT[cat].label}</b>에 관한 카드를 펼칩니다. 잠시 호흡을 가다듬어 보세요.`;
   msgEl.style.opacity = 0.6;
   
   // 결과창 초기화
@@ -16704,20 +16747,393 @@ function selectTarotCategory(cat, btn) {
   document.getElementById('tarotCardName').innerHTML='';
   
   var card = document.getElementById('tarotCardEl');
-  card.classList.remove('flipped');
-  
-  // Reset Divine Focus Interaction
-  card.onclick = startTarotReading;
-  card.style.cursor = 'pointer';
-  card.classList.remove('divine-focus');
-  card.classList.add('tarot-card-container'); 
+  if (card) {
+    card.classList.remove('flipped');
+    card.onclick = startTarotReading;
+    card.style.cursor = 'pointer';
+    card.classList.remove('divine-focus');
+    card.classList.add('tarot-card-container'); 
+  }
   document.getElementById('tarotFocusOverlay').classList.remove('active');
 
-  // [수정: 클릭 없이 자동 진행]
+  if (tarotSpreadMode === 'three') {
+    startThreeCardFlow();
+    return;
+  }
+
+  // [수정: 클릭 없이 자동 진행] — 원카드 모드
   if (autoStartTimer) clearTimeout(autoStartTimer);
   autoStartTimer = setTimeout(function() {
     startTarotReading();
   }, 1200); 
+}
+
+// 78장 덱에서 중복 없이 3장 추출
+function pickThreeUniqueCards() {
+  var deck = TAROT_DATA.slice();
+  var result = [];
+  for (var i = 0; i < 3 && deck.length > 0; i++) {
+    var idx = Math.floor(Math.random() * deck.length);
+    result.push(deck.splice(idx, 1)[0]);
+  }
+  return result;
+}
+
+function getTarotImageCandidates(shortName) {
+  var rawName = String(shortName || '').trim();
+  if (!rawName) return [];
+
+  var rawBase = 'https://raw.githubusercontent.com/krates98/tarotcardapi/main/images/';
+  var cdnBase = 'https://cdn.jsdelivr.net/gh/krates98/tarotcardapi@main/images/';
+
+  var variants = [
+    rawName,
+    rawName.toLowerCase(),
+    rawName.charAt(0).toUpperCase() + rawName.slice(1)
+  ];
+
+  // 레거시 데이터/파일명 불일치 보정 (TheLovers/thelovers)
+  if (rawName.toLowerCase() === 'thelovers') {
+    variants.push('TheLovers');
+    variants.push('thelovers');
+  }
+
+  var extPriority = rawName.toLowerCase() === 'thelovers'
+    ? ['.jpg', '.jpeg', '.png', '.webp']
+    : ['.jpeg', '.jpg', '.png', '.webp'];
+
+  var out = [];
+  var seen = Object.create(null);
+  // CDN 우선: raw.githubusercontent 응답 지연 시 공백 카드가 길어지는 현상 방지
+  [cdnBase, rawBase].forEach(function(base) {
+    variants.forEach(function(name) {
+      extPriority.forEach(function(ext) {
+        var url = base + name + ext;
+        if (!seen[url]) {
+          seen[url] = true;
+          out.push(url);
+        }
+      });
+    });
+  });
+
+  return out;
+}
+
+function loadTarotImage(shortName, onReady) {
+  var candidates = getTarotImageCandidates(shortName);
+  var idx = 0;
+  function tryLoad() {
+    if (idx >= candidates.length) {
+      onReady('');
+      return;
+    }
+    var url = candidates[idx++];
+    var probe = new Image();
+    var done = false;
+    var timer = setTimeout(function() {
+      if (done) return;
+      done = true;
+      tryLoad();
+    }, 1800);
+    probe.onload = function() {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      onReady(url);
+    };
+    probe.onerror = function() {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      tryLoad();
+    };
+    probe.src = url;
+  }
+  tryLoad();
+}
+
+function applyTarotImageToFace(frontEl, imgEl, shortName, altText) {
+  if (!frontEl && !imgEl) return;
+  var candidates = getTarotImageCandidates(shortName);
+  if (!candidates.length) return;
+
+  if (imgEl) {
+    imgEl.alt = altText || 'Tarot card image';
+    imgEl.loading = 'eager';
+    imgEl.decoding = 'async';
+    // 이미지 onload 이벤트 누락/지연 시에도 공백이 되지 않도록 기본은 보이게 유지
+    imgEl.style.visibility = 'visible';
+    imgEl.style.opacity = '1';
+  }
+
+  function applyUrl(url) {
+    if (frontEl) {
+      frontEl.style.backgroundImage = "url('" + url + "')";
+      frontEl.style.backgroundSize = 'cover';
+      frontEl.style.backgroundPosition = 'center';
+    }
+    if (imgEl) {
+      imgEl.src = url;
+      if (imgEl.complete && imgEl.naturalWidth > 0) {
+        imgEl.style.visibility = 'visible';
+        imgEl.style.opacity = '1';
+      }
+    }
+  }
+
+  // 즉시 첫 후보를 적용해 페인트 지연을 줄인다.
+  applyUrl(candidates[0]);
+
+  // 실제 로딩 성공 URL을 찾으면 더 안정적인 후보로 교체
+  var idx = 0;
+  function tryNext() {
+    if (idx >= candidates.length) return;
+    var url = candidates[idx++];
+    var probe = new Image();
+    var done = false;
+    var timer = setTimeout(function() {
+      if (done) return;
+      done = true;
+      tryNext();
+    }, 1800);
+    probe.onload = function() {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      applyUrl(url);
+    };
+    probe.onerror = function() {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      tryNext();
+    };
+    probe.src = url;
+  }
+
+  tryNext();
+}
+
+function syncTarotSpreadCardFace(cardEl) {
+  if (!cardEl) return;
+  // CSS .tarot-spread-card.flipped 규칙이 앞/뒤면을 제어하므로
+  // 인라인 style을 완전히 제거해 CSS 클래스가 우선 적용되도록 한다
+  var front = cardEl.querySelector('.oracle-front-m');
+  var back = cardEl.querySelector('.oracle-back-m');
+  if (front) {
+    front.style.visibility = '';
+    front.style.opacity = '';
+    front.style.display = '';
+  }
+  if (back) {
+    back.style.visibility = '';
+    back.style.opacity = '';
+    back.style.display = '';
+  }
+}
+
+function escapeTarotHtml(v) {
+  return String(v || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function startThreeCardFlow() {
+  if (!curTarotCat) return;
+  isReading = true;
+  tarotThreeCardState = { cards: [], revealedIndex: -1 };
+  
+  var labels = getTarotSpreadLabels(curTarotCat);
+  for (var i = 0; i < 3; i++) {
+    var lbl = document.getElementById('tarotSlotLabel' + i);
+    if (lbl) lbl.textContent = labels[i] || TAROT_SPREAD_LABELS.default[i];
+  }
+  
+  var msgEl = document.getElementById('tarotRitualMsg');
+  msgEl.innerHTML = '🌀 세 장의 카드가 당신을 향해 흘러오고 있습니다...';
+  msgEl.style.opacity = 1;
+
+  var picked = pickThreeUniqueCards();
+  var cardsData = picked.map(function(c) {
+    var isReversed = Math.random() < 0.3;
+    return { card: c, isReversed: isReversed, imgUrl: '' };
+  });
+  
+  tarotThreeCardState.cards = cardsData;
+  
+  // 모든 카드 flipped 먼저 제거한 뒤 인라인 style 초기화
+  document.querySelectorAll('.tarot-spread-card').forEach(function(el) {
+    el.classList.remove('flipped');
+    el.classList.remove('is-revealing');
+    syncTarotSpreadCardFace(el);
+  });
+
+  // 카드 앞면 이미지 설정 및 프리로드
+  var slots = document.querySelectorAll('#tarotSpreadCards .tarot-slot');
+  cardsData.forEach(function(data, idx) {
+    var slot = slots[idx];
+    var front = slot ? slot.querySelector('.oracle-front-m') : null;
+    var frontImg = slot ? slot.querySelector('.tarot-face-img') : null;
+    if (front) {
+      // CSS transform은 클래스로 관리하므로 역방향만 추가 rotate
+      front.style.transform = 'rotateY(180deg)' + (data.isReversed ? ' rotate(180deg)' : '');
+      front.setAttribute('aria-label', data.card.name_kr + ' (' + data.card.name + ')');
+      applyTarotImageToFace(front, frontImg, data.card.short, data.card.name_kr + ' (' + data.card.name + ')');
+    }
+  });
+  document.getElementById('tarotFinalBtn').disabled = true;
+  
+  var guideEl = document.getElementById('tarotSpreadGuide');
+  if (guideEl) guideEl.textContent = (labels[0] || '과거') + ' 자리의 카드를 먼저 열어보세요';
+
+  msgEl.innerHTML = '🌙 마음을 고요히 하고, 끌리는 카드를 순서대로 열어보세요.';
+  isReading = false;
+}
+
+function flipTarotSpreadCard(index) {
+  // 모드 전환/리셋 타이밍 등으로 덱이 비어있으면 즉시 재초기화
+  if (!tarotThreeCardState.cards || tarotThreeCardState.cards.length !== 3) {
+    startThreeCardFlow();
+    return;
+  }
+  if (isReading) return;
+  var idx = parseInt(index, 10);
+  if (tarotThreeCardState.revealedIndex + 1 !== idx) return;
+  
+  var cardEl = document.querySelector('.tarot-spread-card[data-action-args="' + idx + '"]');
+  if (!cardEl || cardEl.classList.contains('flipped')) return;
+  
+  playTarotFlipSound();
+  syncTarotSpreadCardFace(cardEl); // 인라인 style 제거 → CSS 클래스 우선 적용
+  cardEl.classList.add('flipped');
+  cardEl.classList.add('is-revealing');
+  setTimeout(function() { cardEl.classList.remove('is-revealing'); }, 800);
+  createGoldDust(cardEl);
+  tarotThreeCardState.revealedIndex = idx;
+  
+  var labels = getTarotSpreadLabels(curTarotCat);
+  var guideEl = document.getElementById('tarotSpreadGuide');
+  var msgEl = document.getElementById('tarotRitualMsg');
+  var data = tarotThreeCardState.cards[idx];
+  
+  if (data) {
+    msgEl.innerHTML = '✨ ' + data.card.name_kr + ' — ' + (data.isReversed ? '역행의 에너지가 흐릅니다.' : '순행의 에너지가 흐릅니다.');
+  }
+  
+  if (idx < 2 && guideEl) {
+    guideEl.textContent = (labels[idx + 1] || '') + ' 자리의 카드를 열어보세요';
+  } else if (idx === 2) {
+    if (guideEl) guideEl.textContent = '세 장의 카드가 모두 드러났습니다. 통합 리딩을 시작합니다.';
+    document.getElementById('tarotFinalBtn').disabled = false;
+    setTimeout(showTarotFinalInterpretation, 900);
+  }
+}
+
+function playTarotFlipSound() {
+  try {
+    var ctx = window.__tarotAudioContext || (window.__tarotAudioContext = new (window.AudioContext || window.webkitAudioContext)());
+    if (ctx.state === 'suspended') ctx.resume();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(400, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.08);
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.15);
+  } catch (e) {}
+}
+
+function showTarotFinalInterpretation() {
+  if (!curTarotCat) return;
+  if (!tarotThreeCardState.cards || tarotThreeCardState.cards.length !== 3) {
+    startThreeCardFlow();
+    return;
+  }
+  if (tarotThreeCardState.revealedIndex !== 2) return;
+  var context = TAROT_CONTEXT[curTarotCat];
+  var cardsData = tarotThreeCardState.cards;
+  var labels = getTarotSpreadLabels(curTarotCat);
+  
+  var parts = [];
+  cardsData.forEach(function(data, i) {
+    var c = data.card;
+    var r = data.isReversed;
+    var oracleLine = context.oracleLine ? context.oracleLine(c, r) : '';
+    var revelationText = context.revelation ? context.revelation(c, r) : '';
+    var dir = r ? '역행' : '순행';
+    parts.push('<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.1);">' +
+      '<b style="color:#ffd700;font-size:1rem">' + escapeTarotHtml(labels[i] || '') + ' — ' + escapeTarotHtml(c.name_kr) + ' (' + dir + ')</b><br>' +
+      '<span style="font-style:italic;color:#fde68a;font-size:0.95em;line-height:1.7">"' + escapeTarotHtml(oracleLine) + '"</span><br>' +
+      '<span style="line-height:1.8;font-size:0.95rem">' + escapeTarotHtml(revelationText) + '</span></div>');
+  });
+  
+  var pCard = cardsData[0].card;
+  var nCard = cardsData[1].card;
+  var fCard = cardsData[2].card;
+  var counselingBridge = [
+    '현재 카드 <b>' + escapeTarotHtml(nCard.name_kr) + '</b>가 당신 앞에 놓였습니다. 이 카드는 지금 당신의 내면이 가장 강하게 반응하고 있는 에너지를 거울처럼 비춥니다. 길흉을 판정하는 것이 아니라, "지금 이 순간 당신이 무엇을 간절히 원하고 있으며, 무엇을 가장 두려워하는지"를 보여주는 심층의 신호입니다.',
+    '과거의 자리에 선 <b>' + escapeTarotHtml(pCard.name_kr) + '</b>는 오늘의 감정이 어디서 비롯됐는지를 말해줍니다. 같은 상황에서 늘 같은 감정이 올라온다면, 그것은 의지의 문제가 아닙니다. 오래전부터 당신 안에 새겨진 반응의 패턴이 자동으로 작동하는 것입니다. 이 패턴을 인식하는 것만으로도 치유는 이미 시작됩니다.',
+    '미래의 자리에 선 <b>' + escapeTarotHtml(fCard.name_kr) + '</b>는 결정된 운명이 아니라, 지금 이 순간의 선택이 만들어갈 가능성의 방향을 가리킵니다. 카드는 당신에게 이렇게 속삭입니다. 지금 작은 선택 하나를 달리하면, 그 결과의 곡선은 생각보다 훨씬 크게 달라질 수 있다고.'
+  ].join('<br><br>');
+
+  var practicalPlan = [
+    '<b>① 감정을 글로 만나기 (5분):</b> 지금 가슴속에 가장 무겁게 자리한 감정 하나를 종이에 적어보세요. 그 감정 밑에 숨어 있는 진짜 욕구가 무엇인지도 함께 적어봅니다.',
+    '<b>② 나에게 편지 쓰기 (3분):</b> "나는 ___을 원한다"라는 문장 하나를 완성해보세요. 상대나 상황을 바꾸는 것이 아닌, 내가 원하는 것을 나 스스로에게 선언하는 행위입니다.',
+    '<b>③ 오늘의 작은 행동 (지금 바로):</b> 24시간 안에 할 수 있는 행동 하나를 구체적인 시간과 함께 정해보세요. 메시지 한 통, 산책 10분, 오래 미뤄온 결정 하나도 충분합니다.',
+    '<b>④ 내일 아침 체크인:</b> 잠들기 전과 아침에 일어났을 때 마음의 무게가 얼마나 달라졌는지, 숫자로 기록해두세요 (0이 가장 가볍고, 10이 가장 무거운 상태). 변화를 느끼는 것 자체가 치유입니다.'
+  ].join('<br>');
+
+  var interpretation = '<span style="opacity:0.75;font-style:italic;font-size:0.92em">✦ ' + escapeTarotHtml(context.vibe) + '</span><br><br>' +
+    '<b style="color:#c4b5fd;font-size:1.02em">🔮 카드의 목소리</b><br>' +
+    '<span style="opacity:0.88;font-style:italic;color:#ddd6fe">무의식은 언제나 당신보다 먼저 알고 있습니다. 세 장의 카드가 과거·현재·미래를 연결하며 지금 당신에게 필요한 이야기를 건넵니다.</span><br><br>' +
+    parts.join('') +
+    '<div style="margin-top:8px;padding:14px 16px;border:1px solid rgba(196,181,253,0.4);border-radius:12px;background:rgba(76,29,149,0.18);">' +
+      '<b style="color:#c4b5fd;font-size:1em">🌸 심리 통합 읽기</b><br><br>' +
+      '<span style="line-height:1.9;">' + counselingBridge + '</span>' +
+    '</div>' +
+    '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(253,230,138,0.35);border-radius:12px;background:rgba(120,53,15,0.14);">' +
+      '<b style="color:#fde68a;font-size:1em">🌿 치유를 위한 오늘의 실천</b><br><br>' +
+      '<span style="line-height:1.85;">' + practicalPlan + '</span>' +
+    '</div>' +
+    '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(167,243,208,0.35);border-radius:12px;background:rgba(5,150,105,0.10);">' +
+      '<b style="color:#6ee7b7;font-size:1em">🪷 오라클의 말</b><br><br>' +
+      '<span style="line-height:1.88;font-style:italic;color:#d1fae5">당신이 찾는 것은 정답이 아니라 평안입니다. 카드는 방향을 가리킬 뿐, 그 길을 걷는 것은 오롯이 당신입니다. 오늘 이 리딩을 통해 스스로를 조금 더 깊이 이해했다면, 그것만으로도 충분한 치유가 시작된 것입니다.</span>' +
+    '</div>' +
+    '<br><span style="opacity:0.65;font-size:0.85em;font-style:italic">✦ ' + escapeTarotHtml(context.label) + ' — 타로와 심리학이 만나는 통합 리딩. 세 장의 카드가 당신의 현재를 비추고, 내일을 열어줍니다.</span>';
+  
+  document.getElementById('tarotCardName').innerHTML =
+    escapeTarotHtml(labels[0]) + ' · ' + escapeTarotHtml(labels[1]) + ' · ' + escapeTarotHtml(labels[2]);
+
+  var masterLine = context.oracle ? context.oracle(cardsData[1].card, cardsData[1].isReversed) : '';
+  var oracleHtml = masterLine
+    ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 현재 카드의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(masterLine) + '"</span>'
+    : '';
+  document.getElementById('tarotOracleText').innerHTML = oracleHtml;
+  if (oracleHtml) document.getElementById('tarotOracleText').classList.add('show');
+
+  var resultEl = document.getElementById('tarotResultContainer');
+  document.getElementById('destinyFortune').innerHTML = '';
+  resultEl.style.display = 'block';
+
+  // 컨테이너가 먼저 렌더링된 뒤 스크롤, 이후 타이핑 시작 (즉시 대량 삽입으로 인한 화면 튕김 방지)
+  setTimeout(function() {
+    if (resultEl && typeof resultEl.scrollIntoView === 'function') {
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setTimeout(function() {
+      streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
+        document.getElementById('tarotSpreadGuide').textContent = '✨ 세 장의 카드가 당신에게 전할 말을 모두 건넸습니다.';
+      });
+    }, 350);
+  }, 80);
 }
 
 function startTarotReading() {
@@ -16733,7 +17149,7 @@ function startTarotReading() {
   var card = document.getElementById('tarotCardEl');
   
   // 1. 셔플 단계
-  msgEl.innerHTML = `[STAGE:SHUFFLING] 운명의 궤적이 섞인다...`;
+  msgEl.innerHTML = `🌀 무의식이 카드를 고르고 있습니다...`;
   msgEl.style.opacity = 1;
   
   // 카드 흔들림 효과
@@ -16747,11 +17163,11 @@ function startTarotReading() {
     var picked = TAROT_DATA[Math.floor(Math.random() * TAROT_DATA.length)];
     var isReversed = Math.random() < 0.3; // 30% 역방향(기신)
     
-    // 카드 이미지 매핑
-    var ext = picked.short === 'TheLovers' ? '.jpg' : '.jpeg';
-    var imgUrl = `https://raw.githubusercontent.com/krates98/tarotcardapi/main/images/${picked.short}${ext}`;
     var frontEl = document.getElementById('tarotCardFront');
-    frontEl.style.backgroundImage = `url('${imgUrl}')`;
+    var frontImgEl = document.getElementById('tarotCardFrontImg');
+    frontEl.style.backgroundColor = '#1a1530';
+    frontEl.style.backgroundImage = '';
+    applyTarotImageToFace(frontEl, frontImgEl, picked.short, picked.name_kr + ' (' + picked.name + ')');
     // SEO & Accessibility
     frontEl.setAttribute('role', 'img');
     frontEl.setAttribute('aria-label', `${picked.name_kr} (${picked.name})`);
@@ -16761,12 +17177,13 @@ function startTarotReading() {
     
     // 카드 뒤집기
     card.classList.add('flipped');
+    playTarotFlipSound();
     
     // [EFFECT:GOLD_DUST]
     createGoldDust(card);
     
     // 메시지 출력
-    msgEl.innerHTML = `[CARD:${picked.id}_${picked.name}] ... 솟구쳤군.`;
+    msgEl.innerHTML = `✦ ${picked.name_kr}(${picked.name}) — 무의식이 선택했습니다.`;
     
     var godType = isReversed ? '기신(忌神) · 흉(凶)' : '희신(喜神) · 길(吉)';
     var direction = isReversed ? '역행(逆行)' : '순행(順行)';
@@ -16788,22 +17205,26 @@ function startTarotReading() {
     var sipsinMsg = isReversed ? sipsinMeta.neg : sipsinMeta.pos;
 
     var interpretation = `
-      ... ${context.vibe}<br><br>
+      <span style="opacity:0.72;font-style:italic;font-size:0.92em">✦ ${context.vibe}</span><br><br>
 
-      <b style="color:#c4b5fd">📿 [명리학적 한줄 평]</b><br>
-      <span style="font-style:italic;color:#fde68a;font-size:1.05em;line-height:1.8">"${oracleLine}"</span><br><br>
+      <b style="color:#ddd6fe;font-size:1.02em">🌙 카드가 건네는 말</b><br>
+      <span style="font-style:italic;color:#fde68a;font-size:1.05em;line-height:1.85">"${oracleLine}"</span><br><br>
 
-      <b style="color:#c4b5fd">🔮 [타로의 계시]</b> — <b>${picked.name_kr}</b>(${isReversed ? '역행' : '순행'})<br>
-      <span style="line-height:1.9">${revelationText}</span><br><br>
+      <b style="color:#c4b5fd;font-size:1.02em">🔮 ${picked.name_kr}의 계시</b><br>
+      <span style="line-height:1.9;color:#e2e8f0">${revelationText}</span><br><br>
 
-      <span style="opacity:0.55;font-size:0.88em">✦ 십성 에너지 : <b>${picked.sipsinTag}</b> · ${sipsinMsg}</span>
+      <div style="padding:12px 14px;border:1px solid rgba(110,231,183,0.25);border-radius:10px;background:rgba(5,150,105,0.09);">
+        <span style="color:#6ee7b7;font-style:italic;line-height:1.85;font-size:0.95em">이 카드가 오늘 당신에게 찾아온 것은 우연이 아닙니다. 무의식은 언제나 가장 필요한 메시지를 정확한 순간에 보냅니다. 이 계시를 가슴에 담아두고, 오늘 하루를 걸어보세요.</span>
+      </div><br>
+
+      <span style="opacity:0.5;font-size:0.85em;font-style:italic">✦ 십성 에너지 · <b>${picked.sipsinTag}</b> — ${sipsinMsg}</span>
     `.trim();
     
     streamRitualText(interpretation, 'destinyFortune', () => {
        // 마무리 오라클 (카드 하단 강조 문구)
        var masterLine = context.oracle ? context.oracle(picked, isReversed) : '';
        var oracleHtml = masterLine
-         ? `<div style="font-weight:bold;color:#FFD700;margin-bottom:5px">⚡ 마스터 오라클</div><span style="font-style:italic">"${masterLine}"</span>`
+         ? `<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 오늘의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"${masterLine}"</span>`
          : '';
        var oracleEl = document.getElementById('tarotOracleText');
        oracleEl.innerHTML = oracleHtml;
@@ -16817,7 +17238,7 @@ function startTarotReading() {
        };
        card.style.cursor = 'zoom-in';
        // Tip msg
-       msgEl.innerHTML = `[STAGE:FOCUS] 카드를 눌러보라. 더 깊은 심연이 보일 것이다.`;
+       msgEl.innerHTML = `🌟 카드를 탭하면 더 깊은 에너지를 느낄 수 있습니다.`;
     });
     
   }, 2000);
@@ -16837,31 +17258,106 @@ function exitDivineFocus() {
 
 function streamRitualText(text, targetId, callback) {
   var el = document.getElementById(targetId);
-  el.innerHTML = '';
+  if (!el) {
+    if (callback) callback();
+    return;
+  }
+  var raw = String(text || '');
+  var hasHtml = /<[^>]+>/.test(raw);
+
+  // 이전 스트리밍 타이머 취소(동시 실행으로 인한 깨짐 방지)
+  if (!window.__ritualStreamTimers) window.__ritualStreamTimers = {};
+  if (window.__ritualStreamTimers[targetId]) {
+    clearTimeout(window.__ritualStreamTimers[targetId]);
+    window.__ritualStreamTimers[targetId] = null;
+  }
+
+  // HTML 리딩은 중간 파싱 과정에서 태그가 깨질 수 있으므로 즉시 렌더링한다.
+  if (hasHtml) {
+    el.innerHTML = raw;
+    if (callback) callback();
+    return;
+  }
+
+  // 순수 텍스트는 코드포인트 단위로 안전 스트리밍(이모지/유니코드 깨짐 방지)
+  el.textContent = '';
+  var chars = Array.from(raw);
   var i = 0;
   var speed = 20; // ms
-  
+  var renderedTail = '';
+
   function type() {
-    if (i < text.length) {
-      // 줄바꿈이나 태그 처리
-      if(text.charAt(i) === '<') {
-         var tagEnd = text.indexOf('>', i);
-         el.innerHTML += text.substring(i, tagEnd+1);
-         i = tagEnd + 1;
+    if (i < chars.length) {
+      var ch = chars[i++];
+      el.textContent += ch;
+      renderedTail = (renderedTail + ch).slice(-3);
+      if (renderedTail === '...') {
+        window.__ritualStreamTimers[targetId] = setTimeout(type, 800);
       } else {
-         el.innerHTML += text.charAt(i);
-         i++;
+        window.__ritualStreamTimers[targetId] = setTimeout(type, speed + Math.random() * 20);
       }
-      // ... 이 나오면 잠시 멈춤
-      if(text.substring(i-3, i) === '...') {
-        setTimeout(type, 800);
-      } else {
-        setTimeout(type, speed + Math.random()*20);
+      return;
+    }
+    window.__ritualStreamTimers[targetId] = null;
+    if (callback) callback();
+  }
+
+  type();
+}
+
+// HTML 구조를 보존하면서 텍스트 노드를 순서대로 타이핑하는 함수 (쓰리카드 스프레드 전용)
+function streamRitualHtmlTyped(htmlStr, targetId, onComplete) {
+  var container = document.getElementById(targetId);
+  if (!container) { if (onComplete) onComplete(); return; }
+
+  if (!window.__ritualStreamTimers) window.__ritualStreamTimers = {};
+  if (window.__ritualStreamTimers[targetId]) {
+    clearTimeout(window.__ritualStreamTimers[targetId]);
+    window.__ritualStreamTimers[targetId] = null;
+  }
+
+  // HTML 구조 전체를 먼저 렌더링 (박스/테두리는 즉시 표시, 텍스트만 비움)
+  container.innerHTML = htmlStr;
+
+  // 모든 텍스트 노드를 DFS 순서로 수집하고 내용을 비움
+  var textEntries = [];
+  (function walk(node) {
+    for (var i = 0; i < node.childNodes.length; i++) {
+      var child = node.childNodes[i];
+      if (child.nodeType === 3 && child.textContent.length > 0) {
+        textEntries.push({ node: child, full: child.textContent });
+        child.textContent = '';
+      } else if (child.nodeType === 1) {
+        walk(child);
       }
+    }
+  })(container);
+
+  if (!textEntries.length) { if (onComplete) onComplete(); return; }
+
+  var SPEED = 14; // ms per character
+  var ti = 0, ci = 0;
+
+  function type() {
+    if (ti >= textEntries.length) {
+      window.__ritualStreamTimers[targetId] = null;
+      if (onComplete) onComplete();
+      return;
+    }
+    var entry = textEntries[ti];
+    var chars = Array.from(entry.full);
+    if (ci < chars.length) {
+      entry.node.textContent += chars[ci++];
+      var tail = entry.node.textContent.slice(-3);
+      var delay = (tail === '...') ? 500 : SPEED;
+      window.__ritualStreamTimers[targetId] = setTimeout(type, delay);
     } else {
-      if(callback) callback();
+      ti++;
+      ci = 0;
+      type();
     }
   }
+
   type();
 }
 

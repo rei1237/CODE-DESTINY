@@ -8035,15 +8035,17 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.45;
+  opacity: 0.7;
   pointer-events: none;
 }
 
-.meteor-1 { top: 4%; left: 15%; --delay: 0s; --dur: 2s; }
-.meteor-2 { top: 10%; left: 48%; --delay: 0.7s; --dur: 1.8s; }
-.meteor-3 { top: 2%; left: 72%; --delay: 1.5s; --dur: 2.3s; }
-.meteor-4 { top: 20%; left: 6%; --delay: 0.3s; --dur: 2.6s; }
-.meteor-5 { top: 1%; left: 36%; --delay: 2.1s; --dur: 1.7s; }
+/* 별똥별 6개 — 데스크탑 전용 (모바일은 pointer:coarse에서 display:none) */
+.meteor-1 { top:3%;  left:18%; --delay:0s;   --dur:2.3s; --h:110px; --w:2px;   --hc:rgba(200,220,255,0.95); --gc1:rgba(170,200,255,0.6); --gc2:rgba(140,175,255,0.35); }
+.meteor-2 { top:8%;  left:55%; --delay:1.0s; --dur:2.0s; --h:90px;  --w:2px;   --hc:rgba(255,255,255,1);    --gc1:rgba(200,220,255,0.7); --gc2:rgba(175,205,255,0.4);  }
+.meteor-3 { top:1%;  left:78%; --delay:1.8s; --dur:2.7s; --h:130px; --w:2px;   --hc:rgba(255,238,195,0.95); --gc1:rgba(255,215,140,0.65);--gc2:rgba(255,195,95,0.38);  }
+.meteor-4 { top:18%; left:5%;  --delay:0.5s; --dur:2.9s; --h:80px;  --w:1.5px; --hc:rgba(205,220,255,0.9);  --gc1:rgba(175,205,255,0.55);--gc2:rgba(155,190,255,0.32); }
+.meteor-5 { top:0%;  left:38%; --delay:2.4s; --dur:1.9s; --h:105px; --w:2px;   --hc:rgba(238,210,255,0.95); --gc1:rgba(208,168,255,0.65);--gc2:rgba(178,128,255,0.38); }
+.meteor-6 { top:5%;  left:88%; --delay:0.7s; --dur:2.2s; --h:120px; --w:2px;   --hc:rgba(195,238,255,0.95); --gc1:rgba(155,220,255,0.65);--gc2:rgba(115,205,255,0.38); }
 
 .code-splash-content {
   position: relative;
@@ -8122,24 +8124,49 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     0 0 55px rgba(165,180,252,0.22),
     0 0 110px rgba(108,99,255,0.10);
 }
-/* 별똥별 CSS 애니메이션 */
+/* 별똥별 CSS 애니메이션 — 경량화: box-shadow 최소화, ::after 2단 글로우 */
 .meteor {
-  position:absolute;
-  width:2px;
-  height:80px;
-  background:linear-gradient(to bottom,
+  position: absolute;
+  width: var(--w, 2px);
+  height: var(--h, 100px);
+  border-radius: 999px;
+  background: linear-gradient(
+    to bottom,
     transparent 0%,
-    rgba(200,220,255,0.9) 45%,
-    rgba(255,255,255,0.55) 65%,
+    transparent 12%,
+    var(--gc2, rgba(155,185,255,0.22)) 35%,
+    var(--gc1, rgba(195,218,255,0.62)) 65%,
+    var(--hc, rgba(255,255,255,0.95)) 90%,
+    var(--hc, #fff) 100%
+  );
+  /* 꼬리 측면 발광 — 1레이어만 */
+  box-shadow: 0 0 5px 1px var(--gc1, rgba(195,218,255,0.28));
+  transform-origin: top center;
+  transform: rotate(-42deg) translateY(-220px);
+  opacity: 0;
+  animation: meteorFall var(--dur, 2s) ease-in var(--delay, 0s) infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* 빛나는 별똥별 머리 — 2단 글로우 (4단 → 2단으로 경량화) */
+.meteor::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    #fff 0%,
+    var(--hc, rgba(215,228,255,0.92)) 45%,
     transparent 100%
   );
-  border-radius:999px;
-  transform-origin:top center;
-  transform:rotate(-42deg) translateY(-200px);
-  opacity:0;
-  animation:meteorFall var(--dur,2s) linear var(--delay,0s) infinite;
-  pointer-events:none;
-  will-change:transform,opacity;
+  box-shadow:
+    0 0 7px  3px var(--hc,  rgba(218,232,255,0.95)),
+    0 0 20px 7px var(--gc1, rgba(175,208,255,0.55));
 }
 
 .privacy-content-note {
@@ -8154,10 +8181,18 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 
 @keyframes meteorFall {
-  0%   { transform:rotate(-42deg) translateY(-200px); opacity:0; }
-  6%   { opacity:0.95; }
-  70%  { opacity:0.65; }
-  100% { transform:rotate(-42deg) translateY(110vh);  opacity:0; }
+  0%   { transform: rotate(-42deg) translateY(-220px); opacity: 0; }
+  4%   { opacity: 1; }
+  15%  { opacity: 0.95; }
+  65%  { opacity: 0.7; }
+  85%  { opacity: 0.3; }
+  100% { transform: rotate(-42deg) translateY(115vh);  opacity: 0; }
+}
+
+/* 접근성: 모션 감소 선호 시 별똥별/캔버스 비활성 */
+@media (prefers-reduced-motion: reduce) {
+  .meteor { display: none !important; }
+  .code-splash-canvas { display: none !important; }
 }
 /* ────────────────────────────────────────────────────
    모바일 성능 최적화 (pointer:coarse = 터치 스크린)
@@ -8173,7 +8208,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   /* 0-1. wrap CSS containment → repaint 범위 제한 */
   .wrap { contain: layout; }
 
-  /* 1. 별똥별 5개 will-change compositor layer 완전 제거 (모바일 렌더링 보호) */
+  /* 1. 별똥별 will-change compositor layer 완전 제거 (모바일 렌더링 보호) */
   .meteor { display: none !important; }
 
   /* 2. 진행바 shimmer 스캔 제거 (translateX pseudo-element) */
@@ -8913,9 +8948,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       .dp-fsel-btn--ziwei:hover  { background:rgba(232,121,249,0.1); border-color:rgba(232,121,249,0.5); }
       .dp-fsel-btn--astro  { border-color:rgba(167,209,255,0.3); }
       .dp-fsel-btn--astro:hover  { background:rgba(167,209,255,0.1); border-color:rgba(167,209,255,0.5); }
+      .dp-fsel-btn--tarot  { border-color:rgba(139,92,246,0.35); }
+      .dp-fsel-btn--tarot:hover  { background:rgba(139,92,246,0.12); border-color:rgba(139,92,246,0.55); }
       .dp-fsel-btn--flower { border-color:rgba(244,114,182,0.32); }
       .dp-fsel-btn--flower:hover { background:rgba(244,114,182,0.11); border-color:rgba(244,114,182,0.55); }
-      .dp-fsel-btn--flower { grid-column:1 / -1; justify-content:center; }
 
       .dp-save-overlay {
         position:fixed; inset:0; z-index:2000000;
@@ -9255,10 +9291,12 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             }
             .oracle-card-m.flipped { transform: rotateY(180deg); }
             .oracle-face-m {
-              position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+              position: absolute; width: 100%; height: 100%;
+              -webkit-backface-visibility: hidden; backface-visibility: hidden;
               border-radius: 14px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
             }
             .oracle-back-m {
+              z-index: 0;
               background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
               border: 2px solid #6366f1; display: flex; justify-content: center; align-items: center;
               font-size: 3.5rem;
@@ -9267,8 +9305,101 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             }
             .oracle-back-m::after { content: '⚛'; color: rgba(255,255,255,0.25); animation: pulse 2.5s infinite; }
             .oracle-front-m {
-              transform: rotateY(180deg); background-size: cover; background-position: center;
+              z-index: 1; transform: rotateY(180deg); background-size: cover; background-position: center;
               border: 2px solid #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+            }
+            .tarot-face-img {
+              width: 100%; height: 100%; object-fit: cover; display: block;
+              border-radius: inherit; background: #1a1530; position: absolute; inset: 0;
+            }
+
+            /* 타로 모드 토글 */
+            .tarot-mode-toggle {
+              display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap;
+            }
+            .tarot-mode-btn {
+              padding: 8px 18px; border-radius: 999px; font-size: 0.88rem; font-weight: 700;
+              background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+              color: #a5b4fc; cursor: pointer; transition: all 0.3s; touch-action: manipulation;
+            }
+            .tarot-mode-btn:hover { background: rgba(255,255,255,0.12); color: #c4b5fd; }
+            .tarot-mode-btn.active {
+              background: rgba(139,92,246,0.35); border-color: #a78bfa; color: #fff;
+              box-shadow: 0 0 12px rgba(167,139,250,0.4);
+            }
+            /* 쓰리카드 스프레드 */
+            .oracle-scene-three { flex-direction: column; min-height: 380px; }
+            .tarot-spread-guide {
+              text-align: center; color: #c4b5fd; font-size: 0.95rem; margin-bottom: 16px;
+              font-style: italic; min-height: 24px; transition: opacity 0.3s;
+            }
+            .tarot-spread-cards {
+              display: flex; justify-content: center; align-items: flex-end; gap: 12px;
+              perspective: 1200px; flex-wrap: wrap; padding: 0 8px;
+            }
+            .tarot-slot {
+              display: flex; flex-direction: column; align-items: center; flex: 0 0 auto;
+              -webkit-transform-style: preserve-3d; transform-style: preserve-3d;
+            }
+            .tarot-slot-label {
+              font-size: 0.8rem; font-weight: 700; color: #ffd700; margin-bottom: 8px;
+              letter-spacing: 0.05em; text-shadow: 0 0 8px rgba(255,215,0,0.5);
+            }
+            .tarot-slot-center .tarot-slot-label { font-size: 0.9rem; color: #fde68a; }
+            .tarot-spread-card {
+              width: 90px; height: 140px; cursor: pointer;
+              position: relative; border-radius: 14px;
+              -webkit-transform-style: preserve-3d; transform-style: preserve-3d;
+              transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+            }
+            .tarot-spread-card.flipped { transform: rotateY(180deg); }
+            .tarot-slot-center .tarot-spread-card {
+              width: 110px; height: 170px; transform: scale(1.08);
+            }
+            .tarot-slot-center .tarot-spread-card.flipped { transform: rotateY(180deg) scale(1.08); }
+            .tarot-spread-card.is-revealing {
+              box-shadow: 0 0 0 2px #facc15, 0 0 36px rgba(250,204,21,0.55), 0 0 70px rgba(139,92,246,0.45) !important;
+            }
+            .tarot-spread-card .oracle-face-m {
+              -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            }
+            .tarot-spread-card .oracle-back-m {
+              transform: rotateY(0deg);
+            }
+            .tarot-spread-card .oracle-front-m {
+              transform: rotateY(180deg);
+            }
+            .tarot-placeholder-back {
+              background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+              background-image: radial-gradient(#6366f1 1px, transparent 1px), radial-gradient(#6366f1 1px, transparent 1px);
+              background-size: 16px 16px; background-position: 0 0, 8px 8px;
+              border: 2px solid rgba(99,102,241,0.6);
+              box-shadow: inset 0 0 30px rgba(99,102,241,0.15), 0 0 20px rgba(0,0,0,0.4);
+            }
+            .tarot-placeholder-back::before {
+              content: '✦'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+              font-size: 2rem; color: rgba(255,255,255,0.2); animation: tarotPlaceholderPulse 3s ease-in-out infinite;
+            }
+            @keyframes tarotPlaceholderPulse { 0%,100%{opacity:0.3} 50%{opacity:0.6} }
+            .tarot-final-btn {
+              margin-top: 20px; padding: 12px 28px; border-radius: 999px; font-size: 0.95rem; font-weight: 700;
+              background: rgba(139,92,246,0.25); border: 1px solid rgba(167,139,250,0.5);
+              color: #c4b5fd; cursor: pointer; transition: all 0.3s; align-self: center;
+            }
+            .tarot-final-btn:hover:not(:disabled) {
+              background: rgba(139,92,246,0.45); color: #fff;
+              box-shadow: 0 0 20px rgba(167,139,250,0.5); transform: translateY(-2px);
+            }
+            .tarot-final-btn:disabled {
+              opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5);
+            }
+            @media (max-width: 480px) {
+              .tarot-spread-cards { gap: 8px; overflow-x: auto; overflow-y: visible; padding-bottom: 8px;
+                -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; justify-content: flex-start;
+              }
+              .tarot-slot { scroll-snap-align: center; min-width: 100px; }
+              .tarot-spread-card { width: 85px; height: 130px; }
+              .tarot-slot-center .tarot-spread-card { width: 95px; height: 145px; transform: scale(1.05); }
             }
 
             .oracle-result-box-m {
@@ -9278,7 +9409,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             }
             .oracle-text-m {
               font-family: 'Gowun Batang', serif; color: #e2e8f0; font-size: 1.05rem;
-              line-height: 1.85; text-align: justify; word-break: keep-all; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+              line-height: 1.85; text-align: left; word-break: keep-all; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
             }
             .ritual-text-m { text-align: center; color: #cbd5e1; font-size: 0.95rem; min-height: 28px; margin-top: 15px; font-family: 'Gowun Batang', serif; }
 
@@ -9316,8 +9447,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           line-height: 1.8;
           letter-spacing: 0.02em;
           color: #e2e8f0;
-          text-align: justify;
+          text-align: left;
           word-break: keep-all;
+          overflow-wrap: break-word;
           text-shadow: 0 1px 2px rgba(0,0,0,0.8);
           -webkit-font-smoothing: antialiased;
         }

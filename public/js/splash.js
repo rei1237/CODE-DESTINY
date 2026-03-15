@@ -1,39 +1,59 @@
 (function(){
   var _splashDone = false;
-  /* -- 기기 환경 판별 (모바일/데스크탑) -- */
+  /* -- 기기 환경 판별 -- */
   var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  /* prefers-reduced-motion: 접근성 배려 + 저사양 기기 보호 */
+  var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* -- 별빛 캔버스 (데스크탑 전용: 모바일 RAF 부하 방지) -- */
+  /* -- 별빛 캔버스 (데스크탑 전용, reduced-motion 비활성) -- */
   var cvs = document.getElementById('splashCanvas');
-  var rafId;
-  if (cvs && !isMobile) {
+  var rafId, _frame = 0;
+  if (cvs && !isMobile && !prefersReduced) {
     var ctx = cvs.getContext('2d');
     cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-    /* 별 개수: 5개로 제한 */
-    var stars = Array.from({length: 5}, function() {
+
+    /* 색상 팔레트 (RGB 문자열 사전 생성 — 매 프레임 문자열 연산 없음) */
+    var palette = ['200,215,255','225,235,255','255,245,210','220,200,255','255,255,255'];
+
+    /* 별 40개 — 글로우 없음, 순수 alpha 트윙클 */
+    var stars = Array.from({length: 40}, function() {
+      var c = palette[Math.floor(Math.random() * palette.length)];
       return {
         x: Math.random() * cvs.width,
         y: Math.random() * cvs.height,
-        r: Math.random() * 1.5 + 0.5,
+        r: Math.random() * 1.1 + 0.3,
         a: Math.random() * Math.PI * 2,
-        speed: Math.random() * 0.008 + 0.003
+        spd: Math.random() * 0.008 + 0.003,
+        base: Math.random() * 0.45 + 0.2,
+        rng:  Math.random() * 0.3  + 0.1,
+        col:  c   /* 'R,G,B' 문자열 — 한 번만 생성 */
       };
     });
+
     function drawStars() {
+      _frame++;
+      /* 2프레임에 1번 실제 렌더 → 효과적 30fps, CPU 절반 */
+      if (_frame & 1) { rafId = requestAnimationFrame(drawStars); return; }
+
       ctx.clearRect(0, 0, cvs.width, cvs.height);
-      stars.forEach(function(s) {
-        s.a += s.speed;
-        var alpha = (Math.sin(s.a) * 0.5 + 0.5) * 0.8 + 0.1;
+      for (var i = 0; i < stars.length; i++) {
+        var s = stars[i];
+        s.a += s.spd;
+        var alpha = s.base + Math.sin(s.a) * s.rng;
+        if (alpha < 0.04) alpha = 0.04;
+        if (alpha > 0.95) alpha = 0.95;
+        ctx.globalAlpha = alpha;
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(200,210,255,' + alpha + ')';
+        ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+        ctx.fillStyle = 'rgb(' + s.col + ')';
         ctx.fill();
-      });
+      }
+      ctx.globalAlpha = 1;
       rafId = requestAnimationFrame(drawStars);
     }
     drawStars();
   } else if (cvs) {
-    /* 모바일: 캔버스 비활성화 (compositor 레이어 부하 방지) */
+    /* 모바일 / reduced-motion: 캔버스 비활성화 */
     cvs.style.display = 'none';
   }
 

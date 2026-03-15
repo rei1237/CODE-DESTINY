@@ -1,8 +1,8 @@
-﻿/* Service Worker - kkul-mansaeryeok
-  Cache version: v9 (Network-First strategy)
+/* Service Worker - kkul-mansaeryeok
+  Cache version: v10 (Network-First strategy)
 */
 
-const CACHE_NAME = 'kkul-mansaeryeok-v9';
+const CACHE_NAME = 'kkul-mansaeryeok-v10';
 
 const PRECACHE_URLS = [
   '/',
@@ -34,6 +34,18 @@ self.addEventListener('activate', event => {
 /* Network-First: always try network, fall back to cache */
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  const requestUrl = new URL(event.request.url);
+
+  // Kill-switch heartbeat must always hit network and never use cache fallback.
+  if (requestUrl.origin === self.location.origin && requestUrl.pathname === '/status.json') {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' }).catch(
+        () => new Response('', { status: 503, statusText: 'status_unavailable' })
+      )
+    );
+    return;
+  }
+
   // Keep crawler-critical files network-direct to avoid stale/fallback responses.
   if (event.request.url.includes('/ads.txt') || event.request.url.includes('/robots.txt') || event.request.url.includes('/sitemap.xml')) return;
   if (event.request.url.includes('pagead') || event.request.url.includes('google-analytics')) return;

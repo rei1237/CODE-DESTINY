@@ -318,7 +318,7 @@ function closeIosModal() {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/service-worker.js?v=8')
+    navigator.serviceWorker.register('/service-worker.js?v=9')
       .then(function(reg) {  })
       .catch(function(err) {  });
   });
@@ -583,8 +583,8 @@ function toggleNeoMode(){
     if(manifestLink) manifestLink.setAttribute('href', 'manifest-samba.json');
     var faviconLink = document.getElementById('pwa-favicon');
     var appleIconLink = document.getElementById('pwa-apple-icon');
-    if(faviconLink){ faviconLink.setAttribute('href','icons/samba-192.png'); faviconLink.setAttribute('type','image/png'); }
-    if(appleIconLink) appleIconLink.setAttribute('href','icons/samba-180.png');
+    if(faviconLink){ faviconLink.setAttribute('href','icons/samba.svg'); faviconLink.setAttribute('type','image/svg+xml'); }
+    if(appleIconLink) appleIconLink.setAttribute('href','icons/samba.svg');
     /* PWA 설치 텍스트 변경 */
     var pwaLabel = document.getElementById('pwaInstallLabel');
     var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
