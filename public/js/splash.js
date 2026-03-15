@@ -1,32 +1,36 @@
 (function(){
   var _splashDone = false;
-  /* -- 기기 환경 판별 -- */
-  var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  var SPLASH_DURATION_MS = 3000;
   /* prefers-reduced-motion: 접근성 배려 + 저사양 기기 보호 */
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* -- 별빛 캔버스 (데스크탑 전용, reduced-motion 비활성) -- */
+  /* -- 별빛 캔버스 (reduced-motion 비활성) -- */
   var cvs = document.getElementById('splashCanvas');
   var rafId, _frame = 0;
-  if (cvs && !isMobile && !prefersReduced) {
+  if (cvs && !prefersReduced) {
     var ctx = cvs.getContext('2d');
     cvs.width = window.innerWidth; cvs.height = window.innerHeight;
 
     /* 색상 팔레트 (RGB 문자열 사전 생성 — 매 프레임 문자열 연산 없음) */
     var palette = ['200,215,255','225,235,255','255,245,210','220,200,255','255,255,255'];
 
-    /* 별 40개 — 글로우 없음, 순수 alpha 트윙클 */
-    var stars = Array.from({length: 40}, function() {
+    /* 별 56개 — 코어/글로우/스파클 3단 구성 */
+    var stars = Array.from({length: 56}, function() {
       var c = palette[Math.floor(Math.random() * palette.length)];
       return {
         x: Math.random() * cvs.width,
         y: Math.random() * cvs.height,
-        r: Math.random() * 1.1 + 0.3,
+        r: Math.random() * 1.45 + 0.25,
         a: Math.random() * Math.PI * 2,
-        spd: Math.random() * 0.008 + 0.003,
-        base: Math.random() * 0.45 + 0.2,
-        rng:  Math.random() * 0.3  + 0.1,
-        col:  c   /* 'R,G,B' 문자열 — 한 번만 생성 */
+        spd: Math.random() * 0.013 + 0.003,
+        phase: Math.random() * Math.PI * 2,
+        phaseSpd: Math.random() * 0.018 + 0.004,
+        base: Math.random() * 0.35 + 0.18,
+        rng:  Math.random() * 0.34 + 0.12,
+        glow: Math.random() * 2.2 + 1.2,
+        spike: Math.random() < 0.22,
+        drift: Math.random() * 0.25 + 0.05,
+        col:  c
       };
     });
 
@@ -39,14 +43,42 @@
       for (var i = 0; i < stars.length; i++) {
         var s = stars[i];
         s.a += s.spd;
-        var alpha = s.base + Math.sin(s.a) * s.rng;
+        s.phase += s.phaseSpd;
+        var alpha = s.base + Math.sin(s.a) * s.rng + Math.sin(s.phase) * 0.16;
         if (alpha < 0.04) alpha = 0.04;
         if (alpha > 0.95) alpha = 0.95;
-        ctx.globalAlpha = alpha;
+
+        /* 미세 드리프트로 정적인 느낌 완화 */
+        var dx = Math.sin((s.a + i) * 0.5) * s.drift;
+        var dy = Math.cos((s.phase + i) * 0.45) * s.drift;
+
+        /* 외곽 글로우 */
+        ctx.globalAlpha = alpha * 0.28;
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+        ctx.arc(s.x + dx, s.y + dy, s.r + s.glow, 0, 6.2832);
         ctx.fillStyle = 'rgb(' + s.col + ')';
         ctx.fill();
+
+        /* 코어 */
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(s.x + dx, s.y + dy, s.r, 0, 6.2832);
+        ctx.fillStyle = 'rgb(' + s.col + ')';
+        ctx.fill();
+
+        /* 일부 별에만 십자 스파클 추가 */
+        if (s.spike && alpha > 0.55) {
+          var spikeLen = s.r * 2.6;
+          ctx.globalAlpha = alpha * 0.45;
+          ctx.strokeStyle = 'rgb(' + s.col + ')';
+          ctx.lineWidth = 0.55;
+          ctx.beginPath();
+          ctx.moveTo(s.x + dx - spikeLen, s.y + dy);
+          ctx.lineTo(s.x + dx + spikeLen, s.y + dy);
+          ctx.moveTo(s.x + dx, s.y + dy - spikeLen);
+          ctx.lineTo(s.x + dx, s.y + dy + spikeLen);
+          ctx.stroke();
+        }
       }
       ctx.globalAlpha = 1;
       rafId = requestAnimationFrame(drawStars);
@@ -105,13 +137,9 @@
     if (rafId) cancelAnimationFrame(rafId);
   }
 
-  if (document.readyState === 'complete') {
-    hideSplash();
-  } else {
-    window.addEventListener('load', hideSplash, { once: true });
-    /* 긴급 해제: 모바일은 5초, 데스크탑은 5초 후 강제 종료 */
-    setTimeout(hideSplash, isMobile ? 5000 : 5000);
-    /* 페이지 복귀 시 잔존 오버레이 제거 */
-    window.addEventListener('pageshow', hideSplash, { once: true });
-  }
+  /* 별똥별 감상을 위해 로딩 스플래시 노출 시간을 약 3초로 고정 */
+  setTimeout(hideSplash, SPLASH_DURATION_MS);
+  window.addEventListener('pageshow', function() {
+    setTimeout(hideSplash, 120);
+  }, { once: true });
 })();
