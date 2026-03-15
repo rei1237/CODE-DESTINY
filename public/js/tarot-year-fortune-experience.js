@@ -19,6 +19,7 @@
     monthCategoryCache: {},
     monthRequestToken: 0
   };
+  var TAROT_API_TIMEOUT_MS = 12000;
 
   function byId(id) {
     return document.getElementById(id);
@@ -70,6 +71,37 @@
     return out;
   }
 
+  function postJsonWithTimeout(url, body) {
+    var supportsAbort = typeof AbortController === "function";
+    if (!supportsAbort) {
+      return Promise.race([
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: body,
+          cache: "no-store",
+        }),
+        new Promise(function (_, reject) {
+          setTimeout(function () { reject(new Error("Tarot API timeout")); }, TAROT_API_TIMEOUT_MS);
+        }),
+      ]);
+    }
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, TAROT_API_TIMEOUT_MS);
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: body,
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .catch(function (error) {
+        if (error && error.name === "AbortError") throw new Error("Tarot API timeout");
+        throw error;
+      })
+      .finally(function () { clearTimeout(timeoutId); });
+  }
+
   function callTarotApi(endpoint, payload) {
     var bases = buildTarotApiBaseCandidates();
     var body = JSON.stringify(payload || {});
@@ -78,11 +110,7 @@
 
     function requestWithBase(base) {
       var url = (base ? base + "/api/tarot/" : "/api/tarot/") + endpoint;
-      return fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: body,
-      })
+      return postJsonWithTimeout(url, body)
         .then(function (res) {
           if (!res.ok) throw new Error("Tarot API error: " + res.status);
           return res.json();
@@ -136,6 +164,19 @@
   };
 
   var CARD_NAME_KR = { M00:"바보",M01:"마법사",M02:"여사제",M03:"여황제",M04:"황제",M05:"교황",M06:"연인",M07:"전차",M08:"힘",M09:"은둔자",M10:"운명의 수레바퀴",M11:"정의",M12:"매달린 사람",M13:"죽음",M14:"절제",M15:"악마",M16:"탑",M17:"별",M18:"달",M19:"태양",M20:"심판",M21:"세계" };
+  var MINOR_RANK_KR = ["에이스","2","3","4","5","6","7","8","9","10","페이지","기사","퀸","킹"];
+  var MINOR_SUIT_KR = { W:"완드", C:"컵", S:"소드", P:"펜타클" };
+  function getCardNameKr(cardId) {
+    if (CARD_NAME_KR[cardId]) return CARD_NAME_KR[cardId];
+    var id = String(cardId || "").trim();
+    if (!id) return id;
+    var suit = MINOR_SUIT_KR[id.charAt(0)];
+    var num = parseInt(id.slice(1), 10);
+    if (suit && !isNaN(num) && num >= 1 && num <= 14) {
+      return suit + " " + (MINOR_RANK_KR[num - 1] || String(num));
+    }
+    return id;
+  }
 
   function getLocalTarotImageUrl(card) {
     if (!card) return "";
@@ -332,7 +373,7 @@
       var ori = Math.random()<0.5?"upright":"reversed";
       var fn = CARD_TO_FILENAME[id];
       return {
-        cardId:id, name:id, nameKr:CARD_NAME_KR[id]||id, orientation:ori, position:labels[i],
+        cardId:id, name:id, nameKr:getCardNameKr(id), orientation:ori, position:labels[i],
         imageUrl:"", proxyImageUrl:"/api/tarot/card-image/"+id, imageCandidates:[],
         localImageUrl: fn ? TAROT_LOCAL_BASE + fn : ""
       };
@@ -425,7 +466,7 @@
       var ori = Math.random() < 0.5 ? "upright" : "reversed";
       var fn = CARD_TO_FILENAME[id];
       return {
-        cardId:id, name:id, nameKr:CARD_NAME_KR[id]||id, orientation:ori, position:labels[i],
+        cardId:id, name:id, nameKr:getCardNameKr(id), orientation:ori, position:labels[i],
         imageUrl:"", proxyImageUrl:"/api/tarot/card-image/"+id, imageCandidates:[],
         localImageUrl: fn ? TAROT_LOCAL_BASE + fn : ""
       };
@@ -680,7 +721,7 @@
         var m = interp && interp[ori] ? interp[ori].m : defMoney;
         var l = interp && interp[ori] ? interp[ori].l : defLove;
         var c = interp && interp[ori] ? interp[ori].c : defExam;
-        var nameKr = card.nameKr || card.name;
+        var nameKr = card.nameKr || card.name || getCardNameKr(id);
         var traits = zodiacTraits[idx] || "";
         var zName = zodiacNames[idx] || "";
         return {

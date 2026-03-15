@@ -51,6 +51,7 @@
   })();
 
   var state = { cards: [], revealedCount: 0, reading: null };
+  var TAROT_API_TIMEOUT_MS = 12000;
 
   function byId(id) {
     return document.getElementById(id);
@@ -102,6 +103,37 @@
     return out;
   }
 
+  function postJsonWithTimeout(url, body) {
+    var supportsAbort = typeof AbortController === "function";
+    if (!supportsAbort) {
+      return Promise.race([
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: body,
+          cache: "no-store",
+        }),
+        new Promise(function (_, reject) {
+          setTimeout(function () { reject(new Error("Tarot API timeout")); }, TAROT_API_TIMEOUT_MS);
+        }),
+      ]);
+    }
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, TAROT_API_TIMEOUT_MS);
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: body,
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .catch(function (error) {
+        if (error && error.name === "AbortError") throw new Error("Tarot API timeout");
+        throw error;
+      })
+      .finally(function () { clearTimeout(timeoutId); });
+  }
+
   function callTarotApi(endpoint, payload) {
     var bases = buildTarotApiBaseCandidates();
     var body = JSON.stringify(payload || {});
@@ -110,11 +142,7 @@
 
     function requestWithBase(base) {
       var url = (base ? base + "/api/tarot/" : "/api/tarot/") + endpoint;
-      return fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: body,
-      })
+      return postJsonWithTimeout(url, body)
         .then(function (res) {
           if (!res.ok) throw new Error("Tarot API error: " + res.status);
           return res.json();

@@ -392,7 +392,7 @@
       try {
         if (window.CODE_DESTINY_API_BASE_URL) return;
         var host = String(location.hostname || "").toLowerCase();
-        if (host === "code-destiny.com" || host === "www.code-destiny.com") {
+        if (host === "code-destiny.com" || host === "www.code-destiny.com" || host.endsWith("code-destiny.pages.dev")) {
           window.CODE_DESTINY_API_BASE_URL = "https://api.code-destiny.com";
         }
       } catch (e) {}

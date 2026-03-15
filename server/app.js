@@ -32,6 +32,7 @@ const defaultAllowedOrigins = [
   "http://localhost:4000",
   "https://code-destiny.com",
   "https://www.code-destiny.com",
+  "https://code-destiny.pages.dev",
 ];
 
 const configuredOrigins = process.env.CORS_ORIGIN
@@ -49,7 +50,10 @@ function isAllowedOrigin(origin) {
     const isHttp = protocol === "http:" || protocol === "https:";
     if (!isHttp) return false;
     // Allow subdomains like api.code-destiny.com or preview domains under code-destiny.com.
-    return hostname === "code-destiny.com" || hostname.endsWith(".code-destiny.com");
+    if (hostname === "code-destiny.com" || hostname.endsWith(".code-destiny.com")) return true;
+    // Allow Cloudflare Pages preview (code-destiny.pages.dev)
+    if (hostname.endsWith(".pages.dev")) return true;
+    return false;
   } catch (_) {
     return false;
   }
