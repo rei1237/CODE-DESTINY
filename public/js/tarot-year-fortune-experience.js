@@ -1,0 +1,736 @@
+/**
+ * 십이지신 천운 타로 — 12카드 월별 스프레드
+ * API: POST /api/tarot/draw (spreadType: yearly_twelve_card)
+ *      POST /api/tarot/reading (spreadType: yearly_twelve_card, cards)
+ * 12장의 카드(1월~12월) → 월별 재물·연애·인간관계·합격운 상세
+ */
+(function () {
+  "use strict";
+
+  var MONTH_LABELS_CJK = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+  var ZODIAC_EMOJI = ["🐭", "🐮", "🐅", "🐇", "🐉", "🐍", "🐴", "🐐", "🐒", "🐓", "🐕", "🐷"];
+
+  var state = {
+    cards: [],
+    reading: null,
+    selectedMonth: null,
+    activeCategory: "general",
+    monthSpreadCache: {},
+    monthCategoryCache: {},
+    monthRequestToken: 0
+  };
+
+  function byId(id) {
+    return document.getElementById(id);
+  }
+
+  function getTarotApiBase() {
+    if (typeof getFortuneApiBaseUrl === "function") {
+      var base = getFortuneApiBaseUrl();
+      if (base) return String(base).replace(/\/+$/, "");
+    }
+    if (typeof window !== "undefined") {
+      if (window.CODE_DESTINY_API_BASE_URL) return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, "");
+      try {
+        var custom = localStorage.getItem("fortune_api_base_url");
+        if (custom) return String(custom).replace(/\/+$/, "");
+      } catch (e) {}
+      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return "http://localhost:4000";
+    }
+    return location.origin || "";
+  }
+
+  function callTarotApi(endpoint, payload) {
+    var base = getTarotApiBase();
+    var url = (base ? base + "/api/tarot/" : "/api/tarot/") + endpoint;
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload || {}),
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("Tarot API error: " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data || data.ok === false) throw new Error("Invalid API response");
+        return data;
+      });
+  }
+
+  var TAROT_LOCAL_BASE = "/tarot-cards/";
+  var TAROT_DEFAULT_FALLBACK_IMAGE = TAROT_LOCAL_BASE + "thefool.jpeg";
+  var CARD_TO_FILENAME = {
+    M00: "thefool.jpeg", M01: "themagician.jpeg", M02: "thehighpriestess.jpeg", M03: "theempress.jpeg",
+    M04: "theemperor.jpeg", M05: "thehierophant.jpeg", M06: "TheLovers.jpg", M07: "thechariot.jpeg",
+    M08: "thestrength.jpeg", M09: "thehermit.jpeg", M10: "wheeloffortune.jpeg", M11: "justice.jpeg",
+    M12: "thehangedman.jpeg", M13: "death.jpeg", M14: "temperance.jpeg", M15: "thedevil.jpeg",
+    M16: "thetower.jpeg", M17: "thestar.jpeg", M18: "themoon.jpeg", M19: "thesun.jpeg",
+    M20: "judgement.jpeg", M21: "theworld.jpeg",
+    W01: "aceofwands.jpeg", W02: "twoofwands.jpeg", W03: "threeofwands.jpeg", W04: "fourofwands.jpeg",
+    W05: "fiveofwands.jpeg", W06: "sixofwands.jpeg", W07: "sevenofwands.jpeg", W08: "eightofwands.jpeg",
+    W09: "nineofwands.jpeg", W10: "tenofwands.jpeg", W11: "pageofwands.jpeg", W12: "knightofwands.jpeg",
+    W13: "queenofwands.jpeg", W14: "kingofwands.jpeg",
+    C01: "aceofcups.jpeg", C02: "twoofcups.jpeg", C03: "threeofcups.jpeg", C04: "fourofcups.jpeg",
+    C05: "fiveofcups.jpeg", C06: "sixofcups.jpeg", C07: "sevenofcups.jpeg", C08: "eightofcups.jpeg",
+    C09: "nineofcups.jpeg", C10: "tenofcups.jpeg", C11: "pageofcups.jpeg", C12: "knightofcups.jpeg",
+    C13: "queenofcups.jpeg", C14: "kingofcups.jpeg",
+    S01: "aceofswords.jpeg", S02: "twoofswords.jpeg", S03: "threeofswords.jpeg", S04: "fourofswords.jpeg",
+    S05: "fiveofswords.jpeg", S06: "sixofswords.jpeg", S07: "sevenofswords.jpeg", S08: "eightofswords.jpeg",
+    S09: "nineofswords.jpeg", S10: "tenofswords.jpeg", S11: "pageofswords.jpeg", S12: "knightofswords.jpeg",
+    S13: "queenofswords.jpeg", S14: "kingofswords.jpeg",
+    P01: "aceofpentacles.jpeg", P02: "twoofpentacles.jpeg", P03: "threeofpentacles.jpeg", P04: "fourofpentacles.jpeg",
+    P05: "fiveofpentacles.jpeg", P06: "sixofpentacles.jpeg", P07: "sevenofpentacles.jpeg", P08: "eightofpentacles.jpeg",
+    P09: "nineofpentacles.jpeg", P10: "tenofpentacles.jpeg", P11: "pageofpentacles.jpeg", P12: "knightofpentacles.jpeg",
+    P13: "queenofpentacles.jpeg", P14: "kingofpentacles.jpeg",
+  };
+
+  var CARD_NAME_KR = { M00:"바보",M01:"마법사",M02:"여사제",M03:"여황제",M04:"황제",M05:"교황",M06:"연인",M07:"전차",M08:"힘",M09:"은둔자",M10:"운명의 수레바퀴",M11:"정의",M12:"매달린 사람",M13:"죽음",M14:"절제",M15:"악마",M16:"탑",M17:"별",M18:"달",M19:"태양",M20:"심판",M21:"세계" };
+
+  function getLocalTarotImageUrl(card) {
+    if (!card) return "";
+    if (card.localImageUrl) return card.localImageUrl;
+    var cardId = card.cardId || card.id;
+    if (!cardId) return "";
+    var fn = CARD_TO_FILENAME[cardId];
+    return fn ? TAROT_LOCAL_BASE + fn : "";
+  }
+
+  function applyTarotImageToCard(imgEl, frontEl, card) {
+    if (!imgEl) return;
+    var candidates = [];
+    function pushCandidateVariants(list, url) {
+      var raw = String(url || "").trim();
+      if (!raw) return;
+      list.push(raw);
+      if (/^https?:\/\//i.test(raw)) return;
+      if (raw.charAt(0) === "/") list.push(raw.slice(1));
+      else list.push("/" + raw);
+    }
+    function absolutizeUrl(url) {
+      var raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^https?:\/\//i.test(raw)) return raw;
+      var base = getTarotApiBase();
+      if (!base) return raw;
+      return String(base).replace(/\/+$/, "") + (raw.charAt(0) === "/" ? raw : "/" + raw);
+    }
+    var localUrl = getLocalTarotImageUrl(card);
+    if (localUrl) pushCandidateVariants(candidates, localUrl);
+    if (card && card.proxyImageUrl) {
+      pushCandidateVariants(candidates, absolutizeUrl(card.proxyImageUrl));
+      pushCandidateVariants(candidates, card.proxyImageUrl);
+    }
+    if (Array.isArray(card && card.imageCandidates) && card.imageCandidates.length) {
+      card.imageCandidates.forEach(function (u) { pushCandidateVariants(candidates, u); });
+    } else if (card && card.imageUrl) {
+      pushCandidateVariants(candidates, card.imageUrl);
+    }
+    candidates = candidates.filter(Boolean).filter(function (u, i, arr) { return arr.indexOf(u) === i; });
+    if (!candidates.length) return;
+    var idx = 0;
+    imgEl.referrerPolicy = "no-referrer";
+    imgEl.decoding = "async";
+    function tryNext() {
+      if (idx >= candidates.length) {
+        if (imgEl.src !== TAROT_DEFAULT_FALLBACK_IMAGE) {
+          imgEl.onerror = null;
+          imgEl.src = TAROT_DEFAULT_FALLBACK_IMAGE;
+        }
+        return;
+      }
+      var url = candidates[idx++];
+      if (frontEl) {
+        frontEl.style.backgroundImage = "url('" + url + "')";
+        frontEl.style.backgroundSize = "cover";
+        frontEl.style.backgroundPosition = "center";
+      }
+      imgEl.onerror = tryNext;
+      imgEl.src = url;
+    }
+    tryNext();
+  }
+
+  function escapeHtml(s) {
+    if (!s) return "";
+    var div = document.createElement("div");
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  function bindTarotYearStaticActions() {
+    var ctaBtn = byId("tarotYearCtaBtn");
+    if (ctaBtn && !ctaBtn.__tyCtaBound) {
+      ctaBtn.__tyCtaBound = true;
+      ctaBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        startTarotYearFortuneReading();
+      });
+    }
+
+    var closeBtn = byId("tarotYearCloseBtn");
+    if (closeBtn && !closeBtn.__tyCloseBound) {
+      closeBtn.__tyCloseBound = true;
+      closeBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        closeTarotYearFortuneModal();
+      });
+    }
+
+    var shareBtn = byId("tarotYearShareBtn");
+    if (shareBtn && !shareBtn.__tyShareBound) {
+      shareBtn.__tyShareBound = true;
+      shareBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        shareTarotYearFortuneResult();
+      });
+    }
+
+    var resetBtn = byId("tarotYearResetBtn");
+    if (resetBtn && !resetBtn.__tyResetBound) {
+      resetBtn.__tyResetBound = true;
+      resetBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        resetTarotYearFortuneFlow();
+      });
+    }
+  }
+
+  function openTarotYearFortuneModal() {
+    var overlay = byId("tarotYearFortuneOverlay");
+    if (!overlay) return;
+    overlay.style.display = "block";
+    overlay.classList.add("is-open");
+    if (window._perf && window._perf.lockBody) window._perf.lockBody();
+    else document.body.style.overflow = "hidden";
+    resetTarotYearFortuneFlow();
+    bindTarotYearStaticActions();
+  }
+
+  function closeTarotYearFortuneModal() {
+    var overlay = byId("tarotYearFortuneOverlay");
+    if (!overlay) return;
+    overlay.style.display = "none";
+    overlay.classList.remove("is-open");
+    if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
+    else document.body.style.overflow = "";
+  }
+
+  function resetTarotYearFortuneFlow() {
+    state.cards = [];
+    state.reading = null;
+    state.selectedMonth = null;
+    state.activeCategory = "general";
+    state.monthSpreadCache = {};
+    state.monthCategoryCache = {};
+    state.monthRequestToken = 0;
+    var intro = byId("tarotYearFortuneIntroStage");
+    var draw = byId("tarotYearFortuneDrawStage");
+    var result = byId("tarotYearFortuneResultStage");
+    if (intro) intro.classList.add("is-active");
+    if (draw) draw.classList.remove("is-active");
+    if (result) result.classList.remove("is-active");
+    var tabs = byId("tarotYearMonthCategoryTabs");
+    if (tabs) {
+      var btns = tabs.querySelectorAll(".ty-month-cat-btn");
+      btns.forEach(function (btn) {
+        btn.classList.toggle("is-active", btn.getAttribute("data-cat") === "general");
+      });
+    }
+  }
+
+  function startTarotYearFortuneReading() {
+    var intro = byId("tarotYearFortuneIntroStage");
+    var draw = byId("tarotYearFortuneDrawStage");
+    if (!intro || !draw) return;
+
+    intro.classList.remove("is-active");
+    draw.classList.add("is-active");
+
+    callTarotApi("draw", { spreadType: "yearly_twelve_card" })
+      .then(function (drawData) {
+        if (!drawData.cards || drawData.cards.length !== 12) throw new Error("Invalid draw");
+        state.cards = drawData.cards;
+        renderTarotYearDrawCards();
+        showTarotYearFinalReading();
+      })
+      .catch(function (err) {
+        console.error("Tarot Year Fortune draw error:", err);
+        tryClientSideDraw();
+      });
+  }
+
+  function tryClientSideDraw() {
+    var fullDeck = ["M00","M01","M02","M03","M04","M05","M06","M07","M08","M09","M10","M11","M12","M13","M14","M15","M16","M17","M18","M19","M20","M21",
+      "W01","W02","W03","W04","W05","W06","W07","W08","W09","W10","W11","W12","W13","W14",
+      "C01","C02","C03","C04","C05","C06","C07","C08","C09","C10","C11","C12","C13","C14",
+      "S01","S02","S03","S04","S05","S06","S07","S08","S09","S10","S11","S12","S13","S14",
+      "P01","P02","P03","P04","P05","P06","P07","P08","P09","P10","P11","P12","P13","P14"];
+    var shuffled = fullDeck.slice().sort(function(){ return Math.random()-0.5; });
+    var labels = ["month_1","month_2","month_3","month_4","month_5","month_6","month_7","month_8","month_9","month_10","month_11","month_12"];
+    state.cards = shuffled.slice(0, 12).map(function(id, i){
+      var ori = Math.random()<0.5?"upright":"reversed";
+      var fn = CARD_TO_FILENAME[id];
+      return {
+        cardId:id, name:id, nameKr:CARD_NAME_KR[id]||id, orientation:ori, position:labels[i],
+        imageUrl:"", proxyImageUrl:"/api/tarot/card-image/"+id, imageCandidates:[],
+        localImageUrl: fn ? TAROT_LOCAL_BASE + fn : ""
+      };
+    });
+    renderTarotYearDrawCards();
+    showTarotYearFinalReading();
+  }
+
+  function renderTarotYearDrawCards() {
+    var grid = byId("tarotYearDrawCardGrid");
+    if (!grid || !state.cards.length) return;
+    grid.innerHTML = "";
+    grid.className = "ty-draw-grid ty-draw-grid--twelve";
+
+    state.cards.forEach(function (card, idx) {
+      var slot = document.createElement("div");
+      slot.className = "ty-draw-slot ty-draw-slot--month";
+      slot.setAttribute("data-month", idx + 1);
+
+      var label = document.createElement("span");
+      label.className = "ty-draw-slot-label";
+      label.textContent = ZODIAC_EMOJI[idx] + " " + MONTH_LABELS_CJK[idx];
+
+      var cardEl = document.createElement("div");
+      cardEl.className = "ty-draw-card ty-draw-card--month";
+      cardEl.onclick = (function (m) {
+        return function () { selectMonthDetail(m); };
+      })(idx + 1);
+
+      var front = document.createElement("div");
+      front.className = "ty-draw-card-front";
+      if (card.orientation === "reversed") front.setAttribute("data-reversed", "1");
+
+      var img = document.createElement("img");
+      img.className = "ty-draw-card-img";
+      img.alt = (card.nameKr || card.name) + (card.orientation === "reversed" ? " (역)" : "");
+      img.loading = "eager";
+      applyTarotImageToCard(img, front, card);
+      front.appendChild(img);
+
+      var nameSpan = document.createElement("span");
+      nameSpan.className = "ty-draw-card-name";
+      nameSpan.textContent = (card.nameKr || card.name) + (card.orientation === "reversed" ? " (역)" : "");
+      front.appendChild(nameSpan);
+
+      cardEl.appendChild(front);
+      slot.appendChild(label);
+      slot.appendChild(cardEl);
+      grid.appendChild(slot);
+    });
+  }
+
+  function toReadableText(value, fallback) {
+    var text = String(value || "").trim();
+    return text || fallback;
+  }
+
+  function mapCategoryForApi(cat) {
+    if (cat === "money") return "money";
+    if (cat === "love") return "love";
+    if (cat === "exam") return "career";
+    return "general";
+  }
+
+  function getMonthlyBaseText(monthly, cat) {
+    if (!monthly) return "";
+    if (cat === "money") return monthly.money || "";
+    if (cat === "love") return monthly.love || "";
+    if (cat === "relationship") return monthly.relationship || "";
+    if (cat === "exam") return monthly.exam || "";
+    return monthly.flow || "";
+  }
+
+  function getCategoryTitle(cat) {
+    if (cat === "money") return "재물운 해석";
+    if (cat === "love") return "연애운 해석";
+    if (cat === "relationship") return "인간관계운 해석";
+    if (cat === "exam") return "합격운 해석";
+    return "전반 운세 해석";
+  }
+
+  function fallbackThreeCardSpread() {
+    var fullDeck = ["M00","M01","M02","M03","M04","M05","M06","M07","M08","M09","M10","M11","M12","M13","M14","M15","M16","M17","M18","M19","M20","M21",
+      "W01","W02","W03","W04","W05","W06","W07","W08","W09","W10","W11","W12","W13","W14",
+      "C01","C02","C03","C04","C05","C06","C07","C08","C09","C10","C11","C12","C13","C14",
+      "S01","S02","S03","S04","S05","S06","S07","S08","S09","S10","S11","S12","S13","S14",
+      "P01","P02","P03","P04","P05","P06","P07","P08","P09","P10","P11","P12","P13","P14"];
+    var labels = ["cause", "process", "outcome"];
+    return fullDeck.slice().sort(function(){ return Math.random()-0.5; }).slice(0, 3).map(function(id, i){
+      var ori = Math.random() < 0.5 ? "upright" : "reversed";
+      var fn = CARD_TO_FILENAME[id];
+      return {
+        cardId:id, name:id, nameKr:CARD_NAME_KR[id]||id, orientation:ori, position:labels[i],
+        imageUrl:"", proxyImageUrl:"/api/tarot/card-image/"+id, imageCandidates:[],
+        localImageUrl: fn ? TAROT_LOCAL_BASE + fn : ""
+      };
+    });
+  }
+
+  function renderMonthSpreadCards(cards) {
+    var spreadEl = byId("tarotYearMonthSpreadCards");
+    if (!spreadEl) return;
+    spreadEl.innerHTML = "";
+    (cards || []).forEach(function (card, idx) {
+      var slot = document.createElement("div");
+      slot.className = "ty-month-spread-card";
+      var label = document.createElement("span");
+      label.className = "ty-month-spread-pos";
+      label.textContent = idx === 0 ? "원인" : idx === 1 ? "전개" : "결과";
+      var imgWrap = document.createElement("div");
+      imgWrap.className = "ty-month-spread-img-wrap";
+      if (card.orientation === "reversed") imgWrap.setAttribute("data-reversed", "1");
+      var img = document.createElement("img");
+      img.className = "ty-month-spread-img";
+      img.alt = (card.nameKr || card.name || "타로 카드") + (card.orientation === "reversed" ? " (역)" : "");
+      applyTarotImageToCard(img, imgWrap, card);
+      var name = document.createElement("span");
+      name.className = "ty-month-spread-name";
+      name.textContent = (card.nameKr || card.name || "카드") + (card.orientation === "reversed" ? " (역)" : "");
+      imgWrap.appendChild(img);
+      slot.appendChild(label);
+      slot.appendChild(imgWrap);
+      slot.appendChild(name);
+      spreadEl.appendChild(slot);
+    });
+  }
+
+  function updateMonthCategoryPanel(text, cat) {
+    var titleEl = byId("tarotYearMonthCategoryTitle");
+    var textEl = byId("tarotYearMonthCategoryText");
+    if (titleEl) titleEl.textContent = getCategoryTitle(cat);
+    if (textEl) textEl.textContent = text;
+  }
+
+  function bindMonthCategoryTabs() {
+    var tabs = byId("tarotYearMonthCategoryTabs");
+    if (!tabs || tabs.__bound) return;
+    tabs.__bound = true;
+    tabs.addEventListener("click", function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest(".ty-month-cat-btn") : null;
+      if (!btn) return;
+      var cat = btn.getAttribute("data-cat") || "general";
+      state.activeCategory = cat;
+      var all = tabs.querySelectorAll(".ty-month-cat-btn");
+      all.forEach(function (el) { el.classList.toggle("is-active", el === btn); });
+      if (state.selectedMonth) {
+        loadMonthCategoryConsultation(state.selectedMonth, cat);
+      }
+    });
+  }
+
+  function bindMonthTileClicks() {
+    var cardsEl = byId("tarotYearResultCards");
+    if (!cardsEl || cardsEl.__monthTileBound) return;
+    cardsEl.__monthTileBound = true;
+    cardsEl.addEventListener("click", function (e) {
+      var target = e.target && e.target.closest ? e.target.closest(".ty-result-card-wrap--month") : null;
+      if (!target) return;
+      var month = parseInt(target.getAttribute("data-month"), 10);
+      if (isNaN(month)) return;
+      e.preventDefault();
+      selectMonthDetail(month);
+    });
+  }
+
+  function loadMonthCategoryConsultation(monthNum, cat) {
+    var monthly = state.reading && state.reading.monthlyReadings ? state.reading.monthlyReadings[monthNum - 1] : null;
+    var monthKey = String(monthNum);
+    if (!state.monthCategoryCache[monthKey]) state.monthCategoryCache[monthKey] = {};
+    if (state.monthCategoryCache[monthKey][cat]) {
+      updateMonthCategoryPanel(state.monthCategoryCache[monthKey][cat], cat);
+      return Promise.resolve();
+    }
+
+    var spreadCards = state.monthSpreadCache[monthKey] || [];
+    var baseText = getMonthlyBaseText(monthly, cat);
+    var fallbackByCat = {
+      general: "이번 달의 흐름은 차분한 점검과 실행의 균형에서 열립니다.",
+      money: "지출 우선순위를 정하고 현금흐름을 안정시키는 것이 핵심입니다.",
+      love: "감정을 명확히 표현하면 관계의 온도가 올라갑니다.",
+      relationship: "경계를 존중하는 대화가 인간관계를 안정시킵니다.",
+      exam: "짧고 반복적인 학습 루틴이 합격운을 높입니다."
+    };
+    if (!spreadCards.length) {
+      var onlyBase = toReadableText(baseText, fallbackByCat[cat]);
+      state.monthCategoryCache[monthKey][cat] = onlyBase;
+      updateMonthCategoryPanel(onlyBase, cat);
+      return Promise.resolve();
+    }
+
+    var apiCat = mapCategoryForApi(cat);
+    return callTarotApi("reading", {
+      category: apiCat,
+      spreadType: "three_card_cause_process_outcome",
+      cards: spreadCards.map(function (c) { return { cardId: c.cardId, position: c.position, orientation: c.orientation }; })
+    }).then(function (res) {
+      var story = String(res && res.reading && res.reading.story || "").trim();
+      var advice = String(res && res.reading && res.reading.advice || "").trim();
+      var combined = [toReadableText(baseText, ""), story, advice].filter(Boolean).join(" ");
+      var text = toReadableText(combined, fallbackByCat[cat]);
+      state.monthCategoryCache[monthKey][cat] = text;
+      updateMonthCategoryPanel(text, cat);
+    }).catch(function () {
+      var text = toReadableText(baseText, fallbackByCat[cat]);
+      state.monthCategoryCache[monthKey][cat] = text;
+      updateMonthCategoryPanel(text, cat);
+    });
+  }
+
+  function ensureMonthlyThreeCardSpread(monthNum) {
+    var monthKey = String(monthNum);
+    if (state.monthSpreadCache[monthKey]) return Promise.resolve(state.monthSpreadCache[monthKey]);
+    return callTarotApi("draw", { spreadType: "three_card_cause_process_outcome" })
+      .then(function (res) {
+        var cards = Array.isArray(res && res.cards) ? res.cards.slice(0, 3) : [];
+        if (cards.length !== 3) throw new Error("invalid monthly spread");
+        state.monthSpreadCache[monthKey] = cards;
+        return cards;
+      })
+      .catch(function () {
+        var cards = fallbackThreeCardSpread();
+        state.monthSpreadCache[monthKey] = cards;
+        return cards;
+      });
+  }
+
+  function selectMonthDetail(monthNum, skipScroll) {
+    state.selectedMonth = monthNum;
+    var panel = byId("tarotYearMonthDetailPanel");
+    if (!panel) return;
+    var r = state.reading;
+    if (!r || !r.monthlyReadings) return;
+    var m = r.monthlyReadings[monthNum - 1];
+    if (!m) return;
+    var pickedCard = state.cards[monthNum - 1] || {};
+    var token = ++state.monthRequestToken;
+
+    panel.classList.add("is-visible");
+    var monthTiles = document.querySelectorAll(".ty-result-card-wrap--month");
+    monthTiles.forEach(function (tile) {
+      tile.classList.toggle("is-active", String(tile.getAttribute("data-month")) === String(monthNum));
+    });
+
+    var titleEl = byId("tarotYearMonthDetailTitle");
+    if (titleEl) titleEl.textContent = ZODIAC_EMOJI[monthNum - 1] + " " + MONTH_LABELS_CJK[monthNum - 1] + " 상세 운세";
+
+    var cardWrap = byId("tarotYearMonthDetailCardWrap");
+    if (cardWrap) {
+      if (pickedCard.orientation === "reversed") cardWrap.classList.add("is-reversed");
+      else cardWrap.classList.remove("is-reversed");
+    }
+    var cardImg = byId("tarotYearMonthDetailCardImg");
+    if (cardImg) {
+      cardImg.removeAttribute("src");
+      cardImg.alt = (pickedCard.nameKr || pickedCard.name || "타로 카드") + (pickedCard.orientation === "reversed" ? " (역)" : "");
+      applyTarotImageToCard(cardImg, cardWrap, pickedCard);
+    }
+    var cardName = byId("tarotYearMonthDetailCardName");
+    if (cardName) {
+      cardName.textContent = (pickedCard.nameKr || pickedCard.name || "이달의 카드") + (pickedCard.orientation === "reversed" ? " (역방향)" : " (정방향)");
+    }
+
+    bindMonthCategoryTabs();
+    ensureMonthlyThreeCardSpread(monthNum).then(function (spreadCards) {
+      if (token !== state.monthRequestToken) return;
+      renderMonthSpreadCards(spreadCards);
+      loadMonthCategoryConsultation(monthNum, state.activeCategory || "general");
+    });
+
+    if (!skipScroll) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function showTarotYearFinalReading() {
+    if (!state.cards.length) return;
+    var drawnForApi = state.cards.map(function (c) {
+      return { cardId: c.cardId, position: c.position, orientation: c.orientation };
+    });
+
+    callTarotApi("reading", {
+      category: "general",
+      spreadType: "yearly_twelve_card",
+      cards: drawnForApi,
+    })
+      .then(function (data) {
+        if (!data.reading) throw new Error("No reading data");
+        state.reading = data.reading;
+        var draw = byId("tarotYearFortuneDrawStage");
+        var result = byId("tarotYearFortuneResultStage");
+        if (draw) draw.classList.remove("is-active");
+        if (result) result.classList.add("is-active");
+        renderTarotYearResult();
+      })
+      .catch(function (err) {
+        console.error("Tarot Year reading error:", err);
+        buildClientSideReading();
+        var draw = byId("tarotYearFortuneDrawStage");
+        var result = byId("tarotYearFortuneResultStage");
+        if (draw) draw.classList.remove("is-active");
+        if (result) result.classList.add("is-active");
+        renderTarotYearResult();
+      });
+  }
+
+  var CLIENT_INTERP = {
+    M00: { u: { g: "새로운 출발이 열리는 시점입니다. 계산보다 신뢰가 더 큰 기회를 만듭니다.", m: "새로운 수입 경로를 실험할 수 있지만 기본 안전장치는 먼저 확보하세요.", l: "관계에서 솔직함과 가벼운 용기가 흐름을 바꿉니다.", c: "익숙한 틀을 벗어난 제안이 성장 기회로 연결됩니다." }, r: { g: "성급한 판단이 손실로 이어질 수 있으니 속도를 낮추세요.", m: "검증되지 않은 투자는 피하고 지출 통제를 먼저 하세요.", l: "감정의 즉흥성이 오해를 만들 수 있어 의도 확인이 필요합니다.", c: "준비 없는 도전보다 역량 보강 후 실행이 유리합니다." } },
+    M01: { u: { g: "주도권을 쥐고 실행력이 발휘되는 시기입니다.", m: "계획과 실행이 맞물면 수익이 나옵니다.", l: "관계에서 솔직한 표현이 호감을 더합니다.", c: "역량 발휘와 새로운 도전이 성과로 이어집니다." }, r: { g: "준비가 덜 된 상태에서 무리하지 마세요.", m: "검증되지 않은 투자는 보류하세요.", l: "오해를 피하려면 의도를 분명히 전달하세요.", c: "역량 보강 후 실행이 유리합니다." } },
+    M02: { u: { g: "직관과 내면의 목소리에 귀 기울이세요.", m: "숨김 없는 정보 수집이 판단에 도움이 됩니다.", l: "겉보다 속마음이 더 중요한 국면입니다.", c: "침묵과 관찰이 다음 행동을 이끕니다." }, r: { g: "이중적인 상황을 피하려면 솔직함이 필요합니다.", m: "불확실한 정보에 의존하지 마세요.", l: "비밀이 오해를 키울 수 있어 소통이 중요합니다.", c: "숨겨진 의도를 파악하는 것이 우선입니다." } },
+    M03: { u: { g: "자연스럽게 성과가 자라나는 국면입니다. 돌봄과 지속성이 핵심입니다.", m: "씨앗형 투자와 장기 플랜이 수익으로 연결될 가능성이 높습니다.", l: "관계가 따뜻하게 성장하기 좋은 시기이며 안정감이 강화됩니다.", c: "팀 케어와 크리에이티브 역량이 성과를 크게 끌어올립니다." }, r: { g: "에너지 고갈이나 과몰입을 점검해야 합니다.", m: "과소비를 줄이고 현금흐름을 안정화해야 합니다.", l: "지나친 간섭이 친밀감을 약화시킬 수 있어 경계가 필요합니다.", c: "성과 압박보다 업무 구조를 재정비하는 것이 우선입니다." } },
+    M04: { u: { g: "규칙과 권위가 안정을 가져옵니다. 경계를 분명히 하세요.", m: "계획적 소비와 저축이 재정을 튼튼하게 합니다.", l: "책임과 역할 분담이 관계를 안정시킵니다.", c: "리더십과 원칙이 성과를 이끕니다." }, r: { g: "경직된 태도보다 유연한 조정이 필요합니다.", m: "과한 절약보다 적정선 유지가 중요합니다.", l: "지나친 통제가 관계를 멀게 할 수 있습니다.", c: "권위적 태도보다 협동이 성과를 높입니다." } },
+    M05: { u: { g: "전통과 가르침이 길을 밝혀줍니다. 멘토가 도움이 됩니다.", m: "검증된 방식으로 꾸준히 관리하세요.", l: "약속과 원칙이 관계를 지키는 기둥이 됩니다.", c: "선배나 멘토의 조언이 귀합니다." }, r: { g: "틀에 갇히지 말고 새로운 관점을 찾아보세요.", m: "과한 보수는 기회를 놓칠 수 있습니다.", l: "원칙보다 서로의 감정이 먼저입니다.", c: "규칙보다 상황에 맞는 판단이 필요합니다." } },
+    M06: { u: { g: "선택과 조화의 시기입니다. 서로를 인정하는 선택이 중요합니다.", m: "협업이 더 큰 수익을 만듭니다.", l: "서로를 선택하고 맞춰가는 핵심 순간입니다.", c: "동반자 의식이 프로젝트를 성공시킵니다." }, r: { g: "갈등보다 대화로 해결을 찾으세요.", m: "혼자보다 함께가 더 유리합니다.", l: "오해를 풀기 위해 먼저 다가가세요.", c: "파트너십 재정비가 필요할 수 있습니다." } },
+    M07: { u: { g: "추진력과 목표 지향이 승리로 이어집니다.", m: "실행력이 수익을 만듭니다.", l: "관계에서 방향을 정하면 진전이 빨라집니다.", c: "끝까지 밀어붙이면 성과가 나옵니다." }, r: { g: "속도보다 방향 점검이 먼저입니다.", m: "과한 추진은 리스크를 키울 수 있습니다.", l: "감정보다 방향성 합의가 필요합니다.", c: "일단 멈추고 전략을 재검토하세요." } },
+    M08: { u: { g: "인내와 부드러운 힘이 상황을 극복합니다.", m: "꾸준함이 장기 수익을 만듭니다.", l: "통제보다 이해가 관계를 이끕니다.", c: "부드러운 리더십이 팀을 이끕니다." }, r: { g: "자신감 부족을 점검하고 스스로를 믿으세요.", m: "과한 소극은 기회를 놓칩니다.", l: "지나친 양보가 관계를 흐릴 수 있습니다.", c: "주도권을 갖고 나서세요." } },
+    M09: { u: { g: "고독과 내면 성찰이 다음 단계를 준비합니다.", m: "신중한 검토 후 결정하세요.", l: "거리와 공간이 관계를 성숙시킵니다.", c: "숙고와 준비가 성과의 기반이 됩니다." }, r: { g: "고립보다 적절한 소통이 필요합니다.", m: "지나친 신중은 기회를 놓칠 수 있습니다.", l: "멀어짐 보다 먼저 대화를 시도하세요.", c: "혼자보다 함께 논의가 도움이 됩니다." } },
+    M10: { u: { g: "운명의 수레바퀴가 돌아갑니다. 변화를 받아들이세요.", m: "흐름이 바뀌는 시기입니다. 유연하게 대응하세요.", l: "관계에서 새로운 국면이 열립니다.", c: "상황 변화에 맞춰 전략을 조정하세요." }, r: { g: "변화를 피하더라도 흐름은 옵니다. 준비하세요.", m: "하락 국면은 일시적일 수 있습니다.", l: "역경이 관계를 더 단단하게 할 수 있습니다.", c: "변화를 기회로 삼으세요." } },
+    M11: { u: { g: "공정과 균형이 결과를 가져옵니다. 객관적으로 판단하세요.", m: "계약과 조건을 명확히 하세요.", l: "정의와 솔직함이 관계를 지킵니다.", c: "공정한 평가가 성과를 인정합니다." }, r: { g: "편견을 내려놓고 다시 보세요.", m: "불공정한 조건은 피하세요.", l: "한쪽만 희생하면 관계가 기울어집니다.", c: "객관적 자료로 판단하세요." } },
+    M12: { u: { g: "잠시 멈추고 뒤돌아보는 시기입니다. 시련이 성장을 줍니다.", m: "지출을 줄이고 현금을 유지하세요.", l: "기다림이 관계를 더 깊게 할 수 있습니다.", c: "인내가 결국 승리로 이어집니다." }, r: { g: "희생이 과하면 본인을 돌보세요.", m: "무리한 지출을 멈추세요.", l: "한쪽만 희생하면 관계가 무너집니다.", c: "방향 전환이 필요할 수 있습니다." } },
+    M13: { u: { g: "끝과 새 시작이 맞닿아 있습니다. 변화를 받아들이세요.", m: "구조 조정이 새로운 흐름을 만듭니다.", l: "관계의 전환점이 올 수 있습니다.", c: "마무리와 재시작이 동시에 옵니다." }, r: { g: "변화를 피하려 해도 흐름은 옵니다.", m: "고착된 구조를 바꿀 시기입니다.", l: "과거를 끊고 새로 시작할 용기가 필요합니다.", c: "전환을 기회로 삼으세요." } },
+    M14: { u: { g: "균형과 조화가 핵심입니다. 인내와 절제가 결과를 만듭니다.", m: "수입과 지출의 균형을 맞추세요.", l: "서로의 리듬을 맞추면 관계가 진전됩니다.", c: "협업과 조율이 성과를 높입니다." }, r: { g: "균형이 깨졌다면 원인을 찾아 복구하세요.", m: "과소비나 과절약을 점검하세요.", l: "한쪽만 맞추면 관계가 기울어집니다.", c: "업무 분배를 재조정하세요." } },
+    M15: { u: { g: "유혹과 집착을 의식하고 자유를 선택하세요.", m: "충동적 소비와 투자를 경계하세요.", l: "관계에서 의존보다 독립이 필요합니다.", c: "구속된 패턴에서 벗어나세요." }, r: { g: "집착에서 해방되는 시기가 올 수 있습니다.", m: "불필요한 지출을 줄이세요.", l: "의존 관계를 끊고 스스로를 세우세요.", c: "틀에 갇힌 생각을 버리세요." } },
+    M16: { u: { g: "갑작스러운 변화가 올 수 있습니다. 받아들이면 새 시작이 됩니다.", m: "예상치 못한 지출에 대비하세요.", l: "충격적 사건이 관계를 시험할 수 있습니다.", c: "구조 변화가 올 수 있지만 기회가 됩니다." }, r: { g: "변화를 피하더라도 준비는 하세요.", m: "비상 자금을 확보하세요.", l: "위기에서 관계가 더 단단해질 수 있습니다.", c: "변화를 기회로 전환하세요." } },
+    M17: { u: { g: "희망과 잠재력이 빛납니다. 어둠이 지나가고 있습니다.", m: "새로운 수입 경로가 열릴 수 있습니다.", l: "관계에서 희망을 품고 다가가세요.", c: "잠재력이 발휘되는 시기입니다." }, r: { g: "희망을 놓지 말고 작은 것부터 시작하세요.", m: "일시적 어려움은 지나갑니다.", l: "거리가 멀어져도 마음은 이어지세요.", c: "포기하지 말고 꾸준히 하세요." } },
+    M18: { u: { g: "불확실한 그림자가 있지만 직관을 믿으세요.", m: "정보가 불명확하면 결정을 미루세요.", l: "속마음이 숨겨져 있을 수 있어 소통이 중요합니다.", c: "숨겨진 의도를 파악하는 것이 중요합니다." }, r: { g: "공포가 현실보다 클 수 있습니다. 사실을 확인하세요.", m: "불확실한 투자는 보류하세요.", l: "오해를 풀기 위해 먼저 대화하세요.", c: "의심을 풀고 협력하세요." } },
+    M19: { u: { g: "활력과 성공이 빛납니다. 어둠이 지나가고 있습니다.", m: "수익과 성과가 좋은 시기입니다.", l: "관계가 따뜻하고 밝게 유지됩니다.", c: "성과가 인정받고 승진 가능성이 있습니다." }, r: { g: "일시적 어둠이 있어도 곧 밝아집니다.", m: "일시적 저조는 회복됩니다.", l: "작은 소통이 관계를 밝게 합니다.", c: "잠시 멈춰도 다시 빛날 것입니다." } },
+    M20: { u: { g: "용서와 재기회가 옵니다. 과거를 정리하고 새로 시작하세요.", m: "과거의 실수가 정리되면 새 흐름이 열립니다.", l: "화해와 재회의 가능성이 있습니다.", c: "재평가와 재기회가 올 수 있습니다." }, r: { g: "자기 용서가 먼저입니다.", m: "미뤄둔 정리를 하세요.", l: "과거를 끊고 새로 시작할 용기가 필요합니다.", c: "자기 평가를 다시 하세요." } },
+    M21: { u: { g: "완성과 성취의 시기입니다. 한 해의 결실을 맺습니다.", m: "장기 노력이 수익으로 연결됩니다.", l: "관계가 안정되고 깊어집니다.", c: "목표 달성과 인정을 받는 시기입니다." }, r: { g: "완성이 아직이라면 마무리 단계입니다.", m: "마지막 단계까지 꾸준히 하세요.", l: "관계가 성숙해가는 중입니다.", c: "마무리와 마무리가 중요합니다." } },
+  };
+
+  function buildClientSideReading() {
+    var zodiacTraits = ["지혜, 시작, 풍요", "근면, 우직함, 안정", "용기, 변화, 리더십", "성장, 평화, 직관", "비상, 큰 성취, 열정", "지성, 매력, 비밀", "활동력, 자유, 추진력", "예술성, 온화함, 조화", "재치, 임기응변, 다재다능", "결단력, 통찰, 화려함", "충직함, 책임감, 보호", "여유, 행운, 마무리"];
+    var zodiacNames = ["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"];
+    var defMoney = "꾸준한 관리와 현명한 선택이 재물 흐름을 안정시킵니다.";
+    var defLove = "진심 어린 표현이 관계를 따뜻하게 만듭니다.";
+    var defRelation = "솔직한 소통이 관계를 풍요롭게 합니다.";
+    var defExam = "집중력과 꾸준한 노력이 좋은 결과로 이어집니다.";
+
+    state.reading = {
+      summary: "12개월의 운명의 수레바퀴가 열렸습니다. 각 월의 카드를 눌러 재물·연애·인간관계·합격운을 확인하세요.",
+      finalAdvice: "올해는 12지신이 지키는 한 해입니다. 매월의 카드 메시지를 따라 작은 결심 하나하나가 큰 행운으로 이어질 것입니다.",
+      monthlyReadings: state.cards.map(function (card, idx) {
+        var id = card.cardId || card.id;
+        var ori = card.orientation === "reversed" ? "r" : "u";
+        var interp = CLIENT_INTERP[id];
+        var g = interp && interp[ori] ? interp[ori].g : "";
+        var m = interp && interp[ori] ? interp[ori].m : defMoney;
+        var l = interp && interp[ori] ? interp[ori].l : defLove;
+        var c = interp && interp[ori] ? interp[ori].c : defExam;
+        var nameKr = card.nameKr || card.name;
+        var traits = zodiacTraits[idx] || "";
+        var zName = zodiacNames[idx] || "";
+        return {
+          month: idx + 1,
+          zodiac: { name: zName, traits: traits },
+          flow: (g || (zName + "의 달입니다. " + traits + "의 기운이 당신을 감쌉니다. " + nameKr + "의 메시지가 이 달의 흐름을 이끕니다.")),
+          money: m,
+          love: l,
+          relationship: defRelation,
+          exam: c,
+        };
+      }),
+    };
+  }
+
+  function renderTarotYearResult() {
+    var r = state.reading;
+    if (!r) return;
+
+    var summaryEl = byId("tarotYearSummary");
+    if (summaryEl) {
+      summaryEl.textContent = "";
+      summaryEl.style.display = "none";
+    }
+
+    var cardsEl = byId("tarotYearResultCards");
+    if (cardsEl && state.cards.length) {
+      cardsEl.innerHTML = "";
+      cardsEl.className = "ty-result-cards ty-result-cards--twelve";
+      bindMonthTileClicks();
+      state.cards.forEach(function (card, idx) {
+        var wrap = document.createElement("div");
+        wrap.className = "ty-result-card-wrap ty-result-card-wrap--month";
+        wrap.setAttribute("data-month", idx + 1);
+        wrap.setAttribute("role", "button");
+        wrap.setAttribute("tabindex", "0");
+        wrap.onclick = (function (m) { return function () { selectMonthDetail(m); }; })(idx + 1);
+        wrap.onkeydown = (function (m) {
+          return function (ev) {
+            if (!ev) return;
+            if (ev.key === "Enter" || ev.key === " ") {
+              ev.preventDefault();
+              selectMonthDetail(m);
+            }
+          };
+        })(idx + 1);
+        var front = document.createElement("div");
+        front.className = "ty-result-card-front";
+        if (card.orientation === "reversed") wrap.setAttribute("data-reversed", "1");
+        var monthLabel = document.createElement("span");
+        monthLabel.className = "ty-result-card-month";
+        monthLabel.textContent = MONTH_LABELS_CJK[idx];
+        front.appendChild(monthLabel);
+        var zodiac = document.createElement("span");
+        zodiac.className = "ty-result-card-zodiac";
+        zodiac.textContent = ZODIAC_EMOJI[idx];
+        front.appendChild(zodiac);
+        var guide = document.createElement("span");
+        guide.className = "ty-result-card-guide";
+        guide.textContent = "월별 운세";
+        front.appendChild(guide);
+        wrap.appendChild(front);
+        cardsEl.appendChild(wrap);
+      });
+    }
+
+    var adviceEl = byId("tarotYearFinalAdvice");
+    if (adviceEl) adviceEl.textContent = r.finalAdvice || "한 달의 흐름을 확인한 뒤, 실천 가능한 한 가지 행동으로 운의 방향을 고정하세요.";
+
+    var panel = byId("tarotYearMonthDetailPanel");
+    if (panel) panel.classList.remove("is-visible");
+    selectMonthDetail(1, true);
+  }
+
+  function shareTarotYearFortuneResult() {
+    if (!state.reading) return;
+    var r = state.reading;
+    var text = "🌟 십이지신 천운(天運) 타로\n\n";
+    if (r.summary) text += r.summary + "\n\n";
+    if (r.finalAdvice) text += "💌 " + r.finalAdvice + "\n\n";
+    text += "👉 무료 타로 보러가기: https://code-destiny.com";
+
+    if (navigator.share) {
+      navigator.share({
+        title: "🌟 십이지신 천운 타로",
+        text: text,
+        url: "https://code-destiny.com",
+      }).catch(function () {});
+      return;
+    }
+    var encoded = encodeURIComponent(text);
+    var a = document.createElement("a");
+    a.href = "kakaotalk://send?text=" + encoded;
+    a.click();
+    setTimeout(function () {
+      if (typeof copyToClipboard === "function") {
+        copyToClipboard(text, "카카오톡 앱이 없거나 PC에서는 클립보드에 복사했어요! 💬");
+      }
+    }, 800);
+  }
+
+  window.openTarotYearFortuneModal = openTarotYearFortuneModal;
+  window.closeTarotYearFortuneModal = closeTarotYearFortuneModal;
+  window.resetTarotYearFortuneFlow = resetTarotYearFortuneFlow;
+  window.startTarotYearFortuneReading = startTarotYearFortuneReading;
+  window.shareTarotYearFortuneResult = shareTarotYearFortuneResult;
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindTarotYearStaticActions);
+  } else {
+    bindTarotYearStaticActions();
+  }
+})();

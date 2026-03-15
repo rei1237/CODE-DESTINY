@@ -1,258 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <script>
-    (function () {
-      var host = typeof window !== "undefined" && window.location && window.location.hostname;
-      function isPrivateIPv4Hostname(h) {
-        if (!h) return false;
-        if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(h)) return false;
-        var p = h.split(".").map(function (n) { return parseInt(n, 10); });
-        if (p.some(function (n) { return Number.isNaN(n) || n < 0 || n > 255; })) return false;
-        if (p[0] === 10) return true;
-        if (p[0] === 192 && p[1] === 168) return true;
-        if (p[0] === 172 && p[1] >= 16 && p[1] <= 31) return true;
-        if (p[0] === 169 && p[1] === 254) return true;
-        return false;
-      }
-
-      var isLocal =
-        host === "" ||
-        host === "localhost" ||
-        host === "127.0.0.1" ||
-        host === "0.0.0.0" ||
-        host === "[::1]" ||
-        /\.local$/i.test(host || "") ||
-        isPrivateIPv4Hostname(host);
-      var devBypass = false;
-      try {
-        var qs = (window.location && window.location.search) || "";
-        devBypass =
-          qs.indexOf("devNoKill=1") !== -1 ||
-          (window.localStorage && localStorage.getItem("__DEV_DISABLE_KILL_SWITCH__") === "1");
-      } catch (e) {}
-
-      var hideKillNotice = isLocal;
-
-      if (devBypass) {
-        window.__APP_ALIVE__ = true;
-        window.__verifyServiceAlive = function () { return Promise.resolve(); };
-        return;
-      }
-
-      var STATUS_URL = "/status.json";
-      var HEARTBEAT_INTERVAL_MS = 60000;
-      var REQUEST_TIMEOUT_MS = 3500;
-      var killed = false;
-      var checking = false;
-
-      function withTimestamp(url) {
-        return url + (url.indexOf("?") === -1 ? "?" : "&") + "t=" + Date.now();
-      }
-
-      function killMarkup(reasonText) {
-        var safeReason = reasonText ? String(reasonText) : "unknown";
-        var killContent = hideKillNotice
-          ? "<div class='kill' aria-hidden='true'></div>"
-          : (
-              "<div class='kill'><h1>서비스가 종료되었습니다</h1>" +
-              "<p>보안 정책에 의해 앱 실행이 중지되었습니다.</p>" +
-              "<p>잠시 후 다시 시도하거나 관리자에게 문의해 주세요.</p>" +
-              "<small>reason: " + safeReason + "</small></div>"
-            );
-        return (
-          "<!doctype html><html lang='ko'><head><meta charset='UTF-8'>" +
-          "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
-          "<title>서비스 종료</title>" +
-          "<style>html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif}" +
-          ".kill{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center}" +
-          ".kill h1{font-size:1.75rem;margin:0 0 12px}" +
-          ".kill p{margin:4px 0;color:#c9c9c9;line-height:1.5}" +
-          ".kill small{margin-top:12px;color:#7c7c7c}</style></head><body>" +
-          killContent +
-          "<script>(function(){try{if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(regs){return Promise.all(regs.map(function(r){return r.unregister();}));}).catch(function(){});}if('caches' in window){caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}).catch(function(){});}try{localStorage.clear();sessionStorage.clear();}catch(e){}}catch(e){}})();<\/script>" +
-          "</body></html>"
-        );
-      }
-
-      function renderKillOverlay(reasonText) {
-        var id = "globalKillOverlay";
-        if (document.getElementById(id)) return;
-        var style = document.createElement("style");
-        style.id = id + "Style";
-        style.textContent =
-          "#"+id+"{position:fixed;inset:0;z-index:2147483647;background:#000;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center}" +
-          "#"+id+" h1{font-size:1.75rem;margin:0 0 12px}" +
-          "#"+id+" p{margin:4px 0;color:#c9c9c9;line-height:1.5}" +
-          "#"+id+" small{margin-top:12px;color:#7c7c7c}";
-        document.head.appendChild(style);
-        var overlay = document.createElement("div");
-        overlay.id = id;
-        if (!hideKillNotice) {
-          overlay.innerHTML =
-            "<h1>서비스가 종료되었습니다</h1>" +
-            "<p>보안 정책에 의해 앱 실행이 중지되었습니다.</p>" +
-            "<p>잠시 후 다시 시도하거나 관리자에게 문의해 주세요.</p>" +
-            "<small>reason: " + (reasonText || "unknown") + "</small>";
-        }
-        document.documentElement.appendChild(overlay);
-      }
-
-      function hardBlockRuntime() {
-        window.__APP_KILLED__ = true;
-        window.__APP_ALIVE__ = false;
-        var block = function () {
-          throw new Error("Service is terminated.");
-        };
-        try { window.fetch = block; } catch (e) {}
-        try { XMLHttpRequest.prototype.open = block; } catch (e) {}
-        try { window.WebSocket = block; } catch (e) {}
-        try { window.EventSource = block; } catch (e) {}
-        try { window.setTimeout = function () { return 0; }; } catch (e) {}
-        try { window.setInterval = function () { return 0; }; } catch (e) {}
-        try { window.requestAnimationFrame = function () { return 0; }; } catch (e) {}
-      }
-
-      function clearClientArtifacts() {
-        var tasks = [];
-        try {
-          if ("serviceWorker" in navigator) {
-            tasks.push(
-              navigator.serviceWorker.getRegistrations().then(function (regs) {
-                return Promise.all(
-                  regs.map(function (reg) {
-                    return reg.unregister();
-                  })
-                );
-              })
-            );
-          }
-        } catch (e) {}
-        try {
-          if ("caches" in window) {
-            tasks.push(
-              caches.keys().then(function (keys) {
-                return Promise.all(
-                  keys.map(function (key) {
-                    return caches.delete(key);
-                  })
-                );
-              })
-            );
-          }
-        } catch (e) {}
-        try { localStorage.clear(); } catch (e) {}
-        try { sessionStorage.clear(); } catch (e) {}
-        return Promise.all(tasks).catch(function () {});
-      }
-
-      function activateKillSwitch(reasonText) {
-        if (killed) return;
-        killed = true;
-        hardBlockRuntime();
-        renderKillOverlay(reasonText || "offline");
-        clearClientArtifacts().finally(function () {
-          try { if (typeof window.stop === "function") window.stop(); } catch (e) {}
-        });
-      }
-
-      function fetchAliveSignal() {
-        var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-        var timer = setTimeout(function () {
-          if (controller) controller.abort();
-        }, REQUEST_TIMEOUT_MS);
-
-        return fetch(withTimestamp(STATUS_URL), {
-          method: "GET",
-          cache: "no-store",
-          credentials: "same-origin",
-          headers: {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache",
-            "Expires": "0"
-          },
-          signal: controller ? controller.signal : undefined
-        })
-          .then(function (res) {
-            clearTimeout(timer);
-            if (!res.ok) throw new Error("http_" + res.status);
-            return res.json();
-          })
-          .then(function (data) {
-            if (data && data.alive === false) throw new Error("service_off");
-            return true;
-          });
-      }
-
-      function verifyAlive(trigger) {
-        if (killed || checking) return Promise.resolve();
-        checking = true;
-        return fetchAliveSignal()
-          .catch(function (err) {
-            activateKillSwitch((trigger || "check") + ":" + (err && err.message ? err.message : "failed"));
-          })
-          .finally(function () {
-            checking = false;
-          });
-      }
-
-      function installRouteHooks() {
-        if (!window.history) return;
-        var originalPush = history.pushState;
-        var originalReplace = history.replaceState;
-
-        history.pushState = function () {
-          var result = originalPush.apply(this, arguments);
-          setTimeout(function () { verifyAlive("pushState"); }, 0);
-          return result;
-        };
-        history.replaceState = function () {
-          var result = originalReplace.apply(this, arguments);
-          setTimeout(function () { verifyAlive("replaceState"); }, 0);
-          return result;
-        };
-
-        window.addEventListener("popstate", function () {
-          verifyAlive("popstate");
-        }, true);
-        window.addEventListener("hashchange", function () {
-          verifyAlive("hashchange");
-        }, true);
-      }
-
-      function blockingBootCheck() {
-        var xhr = new XMLHttpRequest();
-        try {
-          xhr.open("GET", withTimestamp(STATUS_URL), false);
-          xhr.setRequestHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-          xhr.setRequestHeader("Pragma", "no-cache");
-          xhr.setRequestHeader("Expires", "0");
-          xhr.send(null);
-          if (xhr.status < 200 || xhr.status >= 300) return false;
-          var payload = JSON.parse(xhr.responseText || "{}");
-          return !(payload && payload.alive === false);
-        } catch (e) {
-          return false;
-        }
-      }
-
-      var bootAlive = blockingBootCheck();
-      window.__APP_ALIVE__ = bootAlive;
-      window.__verifyServiceAlive = verifyAlive;
-
-      if (!bootAlive) {
-        document.open();
-        document.write(killMarkup("boot_check_failed"));
-        document.close();
-        return;
-      }
-
-      installRouteHooks();
-      setInterval(function () {
-        verifyAlive("heartbeat");
-      }, HEARTBEAT_INTERVAL_MS);
-    })();
-  </script>
+  <script src="js/kill-switch.js"></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
   <!-- ADSENSE_APPROVAL_SCRIPT_SLOT: 승인 후 구글에서 제공하는 adsbygoogle 스크립트 코드를 여기에 붙여 넣으세요. -->
@@ -586,9 +335,29 @@
 }
 </script>
 <!-- PWA 설정 -->
-<link rel="manifest" href="/manifest.json">
+<link id="pwa-manifest" rel="manifest" href="/manifest.json">
 <link id="pwa-favicon" rel="icon" type="image/png" sizes="192x192" href="icons/honeypig-192.png">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="icons/honeypig-180.png">
+<script>
+  (function () {
+    try {
+      var isNeo = localStorage.getItem('fortuneThemeModeStateV1') === 'neo';
+      window.__INITIAL_THEME_NEO__ = isNeo;
+      if (!isNeo) return;
+      var manifestLink = document.getElementById('pwa-manifest');
+      if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json');
+      var faviconLink = document.getElementById('pwa-favicon');
+      if (faviconLink) {
+        faviconLink.setAttribute('href', '/icons/samba.svg');
+        faviconLink.setAttribute('type', 'image/svg+xml');
+      }
+      var appleIconLink = document.getElementById('pwa-apple-icon');
+      if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.svg');
+    } catch (_) {
+      window.__INITIAL_THEME_NEO__ = false;
+    }
+  })();
+</script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -606,9 +375,72 @@
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/animations.css">
   <link rel="stylesheet" href="styles/fortune-ui.css">
+  <link rel="stylesheet" href="styles/animal-totem-mystic.css">
+  <link rel="stylesheet" href="styles/tarot-love-mystic.css?v=20260315-tarot-flip-persist2">
+  <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260315-tarot-image-fix5">
+  <link rel="stylesheet" href="styles/tarot-reunion-lighthouse.css?v=20260315-tarot-image-fix1">
+  <link rel="stylesheet" href="styles/tarot-year-fortune.css?v=20260315-tarot-image-fix1">
+  <link rel="stylesheet" href="styles/tarot-self-esteem-quest.css?v=20260315-tarot-image-fix1">
   <link rel="stylesheet" href="css/entertain-system.css">
 </head>
 <body>
+
+<!-- 타로 자존감 모달 (body 직계 — z-index/containment 이슈 방지) -->
+<div id="tarotSelfEsteemOverlay" class="tarot-self-esteem-overlay" style="display:none;" data-action="closeTarotSelfEsteemModal" data-action-self-only="1">
+  <div class="tarot-self-esteem-particles" aria-hidden="true">
+    <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span>
+    <span class="particle p4"></span><span class="particle p5"></span><span class="particle p6"></span>
+    <span class="particle p7"></span><span class="particle p8"></span><span class="particle p9"></span>
+  </div>
+  <div id="tarotSelfEsteemLevelUpBanner" class="tarot-self-esteem-levelup-banner" aria-hidden="true">
+    <span class="tarot-self-esteem-levelup-text">Level Up!</span>
+  </div>
+  <div id="tarotSelfEsteemConfetti" class="tarot-self-esteem-confetti" aria-hidden="true"></div>
+  <div class="tarot-self-esteem-shell">
+    <div class="tarot-self-esteem-panel">
+      <button class="tarot-self-esteem-close" type="button" data-action="closeTarotSelfEsteemModal" aria-label="자존감 레벨업 타로 닫기">×</button>
+
+      <section id="tarotSelfEsteemIntroStage" class="tarot-self-esteem-stage is-active">
+        <div class="tarot-self-esteem-hero">
+          <h1 class="tarot-self-esteem-title">타로로 성장하는 자존감!</h1>
+          <p class="tarot-self-esteem-subtitle">어두운 터널을 지나 빛을 만나는 여정. 5장의 카드로 과거의 디버프를 확인하고, 마인드 쉴드를 획득하며, 레벨업 마스터리에 도달하세요. RPG처럼 EXP 바가 차오르고, 모두 열면 Level Up! 축하가 기다립니다.</p>
+          <div class="tarot-self-esteem-invoke-wrap">
+            <button class="tarot-self-esteem-btn tarot-self-esteem-btn--invoke" type="button" data-action="startTarotSelfEsteemReading">✨ 자존감 레벨업 퀘스트 시작</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tarotSelfEsteemDrawStage" class="tarot-self-esteem-stage">
+        <h3 class="tarot-self-esteem-draw-header">[타로 스프레드] 나는 왜 남의 눈치만 보며 살까? (5카드)</h3>
+        <div class="tarot-self-esteem-exp-wrap">
+          <div class="tarot-self-esteem-exp-label">
+            <span>EXP</span>
+            <span id="tarotSelfEsteemExpPercent">0%</span>
+          </div>
+          <div class="tarot-self-esteem-exp-track">
+            <div id="tarotSelfEsteemExpBar" class="tarot-self-esteem-exp-bar"></div>
+          </div>
+        </div>
+        <div class="tarot-self-esteem-spread-guide" id="tarotSelfEsteemSpreadGuide">첫 번째 카드를 뒤집어 주세요.</div>
+        <div id="tarotSelfEsteemCardGrid" class="tarot-self-esteem-card-grid"></div>
+        <div class="tarot-self-esteem-final-wrap">
+          <button type="button" class="tarot-self-esteem-final-btn" id="tarotSelfEsteemFinalBtn" data-action="showTarotSelfEsteemFinalReading" disabled>✨ 레벨업 해석 보기</button>
+        </div>
+      </section>
+
+      <section id="tarotSelfEsteemResultStage" class="tarot-self-esteem-stage">
+        <header class="tarot-self-esteem-reading-header">
+          <h2 class="tarot-self-esteem-reading-title">✨ 자존감 레벨업 리딩 결과</h2>
+        </header>
+        <div id="tarotSelfEsteemReadingContent" class="tarot-self-esteem-reading-content"></div>
+        <div class="tarot-self-esteem-result-actions">
+          <button type="button" class="tarot-self-esteem-btn" data-action="shareTarotSelfEsteemResult">💬 카카오톡 공유하기</button>
+          <button type="button" class="tarot-self-esteem-btn tarot-self-esteem-btn--subtle" data-action="resetTarotSelfEsteemFlow">🔄 다시 리딩하기</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════
      초기 로딩 스플래시 오버레이
@@ -770,8 +602,8 @@
       </div>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img src="https://raw.githubusercontent.com/Toss/tossface/main/dist/svg/u1F43E.svg"
-               width="130" height="130" alt="동물 발바닥" loading="lazy" style="display:block; border-radius: 50%; box-shadow: 0 4px 12px rgba(255,215,0,0.3);">
+          <img class="neo-logo-icon" src="icons/samba.svg"
+               width="130" height="130" alt="쌈바 백사자 로고" loading="lazy">
         </div>
         <h1>쌈바의 팩폭 운세 플랫폼</h1>
         <p>감성 제로. 팩트만 남는다.</p>
@@ -924,7 +756,142 @@
           </div>
         </div>
 
-        <!-- 3. 신비의 타로 -->
+        <!-- 2.5 타로로 보는 우리 사이 (우선 노출) -->
+        <div class="feature-card feature-card--tarot-love">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/tarolove.webp"
+                 alt="타로로 보는 우리 사이 — 6장 스프레드로 관계의 진심을 읽다 (Tarot Love Reading, タロット恋愛占い)"
+                 class="feature-card__img" loading="lazy" width="400" height="300">
+            <span class="feature-card__badge">NEW</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">💕 타로로 보는 우리 사이</h3>
+            <p class="feature-card__desc">우리 무슨 사이야? 6장의 타로 카드로 상대방의 시선, 관계 정의, 연애 의지까지 꿰뚫어 보는 심층 리딩.</p>
+            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
+                    aria-expanded="false" data-label="💕 우리 사이 타로 보기">
+              <span class="feature-card__cta-label">💕 우리 사이 타로 보기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">내담자의 시선, 상대방의 시선, 관계 정의, 연애 의지, 병목, 단기 미래—6개 포지션으로 '우리 무슨 사이야'에 대한 답을 찾습니다. 20년 경력 타로 마스터의 시선으로, 가스라이팅 없이 현실적인 통찰을 전해드립니다.</p>
+                <button class="feature-card__launch" type="button" data-action="openTarotLoveModal">💕 우리 사이 타로 리딩 시작 →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.6 긍정 에너지 회복 타로 -->
+        <div class="feature-card feature-card--tarot-healing">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/healing.webp"
+                 alt="긍정 에너지 회복하기 — 힐링 4카드 타로 (Healing & Rising Tarot)"
+                 class="feature-card__img" loading="lazy" width="400" height="300">
+            <span class="feature-card__badge">HEALING</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">🌅 긍정 에너지 회복하기</h3>
+            <p class="feature-card__desc">지친 마음을 다독이는 4카드 스프레드. 상처를 이해하고, 배움을 찾고, 다시 앞으로 나아갈 힘을 회복하세요.</p>
+            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
+                    aria-expanded="false" data-label="🌅 힐링 타로 시작하기">
+              <span class="feature-card__cta-label">🌅 힐링 타로 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">The Hidden Truth, Embrace the Pain, The Silver Lining, Step Forward의 4단계로 현재의 감정을 안전하게 해석하고, 오늘 실행 가능한 회복 행동까지 제시합니다.</p>
+                <button class="feature-card__launch" type="button" data-action="openTarotHealingModal">🌅 긍정 에너지 회복 리딩 시작 →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.6.5 타로로 성장하는 자존감! -->
+        <div class="feature-card feature-card--tarot-self-esteem">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/jajongam.webp"
+                 alt="타로로 성장하는 자존감! — 5카드 레벨업 퀘스트 (Self-Esteem Level-Up Tarot)"
+                 class="feature-card__img" loading="lazy" width="400" height="300">
+            <span class="feature-card__badge">LEVEL UP</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">✨ 타로로 성장하는 자존감!</h3>
+            <p class="feature-card__desc">RPG 레벨업처럼, 5장의 카드로 과거 디버프부터 마인드 쉴드·레벨업 마스터리까지. 타인의 시선에서 벗어나 나를 1순위로 챙기는 여정.</p>
+            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
+                    aria-expanded="false" data-label="✨ 자존감 레벨업 시작하기">
+              <span class="feature-card__cta-label">✨ 자존감 레벨업 시작하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">1) 과거의 디버프 확인 2) 내면의 몬스터 3) 현재 데미지 4) 마인드 쉴드 획득 5) 레벨업 마스터리—5장의 타로 카드를 뒤집으며 EXP 바가 차오르고, 모두 열면 Level Up! 축하 이펙트와 함께 희망찬 해석을 받아보세요.</p>
+                <button class="feature-card__launch" type="button" data-action="openTarotSelfEsteemModal">✨ 자존감 레벨업 리딩 시작 →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.7 별 헤는 밤바다 재회운 타로 -->
+        <div class="feature-card feature-card--tarot-reunion">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/reunion.webp"
+                 alt="별 헤는 밤바다의 재회운 타로 — 5카드 스프레드"
+                 class="feature-card__img" loading="lazy" width="400" height="300">
+            <span class="feature-card__badge">REUNION</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">🌊 별 헤는 밤바다 재회운 타로</h3>
+            <p class="feature-card__desc">그 사람과의 인연은 끝났을까? 5장의 카드로 과거 인연, 현재 근황, 방해물, 속마음, 재회 가능성을 연결된 서사로 읽어드립니다.</p>
+            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
+                    aria-expanded="false" data-label="🌊 재회운 5카드 펼치기">
+              <span class="feature-card__cta-label">🌊 재회운 5카드 펼치기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">별빛과 등대가 비추는 밤바다 테마로, 1) 과거의 인연 2) 상대의 현재 3) 주변 상황 4) 속마음 5) 재회 가능성을 순차적으로 열어보는 몰입형 리딩입니다.</p>
+                <button class="feature-card__launch" type="button" data-action="openTarotReunionModal">🌊 재회운 리딩 시작 →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.8 십이지신 천운 타로 -->
+        <div class="feature-card feature-card--tarot-year">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/12animals.webp"
+                 alt="십이지신 천운 타로 — 재물운·연애운·인간관계운 월별 상세"
+                 class="feature-card__img" loading="lazy" width="400" height="300">
+            <span class="feature-card__badge">NEW</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">십이지신 천운(天運)</h3>
+            <p class="feature-card__desc">천상의 열두 수호신이 지키는 한 해. 3장의 카드로 재물·연애·인연의 흐름을 읽습니다.</p>
+            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
+                    aria-expanded="false" data-label="🌟 3카드로 1년 운세 확인하기">
+              <span class="feature-card__cta-label">🌟 3카드로 1년 운세 확인하기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">올해의 기반 에너지, 기회와 도전, 결과와 조언—3장의 카드가 십이지신(쥐·소·호랑이·토끼·용·뱀·말·양·원숭이·닭·개·돼지)이 배정된 1월부터 12월까지 월별로 재물운·연애운·인간관계운을 상세히 풀이합니다.</p>
+                <button class="feature-card__launch" type="button" data-action="openTarotYearFortuneModal">운명의 수레바퀴 열기 →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 명리학 타로 -->
         <div class="feature-card feature-card--tarot">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/ai%20tarrot.webp"
@@ -932,8 +899,8 @@
                  class="feature-card__img" loading="lazy" width="400" height="300">
           </div>
           <div class="feature-card__body">
-            <h3 class="feature-card__title">🔮 신비의 타로</h3>
-            <p class="feature-card__desc">지금 무엇이 궁금하신가요? 78장의 신비로운 카드 중 당신을 위한 카드가 기다립니다.</p>
+            <h3 class="feature-card__title">🔮 명리학 타로</h3>
+            <p class="feature-card__desc">명리학을 접목한 타로 상담입니다. 지금 무엇이 궁금하신가요? 78장의 카드 중 당신을 위한 카드가 기다립니다.</p>
             <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
                     aria-expanded="false" data-label="🔮 타로 카드 시작하기">
               <span class="feature-card__cta-label">🔮 타로 카드 시작하기</span>
@@ -943,14 +910,41 @@
           <div class="feature-card__detail">
             <div class="feature-card__detail-inner">
               <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">연애·재물·미래·현재 에너지... 마음 속 질문을 품고 카드를 고르세요. Universal 덱 78장, 역방향 해석 포함. 오늘의 에너지를 타로가 알려드립니다.</p>
+                <p class="feature-card__detail-text">명리학을 접목한 타로 상담으로, 연애·재물·미래·현재 에너지를 살펴봅니다. 마음 속 질문을 품고 카드를 고르세요. Universal 덱 78장, 역방향 해석 포함. 오늘의 에너지를 타로가 알려드립니다.</p>
                 <button class="feature-card__launch" type="button" data-action="openTarotModal">🔮 지금 타로 카드 뽑으러 가기 →</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 4. 타짜들의 화투점 -->
+        <!-- 4. 애니멀 토템 리딩 -->
+        <div class="feature-card feature-card--animal-totem">
+          <div class="feature-card__img-wrap">
+            <img src="fuctionassets/animaltotem.webp"
+                 alt="애니멀 토템 리딩 — 명상 후 타로 카드로 수호 동물 메시지 받기"
+                 class="feature-card__img" loading="lazy" width="400" height="300">
+            <span class="feature-card__badge">NEW</span>
+          </div>
+          <div class="feature-card__body">
+            <h3 class="feature-card__title">🧸 애니멀 토템 리딩</h3>
+            <p class="feature-card__desc">10초 명상 후 다섯 장의 수호 동물 카드 중 한 장을 선택해, 오늘 당신을 지켜줄 수호 동물의 메시지를 만나보세요.</p>
+            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
+                    aria-expanded="false" data-label="🧸 명상하고 수호 동물 카드 뽑기">
+              <span class="feature-card__cta-label">🧸 명상하고 수호 동물 카드 뽑기</span>
+              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
+            </button>
+          </div>
+          <div class="feature-card__detail">
+            <div class="feature-card__detail-inner">
+              <div class="feature-card__detail-content">
+                <p class="feature-card__detail-text">먼저 10초간 숨을 고르고 마음을 차분히 만든 다음, 다섯 장의 수호 동물 카드 중 한 장을 선택해보세요. 늑대·올빼미·돌고래·여우를 포함한 다양한 수호 동물 토템이 오늘의 맞춤 응원 메시지를 전해줍니다.</p>
+                <button class="feature-card__launch" type="button" data-action="openAnimalTotemModal">🧸 명상하고 토템 카드 뽑기 →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 타짜들의 화투점 -->
         <div class="feature-card feature-card--tazza">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/tazza.webp"
@@ -976,7 +970,7 @@
           </div>
         </div>
 
-        <!-- 5. 이집트 신탁 운세 -->
+        <!-- 6. 이집트 신탁 운세 -->
         <div class="feature-card feature-card--egypt">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/egypt.webp"
@@ -1002,7 +996,7 @@
           </div>
         </div>
 
-        <!-- 6. 주역(周易) 64괘 -->
+        <!-- 7. 주역(周易) 64괘 -->
         <div class="feature-card feature-card--juyuk">
           <div class="feature-card__img-wrap">
             <img src="fuctionassets/juyuk.webp"
@@ -1613,6 +1607,9 @@
                   <article id="dreamGoldenAdviceWrap" class="dream-story-bubble dream-story-bubble--gold" style="display:none;">
                     <p id="dreamGoldenAdvice" class="dream-golden-advice"></p>
                   </article>
+                  <article id="dreamFinalConsultWrap" class="dream-story-bubble dream-story-bubble--consult" style="display:none;">
+                    <p id="dreamFinalConsult" class="dream-final-consult"></p>
+                  </article>
                 </div>
                 <button id="dreamNextStageBtn" class="dream-ledger-btn dream-stage-next" data-action="nextDreamStage" style="display:none;">다음 카드 보기 ✦</button>
               </section>
@@ -1920,6 +1917,320 @@
           
 
 
+        </div>
+      </div>
+
+      <!-- 타로로 보는 우리 사이 모달 -->
+      <div id="tarotLoveOverlay" class="tarot-love-overlay" style="display:none;" data-action="closeTarotLoveModal" data-action-self-only="1">
+        <div class="tarot-love-vignette" aria-hidden="true"></div>
+        <div class="tarot-love-sparkles" aria-hidden="true">
+          <span class="sparkle s1"></span><span class="sparkle s2"></span><span class="sparkle s3"></span>
+          <span class="sparkle s4"></span><span class="sparkle s5"></span><span class="sparkle s6"></span>
+          <span class="sparkle s7"></span><span class="sparkle s8"></span><span class="sparkle s9"></span>
+        </div>
+        <div class="tarot-love-symbols" aria-hidden="true">
+          <span class="tl-sym tl-heart">♥</span><span class="tl-sym tl-moon">☽</span><span class="tl-sym tl-star">✦</span>
+        </div>
+        <div class="tarot-love-floating-cards" aria-hidden="true">
+          <span class="tl-card tl-card-1"></span>
+          <span class="tl-card tl-card-2"></span>
+          <span class="tl-card tl-card-3"></span>
+          <span class="tl-card tl-card-4"></span>
+        </div>
+        <div class="tarot-love-shell">
+          <div class="tarot-love-panel tarot-love-altar">
+            <button class="tarot-love-close" type="button" data-action="closeTarotLoveModal" aria-label="타로 러브 닫기">×</button>
+
+            <section id="tarotLoveIntroStage" class="tarot-love-stage is-active">
+              <div class="tarot-love-hero">
+                <h1 class="tarot-love-title">타로로 보는 우리 사이</h1>
+                <p class="tarot-love-subtitle" id="tarotLoveSubtitle">우리 무슨 사이야? 6장의 카드로 상대방의 시선, 관계 정의, 연애 의지까지 꿰뚫어 보는 심층 리딩.</p>
+                <div class="tarot-love-invoke-wrap">
+                  <button class="tarot-love-btn tarot-love-btn--invoke" type="button" data-action="startTarotLoveReading">🔮 카드 뽑기</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="tarotLoveDrawStage" class="tarot-love-stage">
+              <h3 class="tarot-love-draw-header">카드를 순서대로 뒤집어 영적 메시지를 받으세요</h3>
+              <div class="tarot-love-spread-guide" id="tarotLoveSpreadGuide">첫 번째 카드를 뒤집어 주세요</div>
+              <div id="tarotLoveCardGrid" class="tarot-love-card-grid"></div>
+              <div class="tarot-love-final-wrap">
+                <button type="button" class="tarot-love-final-btn" id="tarotLoveFinalBtn" data-action="showTarotLoveFinalReading" disabled>✨ 최종 해석 보기</button>
+              </div>
+            </section>
+
+            <section id="tarotLoveResultStage" class="tarot-love-stage">
+              <header class="tarot-love-reading-header">
+                <h2 class="tarot-love-reading-title">🌙 우리 사이 리딩 결과</h2>
+              </header>
+              <div id="tarotLoveReadingContent" class="tarot-love-reading-content"></div>
+              <div class="tarot-love-result-actions">
+                <button type="button" class="tarot-love-btn" data-action="shareTarotLoveResult">💬 카카오톡 공유하기</button>
+                <button type="button" class="tarot-love-btn tarot-love-btn--subtle" data-action="resetTarotLoveFlow">🔄 다시 리딩하기</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- 긍정 에너지 회복 타로 모달 -->
+      <div id="tarotHealingOverlay" class="tarot-healing-overlay" style="display:none;" data-action="closeTarotHealingModal" data-action-self-only="1">
+        <div class="tarot-healing-particles" aria-hidden="true">
+          <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span><span class="particle p4"></span><span class="particle p5"></span>
+          <span class="particle p6"></span><span class="particle p7"></span><span class="particle p8"></span><span class="particle p9"></span><span class="particle p10"></span>
+        </div>
+        <div class="tarot-healing-shell">
+          <div class="tarot-healing-panel">
+            <button class="tarot-healing-close" type="button" data-action="closeTarotHealingModal" aria-label="긍정 에너지 회복 타로 닫기">×</button>
+
+            <section id="tarotHealingIntroStage" class="tarot-healing-stage is-active">
+              <div class="tarot-healing-hero">
+                <h1 class="tarot-healing-title">긍정 에너지 회복하기</h1>
+                <p class="tarot-healing-subtitle">새벽의 빛처럼 부드럽게, 상처를 인정하고 다시 일어설 힘을 찾는 4카드 힐링 리딩입니다.</p>
+                <div class="tarot-healing-invoke-wrap">
+                  <button class="tarot-healing-btn tarot-healing-btn--invoke" type="button" data-action="startTarotHealingReading">🌅 새벽의 카드 펼치기</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="tarotHealingDrawStage" class="tarot-healing-stage">
+              <h3 class="tarot-healing-draw-header">천천히 심호흡하며 카드를 한 장씩 열어 보세요</h3>
+              <div class="tarot-healing-spread-guide" id="tarotHealingSpreadGuide">첫 번째 카드를 뒤집어 주세요.</div>
+              <div id="tarotHealingCardGrid" class="tarot-healing-card-grid"></div>
+              <div class="tarot-healing-final-wrap">
+                <button type="button" class="tarot-healing-final-btn" id="tarotHealingFinalBtn" data-action="showTarotHealingFinalReading" disabled>✨ 치유 스토리 보기</button>
+              </div>
+            </section>
+
+            <section id="tarotHealingResultStage" class="tarot-healing-stage">
+              <header class="tarot-healing-reading-header">
+                <h2 class="tarot-healing-reading-title">🌤️ Healing & Rising 결과</h2>
+              </header>
+              <div id="tarotHealingReadingContent" class="tarot-healing-reading-content"></div>
+              <div class="tarot-healing-result-actions">
+                <button type="button" class="tarot-healing-btn" data-action="shareTarotHealingResult">💬 카카오톡 공유하기</button>
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle" data-action="resetTarotHealingFlow">🔄 다시 리딩하기</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- 별 헤는 밤바다 재회운 타로 모달 -->
+      <div id="tarotReunionOverlay" class="tarot-reunion-overlay" style="display:none;" data-action="closeTarotReunionModal" data-action-self-only="1">
+        <div class="tarot-reunion-stars" aria-hidden="true">
+          <span class="star s1"></span><span class="star s2"></span><span class="star s3"></span><span class="star s4"></span><span class="star s5"></span>
+          <span class="star s6"></span><span class="star s7"></span><span class="star s8"></span><span class="star s9"></span><span class="star s10"></span>
+        </div>
+        <div class="tarot-reunion-lighthouse" aria-hidden="true">
+          <span class="tower"></span>
+          <span class="lamp"></span>
+          <span class="beam"></span>
+          <span class="water-reflection"></span>
+        </div>
+        <div class="tarot-reunion-shell">
+          <div class="tarot-reunion-panel">
+            <button class="tarot-reunion-close" type="button" data-action="closeTarotReunionModal" aria-label="재회운 타로 닫기">×</button>
+
+            <section id="tarotReunionIntroStage" class="tarot-reunion-stage is-active">
+              <div class="tarot-reunion-hero">
+                <h1 class="tarot-reunion-title">그 사람과의 인연은 끝났을까?</h1>
+                <p class="tarot-reunion-subtitle">깊은 밤바다의 등대처럼, 당신의 그리움을 다정하게 비추는 재회운 5카드 스프레드입니다. 조급한 단정보다 따뜻한 통찰로 다음 길을 찾도록 도와드립니다.</p>
+                <div class="tarot-reunion-audio-wrap">
+                  <button id="tarotReunionSoundBtn" class="tarot-reunion-sound-btn" type="button" data-action="toggleTarotReunionAmbient">🌊 밤바다 사운드 켜기</button>
+                  <audio id="tarotReunionAmbient" preload="metadata" loop playsinline>
+                    <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_1f49f5f7f0.mp3" type="audio/mpeg">
+                  </audio>
+                </div>
+                <div class="tarot-reunion-invoke-wrap">
+                  <button class="tarot-reunion-btn tarot-reunion-btn--invoke" type="button" data-action="startTarotReunionReading">🕯️ 재회의 등대 카드 펼치기</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="tarotReunionDrawStage" class="tarot-reunion-stage">
+              <h3 class="tarot-reunion-draw-header">카드를 1번부터 5번까지 순서대로 열어 감정의 흐름을 따라가세요</h3>
+              <div class="tarot-reunion-spread-guide" id="tarotReunionSpreadGuide">첫 번째 카드를 뒤집어 주세요.</div>
+              <div id="tarotReunionCardGrid" class="tarot-reunion-card-grid"></div>
+              <div class="tarot-reunion-final-wrap">
+                <button type="button" class="tarot-reunion-final-btn" id="tarotReunionFinalBtn" data-action="showTarotReunionFinalReading" disabled>✨ 등대의 해석 보기</button>
+              </div>
+            </section>
+
+            <section id="tarotReunionResultStage" class="tarot-reunion-stage">
+              <header class="tarot-reunion-reading-header">
+                <h2 class="tarot-reunion-reading-title">🌌 재회운 5카드 리딩 결과</h2>
+                <div class="tarot-reunion-result-stars" aria-hidden="true">
+                  <span class="result-star rs1"></span><span class="result-star rs2"></span><span class="result-star rs3"></span>
+                  <span class="result-star rs4"></span><span class="result-star rs5"></span><span class="result-star rs6"></span>
+                </div>
+              </header>
+              <div id="tarotReunionResultCards" class="tarot-reunion-result-cards"></div>
+              <div class="tarot-reunion-result-divider">
+                <span class="result-lighthouse-icon" aria-hidden="true"></span>
+                <span class="result-lighthouse-glow"></span>
+                <span class="result-star-line"></span>
+              </div>
+              <div id="tarotReunionReadingContent" class="tarot-reunion-reading-content"></div>
+              <div class="tarot-reunion-result-actions">
+                <button type="button" class="tarot-reunion-btn" data-action="shareTarotReunionResult">💬 카카오톡 공유하기</button>
+                <button type="button" class="tarot-reunion-btn tarot-reunion-btn--subtle" data-action="resetTarotReunionFlow">🔄 다시 리딩하기</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- 십이지신 천운(天運) 타로 모달 -->
+      <div id="tarotYearFortuneOverlay" class="tarot-year-overlay" style="display:none;" data-action="closeTarotYearFortuneModal" data-action-self-only="1">
+        <div class="ty-zodiac-silhouettes" aria-hidden="true">
+          <span class="ty-zodiac-sil ty-zodiac-sil--1" title="쥐">🐭</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--2" title="소">🐮</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--3" title="호랑이">🐅</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--4" title="토끼">🐇</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--5" title="용">🐉</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--6" title="뱀">🐍</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--7" title="말">🐴</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--8" title="양">🐐</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--9" title="원숭이">🐒</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--10" title="닭">🐓</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--11" title="개">🐕</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--12" title="돼지">🐷</span>
+        </div>
+        <div class="ty-bg-glow ty-bg-glow--1" aria-hidden="true"></div>
+        <div class="ty-bg-glow ty-bg-glow--2" aria-hidden="true"></div>
+        <div class="ty-particles" aria-hidden="true">
+          <span class="ty-particle p1"></span><span class="ty-particle p2"></span><span class="ty-particle p3"></span>
+          <span class="ty-particle p4"></span><span class="ty-particle p5"></span><span class="ty-particle p6"></span>
+        </div>
+        <div class="tarot-year-shell">
+          <div class="tarot-year-panel">
+            <button class="tarot-year-close" id="tarotYearCloseBtn" type="button" aria-label="닫기">×</button>
+
+            <section id="tarotYearFortuneIntroStage" class="tarot-year-stage is-active">
+              <div class="ty-hero">
+                <div class="ty-hero-badge">십이지신 천운</div>
+                <h1 class="ty-hero-title">운명의 수레바퀴를 열다</h1>
+                <p class="ty-hero-subtitle">천상의 열두 수호신이 지키는 한 해. 1月부터 12月까지 각 월의 카드를 뽑고, 재물·연애·인간관계·합격운을 확인하세요.</p>
+                <button type="button" class="ty-cta-btn" id="tarotYearCtaBtn">천운(天運) 카드 뽑기</button>
+              </div>
+            </section>
+
+            <section id="tarotYearFortuneDrawStage" class="tarot-year-stage">
+              <h3 class="ty-draw-title">12개월 운명의 카드를 뽑는 중...</h3>
+              <div id="tarotYearDrawCardGrid" class="ty-draw-grid"></div>
+            </section>
+
+            <section id="tarotYearFortuneResultStage" class="tarot-year-stage">
+              <header class="ty-result-header">
+                <h2 class="ty-result-title">십이지신 월운(月運) — 1月~12月 스프레드</h2>
+              </header>
+              <p class="ty-result-hint">월패(1月~12月)를 눌러 해당 월 타로 상담을 여세요</p>
+              <div class="ty-result-summary" id="tarotYearSummary" style="display:none;"></div>
+              <div id="tarotYearResultCards" class="ty-result-cards"></div>
+              <div id="tarotYearMonthDetailPanel" class="ty-month-detail-panel">
+                <h4 class="ty-month-detail-title" id="tarotYearMonthDetailTitle">1月 상세 운세</h4>
+                <div class="ty-month-oracle-hero">
+                  <div class="ty-month-oracle-card" id="tarotYearMonthDetailCardWrap">
+                    <img id="tarotYearMonthDetailCardImg" alt="이달의 타로 카드" loading="lazy" decoding="async" />
+                  </div>
+                  <div class="ty-month-oracle-meta">
+                    <p class="ty-month-oracle-name" id="tarotYearMonthDetailCardName">이달의 카드</p>
+                    <p class="ty-month-oracle-consult">전문 타로 리딩</p>
+                  </div>
+                </div>
+                <div class="ty-month-spread-wrap">
+                  <h5 class="ty-month-spread-title">이달의 삼재(三才) 스프레드</h5>
+                  <div class="ty-month-spread-cards" id="tarotYearMonthSpreadCards"></div>
+                </div>
+                <div class="ty-month-category-tabs" id="tarotYearMonthCategoryTabs">
+                  <button type="button" class="ty-month-cat-btn is-active" data-cat="general">전반</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="money">재물</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="love">연애</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="relationship">인간관계</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="exam">합격</button>
+                </div>
+                <div class="ty-month-category-panel">
+                  <h6 class="ty-month-category-title" id="tarotYearMonthCategoryTitle">전반 운세 해석</h6>
+                  <p class="ty-month-category-text" id="tarotYearMonthCategoryText"></p>
+                </div>
+              </div>
+              <div class="ty-advice-section">
+                <h4 class="ty-advice-title">오라클의 총평</h4>
+                <p class="ty-advice-text" id="tarotYearFinalAdvice"></p>
+              </div>
+              <div class="ty-result-actions">
+                <button type="button" class="ty-result-btn" id="tarotYearShareBtn">천운 공유</button>
+                <button type="button" class="ty-result-btn ty-result-btn--outline" id="tarotYearResetBtn">다시 점치기</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- 애니멀 토템 리딩 모달 -->
+      <div id="animalTotemOverlay" class="animal-totem-overlay" data-action="closeAnimalTotemModal" data-action-self-only="1">
+        <div class="animal-totem-shell">
+          <div class="animal-totem-panel">
+            <button class="animal-totem-close" type="button" data-action="closeAnimalTotemModal" aria-label="애니멀 토템 닫기">×</button>
+
+            <section id="animalTotemIntroStage" class="animal-totem-stage is-active">
+              <div class="totem-intro-hero">
+                <div class="totem-intro-title">ANIMAL TOTEM RITUAL</div>
+                <p class="totem-intro-subtitle">별빛의 문을 열고 오늘의 영적 메시지를 받으세요. 심층 리딩은 3장 또는 5장 스프레드로 진행됩니다.</p>
+                <div style="margin-top:14px;">
+                  <button class="totem-btn totem-btn--invoke" type="button" data-action="startAnimalTotemRitual">INVOKE MY GUIDE</button>
+                </div>
+              </div>
+              <div class="totem-canvas-wrap">
+                <canvas id="animalTotemStarCanvas" aria-hidden="true"></canvas>
+                <div id="animalTotemRuneField" class="totem-rune-field" aria-hidden="true"></div>
+              </div>
+            </section>
+
+            <section id="animalTotemModeStage" class="animal-totem-stage">
+              <h3 class="totem-draw-header">리딩 방식 선택</h3>
+              <div class="totem-mode-grid">
+                <button type="button" class="totem-mode-btn is-active" data-mode="three" data-action="setAnimalTotemSpreadMode" data-action-args="three">
+                  <b>3카드 심층 리딩</b><br><small>과거 상처 · 현재 에너지 · 통합 방향</small>
+                </button>
+                <button type="button" class="totem-mode-btn" data-mode="five" data-action="setAnimalTotemSpreadMode" data-action-args="five">
+                  <b>5카드 영성 상담</b><br><small>이성 · 감정 · 그림자 · 선물 · 다음 행동</small>
+                </button>
+              </div>
+              <div class="totem-result-actions">
+                <button type="button" class="totem-btn" data-action="drawAnimalTotemSpread">🃏 카드 펼치기</button>
+                <button type="button" class="totem-btn totem-btn--subtle" data-action="resetAnimalTotemFlow">↺ 처음으로</button>
+              </div>
+            </section>
+
+            <section id="animalTotemDrawStage" class="animal-totem-stage">
+              <h3 class="totem-draw-header">카드를 순서대로 뒤집어 영적 메시지를 받으세요</h3>
+              <div id="animalTotemCardRail" class="totem-card-grid"></div>
+            </section>
+
+            <section id="animalTotemResultStage" class="animal-totem-stage">
+              <header class="totem-reading-header">
+                <h2 class="totem-reading-title">Today's Animal Totem Message</h2>
+                <p class="totem-reading-subtitle">영적 흐름을 따라 과거의 상처, 현재의 에너지, 통합의 길을 받아들이세요.</p>
+              </header>
+              <div id="animalTotemFlowStrip" class="totem-flow-strip" aria-live="polite"></div>
+              <article class="totem-panel-float totem-panel-float--opening">
+                <h4>오라클 서문</h4>
+                <p id="animalTotemOpeningText"></p>
+              </article>
+              <div id="animalTotemReadingPanels" class="totem-consult-grid" style="margin-top:12px;"></div>
+              <article class="totem-panel-float totem-panel-float--closing" style="margin-top:12px;">
+                <h4>마무리 인도문</h4>
+                <p id="animalTotemClosingText"></p>
+              </article>
+              <div class="totem-result-actions">
+                <button type="button" class="totem-btn" data-action="shareAnimalTotemResult">💬 카카오톡 공유하기</button>
+                <button type="button" class="totem-btn totem-btn--subtle" data-action="resetAnimalTotemFlow">🔄 다시 리딩하기</button>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
 
@@ -2571,6 +2882,13 @@
 <script type="module" src="js/swisseph-loader.js"></script>
 <script src="js/saju-engine.js?v=20260315-onecard-typing" defer></script>
 <script defer src="js/core/index-inline-runtime.js"></script>
+<script src="js/services/animal-totem-content-engine.js" defer></script>
+<script src="js/animal-totem-experience.js" defer></script>
+<script src="js/tarot-love-experience.js?v=20260315-love-imgfix3" defer></script>
+<script src="js/tarot-healing-experience.js?v=20260315-tarot-image-fix5" defer></script>
+<script src="js/tarot-self-esteem-experience.js?v=20260315-tarot-image-fix1" defer></script>
+<script src="js/tarot-reunion-experience.js?v=20260315-tarot-image-fix1" defer></script>
+<script src="js/tarot-year-fortune-experience.js?v=20260315-tarot-image-fix1" defer></script>
 <div class="share-toast" id="shareToast"></div>
 
 <script src="js/share.js" defer></script>
